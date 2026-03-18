@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Winners | OcheRaffles</title>
+    <!-- 1. Load Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Configure Tailwind Theme -->
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { brand: '#e11d48', dark: '#080c16', card: '#131c2f' } } }
+        }
+    </script>
+    <!-- 3. Load Supabase & App Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</head>
+<body class="bg-dark text-slate-300 font-sans antialiased min-h-screen flex flex-col">
+
+    <nav class="border-b border-slate-800 bg-dark/95 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-brand rounded flex items-center justify-center font-bold text-white">OR</div>
+                <span class="font-bold text-xl text-white tracking-tight">OcheRaffles</span>
+            </div>
+            <div class="flex gap-6 items-center">
+                <a href="index.html" class="text-slate-400 hover:text-white transition text-sm">Live Draws</a>
+                <a href="past.html" class="text-white font-medium text-sm">Past Winners</a>
+                <a href="auth.html" class="auth-link bg-card hover:bg-slate-800 border border-slate-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition shadow-sm">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-12 w-full flex-grow">
+        <h1 class="text-3xl font-bold text-white mb-2">The Hall of Fame</h1>
+        <p class="text-slate-400 mb-10">Recent winners of our pro-direct memorabilia drops.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-dark rounded-2xl border border-slate-800 overflow-hidden flex flex-col opacity-80 hover:opacity-100 transition-opacity">
+                <div class="h-48 bg-slate-900 relative flex items-center justify-center border-b border-slate-800">
+                    <span class="text-slate-700 text-sm font-mono">[Image: Target Aspar Board]</span>
+                    <div class="absolute inset-0 bg-dark/40 flex items-center justify-center backdrop-blur-sm">
+                        <span class="bg-dark/80 text-white font-bold px-6 py-2 border border-slate-600 rounded-full">DRAW CLOSED</span>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-bold text-lg text-slate-300 mb-4">Target Aspar Board Setup</h3>
+                    <div class="bg-card p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                        <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xl">✓</div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase tracking-wider">Winner</p>
+                            <p class="text-white font-bold">@BullseyeBill_92</p>
+                            <p class="text-xs text-slate-500">Winning Ticket: #142</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dark rounded-2xl border border-slate-800 overflow-hidden flex flex-col opacity-80 hover:opacity-100 transition-opacity">
+                <div class="h-48 bg-slate-900 relative flex items-center justify-center border-b border-slate-800">
+                    <span class="text-slate-700 text-sm font-mono">[Image: Gen 1 Flights]</span>
+                    <div class="absolute inset-0 bg-dark/40 flex items-center justify-center backdrop-blur-sm">
+                        <span class="bg-dark/80 text-white font-bold px-6 py-2 border border-slate-600 rounded-full">DRAW CLOSED</span>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-bold text-lg text-slate-300 mb-4">Signed Gen 1 Flights</h3>
+                    <div class="bg-card p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                        <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xl">✓</div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase tracking-wider">Winner</p>
+                            <p class="text-white font-bold">Sarah T. (London)</p>
+                            <p class="text-xs text-slate-500">Winning Ticket: #89</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Professional Compliance Footer added to past.html -->
+    <footer class="bg-dark border-t border-slate-800/80 pt-16 pb-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-6 h-6 bg-brand rounded flex items-center justify-center font-bold text-white text-xs">OR</div>
+                        <span class="font-bold text-lg text-white">OcheRaffles</span>
+                    </div>
+                    <p class="text-slate-500 text-sm max-w-sm mb-6">Providing fair, transparent, and legally compliant skill-based competitions for the global darts community.</p>
+                    <div class="flex gap-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal Accepted" class="h-6 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition">
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Platform</h4>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="index.html" class="hover:text-white transition">Live Draws</a></li>
+                        <li><a href="past.html" class="hover:text-white transition">Past Winners</a></li>
+                        <li><a href="#" class="hover:text-white transition">Charity Partners</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Support & Legal</h4>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="mailto:contact@sharpsolutions.live" class="hover:text-brand text-white transition font-medium">Contact Sharp Solutions</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms & Conditions</a></li>
+                        <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-800/80 pt-8 mt-8 text-xs text-slate-600 text-center space-y-2">
+                <p>OcheRaffles operates prize competitions which are free from regulation under the Gambling Act 2005. All entrants must be 18 years or older and answer a skill-based question to qualify.</p>
+                <p>OcheRaffles is not affiliated with, maintained by, or in any way officially connected with the Professional Darts Corporation (PDC) or Target Darts.</p>
+                <p>&copy; 2026 OcheRaffles Ltd. All rights reserved. | <a href="https://sharpsolutions.live" class="text-brand hover:underline">Powered by Sharp Solutions</a></p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

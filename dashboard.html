@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Vault | OcheRaffles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { brand: '#e11d48', dark: '#080c16', card: '#131c2f' } } }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</head>
+<body class="bg-dark text-slate-300 font-sans antialiased min-h-screen relative">
+    
+    <nav class="border-b border-slate-800/80 bg-dark sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-bold text-white">OR</div>
+                <span class="font-extrabold text-2xl text-white tracking-tight hidden sm:block">OcheRaffles</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <span id="user-email-display" class="text-sm text-slate-400">Loading...</span>
+                <button onclick="signOut()" class="text-slate-500 hover:text-white text-sm border border-slate-700 px-3 py-1 rounded-lg transition">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 py-12 z-10 relative flex-grow">
+        <h1 class="text-3xl font-black text-white mb-2">My Ticket Vault</h1>
+        <p class="text-slate-400 mb-10">Manage your active entries and view past results.</p>
+        
+        <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-800 pb-2">Secured Entries</h2>
+        
+        <div id="ticket-list" class="space-y-4">
+            <p class="text-slate-500">Loading your vault...</p>
+        </div>
+    </main>
+
+    <!-- PROFILE COMPLETION MODAL -->
+    <div id="profile-modal" class="fixed inset-0 bg-dark/95 backdrop-blur-md z-[110] hidden flex-col items-center justify-center p-4">
+        <div class="w-full max-w-md bg-card border border-brand/30 rounded-3xl p-8 shadow-2xl relative">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-white mb-2">Claim your OcheTag</h2>
+                <p class="text-sm text-slate-400">Choose a username to display on the live draw leaderboards!</p>
+            </div>
+            <form class="space-y-5" onsubmit="saveProfile(event)">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Username *</label>
+                    <input type="text" id="dash-username-input" required placeholder="e.g. HeavyMetalFan99" class="w-full bg-dark border border-slate-700 rounded-xl px-5 py-4 text-white focus:border-brand focus:outline-none transition-all font-bold text-lg text-center">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number (Win Alerts)</label>
+                    <input type="tel" id="dash-phone-input" placeholder="+44 7700 900000" class="w-full bg-dark border border-slate-700 rounded-xl px-5 py-4 text-white focus:border-brand focus:outline-none transition-all text-center">
+                </div>
+                <button type="submit" class="w-full bg-brand hover:bg-rose-600 text-white font-bold py-4 rounded-xl transition-colors mt-4 shadow-lg shadow-brand/20" id="btn-save-profile">Secure Profile & Enter Vault</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-dark border-t border-slate-800/80 pt-8 pb-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-xs text-slate-600 text-center space-y-2">
+            <p>&copy; 2026 OcheRaffles Ltd. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            
+            if (!user) {
+                window.location.href = "auth.html";
+                return;
+            }
+
+            currentUser = user;
+            document.getElementById('user-email-display').innerText = user.email;
+
+            // Check if profile has a username
+            const { data: profile, error: profileError } = await window.supabaseClient.from('profiles').select('*').eq('id', user.id).single();
+            
+            // Show modal if they haven't picked a username
+            if (profileError || !profile || !profile.username) {
+                document.getElementById('profile-modal').classList.remove('hidden');
+                document.getElementById('profile-modal').classList.add('flex');
+            }
+
+            // CRITICAL FIX: Trigger the new global vault fetcher from app.js
+            if (window.loadGlobalVault) {
+                window.loadGlobalVault(user.id);
+            } else {
+                console.error("loadGlobalVault is missing. You need to hard-refresh to load the new app.js!");
+                document.getElementById('ticket-list').innerHTML = `<p class="text-brand">Error: Please do a Hard Refresh (Ctrl+F5 or Cmd+Shift+R) to clear your cache.</p>`;
+            }
+        });
+
+        async function saveProfile(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-profile');
+            btn.innerText = "Saving...";
+            
+            const username = document.getElementById('dash-username-input').value;
+            const phone = document.getElementById('dash-phone-input').value;
+
+            // Fully upsert and save all details to Database (Email, Phone, Username)
+            const { error } = await window.supabaseClient.from('profiles').upsert({
+                id: currentUser.id,
+                email: currentUser.email,
+                username: username,
+                phone: phone
+            });
+
+            if (error) {
+                console.error(error);
+                alert("Error saving profile. The Username might be taken.");
+                btn.innerText = "Secure Profile & Enter Vault";
+            } else {
+                document.getElementById('profile-modal').classList.add('hidden');
+                document.getElementById('profile-modal').classList.remove('flex');
+                
+                // Refresh vault immediately now that profile is linked!
+                if (window.loadGlobalVault) window.loadGlobalVault(currentUser.id);
+            }
+        }
+
+        async function signOut() {
+            await window.supabaseClient.auth.signOut();
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

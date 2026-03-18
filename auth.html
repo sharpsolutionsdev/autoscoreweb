@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login | OcheRaffles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { brand: '#e11d48', dark: '#080c16', card: '#131c2f' } } }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</head>
+<body class="bg-dark text-slate-300 font-sans antialiased min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-card border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        
+        <div id="step-1" class="transition-all duration-300">
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 bg-gradient-to-br from-brand to-rose-700 rounded-xl flex items-center justify-center font-bold text-white text-2xl mx-auto mb-6">OR</div>
+                <h2 class="text-3xl font-bold text-white mb-2">Access the Vault</h2>
+                <p class="text-sm text-slate-400">Enter your email for a secure login.</p>
+            </div>
+            <form class="space-y-5" onsubmit="sendOTP(event)">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+                    <input type="email" id="email-input" required placeholder="dartsfan@example.com" class="w-full bg-dark border border-slate-700 rounded-xl px-5 py-4 text-white focus:border-brand focus:outline-none transition-all">
+                </div>
+                <button type="submit" id="btn-send" class="w-full bg-white hover:bg-slate-200 text-dark font-bold py-4 rounded-xl transition-colors mt-4">Send Secure OTP</button>
+            </form>
+            <p class="text-center text-xs text-slate-500 mt-6"><a href="index.html" class="hover:text-white transition">Return to Home</a></p>
+        </div>
+
+        <div id="step-2" class="hidden transition-all duration-300">
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 bg-emerald-500/20 text-emerald-500 rounded-xl flex items-center justify-center font-bold text-2xl mx-auto mb-6">✓</div>
+                <h2 class="text-2xl font-bold text-white mb-2">Check your Email</h2>
+                <p class="text-sm text-slate-400">Enter the 6-digit code we just sent.</p>
+            </div>
+            <form class="space-y-6" onsubmit="verifyOTP(event)">
+                <div class="flex justify-between gap-2">
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold bg-dark border border-slate-700 rounded-lg text-white focus:border-brand focus:outline-none" required>
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold bg-dark border border-slate-700 rounded-lg text-white focus:border-brand focus:outline-none" required>
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold bg-dark border border-slate-700 rounded-lg text-white focus:border-brand focus:outline-none" required>
+                    <span class="text-slate-600 text-3xl font-bold mt-2">-</span>
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold bg-dark border border-slate-700 rounded-lg text-white focus:border-brand focus:outline-none" required>
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold bg-dark border border-slate-700 rounded-lg text-white focus:border-brand focus:outline-none" required>
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold bg-dark border border-slate-700 rounded-lg text-white focus:border-brand focus:outline-none" required>
+                </div>
+                <button type="submit" id="btn-verify" class="w-full bg-brand hover:bg-rose-600 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-brand/20">Verify Code</button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        let userEmail = "";
+        
+        const inputs = document.querySelectorAll('.otp-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('keyup', (e) => {
+                if (e.target.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
+                if (e.key === "Backspace" && index > 0) inputs[index - 1].focus();
+            });
+        });
+
+        async function sendOTP(e) {
+            e.preventDefault();
+            userEmail = document.getElementById('email-input').value;
+            document.getElementById('btn-send').innerText = "Sending...";
+
+            const { error } = await window.supabaseClient.auth.signInWithOtp({ email: userEmail });
+
+            if (error) {
+                alert(error.message);
+                document.getElementById('btn-send').innerText = "Send Secure OTP";
+            } else {
+                document.getElementById('step-1').classList.add('hidden');
+                document.getElementById('step-2').classList.remove('hidden');
+                document.querySelector('.otp-input').focus();
+            }
+        }
+
+        async function verifyOTP(e) {
+            e.preventDefault();
+            document.getElementById('btn-verify').innerText = "Verifying...";
+            let token = "";
+            document.querySelectorAll('.otp-input').forEach(input => token += input.value);
+
+            const { data, error } = await window.supabaseClient.auth.verifyOtp({
+                email: userEmail,
+                token: token,
+                type: 'email'
+            });
+
+            if (error) {
+                alert("Incorrect or expired code.");
+                document.getElementById('btn-verify').innerText = "Verify Code";
+            } else {
+                // CRITICAL FIX: Ensure a base profile row exists before they spin the wheel so tickets can save!
+                await window.supabaseClient.from('profiles').upsert({ id: data.user.id, email: userEmail });
+                
+                // Straight to the Home Page for the Wheel Spin!
+                window.location.href = "index.html"; 
+            }
+        }
+    </script>
+</body>
+</html>

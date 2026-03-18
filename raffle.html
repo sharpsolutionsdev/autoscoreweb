@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter Draw | OcheRaffles</title>
+    <!-- 1. Load Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Configure Tailwind Theme -->
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { brand: '#e11d48', dark: '#080c16', card: '#131c2f' } } }
+        }
+    </script>
+    <!-- 3. Load Supabase, PayPal SDK & App Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=test&currency=GBP"></script>
+    <script src="app.js"></script>
+</head>
+<body class="bg-dark text-slate-300 font-sans antialiased min-h-screen">
+    
+    <main class="max-w-5xl mx-auto px-4 py-12">
+        <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition mb-8 w-max text-sm font-medium">
+            &larr; Back to all draws
+        </a>
+        
+        <div class="bg-card rounded-3xl border border-slate-800 overflow-hidden flex flex-col md:flex-row shadow-2xl">
+            <div class="md:w-1/2 bg-slate-800 min-h-[400px] relative flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-700 bg-cover bg-center" id="tier-image">
+                 <div class="absolute inset-0 bg-dark/20"></div>
+                 <div class="absolute top-4 left-4 bg-dark/90 backdrop-blur text-white px-4 py-2 rounded-xl border border-slate-700 shadow-xl flex items-center gap-3">
+                     <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
+                     <div class="font-mono font-bold text-lg tracking-wider" id="countdown">48:22:10</div>
+                 </div>
+            </div>
+            
+            <div class="md:w-1/2 p-8 sm:p-12 flex flex-col">
+                <div class="bg-brand/10 text-brand text-xs font-bold px-3 py-1.5 rounded-full w-max mb-6 uppercase tracking-wider border border-brand/20" id="tier-charity">
+                    Supporting Charity
+                </div>
+                
+                <h1 id="tier-title" class="text-3xl font-black text-white mb-4">Loading Draw...</h1>
+                
+                <div class="flex items-center gap-4 mb-8 pb-8 border-b border-slate-800">
+                    <span class="text-3xl font-bold text-white"><span id="tier-price">£0.00</span> <span class="text-sm font-normal text-slate-500">per entry</span></span>
+                    <span class="bg-slate-800 text-slate-300 text-xs px-2 py-1 rounded">Max 50</span>
+                </div>
+
+                <div class="mb-8">
+                    <div class="flex justify-between text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wider">
+                        <span id="tier-sold-text">0 / 0 Sold</span>
+                        <span id="tier-pct-text" class="text-brand">0%</span>
+                    </div>
+                    <div class="w-full bg-dark rounded-full h-2 border border-slate-800 overflow-hidden">
+                        <div id="tier-progress" class="bg-gradient-to-r from-brand to-rose-400 h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-dark p-6 rounded-2xl border border-slate-800 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-white font-bold">Select Entries</span>
+                        <div class="flex items-center gap-4 bg-card rounded-xl p-1 border border-slate-700">
+                            <button onclick="updateQty(-1)" class="w-10 h-10 flex justify-center items-center text-2xl hover:text-white transition rounded-lg hover:bg-slate-700">-</button>
+                            <span id="qty-display" class="font-black text-xl text-white w-8 text-center">1</span>
+                            <button onclick="updateQty(1)" class="w-10 h-10 flex justify-center items-center text-2xl hover:text-white transition rounded-lg hover:bg-slate-700">+</button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mb-6 pb-6 border-b border-slate-800">
+                        <input type="text" id="promo-input" placeholder="Promo Code (e.g. RYAN180)" class="w-full bg-card border border-slate-700 rounded-lg px-4 py-2 text-white text-sm focus:border-brand focus:outline-none uppercase">
+                        <button id="promo-btn" onclick="applyPromo()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors">Apply</button>
+                    </div>
+                    
+                    <div class="flex justify-between items-end">
+                        <span class="text-slate-400 font-medium pb-1">Total to Pay:</span>
+                        <div class="text-right flex flex-col items-end">
+                            <div id="discount-display" class="bg-brand/20 text-brand text-xs font-bold px-2 py-1 rounded mb-1 hidden border border-brand/30">
+                                RYAN180: 2-FOR-1 APPLIED
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span id="original-price" class="text-xl font-bold text-slate-500 line-through hidden">£0.00</span>
+                                <span id="total-price" class="text-4xl font-black text-white transition-colors duration-300">£0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AUTH GATE -->
+                <div id="auth-gate-container" class="hidden mt-auto">
+                    <a href="auth.html" class="block w-full text-center bg-brand hover:bg-rose-600 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-brand/20">Sign In to Enter Draw</a>
+                </div>
+
+                <!-- PAYPAL BUTTONS -->
+                <div id="paypal-button-container" class="mt-auto relative z-0 hidden"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tierId = urlParams.get('tier') || "3";
+        
+        let currentPrice = 0;
+        let qty = 1;
+        let isPromoApplied = false;
+
+        // The Mockup Fallback Database with Doubled Fair Odds
+        const fallbackDb = {
+            "1": { title: 'Signed "Heavy Metal" Flights', price_per_ticket: 2.00, tickets_sold: 8, max_tickets: 20, image_url: '', charity_name: "Cure ADOA Foundation" },
+            "2": { title: "Signed 2024 Replica Shirt", price_per_ticket: 5.00, tickets_sold: 24, max_tickets: 40, image_url: '', charity_name: "Cure ADOA Foundation" },
+            "3": { title: "Match-Used 32g Loxley Darts", price_per_ticket: 10.00, tickets_sold: 28, max_tickets: 32, image_url: '', charity_name: "Cure ADOA Foundation" },
+            "4": { title: "The 'Heavy Metal' Dream Setup", price_per_ticket: 25.00, tickets_sold: 4, max_tickets: 32, image_url: '', charity_name: "Cure ADOA Foundation" },
+            "5": { title: "30-Min Form Analysis Call", price_per_ticket: 15.00, tickets_sold: 36, max_tickets: 40, image_url: '', charity_name: "Cure ADOA Foundation" }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if (!user) {
+                document.getElementById('auth-gate-container').classList.remove('hidden');
+            } else {
+                document.getElementById('paypal-button-container').classList.remove('hidden');
+            }
+
+            // Try to load from DB, if it fails (like 0/0 error), load the fallback math!
+            let activeTier;
+            const { data, error } = await window.supabaseClient.from('raffles').select('*').eq('id', tierId).single();
+            
+            if (error || !data) {
+                console.warn("DB not connected yet, using fair odds fallback math.");
+                activeTier = fallbackDb[tierId] || fallbackDb["3"];
+            } else {
+                activeTier = data;
+            }
+
+            currentPrice = activeTier.price_per_ticket;
+            
+            document.getElementById('tier-title').innerText = activeTier.title;
+            document.getElementById('tier-price').innerText = `£${currentPrice.toFixed(2)}`;
+            document.getElementById('tier-charity').innerText = `Supporting: ${activeTier.charity_name || 'Cure ADOA Foundation'}`;
+            if(activeTier.image_url) document.getElementById('tier-image').style.backgroundImage = `url('${activeTier.image_url}')`;
+            
+            const pct = Math.round((activeTier.tickets_sold / activeTier.max_tickets) * 100);
+            document.getElementById('tier-sold-text').innerText = `${activeTier.tickets_sold} / ${activeTier.max_tickets} Sold`;
+            document.getElementById('tier-pct-text').innerText = `${pct}%`;
+            setTimeout(() => { document.getElementById('tier-progress').style.width = `${pct}%`; }, 100);
+
+            calculateTotal();
+        });
+
+        function calculateTotal() {
+            let subtotal = qty * currentPrice;
+            let discount = 0;
+            if (isPromoApplied) {
+                let eligibleAmount = subtotal > 25 ? 25 : subtotal;
+                discount = eligibleAmount * 0.5;
+                document.getElementById('original-price').innerText = `£${subtotal.toFixed(2)}`;
+                document.getElementById('original-price').classList.remove('hidden');
+                document.getElementById('total-price').classList.add('text-brand');
+            } else {
+                document.getElementById('original-price').classList.add('hidden');
+                document.getElementById('total-price').classList.remove('text-brand');
+            }
+            let finalTotal = subtotal - discount;
+            document.getElementById('total-price').innerText = `£${finalTotal.toFixed(2)}`;
+            return finalTotal;
+        }
+
+        function updateQty(change) {
+            qty += change;
+            if (qty < 1) qty = 1;
+            if (qty > 50) qty = 50;
+            document.getElementById('qty-display').innerText = qty;
+            calculateTotal();
+        }
+
+        function applyPromo() {
+            const code = document.getElementById('promo-input').value.toUpperCase().trim();
+            if (code === "RYAN180") {
+                isPromoApplied = true;
+                document.getElementById('discount-display').classList.remove('hidden');
+                document.getElementById('promo-input').disabled = true;
+                document.getElementById('promo-btn').innerText = "Applied";
+                calculateTotal();
+            } else alert("Invalid Code.");
+        }
+
+        paypal.Buttons({
+            style: { color: 'blue', shape: 'rect', height: 50 },
+            createOrder: (data, actions) => {
+                return actions.order.create({
+                    purchase_units: [{ amount: { value: calculateTotal().toFixed(2) } }]
+                });
+            },
+            onApprove: (data, actions) => {
+                return actions.order.capture().then(async (details) => {
+                    const txId = details.id;
+                    const { data: { user } } = await window.supabaseClient.auth.getUser();
+
+                    const { error } = await window.supabaseClient.from('user_tickets').insert([{
+                        user_id: user.id,
+                        raffle_id: tierId,
+                        qty: qty,
+                        paypal_transaction_id: txId,
+                        purchase_price: calculateTotal()
+                    }]);
+
+                    if (error) {
+                        console.error(error);
+                        alert(`DB Error. Save your Transaction ID: ${txId} and contact support.`);
+                    } else {
+                        alert('Success! Tickets securely added to your Vault.');
+                        window.location.href = "dashboard.html";
+                    }
+                });
+            }
+        }).render('#paypal-button-container');
+
+        let timeInSeconds = 174130; 
+        setInterval(() => {
+            timeInSeconds--;
+            document.getElementById('countdown').innerText = new Date(timeInSeconds * 1000).toISOString().substr(11, 8);
+        }, 1000);
+    </script>
+</body>
+</html>
