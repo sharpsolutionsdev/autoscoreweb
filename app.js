@@ -138,3 +138,53 @@ window.injectFreeTickets = async function(wonAmount) {
         return false;
     }
 };
+
+// --- PAYMENT HELPERS ---
+window.processPayment = async function(paypalOrderId, raffleId, quantity, promoCode, userId) {
+    /**
+     * Client-side wrapper that calls the Supabase Edge Function
+     * This provides client-side validation before calling the secure backend
+     */
+    try {
+        if (!paypalOrderId || !raffleId || !quantity || !userId) {
+            throw new Error('Missing required payment fields');
+        }
+
+        const supabaseUrl = window.supabaseClient.supabaseUrl;
+        const response = await fetch(`${supabaseUrl}/functions/v1/process-payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                paypalOrderId,
+                raffleId: parseInt(raffleId),
+                quantity: parseInt(quantity),
+                promoCode: promoCode ? promoCode.toUpperCase() : null,
+                userId
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error('Payment processing error:', result);
+            throw new Error(result.error || 'Payment processing failed');
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Payment error:', error);
+        throw error;
+    }
+};
+
+// --- UTILITY: Refresh Vault After Purchase ---
+window.refreshVaultAfterPurchase = async function(userId) {
+    /**
+     * Called after successful payment to reload vault UI
+     */
+    if (window.loadGlobalVault) {
+        await window.loadGlobalVault(userId);
+    }
+};

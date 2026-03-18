@@ -29,6 +29,19 @@
     </nav>
 
     <main class="max-w-5xl mx-auto px-4 py-12 z-10 relative flex-grow">
+        <!-- Success Toast -->
+        <div id="success-toast" class="hidden fixed top-8 right-8 bg-success/10 border border-success/30 text-success rounded-xl p-6 shadow-2xl backdrop-blur-md z-50 animate-pulse max-w-sm">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                </svg>
+                <div>
+                    <h3 class="font-bold">Purchase Successful!</h3>
+                    <p class="text-sm text-slate-400">Your tickets have been added to your vault.</p>
+                </div>
+            </div>
+        </div>
+
         <h1 class="text-3xl font-black text-white mb-2">My Ticket Vault</h1>
         <p class="text-slate-400 mb-10">Manage your active entries and view past results.</p>
         
@@ -80,6 +93,14 @@
             currentUser = user;
             document.getElementById('user-email-display').innerText = user.email;
 
+            // Check if this is a successful purchase return
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                showSuccessToast();
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
             // Check if profile has a username
             const { data: profile, error: profileError } = await window.supabaseClient.from('profiles').select('*').eq('id', user.id).single();
             
@@ -97,6 +118,14 @@
                 document.getElementById('ticket-list').innerHTML = `<p class="text-brand">Error: Please do a Hard Refresh (Ctrl+F5 or Cmd+Shift+R) to clear your cache.</p>`;
             }
         });
+
+        function showSuccessToast() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
+        }
 
         async function saveProfile(e) {
             e.preventDefault();
