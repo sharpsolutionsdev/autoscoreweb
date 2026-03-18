@@ -13,22 +13,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     const authLinks = document.querySelectorAll('.auth-link');
     
     if (user) {
-        // Fetch their OcheTag (username)
-        const { data: profile } = await window.supabaseClient
-            .from('profiles')
-            .select('username')
-            .eq('id', user.id)
-            .single();
-            
-        const displayName = profile?.username ? profile.username : 'My Vault';
-        
-        // Update navigation buttons dynamically
+        const [{ data: profile }, { data: tickets }] = await Promise.all([
+            window.supabaseClient.from('profiles').select('username, avatar_url').eq('id', user.id).single(),
+            window.supabaseClient.from('user_tickets').select('qty').eq('user_id', user.id)
+        ]);
+
+        const displayName  = profile?.username || 'My Vault';
+        const avatarUrl    = profile?.avatar_url || null;
+        const totalTickets = tickets ? tickets.reduce((s, t) => s + (t.qty || 0), 0) : 0;
+        const initial      = displayName.charAt(0).toUpperCase();
+
+        const avatarHtml = avatarUrl
+            ? `<img src="${avatarUrl}" alt="" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.15);flex-shrink:0;">`
+            : `<span style="width:26px;height:26px;border-radius:50%;background:rgba(220,38,38,0.25);border:1.5px solid rgba(220,38,38,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:white;flex-shrink:0;">${initial}</span>`;
+
         authLinks.forEach(link => {
-            link.href = "dashboard.html";
-            link.innerText = displayName;
-            link.classList.remove('bg-card', 'text-white', 'border-slate-700');
-            link.classList.add('bg-brand', 'text-white', 'border-brand');
+            link.href = 'dashboard.html';
+            link.innerHTML = avatarHtml + `<span style="font-size:13px;font-weight:600;color:white;">${displayName}</span>`;
+            link.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;';
+            link.classList.remove('bg-card','bg-brand','border-brand');
         });
+
+        // Ticket count pill — inserted before the profile link
+        if (!document.getElementById('nav-ticket-pill')) {
+            authLinks.forEach(link => {
+                const pill = document.createElement('a');
+                pill.id   = 'nav-ticket-pill';
+                pill.href = 'dashboard.html';
+                pill.innerHTML = `<svg style="width:14px;height:14px;color:#f59e0b;flex-shrink:0;" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v2a1 1 0 01-1 1 1 1 0 100 2 1 1 0 011 1v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2a1 1 0 011-1 1 1 0 100-2 1 1 0 01-1-1V6z"/></svg><span style="font-size:13px;font-weight:700;color:#f59e0b;">${totalTickets}</span>`;
+                pill.style.cssText = 'display:flex;align-items:center;gap:5px;background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.22);border-radius:12px;padding:6px 11px;text-decoration:none;transition:all 0.2s;';
+                pill.onmouseenter = () => { pill.style.background='rgba(245,158,11,0.14)'; pill.style.borderColor='rgba(245,158,11,0.45)'; };
+                pill.onmouseleave = () => { pill.style.background='rgba(245,158,11,0.08)'; pill.style.borderColor='rgba(245,158,11,0.22)'; };
+                link.parentNode.insertBefore(pill, link);
+            });
+        }
     }
 
     // --- IF ON HOMEPAGE: INJECT LIVE RAFFLE STATS ---
@@ -86,19 +104,33 @@ window.loadGlobalVault = async function(passedUserId) {
         return;
     }
 
-    list.innerHTML = tickets.map(t => `
-        <div class="bg-card border border-brand/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between shadow-lg mb-4 hover:border-brand/50 transition-colors">
-            <div class="flex items-center gap-6 mb-4 md:mb-0 w-full md:w-auto">
-                <div class="w-16 h-16 bg-dark rounded-lg border border-brand/30 flex flex-col items-center justify-center text-white font-black shadow-inner">
-                    <span class="text-xs text-brand font-bold">QTY</span>
-                    <span class="text-xl">${t.qty}</span>
+    // Format date helper
+    const fmtDate = iso => new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+    list.innerHTML = tickets.map((t, i) => `
+        <div class="vault-card rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-white/5"
+             style="animation: floatUp 0.4s ${i * 0.06}s cubic-bezier(0.22,1,0.36,1) both;">
+            <div class="flex items-center gap-5 w-full sm:w-auto">
+                <!-- Ticket count badge (mini dartboard-inspired) -->
+                <div class="relative w-16 h-16 flex-shrink-0 rounded-full border-2 border-brand/30 flex flex-col items-center justify-center bg-dark overflow-hidden shadow-[0_0_12px_rgba(220,38,38,0.15)]">
+                    <div class="absolute inset-0 ticket-badge opacity-[0.12] rounded-full"></div>
+                    <span class="relative text-[9px] text-brand font-bold uppercase tracking-wider leading-none">QTY</span>
+                    <span class="relative text-2xl font-black text-white leading-none" style="font-family:'Barlow Condensed',sans-serif;">${t.qty}</span>
                 </div>
-                <div>
-                    <div class="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> SECURED ENTRY
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse flex-shrink-0"></span>
+                        <span class="text-[10px] text-success font-bold uppercase tracking-widest">Secured Entry</span>
                     </div>
-                    <h3 class="text-lg font-bold text-white">${t.raffles ? t.raffles.title : 'Free Welcome Tickets'}</h3>
-                    <p class="text-xs text-slate-500 font-mono mt-1">TX: ${t.paypal_transaction_id}</p>
+                    <h3 class="font-bold text-white text-base leading-snug mb-1" style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;">${t.raffles ? t.raffles.title : 'Free Welcome Tickets'}</h3>
+                    <p class="text-[11px] text-slate-600 font-mono truncate max-w-xs">TX: ${t.paypal_transaction_id}</p>
+                </div>
+            </div>
+            <div class="flex-shrink-0 pl-20 sm:pl-0">
+                <p class="text-[10px] text-slate-600 font-medium uppercase tracking-wider">${fmtDate(t.created_at)}</p>
+                <div class="mt-1 flex items-center gap-1.5 text-accent text-[10px] font-bold uppercase tracking-wider">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
+                    Draw Pending
                 </div>
             </div>
         </div>

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OcheRaffles | Pro-Direct Memorabilia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
@@ -11,10 +14,14 @@
         tailwind.config = {
             theme: { 
                 extend: { 
+                    fontFamily: {
+                        display: ['"Barlow Condensed"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
                     colors: { 
                         brand: '#dc2626',
-                        dark: '#0f172a',
-                        card: '#1e293b',
+                        dark: '#0c1220',
+                        card: '#141f35',
                         accent: '#f59e0b',
                         success: '#10b981',
                         warning: '#ef4444'
@@ -24,305 +31,1138 @@
             }
         }
     </script>
+    <style>
+        /* Dartboard sector background */
+        .oche-bg {
+            background-image: repeating-conic-gradient(
+                from 0deg,
+                rgba(220,38,38,0.035) 0deg 18deg,
+                rgba(255,255,255,0.012) 18deg 36deg
+            );
+        }
+
+        /* Premium card hover lift */
+        .prize-card {
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        border-color 0.3s ease;
+        }
+        .prize-card:hover { transform: translateY(-8px); }
+
+        /* Stat bar glow */
+        .stat-bar-brand { box-shadow: 0 0 8px rgba(220,38,38,0.4); }
+        .stat-bar-accent { box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+
+        /* Price number style */
+        .price-num {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: -0.02em;
+        }
+
+        /* Entry button glow effect */
+        .btn-brand:hover { box-shadow: 0 0 20px rgba(220,38,38,0.4); }
+        .btn-accent:hover { box-shadow: 0 0 20px rgba(245,158,11,0.4); }
+
+        /* Flight SVG hover effect */
+        .prize-card:hover .prize-img-overlay { opacity: 0; }
+        .prize-img-overlay { transition: opacity 0.3s; }
+
+        @keyframes dartFly { 0% { opacity:0; transform: translateX(-6px); } 100% { opacity:1; transform: translateX(0); } }
+        .dart-animate { animation: dartFly 0.5s ease forwards; }
+    </style>
 </head>
 <body class="bg-dark text-slate-300 font-sans antialiased flex flex-col min-h-screen relative overflow-x-hidden">
 
-    <!-- Ambient Background Glow -->
-    <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-full max-w-4xl h-[600px] bg-brand/10 blur-[150px] rounded-full pointer-events-none z-0"></div>
+    <!-- Ambient Background: Dartboard texture + glow -->
+    <div class="absolute inset-0 oche-bg pointer-events-none z-0 opacity-60"></div>
+    <div class="absolute top-[-8%] left-1/2 -translate-x-1/2 w-full max-w-5xl h-[700px] bg-brand/8 blur-[180px] rounded-full pointer-events-none z-0"></div>
 
-    <nav class="border-b border-slate-700/50 bg-dark/95 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+    <!-- NAV -->
+    <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3 relative z-10 group">
-                <div class="w-10 h-10 bg-gradient-to-br from-brand to-accent rounded-xl flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] group-hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all duration-300">OR</div>
-                <span class="font-extrabold text-2xl text-white tracking-tight hidden sm:block">OcheRaffles</span>
+            <div class="flex items-center gap-3">
+                <!-- Dartboard logo mark -->
+                <div class="relative w-10 h-10 flex-shrink-0">
+                    <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="19" fill="#dc2626"/>
+                        <circle cx="20" cy="20" r="14" fill="#1e293b"/>
+                        <circle cx="20" cy="20" r="9" fill="#dc2626"/>
+                        <circle cx="20" cy="20" r="4" fill="#1e293b"/>
+                        <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
+                    </svg>
+                </div>
+                <span class="font-display font-900 text-2xl text-white tracking-tight hidden sm:block" style="font-size:1.5rem;font-weight:900;font-style:italic;letter-spacing:-0.02em;">OcheRaffles</span>
             </div>
-            <div class="flex gap-6 items-center relative z-10">
-                <a href="#how-it-works" class="hidden md:block text-slate-400 hover:text-white transition text-sm font-medium">How It Works</a>
+            <div class="flex gap-3 items-center">
                 <a href="past.html" class="hidden md:block text-slate-400 hover:text-white transition text-sm font-medium">Past Winners</a>
-                <a href="auth.html" class="auth-link bg-gradient-to-r from-card to-slate-800 hover:from-slate-700 hover:to-slate-600 border border-slate-600 hover:border-slate-400 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl">Sign In</a>
+                <a href="#faq" class="hidden md:block text-slate-400 hover:text-white transition text-sm font-medium">FAQ</a>
+                <!-- How It Works — bold pill button -->
+                <a href="how-it-works.html" class="hidden md:flex items-center gap-2 bg-card/80 hover:bg-slate-700/60 border border-slate-600/50 hover:border-brand/50 text-white text-xs font-black px-4 py-2 rounded-full transition-all uppercase tracking-widest shadow-md hover:shadow-[0_0_14px_rgba(220,38,38,0.2)]" style="letter-spacing:0.08em;">
+                    <div style="width:18px;height:18px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg style="width:10px;height:10px;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    </div>
+                    How It Works
+                </a>
+                <a href="auth.html" class="auth-link bg-card hover:bg-slate-700/80 border border-slate-600/60 hover:border-slate-400 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-lg">Sign In</a>
             </div>
         </div>
     </nav>
 
+    <!-- HERO -->
     <header class="max-w-7xl mx-auto px-4 py-20 sm:py-28 w-full text-center relative z-10">
-        <div class="inline-flex items-center gap-2 bg-brand/10 border border-brand/20 text-brand text-xs font-bold px-5 py-2.5 rounded-full mb-8 uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.15)] backdrop-blur-sm">
-            <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span> Partner Spotlight: Ryan Searle
+        <!-- Decorative large dartboard (background) -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none opacity-[0.025]">
+            <svg viewBox="0 0 600 600" width="600" height="600" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="300" cy="300" r="290" fill="none" stroke="white" stroke-width="2"/>
+                <circle cx="300" cy="300" r="255" fill="none" stroke="white" stroke-width="1"/>
+                <circle cx="300" cy="300" r="195" fill="none" stroke="white" stroke-width="1.5"/>
+                <circle cx="300" cy="300" r="155" fill="none" stroke="white" stroke-width="1"/>
+                <circle cx="300" cy="300" r="80" fill="none" stroke="white" stroke-width="2"/>
+                <circle cx="300" cy="300" r="40" fill="none" stroke="white" stroke-width="2"/>
+                <circle cx="300" cy="300" r="15" fill="white" opacity="0.5"/>
+                <!-- 20 sector lines -->
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(18 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(36 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(54 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(72 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(90 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(108 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(126 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(144 300 300)"/>
+                <line x1="300" y1="10" x2="300" y2="590" stroke="white" stroke-width="0.5" transform="rotate(162 300 300)"/>
+            </svg>
         </div>
-        <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black text-white mb-6 tracking-tighter leading-tight">
-            Pro-Direct Memorabilia. <br>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand via-red-500 to-accent drop-shadow-sm">Fair Distribution.</span>
+
+        <div class="inline-flex items-center gap-2 bg-brand/10 border border-brand/25 text-brand text-xs font-bold px-5 py-2.5 rounded-full mb-8 uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.12)] backdrop-blur-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span> Partner Spotlight: Ryan "Heavy Metal" Searle
+        </div>
+
+        <h1 class="font-display text-5xl sm:text-7xl lg:text-8xl text-white mb-5 leading-none" style="font-weight:900;font-style:italic;letter-spacing:-0.02em;line-height:0.95;">
+            Pro-Direct<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand via-red-400 to-accent">Memorabilia.</span><br>
+            <span class="text-slate-300" style="font-size:0.6em;font-style:normal;font-weight:700;letter-spacing:0.01em;">Fair Distribution.</span>
         </h1>
-        <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-            We partner directly with PDC professionals to bypass auction houses. Accessible entry prices, transparent draws, and <strong class="text-slate-200">80% of all proceeds support the player's charity.</strong>
+
+        <p class="text-base sm:text-lg text-slate-400 max-w-xl mx-auto mb-12 leading-relaxed font-normal">
+            We partner directly with PDC professionals to bypass auction houses. Accessible entry prices, transparent draws, and <strong class="text-slate-200 font-semibold">80% of all proceeds support the player's charity.</strong>
         </p>
 
-        <div class="inline-flex flex-col items-center bg-card/80 backdrop-blur-md border border-slate-700/50 rounded-3xl p-10 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden group hover:border-slate-600 transition-colors duration-500">
+        <!-- Charity total -->
+        <div class="inline-flex flex-col items-center bg-card/70 backdrop-blur-md border border-slate-700/50 rounded-3xl px-12 py-8 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] relative overflow-hidden group hover:border-slate-600 transition-colors duration-500">
             <div class="absolute inset-0 bg-gradient-to-t from-success/5 to-transparent"></div>
-            <span class="relative z-10 text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Total Raised For ADOA Charity</span>
-            <span class="relative z-10 text-6xl sm:text-7xl font-black text-success tracking-tight drop-shadow-[0_0_25px_rgba(16,185,129,0.3)] group-hover:scale-105 transition-transform duration-500">£12,450.00</span>
-            <div class="relative z-10 flex items-center gap-2 mt-5 text-xs font-medium text-success/80 bg-success/10 px-4 py-2 rounded-full border border-success/20">
-                <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span> Live API Tracker
+            <span class="relative z-10 text-[10px] font-bold text-slate-500 uppercase tracking-[0.25em] mb-2">Total Raised — ADOA Charity</span>
+            <span class="relative z-10 price-num text-6xl sm:text-7xl text-success group-hover:scale-105 transition-transform duration-500" style="text-shadow: 0 0 30px rgba(16,185,129,0.25);">£12,450</span>
+            <div class="relative z-10 flex items-center gap-2 mt-4 text-[10px] font-semibold text-success/70 bg-success/10 px-4 py-1.5 rounded-full border border-success/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> Live API Tracker
             </div>
         </div>
     </header>
 
-    <section id="how-it-works" class="bg-card/40 border-y border-slate-700/50 py-20 mb-20 relative z-10">
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works" class="bg-card/30 border-y border-slate-700/40 py-16 mb-20 relative z-10">
         <div class="max-w-7xl mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-                <div class="p-8 rounded-3xl bg-dark/50 border border-slate-700/50 hover:border-slate-600 transition-colors shadow-lg">
-                    <div class="w-14 h-14 bg-gradient-to-br from-slate-700 to-slate-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-6 border border-slate-600 shadow-[0_0_15px_rgba(0,0,0,0.5)]">1</div>
-                    <h3 class="text-white font-bold text-xl mb-3">Select a Draw</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="p-8 rounded-2xl bg-dark/40 border border-slate-700/40 hover:border-slate-600/60 transition-colors">
+                    <div class="w-12 h-12 bg-slate-800 text-white rounded-xl flex items-center justify-center font-display font-900 text-xl mx-auto mb-5 border border-slate-700" style="font-weight:900;font-family:'Barlow Condensed',sans-serif;">1</div>
+                    <h3 class="font-display font-700 text-white text-xl mb-3" style="font-family:'Barlow Condensed',sans-serif;font-size:1.25rem;font-weight:700;">Select a Draw</h3>
                     <p class="text-sm text-slate-400 leading-relaxed">Choose from signed flights, replica shirts, or match-used relic darts with strictly limited entries.</p>
                 </div>
-                <div class="p-8 rounded-3xl bg-dark/50 border border-slate-700/50 hover:border-slate-600 transition-colors shadow-lg relative">
-                    <!-- Subtle connector lines for desktop -->
-                    <div class="hidden md:block absolute top-1/2 -left-5 w-10 h-px bg-slate-700"></div>
-                    <div class="hidden md:block absolute top-1/2 -right-5 w-10 h-px bg-slate-700"></div>
-                    
-                    <div class="w-14 h-14 bg-gradient-to-br from-slate-700 to-slate-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-6 border border-slate-600 shadow-[0_0_15px_rgba(0,0,0,0.5)]">2</div>
-                    <h3 class="text-white font-bold text-xl mb-3">Answer & Secure</h3>
+                <div class="p-8 rounded-2xl bg-dark/40 border border-slate-700/40 hover:border-slate-600/60 transition-colors relative">
+                    <div class="hidden md:block absolute top-1/2 -left-4 w-8 h-px bg-slate-700"></div>
+                    <div class="hidden md:block absolute top-1/2 -right-4 w-8 h-px bg-slate-700"></div>
+                    <div class="w-12 h-12 bg-slate-800 text-white rounded-xl flex items-center justify-center font-display font-700 text-xl mx-auto mb-5 border border-slate-700" style="font-weight:900;font-family:'Barlow Condensed',sans-serif;">2</div>
+                    <h3 class="font-display font-700 text-white text-xl mb-3" style="font-family:'Barlow Condensed',sans-serif;font-size:1.25rem;font-weight:700;">Answer & Secure</h3>
                     <p class="text-sm text-slate-400 leading-relaxed">Answer a skill-based darts question to qualify and securely process your entries via PayPal.</p>
                 </div>
-                <div class="p-8 rounded-3xl bg-gradient-to-b from-brand/10 to-dark/50 border border-brand/20 hover:border-brand/40 transition-colors shadow-[0_0_30px_rgba(220,38,38,0.05)] relative">
-                    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjI1LCAyOSLCA3MiwgMC4xKSIvPjwvc3ZnPg==')] opacity-30 rounded-3xl z-0"></div>
-                    <div class="relative z-10 w-14 h-14 bg-gradient-to-br from-brand to-red-800 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-6 shadow-[0_0_20px_rgba(220,38,38,0.4)] border border-brand/50">3</div>
-                    <h3 class="text-white font-bold text-xl mb-3 relative z-10">Live Draw</h3>
-                    <p class="text-sm text-slate-400 leading-relaxed relative z-10">Winners are chosen via our verifiable randomizer once the timer hits zero or the draw fills.</p>
+                <div class="p-8 rounded-2xl bg-gradient-to-b from-brand/10 to-dark/40 border border-brand/20 hover:border-brand/40 transition-colors relative">
+                    <div class="w-12 h-12 bg-gradient-to-br from-brand to-red-800 text-white rounded-xl flex items-center justify-center font-display text-xl mx-auto mb-5 shadow-[0_0_15px_rgba(220,38,38,0.35)]" style="font-weight:900;font-family:'Barlow Condensed',sans-serif;">3</div>
+                    <h3 class="font-display text-white text-xl mb-3" style="font-family:'Barlow Condensed',sans-serif;font-size:1.25rem;font-weight:700;">Live Draw</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Winners are chosen via our verifiable randomizer once the timer hits zero or the draw fills.</p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- ACTIVE DRAWS -->
     <main class="max-w-7xl mx-auto px-4 pb-32 w-full flex-grow relative z-10">
-        <div class="flex items-center gap-4 mb-12">
-            <h2 class="text-4xl font-black text-white tracking-tight">Active Draws</h2>
-            <span class="bg-brand text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.3)] border border-brand/50">5 Live</span>
+        <div class="flex items-end gap-4 mb-10">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Current Season</p>
+                <h2 class="font-display text-white leading-none" style="font-family:'Barlow Condensed',sans-serif;font-size:3rem;font-weight:900;font-style:italic;letter-spacing:-0.02em;">Active Draws</h2>
+            </div>
+            <span class="bg-brand/15 text-brand text-xs font-bold px-3 py-1.5 rounded-full border border-brand/30 mb-1.5 shadow-[0_0_12px_rgba(220,38,38,0.2)]">9 Live</span>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            <!-- TIER 1 -->
-            <div class="group bg-card/80 backdrop-blur-sm rounded-3xl border border-slate-700/60 hover:border-slate-500 transition-all duration-500 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] hover:-translate-y-2">
-                <div class="h-52 bg-slate-800 relative flex items-center justify-center border-b border-slate-700/50 overflow-hidden">
-                    <div class="absolute inset-0 opacity-30 group-hover:scale-110 transition-transform duration-700 bg-gradient-to-br from-slate-700 to-slate-900"></div>
-                    <span class="text-slate-500 font-mono text-sm relative z-10">[Image: Signed Flights]</span>
-                    <div class="absolute top-5 left-5 bg-slate-800/80 backdrop-blur-md text-slate-300 text-xs font-bold px-4 py-2 rounded-full border border-slate-600 z-20 shadow-lg tracking-wider">ENTRY LEVEL</div>
+            <!-- ============================
+                 TIER 1: SIGNED FLIGHTS
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-slate-500/80 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(0,0,0,0.6)]">
+                <!-- SVG Illustration: Dart Flights -->
+                <div class="h-52 relative overflow-hidden border-b border-slate-700/40">
+                    <svg viewBox="0 0 400 210" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <radialGradient id="rg-t1" cx="50%" cy="60%" r="50%">
+                                <stop offset="0%" stop-color="#dc2626" stop-opacity="0.12"/>
+                                <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+                            </radialGradient>
+                        </defs>
+                        <rect width="400" height="210" fill="#0e1829"/>
+                        <rect width="400" height="210" fill="url(#rg-t1)"/>
+                        <!-- Subtle oche line -->
+                        <line x1="0" y1="190" x2="400" y2="190" stroke="#dc2626" stroke-width="1" opacity="0.12"/>
+                        <!-- Radial sector lines (very subtle background texture) -->
+                        <g opacity="0.06" stroke="white" stroke-width="0.5">
+                            <line x1="200" y1="210" x2="200" y2="0"/>
+                            <line x1="200" y1="210" x2="0" y2="90" transform="rotate(-30 200 210)"/>
+                            <line x1="200" y1="210" x2="0" y2="90" transform="rotate(30 200 210)"/>
+                            <line x1="200" y1="210" x2="0" y2="90" transform="rotate(60 200 210)"/>
+                            <line x1="200" y1="210" x2="0" y2="90" transform="rotate(-60 200 210)"/>
+                        </g>
+
+                        <!-- FLIGHT 1: Left (brand red) -->
+                        <g transform="translate(200,168) rotate(-28)">
+                            <path d="M0,-85 C22,-62 26,-14 0,8 C-26,-14 -22,-62 0,-85Z" fill="#dc2626"/>
+                            <path d="M0,-85 C22,-62 26,-14 0,8 C-26,-14 -22,-62 0,-85Z" fill="none" stroke="#ef4444" stroke-width="0.6" opacity="0.7"/>
+                            <line x1="0" y1="-85" x2="0" y2="8" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+                            <!-- Cross veins -->
+                            <line x1="-15" y1="-55" x2="15" y2="-55" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                            <line x1="-20" y1="-35" x2="20" y2="-35" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                            <!-- Shaft stub -->
+                            <rect x="-2.5" y="8" width="5" height="18" fill="#64748b" rx="1"/>
+                        </g>
+
+                        <!-- FLIGHT 2: Center (gold) — on top -->
+                        <g transform="translate(200,168)">
+                            <path d="M0,-92 C25,-67 29,-16 0,10 C-29,-16 -25,-67 0,-92Z" fill="#f59e0b"/>
+                            <path d="M0,-92 C25,-67 29,-16 0,10 C-29,-16 -25,-67 0,-92Z" fill="none" stroke="#fbbf24" stroke-width="0.6" opacity="0.7"/>
+                            <line x1="0" y1="-92" x2="0" y2="10" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                            <line x1="-17" y1="-58" x2="17" y2="-58" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+                            <line x1="-22" y1="-36" x2="22" y2="-36" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+                            <rect x="-2.5" y="10" width="5" height="18" fill="#475569" rx="1"/>
+                        </g>
+
+                        <!-- FLIGHT 3: Right (white/pearl) -->
+                        <g transform="translate(200,168) rotate(28)">
+                            <path d="M0,-85 C22,-62 26,-14 0,8 C-26,-14 -22,-62 0,-85Z" fill="#e2e8f0"/>
+                            <path d="M0,-85 C22,-62 26,-14 0,8 C-26,-14 -22,-62 0,-85Z" fill="none" stroke="white" stroke-width="0.6" opacity="0.35"/>
+                            <line x1="0" y1="-85" x2="0" y2="8" stroke="rgba(0,0,0,0.12)" stroke-width="0.5"/>
+                            <line x1="-15" y1="-55" x2="15" y2="-55" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
+                            <line x1="-20" y1="-35" x2="20" y2="-35" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
+                            <rect x="-2.5" y="8" width="5" height="18" fill="#64748b" rx="1"/>
+                        </g>
+
+                        <!-- Signature scrawl -->
+                        <path d="M130,182 C148,177 162,185 178,179 C192,174 205,181 222,176 C238,171 252,179 270,175" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Loxley label -->
+                        <text x="200" y="202" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#475569" letter-spacing="3">AUTHENTICATED  ·  LOXLEY FLIGHTS</text>
+                    </svg>
+                    <div class="prize-img-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card/60"></div>
+                    <div class="absolute top-4 left-4 bg-dark/70 backdrop-blur text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded-full border border-slate-600/50 tracking-wider">ENTRY LEVEL</div>
                 </div>
-                <div class="p-8 flex-grow flex flex-col">
-                    <h3 class="font-bold text-2xl text-white mb-2 tracking-tight group-hover:text-slate-200 transition-colors">Signed "Heavy Metal" Flights</h3>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">3x authentic Loxley flights signed by Ryan Searle.</p>
+                <div class="p-7 flex-grow flex flex-col">
+                    <h3 class="font-display text-white mb-1.5 leading-tight" style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;">Signed "Heavy Metal" Flights</h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">3× authentic Loxley flights hand-signed by Ryan Searle. Certificate of authenticity included.</p>
                     <div class="mt-auto">
-                        <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
                             <span id="stat-text-1">8 / 20 Sold</span>
                             <span id="stat-pct-1" class="text-slate-300 font-bold">40%</span>
                         </div>
-                        <div class="w-full bg-dark rounded-full h-2.5 mb-8 border border-slate-700/50 overflow-hidden">
-                            <div id="stat-bar-1" class="bg-gradient-to-r from-slate-500 to-slate-400 h-full rounded-full relative" style="width: 40%">
-                                <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                            <div id="stat-bar-1" class="bg-gradient-to-r from-slate-500 to-slate-400 h-full rounded-full relative stat-bar-brand" style="width:40%">
+                                <div class="absolute inset-0 bg-white/15 animate-pulse"></div>
                             </div>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="font-black text-3xl text-white tracking-tight">£2.00</span>
-                            <a href="raffle.html?tier=1" class="bg-card hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 text-sm border border-slate-600 shadow-lg hover:shadow-xl flex items-center gap-2">Secure Entry &rarr;</a>
+                            <span class="price-num text-white" style="font-size:2.25rem;">£2.00</span>
+                            <a href="raffle.html?tier=1" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TIER 2 -->
-            <div class="group bg-card/80 backdrop-blur-sm rounded-3xl border border-slate-700/60 hover:border-slate-500 transition-all duration-500 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] hover:-translate-y-2">
-                <div class="h-52 bg-slate-800 relative flex items-center justify-center border-b border-slate-700/50 overflow-hidden">
-                    <div class="absolute inset-0 opacity-30 group-hover:scale-110 transition-transform duration-700 bg-gradient-to-br from-slate-700 to-slate-900"></div>
-                    <span class="text-slate-500 font-mono text-sm relative z-10">[Image: Signed Shirt]</span>
+            <!-- ============================
+                 TIER 2: SIGNED SHIRT
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-slate-500/80 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(0,0,0,0.6)]">
+                <div class="h-52 relative overflow-hidden border-b border-slate-700/40">
+                    <svg viewBox="0 0 400 210" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <radialGradient id="rg-t2" cx="50%" cy="40%" r="55%">
+                                <stop offset="0%" stop-color="#991b1b" stop-opacity="0.25"/>
+                                <stop offset="100%" stop-color="#991b1b" stop-opacity="0"/>
+                            </radialGradient>
+                        </defs>
+                        <rect width="400" height="210" fill="#0e1829"/>
+                        <rect width="400" height="210" fill="url(#rg-t2)"/>
+
+                        <!-- Jersey back view -->
+                        <!-- Shoulders/sleeves -->
+                        <path d="M130,38 L78,80 L100,92 L112,58 Z" fill="#7f1d1d" stroke="#991b1b" stroke-width="0.8" stroke-linejoin="round"/>
+                        <path d="M270,38 L322,80 L300,92 L288,58 Z" fill="#7f1d1d" stroke="#991b1b" stroke-width="0.8" stroke-linejoin="round"/>
+                        <!-- Body (back view, slightly wider at shoulders) -->
+                        <path d="M130,38 C148,48 172,54 200,54 C228,54 252,48 270,38 L288,58 L292,92 L292,178 L108,178 L108,92 L112,58 Z" fill="#991b1b" stroke="#b91c1c" stroke-width="0.8" stroke-linejoin="round"/>
+                        <!-- Neck opening -->
+                        <path d="M168,38 Q200,58 232,38" fill="none" stroke="#7f1d1d" stroke-width="3" stroke-linecap="round"/>
+                        <!-- Shirt bottom hem detail -->
+                        <line x1="108" y1="178" x2="292" y2="178" stroke="#b91c1c" stroke-width="1.5" opacity="0.5"/>
+                        <!-- Side seams -->
+                        <line x1="108" y1="92" x2="108" y2="178" stroke="#7f1d1d" stroke-width="1" opacity="0.6"/>
+                        <line x1="292" y1="92" x2="292" y2="178" stroke="#7f1d1d" stroke-width="1" opacity="0.6"/>
+                        <!-- Name plate -->
+                        <text x="200" y="118" text-anchor="middle" font-family="'Barlow Condensed', monospace" font-size="24" font-weight="900" fill="rgba(255,255,255,0.92)" letter-spacing="4">SEARLE</text>
+                        <!-- Nickname below name -->
+                        <text x="200" y="136" text-anchor="middle" font-family="'Barlow Condensed', monospace" font-size="10" font-weight="700" fill="rgba(255,255,255,0.4)" letter-spacing="5">HEAVY METAL</text>
+                        <!-- Number/crest area -->
+                        <text x="200" y="165" text-anchor="middle" font-family="'Barlow Condensed', monospace" font-size="28" font-weight="900" fill="rgba(255,255,255,0.2)">75</text>
+
+                        <!-- Signature -->
+                        <path d="M145,192 C162,186 178,194 196,188 C210,183 225,190 243,185 C255,181 265,188 278,184" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <text x="200" y="205" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#475569" letter-spacing="3">2024 OFFICIAL REPLICA  ·  HAND SIGNED</text>
+                    </svg>
+                    <div class="prize-img-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card/60"></div>
                 </div>
-                <div class="p-8 flex-grow flex flex-col">
-                    <h3 class="font-bold text-2xl text-white mb-2 tracking-tight group-hover:text-slate-200 transition-colors">Signed 2024 Replica Shirt</h3>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">Official 2024 season replica shirt, signed on the back.</p>
+                <div class="p-7 flex-grow flex flex-col">
+                    <h3 class="font-display text-white mb-1.5 leading-tight" style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;">Signed 2024 Replica Shirt</h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Official 2024 season replica shirt, signed on the back. Presented in protective sleeve.</p>
                     <div class="mt-auto">
-                        <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
                             <span id="stat-text-2">24 / 40 Sold</span>
                             <span id="stat-pct-2" class="text-slate-300 font-bold">60%</span>
                         </div>
-                        <div class="w-full bg-dark rounded-full h-2.5 mb-8 border border-slate-700/50 overflow-hidden">
-                            <div id="stat-bar-2" class="bg-gradient-to-r from-slate-500 to-slate-400 h-full rounded-full relative" style="width: 60%">
-                                <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                            <div id="stat-bar-2" class="bg-gradient-to-r from-slate-500 to-slate-400 h-full rounded-full relative" style="width:60%">
+                                <div class="absolute inset-0 bg-white/15 animate-pulse"></div>
                             </div>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="font-black text-3xl text-white tracking-tight">£5.00</span>
-                            <a href="raffle.html?tier=2" class="bg-card hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 text-sm border border-slate-600 shadow-lg hover:shadow-xl flex items-center gap-2">Secure Entry &rarr;</a>
+                            <span class="price-num text-white" style="font-size:2.25rem;">£5.00</span>
+                            <a href="raffle.html?tier=2" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TIER 3 (HOT) -->
-            <div class="group bg-card/90 backdrop-blur-md rounded-3xl border border-brand/50 hover:border-brand transition-all duration-500 overflow-hidden flex flex-col shadow-[0_10px_30px_-15px_rgba(220,38,38,0.4)] hover:shadow-[0_25px_50px_-15px_rgba(220,38,38,0.5)] hover:-translate-y-3 relative z-20">
-                <div class="absolute -right-12 top-7 bg-gradient-to-r from-brand to-red-700 text-white text-xs font-black py-1.5 px-14 rotate-45 z-30 shadow-lg tracking-widest border-y border-brand/30">HOT</div>
-                <div class="h-52 bg-slate-800 relative flex items-center justify-center border-b border-slate-700/50 overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-t from-card to-transparent z-10"></div>
-                    <div class="absolute inset-0 opacity-40 group-hover:scale-110 transition-transform duration-700 bg-gradient-to-br from-brand/20 to-slate-900 z-0"></div>
-                    <span class="text-slate-500 font-mono text-sm relative z-20">[Image: Match Darts]</span>
+            <!-- ============================
+                 TIER 3: MATCH-USED DARTS (HOT)
+                 ============================ -->
+            <div class="prize-card group bg-card/90 backdrop-blur-md rounded-2xl border border-brand/50 hover:border-brand overflow-hidden flex flex-col shadow-[0_8px_30px_-10px_rgba(220,38,38,0.3)] hover:shadow-[0_25px_50px_-15px_rgba(220,38,38,0.45)] relative z-20">
+                <div class="absolute -right-10 top-6 bg-gradient-to-r from-brand to-red-700 text-white text-[10px] font-black py-1.5 px-12 rotate-45 z-30 tracking-widest border-y border-brand/40">HOT</div>
+                <!-- SVG Illustration: Match-Used Darts -->
+                <div class="h-52 relative overflow-hidden border-b border-brand/20">
+                    <svg viewBox="0 0 400 210" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <radialGradient id="rg-t3" cx="65%" cy="40%" r="45%">
+                                <stop offset="0%" stop-color="#dc2626" stop-opacity="0.18"/>
+                                <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="barrel-lg" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#cbd5e1"/>
+                                <stop offset="50%" stop-color="#94a3b8"/>
+                                <stop offset="100%" stop-color="#64748b"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="400" height="210" fill="#0e1829"/>
+                        <rect width="400" height="210" fill="url(#rg-t3)"/>
+
+                        <!-- Partial dartboard rings in background (top-right) -->
+                        <g opacity="0.13">
+                            <circle cx="370" cy="20" r="160" fill="none" stroke="#dc2626" stroke-width="2"/>
+                            <circle cx="370" cy="20" r="130" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+                            <circle cx="370" cy="20" r="95" fill="none" stroke="white" stroke-width="1"/>
+                            <circle cx="370" cy="20" r="60" fill="none" stroke="white" stroke-width="1.5"/>
+                            <circle cx="370" cy="20" r="25" fill="#dc2626" opacity="0.5"/>
+                            <circle cx="370" cy="20" r="10" fill="#dc2626"/>
+                        </g>
+
+                        <!-- THREE DARTS — displayed diagonally stacked, angled pointing top-right -->
+                        <!-- Dart definition: rendered horizontally (pointing right), then rotated -->
+                        <!-- Dart anatomy from left (flight) to right (tip): flight | shaft | barrel | tip -->
+
+                        <!-- DART 1 (top) -->
+                        <g transform="translate(70, 62) rotate(-22)">
+                            <!-- Flight (kite shape at left/back of dart) -->
+                            <path d="M0,0 C-18,-12 -28,-8 -38,0 C-28,8 -18,12 0,0Z" fill="#dc2626" transform="translate(-100,0)"/>
+                            <path d="M0,0 C-18,-12 -28,-8 -38,0 C-28,8 -18,12 0,0Z" fill="none" stroke="#ef4444" stroke-width="0.5" opacity="0.6" transform="translate(-100,0)"/>
+                            <!-- Shaft (thin tube) -->
+                            <rect x="-100" y="-1.5" width="42" height="3" fill="#475569" rx="1"/>
+                            <!-- Barrel (heavy, with grip rings) -->
+                            <rect x="-58" y="-5" width="55" height="10" rx="2" fill="url(#barrel-lg)"/>
+                            <!-- Grip rings on barrel -->
+                            <line x1="-50" y1="-5" x2="-50" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-44" y1="-5" x2="-44" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-38" y1="-5" x2="-38" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-28" y1="-5" x2="-28" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <line x1="-18" y1="-5" x2="-18" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <line x1="-8" y1="-5" x2="-8" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <!-- Tip (long thin point) -->
+                            <polygon points="-3,0 -3,-2 60,0 -3,2" fill="#94a3b8"/>
+                            <!-- Tip point highlight -->
+                            <line x1="50" y1="0" x2="60" y2="0" stroke="white" stroke-width="0.5" opacity="0.5"/>
+                        </g>
+
+                        <!-- DART 2 (middle) -->
+                        <g transform="translate(100, 105) rotate(-22)">
+                            <path d="M0,0 C-18,-12 -28,-8 -38,0 C-28,8 -18,12 0,0Z" fill="#f59e0b" transform="translate(-100,0)"/>
+                            <path d="M0,0 C-18,-12 -28,-8 -38,0 C-28,8 -18,12 0,0Z" fill="none" stroke="#fbbf24" stroke-width="0.5" opacity="0.6" transform="translate(-100,0)"/>
+                            <rect x="-100" y="-1.5" width="42" height="3" fill="#475569" rx="1"/>
+                            <rect x="-58" y="-5" width="55" height="10" rx="2" fill="url(#barrel-lg)"/>
+                            <line x1="-50" y1="-5" x2="-50" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-44" y1="-5" x2="-44" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-38" y1="-5" x2="-38" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-28" y1="-5" x2="-28" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <line x1="-18" y1="-5" x2="-18" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <line x1="-8" y1="-5" x2="-8" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <polygon points="-3,0 -3,-2 60,0 -3,2" fill="#94a3b8"/>
+                            <line x1="50" y1="0" x2="60" y2="0" stroke="white" stroke-width="0.5" opacity="0.5"/>
+                        </g>
+
+                        <!-- DART 3 (bottom) -->
+                        <g transform="translate(130, 148) rotate(-22)">
+                            <path d="M0,0 C-18,-12 -28,-8 -38,0 C-28,8 -18,12 0,0Z" fill="#e2e8f0" transform="translate(-100,0)"/>
+                            <path d="M0,0 C-18,-12 -28,-8 -38,0 C-28,8 -18,12 0,0Z" fill="none" stroke="white" stroke-width="0.5" opacity="0.3" transform="translate(-100,0)"/>
+                            <rect x="-100" y="-1.5" width="42" height="3" fill="#475569" rx="1"/>
+                            <rect x="-58" y="-5" width="55" height="10" rx="2" fill="url(#barrel-lg)"/>
+                            <line x1="-50" y1="-5" x2="-50" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-44" y1="-5" x2="-44" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-38" y1="-5" x2="-38" y2="5" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>
+                            <line x1="-28" y1="-5" x2="-28" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <line x1="-18" y1="-5" x2="-18" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <line x1="-8" y1="-5" x2="-8" y2="5" stroke="#475569" stroke-width="0.6" opacity="0.6"/>
+                            <polygon points="-3,0 -3,-2 60,0 -3,2" fill="#94a3b8"/>
+                            <line x1="50" y1="0" x2="60" y2="0" stroke="white" stroke-width="0.5" opacity="0.5"/>
+                        </g>
+
+                        <!-- "MATCH USED" badge -->
+                        <rect x="240" y="155" width="110" height="22" rx="4" fill="#dc2626" fill-opacity="0.15" stroke="#dc2626" stroke-width="0.8" stroke-opacity="0.5"/>
+                        <text x="295" y="169" text-anchor="middle" font-family="monospace" font-size="9" fill="#ef4444" letter-spacing="2">MATCH USED</text>
+
+                        <!-- Grams callout -->
+                        <text x="295" y="195" text-anchor="middle" font-family="'Barlow Condensed', monospace" font-size="22" font-weight="900" fill="rgba(255,255,255,0.08)" letter-spacing="1">32g LOXLEY</text>
+                    </svg>
+                    <div class="prize-img-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card/50"></div>
                 </div>
-                <div class="p-8 flex-grow flex flex-col relative z-20 -mt-6 bg-card rounded-t-3xl border-t border-white/5">
-                    <h3 class="font-black text-2xl text-white mb-2 tracking-tight group-hover:text-brand transition-colors drop-shadow-sm">Match-Used 32g Darts</h3>
-                    <p class="text-sm text-slate-300 mb-8 leading-relaxed">Actual darts from the World Matchplay. Authentic wear. COA included.</p>
+                <div class="p-7 flex-grow flex flex-col -mt-5 bg-card rounded-t-2xl border-t border-white/5 relative z-10">
+                    <h3 class="font-display text-white mb-1.5 leading-tight group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:900;">Match-Used 32g Darts</h3>
+                    <p class="text-sm text-slate-300 mb-6 leading-relaxed">Actual Loxley darts used at the World Matchplay. Authentic wear, full COA included.</p>
                     <div class="mt-auto">
-                        <div class="flex justify-between text-xs text-slate-300 mb-2 font-bold uppercase tracking-wider">
+                        <div class="flex justify-between text-xs text-slate-300 mb-1.5 font-bold uppercase tracking-wider">
                             <span id="stat-text-3">28 / 32 Sold</span>
-                            <span id="stat-pct-3" class="text-brand drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]">87%</span>
+                            <span id="stat-pct-3" class="text-brand" style="text-shadow:0 0 8px rgba(220,38,38,0.6)">87%</span>
                         </div>
-                        <div class="w-full bg-dark rounded-full h-3.5 mb-8 border border-slate-700/50 overflow-hidden shadow-inner">
-                            <div id="stat-bar-3" class="bg-gradient-to-r from-brand via-red-500 to-accent h-full rounded-full relative" style="width: 87%">
+                        <div class="w-full bg-dark rounded-full h-2.5 mb-6 border border-slate-700/50 overflow-hidden shadow-inner">
+                            <div id="stat-bar-3" class="bg-gradient-to-r from-brand via-red-500 to-accent h-full rounded-full relative stat-bar-brand" style="width:87%">
                                 <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
                             </div>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="font-black text-4xl text-white tracking-tighter">£10.00</span>
-                            <a href="raffle.html?tier=3" class="bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white font-black px-7 py-3.5 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transform hover:scale-105 flex items-center gap-2 border border-brand/50">Secure Entry &rarr;</a>
+                            <span class="price-num text-white" style="font-size:2.5rem;">£10.00</span>
+                            <a href="raffle.html?tier=3" class="btn-brand bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_18px_rgba(220,38,38,0.35)] hover:shadow-[0_0_28px_rgba(220,38,38,0.55)] flex items-center gap-1.5 border border-brand/50">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TIER 4 (ULTIMATE PRIZE) -->
-            <div class="group bg-card/80 backdrop-blur-sm rounded-3xl border border-accent/30 hover:border-accent/60 transition-all duration-500 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.2)] lg:col-span-2 hover:-translate-y-2">
+            <!-- ============================
+                 TIER 4: DREAM SETUP (WIDE)
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-accent/30 hover:border-accent/60 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(245,158,11,0.2)] lg:col-span-2 hover:-translate-y-2">
                 <div class="flex flex-col sm:flex-row h-full">
-                    <div class="h-64 sm:h-auto sm:w-2/5 bg-slate-800 relative flex items-center justify-center border-b sm:border-b-0 sm:border-r border-slate-700/50 overflow-hidden">
-                        <div class="absolute inset-0 opacity-30 group-hover:scale-110 transition-transform duration-700 bg-gradient-to-br from-accent/10 to-slate-900"></div>
-                        <span class="text-slate-500 font-mono text-sm relative z-10">[Image: Massive Bundle]</span>
+                    <!-- SVG: Dream Setup — Full dartboard -->
+                    <div class="h-64 sm:h-auto sm:w-2/5 relative overflow-hidden border-b sm:border-b-0 sm:border-r border-slate-700/40">
+                        <svg viewBox="0 0 320 260" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                            <defs>
+                                <radialGradient id="rg-t4" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12"/>
+                                    <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+                                </radialGradient>
+                                <clipPath id="board-clip">
+                                    <circle cx="160" cy="130" r="110"/>
+                                </clipPath>
+                                <linearGradient id="cabinet-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#0f172a"/>
+                                    <stop offset="50%" stop-color="#1e293b"/>
+                                    <stop offset="100%" stop-color="#0f172a"/>
+                                </linearGradient>
+                                <linearGradient id="barrel-t4" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#cbd5e1"/>
+                                    <stop offset="100%" stop-color="#64748b"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="320" height="260" fill="#0c1220"/>
+                            <rect width="320" height="260" fill="url(#rg-t4)"/>
+
+                            <!-- Cabinet surround (outer frame) -->
+                            <rect x="35" y="10" width="250" height="240" rx="12" fill="url(#cabinet-grad)" stroke="#334155" stroke-width="1.5"/>
+                            <!-- Cabinet inner bezel -->
+                            <rect x="42" y="17" width="236" height="226" rx="9" fill="none" stroke="#1e293b" stroke-width="2"/>
+
+                            <!-- DARTBOARD FACE — using alternating sectors -->
+                            <!-- Outer surround (black) -->
+                            <circle cx="160" cy="130" r="110" fill="#1a1a1a" stroke="#374151" stroke-width="1"/>
+
+                            <!-- Sector fills (20 alternating sectors, each 18°) using conic via foreignObject -->
+                            <!-- Approximation: draw using overlapping pie slices -->
+                            <!-- 20 sectors: odd=dark (#1a1a1a), even=cream (#f5f0d0) -->
+                            <!-- Using pre-calculated paths for 20 sectors of 18° each, cx=160, cy=130, r=108 -->
+                            <!-- I'll draw the sectors using path calculations -->
+                            <!-- Each sector: start angle = -90 + i*18, end angle = -90 + (i+1)*18 -->
+                            <!-- sin/cos values pre-calculated -->
+                            <!-- Sector 0: -90° to -72° = top-center, then clockwise -->
+
+                            <!-- SIMPLIFIED: Use foreignObject with conic-gradient for the board face -->
+                            <foreignObject x="50" y="20" width="220" height="220" clip-path="url(#board-clip)">
+                                <div xmlns="http://www.w3.org/1999/xhtml" style="width:220px;height:220px;position:relative;">
+                                    <!-- Sectors base -->
+                                    <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg, #1c1917 0deg 18deg, #e7d9b8 18deg 36deg, #1c1917 36deg 54deg, #e7d9b8 54deg 72deg, #1c1917 72deg 90deg, #e7d9b8 90deg 108deg, #1c1917 108deg 126deg, #e7d9b8 126deg 144deg, #1c1917 144deg 162deg, #e7d9b8 162deg 180deg, #1c1917 180deg 198deg, #e7d9b8 198deg 216deg, #1c1917 216deg 234deg, #e7d9b8 234deg 252deg, #1c1917 252deg 270deg, #e7d9b8 270deg 288deg, #1c1917 288deg 306deg, #e7d9b8 306deg 324deg, #1c1917 324deg 342deg, #e7d9b8 342deg 360deg);"></div>
+                                </div>
+                            </foreignObject>
+
+                            <!-- Ring overlays (drawn over the foreignObject) -->
+                            <!-- Treble ring (scoring zone, red/green alternating) — approximated as two half-circles -->
+                            <circle cx="160" cy="130" r="72" fill="none" stroke="#374151" stroke-width="13" opacity="0.8"/>
+                            <!-- Treble band fill - alternating color via 20 small arcs -->
+                            <!-- Simplified: red/green treble ring segments -->
+                            <g opacity="0.85">
+                                <!-- Red treble segments (10 of them, every other sector) -->
+                                <circle cx="160" cy="130" r="72" fill="none" stroke="#dc2626" stroke-width="11"
+                                    stroke-dasharray="22.6 22.6"
+                                    stroke-dashoffset="-11.3"/>
+                                <!-- Green treble segments -->
+                                <circle cx="160" cy="130" r="72" fill="none" stroke="#166534" stroke-width="11"
+                                    stroke-dasharray="22.6 22.6"
+                                    stroke-dashoffset="0"/>
+                            </g>
+
+                            <!-- Double ring (outermost scoring band) -->
+                            <g opacity="0.85">
+                                <circle cx="160" cy="130" r="105" fill="none" stroke="#dc2626" stroke-width="7"
+                                    stroke-dasharray="33" stroke-dashoffset="-16.5"/>
+                                <circle cx="160" cy="130" r="105" fill="none" stroke="#166534" stroke-width="7"
+                                    stroke-dasharray="33" stroke-dashoffset="0"/>
+                            </g>
+
+                            <!-- Wire ring borders -->
+                            <circle cx="160" cy="130" r="108" fill="none" stroke="#64748b" stroke-width="1"/>
+                            <circle cx="160" cy="130" r="101" fill="none" stroke="#374151" stroke-width="0.5"/>
+                            <circle cx="160" cy="130" r="76" fill="none" stroke="#64748b" stroke-width="0.8"/>
+                            <circle cx="160" cy="130" r="68" fill="none" stroke="#374151" stroke-width="0.5"/>
+                            <circle cx="160" cy="130" r="32" fill="none" stroke="#64748b" stroke-width="0.8"/>
+
+                            <!-- Bullseye area -->
+                            <circle cx="160" cy="130" r="20" fill="#dc2626"/>
+                            <circle cx="160" cy="130" r="10" fill="#166534"/>
+                            <circle cx="160" cy="130" r="4" fill="white" opacity="0.9"/>
+
+                            <!-- Wire sector lines -->
+                            <g stroke="#64748b" stroke-width="0.6" opacity="0.4">
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(0 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(18 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(36 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(54 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(72 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(90 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(108 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(126 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(144 160 130)"/>
+                                <line x1="160" y1="22" x2="160" y2="238" transform="rotate(162 160 130)"/>
+                            </g>
+
+                            <!-- Number ring (20 segment numbers around board) -->
+                            <!-- Simplified: show "20" at top and a few others -->
+                            <g font-family="'Barlow Condensed', monospace" font-size="9" font-weight="700" fill="white" text-anchor="middle">
+                                <text x="160" y="36">20</text>
+                                <text x="193" y="42">1</text>
+                                <text x="218" y="58">18</text>
+                                <text x="233" y="80">4</text>
+                                <text x="238" y="106">13</text>
+                                <text x="233" y="132">6</text>
+                                <text x="218" y="156">10</text>
+                                <text x="195" y="174">15</text>
+                                <text x="160" y="183">2</text>
+                                <text x="125" y="174">17</text>
+                                <text x="101" y="156">3</text>
+                                <text x="85" y="132">19</text>
+                                <text x="82" y="106">7</text>
+                                <text x="87" y="80">16</text>
+                                <text x="103" y="58">8</text>
+                                <text x="127" y="42">11</text>
+                                <!-- opposite sectors -->
+                                <text x="160" y="226">5</text>
+                                <text x="193" y="218">14</text>
+                                <text x="218" y="204">9</text>
+                                <text x="127" y="218">12</text>
+                            </g>
+
+                            <!-- THREE DARTS embedded in the board - in the treble 20 area (top) -->
+                            <!-- Dart in board: just tip + small barrel visible, rest is in the board -->
+                            <!-- Dart 1 (slightly left of center top) -->
+                            <g transform="translate(151, 55) rotate(-5)">
+                                <polygon points="0,0 -1.5,-3 1.5,-3" fill="#94a3b8"/>
+                                <rect x="-2" y="-3" width="4" height="14" rx="1" fill="url(#barrel-t4)"/>
+                                <path d="M-7,-18 C-10,-12 -5,-8 0,-3 C5,-8 10,-12 7,-18 C4,-14 -4,-14 -7,-18Z" fill="#f59e0b"/>
+                            </g>
+                            <!-- Dart 2 (center top) -->
+                            <g transform="translate(160, 52) rotate(0)">
+                                <polygon points="0,0 -1.5,-3 1.5,-3" fill="#94a3b8"/>
+                                <rect x="-2" y="-3" width="4" height="14" rx="1" fill="url(#barrel-t4)"/>
+                                <path d="M-7,-18 C-10,-12 -5,-8 0,-3 C5,-8 10,-12 7,-18 C4,-14 -4,-14 -7,-18Z" fill="#dc2626"/>
+                            </g>
+                            <!-- Dart 3 (slightly right) -->
+                            <g transform="translate(169, 55) rotate(5)">
+                                <polygon points="0,0 -1.5,-3 1.5,-3" fill="#94a3b8"/>
+                                <rect x="-2" y="-3" width="4" height="14" rx="1" fill="url(#barrel-t4)"/>
+                                <path d="M-7,-18 C-10,-12 -5,-8 0,-3 C5,-8 10,-12 7,-18 C4,-14 -4,-14 -7,-18Z" fill="#e2e8f0"/>
+                            </g>
+
+                            <!-- Score "180" glow -->
+                            <text x="160" y="252" text-anchor="middle" font-family="'Barlow Condensed', monospace" font-size="13" font-weight="900" fill="#f59e0b" opacity="0.55" letter-spacing="3">1-8-0</text>
+                        </svg>
+                        <div class="prize-img-overlay absolute inset-0 bg-gradient-to-r from-transparent to-card/50"></div>
                     </div>
-                    <div class="p-8 sm:w-3/5 flex flex-col justify-between">
+
+                    <!-- Content -->
+                    <div class="p-7 sm:w-3/5 flex flex-col justify-between">
                         <div>
-                            <div class="text-accent text-xs font-black mb-4 uppercase tracking-widest flex items-center gap-2 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                            <div class="text-accent text-xs font-black mb-3 uppercase tracking-widest flex items-center gap-2" style="text-shadow:0 0 10px rgba(245,158,11,0.35)">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                 The Ultimate Prize
                             </div>
-                            <h3 class="font-black text-3xl text-white mb-3 tracking-tight group-hover:text-accent transition-colors">The 'Heavy Metal' Dream Setup</h3>
-                            <p class="text-sm text-slate-300 mb-8 leading-relaxed">Blade 6 Triple Core Board, bespoke red surround, signed match shirt, and a brand new set of 32g Loxleys.</p>
+                            <h3 class="font-display text-white mb-3 leading-tight group-hover:text-accent transition-colors" style="font-family:'Barlow Condensed',sans-serif;font-size:1.85rem;font-weight:900;">'Heavy Metal' Dream Setup</h3>
+                            <p class="text-sm text-slate-300 mb-6 leading-relaxed">Blade 6 Triple Core Board, bespoke red surround, signed match shirt, and a brand new set of 32g Loxley darts. The complete package.</p>
                         </div>
                         <div class="mt-auto">
-                            <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
-                                <span id="stat-text-4">4 / 32 Sold (High Odds)</span>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
+                                <span id="stat-text-4">4 / 32 Sold <span class="text-accent/70 font-bold">(Best Odds)</span></span>
                                 <span id="stat-pct-4" class="text-accent font-bold">12%</span>
                             </div>
-                            <div class="w-full bg-dark rounded-full h-2.5 mb-8 border border-slate-700/50 overflow-hidden">
-                                <div id="stat-bar-4" class="bg-gradient-to-r from-accent to-yellow-400 h-full rounded-full relative" style="width: 12%">
+                            <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                                <div id="stat-bar-4" class="bg-gradient-to-r from-accent to-yellow-400 h-full rounded-full relative stat-bar-accent" style="width:12%">
                                     <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
                                 </div>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="font-black text-4xl text-white tracking-tighter">£25.00</span>
-                                <a href="raffle.html?tier=4" class="bg-gradient-to-r from-accent to-yellow-500 hover:from-yellow-500 hover:to-accent text-dark font-black px-8 py-3.5 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transform hover:scale-105 flex items-center gap-2 border border-accent/50">Secure Entry &rarr;</a>
+                                <span class="price-num text-white" style="font-size:2.5rem;">£25.00</span>
+                                <a href="raffle.html?tier=4" class="btn-accent bg-gradient-to-r from-accent to-yellow-500 hover:from-yellow-500 hover:to-accent text-dark font-black px-7 py-3.5 rounded-xl transition-all shadow-[0_0_18px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] border border-accent/50 flex items-center gap-1.5">Secure Entry →</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TIER 5 -->
-            <div class="group bg-card/80 backdrop-blur-sm rounded-3xl border border-slate-700/60 hover:border-slate-500 transition-all duration-500 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] hover:-translate-y-2">
-                <div class="h-52 bg-slate-800 relative flex items-center justify-center border-b border-slate-700/50 overflow-hidden">
-                    <div class="absolute inset-0 opacity-30 group-hover:scale-110 transition-transform duration-700 bg-gradient-to-br from-slate-700 to-slate-900"></div>
-                    <span class="text-slate-500 font-mono text-sm relative z-10">[Image: Zoom Call]</span>
-                    <div class="absolute top-5 left-5 bg-slate-800/80 backdrop-blur-md text-slate-300 text-xs font-bold px-4 py-2 rounded-full border border-slate-600 z-20 shadow-lg tracking-wider">EXPERIENCE</div>
+            <!-- ============================
+                 TIER 5: COACHING CALL
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-slate-500/80 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(0,0,0,0.6)]">
+                <!-- SVG: Video Call / Coaching session -->
+                <div class="h-52 relative overflow-hidden border-b border-slate-700/40">
+                    <svg viewBox="0 0 400 210" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <radialGradient id="rg-t5" cx="45%" cy="45%" r="55%">
+                                <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.1"/>
+                                <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+                            </radialGradient>
+                        </defs>
+                        <rect width="400" height="210" fill="#0c1220"/>
+                        <rect width="400" height="210" fill="url(#rg-t5)"/>
+
+                        <!-- LAPTOP SCREEN FRAME -->
+                        <!-- Screen bezel -->
+                        <rect x="60" y="20" width="280" height="170" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                        <!-- Screen inner glow -->
+                        <rect x="66" y="26" width="268" height="158" rx="5" fill="#0f1f38"/>
+
+                        <!-- VIDEO CALL GRID (2 participants) -->
+                        <!-- Left participant: Ryan Searle (coach) -->
+                        <rect x="72" y="30" width="128" height="150" rx="4" fill="#142033"/>
+                        <!-- Person silhouette -->
+                        <circle cx="136" cy="85" r="20" fill="#1e3a5f"/>
+                        <path d="M100,148 C100,120 172,120 172,148 Z" fill="#1e3a5f"/>
+                        <!-- Name tag -->
+                        <rect x="76" y="164" width="90" height="12" rx="2" fill="rgba(220,38,38,0.7)"/>
+                        <text x="121" y="173" text-anchor="middle" font-family="monospace" font-size="7" fill="white" letter-spacing="0.5">Ryan Searle 🎯</text>
+
+                        <!-- Right participant: viewer/winner -->
+                        <rect x="206" y="30" width="128" height="150" rx="4" fill="#1a2535"/>
+                        <!-- Person silhouette 2 -->
+                        <circle cx="270" cy="85" r="18" fill="#2d3f57"/>
+                        <path d="M238,148 C238,122 302,122 302,148 Z" fill="#2d3f57"/>
+                        <!-- Name tag -->
+                        <rect x="210" y="164" width="70" height="12" rx="2" fill="rgba(16,185,129,0.6)"/>
+                        <text x="245" y="173" text-anchor="middle" font-family="monospace" font-size="7" fill="white" letter-spacing="0.5">WINNER</text>
+
+                        <!-- UI elements on screen: call controls -->
+                        <rect x="155" y="164" width="46" height="12" rx="6" fill="#1e293b" stroke="#374151" stroke-width="0.5"/>
+                        <!-- Mic icon placeholder -->
+                        <circle cx="168" cy="170" r="4" fill="#64748b"/>
+                        <circle cx="182" cy="170" r="4" fill="#dc2626"/>
+                        <circle cx="196" cy="170" r="4" fill="#64748b"/>
+
+                        <!-- Darts on wall in background (coach) -->
+                        <g transform="translate(108, 55) rotate(-70)" opacity="0.25">
+                            <rect x="-1.5" y="-30" width="3" height="30" fill="#94a3b8" rx="1"/>
+                            <path d="M-5,-35 C-7,-30 -3,-27 0,-25 C3,-27 7,-30 5,-35 C3,-32 -3,-32 -5,-35Z" fill="#dc2626"/>
+                        </g>
+                        <g transform="translate(122, 52) rotate(-65)" opacity="0.25">
+                            <rect x="-1.5" y="-30" width="3" height="30" fill="#94a3b8" rx="1"/>
+                            <path d="M-5,-35 C-7,-30 -3,-27 0,-25 C3,-27 7,-30 5,-35 C3,-32 -3,-32 -5,-35Z" fill="#f59e0b"/>
+                        </g>
+
+                        <!-- "LIVE" indicator -->
+                        <circle cx="76" cy="34" r="3" fill="#dc2626"/>
+                        <circle cx="76" cy="34" r="3" fill="#dc2626" opacity="0.5">
+                            <animate attributeName="r" values="3;6;3" dur="2s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <text x="84" y="38" font-family="monospace" font-size="7" fill="#dc2626" letter-spacing="2">LIVE SESSION</text>
+
+                        <!-- "PRIVATE" badge -->
+                        <rect x="272" y="27" width="56" height="10" rx="2" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="0.5" stroke-opacity="0.5"/>
+                        <text x="300" y="34" text-anchor="middle" font-family="monospace" font-size="6.5" fill="#f59e0b" letter-spacing="1">PRIVATE</text>
+
+                        <!-- Screen reflection overlay -->
+                        <rect x="66" y="26" width="268" height="158" rx="5" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="2"/>
+
+                        <!-- Keyboard/trackpad area of laptop -->
+                        <rect x="50" y="190" width="300" height="14" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                        <!-- Trackpad -->
+                        <rect x="173" y="193" width="54" height="8" rx="3" fill="#253347" stroke="#334155" stroke-width="0.5"/>
+                    </svg>
+                    <div class="prize-img-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card/60"></div>
+                    <div class="absolute top-4 left-4 bg-dark/70 backdrop-blur text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded-full border border-slate-600/50 tracking-wider">EXPERIENCE</div>
                 </div>
-                <div class="p-8 flex-grow flex flex-col">
-                    <h3 class="font-bold text-2xl text-white mb-2 tracking-tight group-hover:text-slate-200 transition-colors">30-Min Form Analysis Call</h3>
-                    <p class="text-sm text-slate-400 mb-8 leading-relaxed">A private video call with Ryan. He'll analyze your throw and give you pro drills to fix your grouping.</p>
+                <div class="p-7 flex-grow flex flex-col">
+                    <h3 class="font-display text-white mb-1.5 leading-tight" style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;">30-Min Form Analysis Call</h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Private video call with Ryan. He'll analyse your throw live and give you pro drills to fix your grouping.</p>
                     <div class="mt-auto">
-                        <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
                             <span id="stat-text-5">36 / 40 Sold</span>
                             <span id="stat-pct-5" class="text-slate-300 font-bold">90%</span>
                         </div>
-                        <div class="w-full bg-dark rounded-full h-2.5 mb-8 border border-slate-700/50 overflow-hidden">
-                            <div id="stat-bar-5" class="bg-gradient-to-r from-slate-500 to-slate-400 h-full rounded-full relative" style="width: 90%">
-                                <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                            <div id="stat-bar-5" class="bg-gradient-to-r from-slate-500 to-slate-400 h-full rounded-full relative" style="width:90%">
+                                <div class="absolute inset-0 bg-white/15 animate-pulse"></div>
                             </div>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="font-black text-3xl text-white tracking-tight">£15.00</span>
-                            <a href="raffle.html?tier=5" class="bg-card hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 text-sm border border-slate-600 shadow-lg hover:shadow-xl flex items-center gap-2">Secure Entry &rarr;</a>
+                            <span class="price-num text-white" style="font-size:2.25rem;">£15.00</span>
+                            <a href="raffle.html?tier=5" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
                         </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-    </main>
+            <!-- ============================
+                 TIER 6: LUKE LITTLER SIGNED DARTS
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-blue-500/50 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(59,130,246,0.15)]">
+                <div class="h-52 relative overflow-hidden border-b border-slate-700/40">
+                    <svg viewBox="0 0 400 210" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <linearGradient id="barrel-t6a" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#e2e8f0"/><stop offset="100%" stop-color="#475569"/></linearGradient>
+                        </defs>
+                        <rect width="400" height="210" fill="#0a1122"/>
+                        <ellipse cx="200" cy="105" rx="160" ry="80" fill="#3b82f6" opacity="0.05"/>
+                        <g transform="translate(128,105) rotate(-8)">
+                            <polygon points="0,0 -2,-5 2,-5" fill="#94a3b8"/>
+                            <rect x="-3" y="-5" width="6" height="22" rx="2" fill="url(#barrel-t6a)"/>
+                            <rect x="-2" y="17" width="4" height="12" rx="1" fill="#64748b"/>
+                            <path d="M-8,-22 C-11,-15 -5,-10 0,-5 C5,-10 11,-15 8,-22 C5,-18 -5,-18 -8,-22Z" fill="#3b82f6"/>
+                        </g>
+                        <g transform="translate(200,105)">
+                            <polygon points="0,0 -2,-5 2,-5" fill="#cbd5e1"/>
+                            <rect x="-3" y="-5" width="6" height="22" rx="2" fill="url(#barrel-t6a)"/>
+                            <rect x="-2" y="17" width="4" height="12" rx="1" fill="#475569"/>
+                            <path d="M-8,-22 C-11,-15 -5,-10 0,-5 C5,-10 11,-15 8,-22 C5,-18 -5,-18 -8,-22Z" fill="#1d4ed8"/>
+                        </g>
+                        <g transform="translate(272,105) rotate(8)">
+                            <polygon points="0,0 -2,-5 2,-5" fill="#94a3b8"/>
+                            <rect x="-3" y="-5" width="6" height="22" rx="2" fill="url(#barrel-t6a)"/>
+                            <rect x="-2" y="17" width="4" height="12" rx="1" fill="#64748b"/>
+                            <path d="M-8,-22 C-11,-15 -5,-10 0,-5 C5,-10 11,-15 8,-22 C5,-18 -5,-18 -8,-22Z" fill="#3b82f6"/>
+                        </g>
+                        <path d="M140,170 C158,164 172,172 190,167 C205,163 218,170 236,166 C250,162 262,169 278,165" stroke="rgba(147,197,253,0.3)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <text x="200" y="195" text-anchor="middle" font-family="monospace" font-size="8" fill="#3b82f6" letter-spacing="3" opacity="0.5">LUKE LITTLER · SIGNED SET</text>
+                    </svg>
+                    <div class="absolute top-3 left-3 bg-blue-500/15 border border-blue-500/35 text-blue-400 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">🌟 The Nuke</div>
+                    <div class="prize-img-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card/60"></div>
+                </div>
+                <div class="p-7 flex-grow flex flex-col">
+                    <h3 class="font-display text-white mb-1.5 leading-tight group-hover:text-blue-400 transition-colors" style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;">Littler Signed Dart Set</h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Complete set of Luke "The Nuke" Littler's signature darts, hand-signed at Alexandra Palace. COA included.</p>
+                    <div class="mt-auto">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
+                            <span id="stat-text-6">6 / 50 Sold</span>
+                            <span id="stat-pct-6" class="text-blue-400 font-bold">12%</span>
+                        </div>
+                        <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                            <div id="stat-bar-6" class="bg-gradient-to-r from-blue-600 to-blue-400 h-full rounded-full relative" style="width:12%"><div class="absolute inset-0 bg-white/20 animate-pulse"></div></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="price-num text-white" style="font-size:2.25rem;">£8.00</span>
+                            <a href="raffle.html?tier=6" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-blue-500/50 hover:border-blue-400 flex items-center gap-1.5 shadow-[0_0_14px_rgba(59,130,246,0.2)]">Secure Entry →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- PREMIUM SPIN THE WHEEL MODAL FOR HOMEPAGE -->
-    <div id="wheel-modal" class="fixed inset-0 bg-dark/95 backdrop-blur-xl z-[100] hidden flex-col items-center justify-center text-center p-4">
-        <!-- Ambient modal glow -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand/20 blur-[120px] rounded-full pointer-events-none z-0"></div>
-        
-        <div class="relative z-10 bg-brand/10 text-brand text-xs font-bold px-5 py-2.5 rounded-full mb-8 uppercase tracking-widest border border-brand/30 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
-            Welcome to OcheRaffles
-        </div>
-        <h2 id="wheel-title" class="relative z-10 text-4xl md:text-6xl lg:text-7xl font-black text-white mb-2 md:mb-4 tracking-tighter transition-all duration-500 drop-shadow-md">Spin to Win!</h2>
-        <p id="wheel-desc" class="relative z-10 text-base md:text-lg lg:text-xl text-slate-300 mb-8 md:mb-10 max-w-lg mx-auto leading-relaxed px-4">Spin the wheel to claim up to <span class="text-brand font-bold drop-shadow-[0_0_8px_rgba(220,38,38,0.5)]">3 FREE tickets</span> for the Signed Flights draw instantly!</p>
-        
-        <div class="relative flex flex-col items-center mt-4 z-10">
-            <!-- GLOWING GOLD POINTER -->
-            <div class="absolute -top-8 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[40px] border-t-accent z-30 drop-shadow-[0_0_20px_rgba(245,158,11,0.9)]"></div>
-            
-            <!-- Wheel Graphic with Custom Physics -->
-            <div id="spin-wheel" class="w-64 h-64 md:w-80 md:h-80 rounded-full border-[10px] border-slate-900 shadow-[0_0_100px_rgba(220,38,38,0.3)] overflow-hidden relative flex items-center justify-center"
-                 style="background: conic-gradient(#dc2626 0deg 120deg, #1e293b 120deg 240deg, #991b1b 240deg 360deg); transition: transform 4.5s cubic-bezier(0.15, 0.85, 0.3, 1);">
-                <!-- Ticket Amounts -->
-                <div class="absolute top-8 md:top-12 text-white font-black text-4xl md:text-6xl transform -rotate-0 z-10 drop-shadow-xl">3</div>
-                <div class="absolute bottom-12 md:bottom-16 right-8 md:right-16 text-white font-black text-4xl md:text-6xl transform rotate-120 z-10 drop-shadow-xl">1</div>
-                <div class="absolute bottom-12 md:bottom-16 left-8 md:left-16 text-white font-black text-4xl md:text-6xl transform -rotate-120 z-10 drop-shadow-xl">2</div>
-                
-                <!-- Inner circle -->
-                <div class="w-16 h-16 md:w-24 md:h-24 bg-dark rounded-full z-20 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] border-[6px] border-slate-800 flex items-center justify-center">
-                    <div class="w-6 h-6 bg-brand rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]"></div>
+            <!-- ============================
+                 TIER 7: NATHAN ASPINALL DARTS
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-purple-500/50 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(139,92,246,0.15)]">
+                <div class="h-52 relative overflow-hidden border-b border-slate-700/40">
+                    <svg viewBox="0 0 400 210" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <linearGradient id="barrel-t7a" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ddd6fe"/><stop offset="100%" stop-color="#6d28d9"/></linearGradient>
+                        </defs>
+                        <rect width="400" height="210" fill="#0d0c1a"/>
+                        <ellipse cx="200" cy="105" rx="160" ry="80" fill="#7c3aed" opacity="0.05"/>
+                        <g transform="translate(140,110) rotate(-12)">
+                            <polygon points="0,0 -2,-4 2,-4" fill="#a78bfa"/>
+                            <rect x="-3" y="-4" width="6" height="20" rx="2" fill="url(#barrel-t7a)"/>
+                            <rect x="-2" y="16" width="4" height="11" rx="1" fill="#4c1d95"/>
+                            <path d="M-7,-20 C-10,-14 -5,-9 0,-4 C5,-9 10,-14 7,-20 C4,-16 -4,-16 -7,-20Z" fill="#7c3aed"/>
+                        </g>
+                        <g transform="translate(200,108)">
+                            <polygon points="0,0 -2,-4 2,-4" fill="#c4b5fd"/>
+                            <rect x="-3" y="-4" width="6" height="20" rx="2" fill="url(#barrel-t7a)"/>
+                            <rect x="-2" y="16" width="4" height="11" rx="1" fill="#4c1d95"/>
+                            <path d="M-7,-20 C-10,-14 -5,-9 0,-4 C5,-9 10,-14 7,-20 C4,-16 -4,-16 -7,-20Z" fill="#5b21b6"/>
+                        </g>
+                        <g transform="translate(260,110) rotate(12)">
+                            <polygon points="0,0 -2,-4 2,-4" fill="#a78bfa"/>
+                            <rect x="-3" y="-4" width="6" height="20" rx="2" fill="url(#barrel-t7a)"/>
+                            <rect x="-2" y="16" width="4" height="11" rx="1" fill="#4c1d95"/>
+                            <path d="M-7,-20 C-10,-14 -5,-9 0,-4 C5,-9 10,-14 7,-20 C4,-16 -4,-16 -7,-20Z" fill="#7c3aed"/>
+                        </g>
+                        <path d="M138,172 C156,166 172,174 190,169 C206,164 220,172 238,167 C252,163 264,170 280,166" stroke="rgba(167,139,250,0.3)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <text x="200" y="195" text-anchor="middle" font-family="monospace" font-size="8" fill="#8b5cf6" letter-spacing="3" opacity="0.5">NATHAN ASPINALL · THE ASP</text>
+                    </svg>
+                    <div class="absolute top-3 left-3 bg-purple-500/15 border border-purple-500/35 text-purple-400 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">🐍 The Asp</div>
+                    <div class="prize-img-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card/60"></div>
+                </div>
+                <div class="p-7 flex-grow flex flex-col">
+                    <h3 class="font-display text-white mb-1.5 leading-tight group-hover:text-purple-400 transition-colors" style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;">Aspinall Signed Dart Set</h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Nathan "The Asp" Aspinall's personal dart set, hand-signed at the Premier League. Full COA.</p>
+                    <div class="mt-auto">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
+                            <span id="stat-text-7">11 / 40 Sold</span>
+                            <span id="stat-pct-7" class="text-purple-400 font-bold">27%</span>
+                        </div>
+                        <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                            <div id="stat-bar-7" class="bg-gradient-to-r from-purple-700 to-purple-400 h-full rounded-full relative" style="width:27%"><div class="absolute inset-0 bg-white/20 animate-pulse"></div></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="price-num text-white" style="font-size:2.25rem;">£6.00</span>
+                            <a href="raffle.html?tier=7" class="bg-purple-700 hover:bg-purple-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-purple-500/50 hover:border-purple-400 flex items-center gap-1.5">Secure Entry →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================
+                 TIER 8: VIRTUAL CAM SESSION
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-success/50 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(16,185,129,0.12)]">
+                <div class="h-52 relative overflow-hidden border-b border-slate-700/40">
+                    <svg viewBox="0 0 400 210" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                        <rect width="400" height="210" fill="#091a14"/>
+                        <ellipse cx="200" cy="105" rx="160" ry="80" fill="#10b981" opacity="0.05"/>
+                        <rect x="80" y="55" width="200" height="125" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                        <rect x="88" y="63" width="184" height="109" rx="7" fill="#0f1f2e"/>
+                        <circle cx="200" cy="117" r="35" fill="#0c1a28" stroke="#334155" stroke-width="2"/>
+                        <circle cx="200" cy="117" r="27" fill="#091018" stroke="#1e293b" stroke-width="1.5"/>
+                        <circle cx="200" cy="117" r="18" fill="#030b12"/>
+                        <circle cx="200" cy="117" r="18" fill="none" stroke="#10b981" stroke-width="0.8" opacity="0.4"/>
+                        <circle cx="200" cy="117" r="10" fill="#051a12" stroke="#10b981" stroke-width="0.6" opacity="0.5"/>
+                        <ellipse cx="193" cy="110" rx="4" ry="3" fill="rgba(255,255,255,0.08)" transform="rotate(-30 193 110)"/>
+                        <rect x="168" y="59" width="14" height="6" rx="3" fill="#10b981" opacity="0.6"/>
+                        <circle cx="92" cy="73" r="4" fill="#dc2626"/>
+                        <circle cx="92" cy="73" r="4" fill="#dc2626" opacity="0.5"><animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle>
+                        <text x="104" y="77" font-family="monospace" font-size="7" fill="#ef4444" letter-spacing="2">VIRT CAM</text>
+                        <text x="200" y="193" text-anchor="middle" font-family="monospace" font-size="8" fill="#10b981" letter-spacing="3" opacity="0.4">VIRTUAL CAMERA SESSION</text>
+                    </svg>
+                    <div class="absolute top-3 left-3 bg-success/12 border border-success/30 text-success text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">🎥 Virt Cam</div>
+                    <div class="prize-img-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card/60"></div>
+                </div>
+                <div class="p-7 flex-grow flex flex-col">
+                    <h3 class="font-display text-white mb-1.5 leading-tight group-hover:text-success transition-colors" style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;">Virtual Camera Session</h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">Exclusive virtual practice session with Ryan Searle. 45-minute live coaching call with on-cam darts analysis.</p>
+                    <div class="mt-auto">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
+                            <span id="stat-text-8">18 / 25 Sold</span>
+                            <span id="stat-pct-8" class="text-success font-bold">72%</span>
+                        </div>
+                        <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                            <div id="stat-bar-8" class="bg-gradient-to-r from-success to-emerald-400 h-full rounded-full relative" style="width:72%"><div class="absolute inset-0 bg-white/20 animate-pulse"></div></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="price-num text-white" style="font-size:2.25rem;">£12.00</span>
+                            <a href="raffle.html?tier=8" class="bg-success/15 hover:bg-success/25 text-success font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-success/40 hover:border-success/60 flex items-center gap-1.5">Secure Entry →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================
+                 TIER 9: OMNI CAM (WIDE)
+                 ============================ -->
+            <div class="prize-card group bg-card/80 backdrop-blur-sm rounded-2xl border border-accent/25 hover:border-accent/50 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_25px_50px_-15px_rgba(245,158,11,0.15)] lg:col-span-2">
+                <div class="flex flex-col sm:flex-row h-full">
+                    <div class="h-56 sm:h-auto sm:w-2/5 relative overflow-hidden border-b sm:border-b-0 sm:border-r border-slate-700/40">
+                        <svg viewBox="0 0 320 260" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                            <rect width="320" height="260" fill="#0d0e14"/>
+                            <ellipse cx="160" cy="130" rx="140" ry="100" fill="#f59e0b" opacity="0.04"/>
+                            <circle cx="160" cy="130" r="55" fill="#111827" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.3"/>
+                            <circle cx="160" cy="130" r="40" fill="#0c1220" stroke="#f59e0b" stroke-width="0.8" stroke-opacity="0.4"/>
+                            <circle cx="160" cy="130" r="25" fill="#050d18" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.5"/>
+                            <circle cx="160" cy="130" r="14" fill="#030810" stroke="#f59e0b" stroke-width="0.6" stroke-opacity="0.6"/>
+                            <circle cx="160" cy="130" r="6" fill="#f59e0b" opacity="0.15"/>
+                            <ellipse cx="153" cy="123" rx="4" ry="3" fill="rgba(255,255,255,0.1)" transform="rotate(-30 153 123)"/>
+                            <circle cx="160" cy="60" r="12" fill="#111827" stroke="#f59e0b" stroke-width="0.8" stroke-opacity="0.4"/><circle cx="160" cy="60" r="6" fill="#050d18"/><line x1="160" y1="72" x2="160" y2="90" stroke="#f59e0b" stroke-width="0.6" stroke-opacity="0.2"/>
+                            <circle cx="228" cy="130" r="12" fill="#111827" stroke="#f59e0b" stroke-width="0.8" stroke-opacity="0.4"/><circle cx="228" cy="130" r="6" fill="#050d18"/><line x1="216" y1="130" x2="200" y2="130" stroke="#f59e0b" stroke-width="0.6" stroke-opacity="0.2"/>
+                            <circle cx="160" cy="198" r="12" fill="#111827" stroke="#f59e0b" stroke-width="0.8" stroke-opacity="0.4"/><circle cx="160" cy="198" r="6" fill="#050d18"/><line x1="160" y1="186" x2="160" y2="168" stroke="#f59e0b" stroke-width="0.6" stroke-opacity="0.2"/>
+                            <circle cx="92" cy="130" r="12" fill="#111827" stroke="#f59e0b" stroke-width="0.8" stroke-opacity="0.4"/><circle cx="92" cy="130" r="6" fill="#050d18"/><line x1="104" y1="130" x2="120" y2="130" stroke="#f59e0b" stroke-width="0.6" stroke-opacity="0.2"/>
+                            <text x="160" y="235" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="11" font-weight="900" fill="#f59e0b" opacity="0.3" letter-spacing="4">OMNI · 360°</text>
+                        </svg>
+                    </div>
+                    <div class="p-7 sm:w-3/5 flex flex-col justify-between">
+                        <div>
+                            <div class="text-accent text-xs font-black mb-3 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                Ultimate Camera Package
+                            </div>
+                            <h3 class="font-display text-white mb-3 leading-tight group-hover:text-accent transition-colors" style="font-family:'Barlow Condensed',sans-serif;font-size:1.85rem;font-weight:900;">Omni-Cam 360° Bundle</h3>
+                            <p class="text-sm text-slate-300 mb-6 leading-relaxed">Complete 360° camera rig for your home setup. Four wide-angle cameras, mounting hardware, and lifetime cloud storage.</p>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
+                                <span id="stat-text-9">3 / 20 Sold <span class="text-accent/70 font-bold">(Best Odds)</span></span>
+                                <span id="stat-pct-9" class="text-accent font-bold">15%</span>
+                            </div>
+                            <div class="w-full bg-dark rounded-full h-2 mb-6 border border-slate-700/50 overflow-hidden">
+                                <div id="stat-bar-9" class="bg-gradient-to-r from-accent to-yellow-400 h-full rounded-full relative stat-bar-accent" style="width:15%"><div class="absolute inset-0 bg-white/20 animate-pulse"></div></div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="price-num text-white" style="font-size:2.5rem;">£20.00</span>
+                                <a href="raffle.html?tier=9" class="btn-accent bg-gradient-to-r from-accent to-yellow-500 hover:from-yellow-500 hover:to-accent text-dark font-black px-7 py-3.5 rounded-xl transition-all shadow-[0_0_18px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] border border-accent/50 flex items-center gap-1.5">Secure Entry →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end grid -->
+
+        <!-- ============================
+             TOURNAMENTS — COMING SOON
+             ============================ -->
+        <div class="mt-20 mb-4">
+            <div class="flex items-end gap-4 mb-8">
+                <div>
+                    <p class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-1">Coming Soon</p>
+                    <h2 class="font-display text-slate-600 leading-none" style="font-family:'Barlow Condensed',sans-serif;font-size:3rem;font-weight:900;font-style:italic;letter-spacing:-0.02em;">Tournaments</h2>
+                </div>
+                <span class="bg-slate-800/60 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-700/50 mb-1.5">Locked</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="group relative bg-card/20 rounded-2xl border border-slate-800/50 overflow-hidden cursor-not-allowed" style="filter:grayscale(0.8) opacity:0.6;">
+                    <div class="h-36 bg-gradient-to-br from-slate-800/30 to-slate-900/50 flex items-center justify-center relative overflow-hidden">
+                        <svg viewBox="0 0 120 80" width="100" height="70" xmlns="http://www.w3.org/2000/svg" class="opacity-15"><polygon points="60,5 70,35 100,35 77,52 86,82 60,65 34,82 43,52 20,35 50,35" fill="#475569"/></svg>
+                        <div class="absolute inset-0 bg-dark/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                            <div class="text-center"><p class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">🔒 Coming Soon</p><p class="text-slate-600 text-[10px]">Feature in development</p></div>
+                        </div>
+                    </div>
+                    <div class="p-5"><h3 class="font-display text-slate-700 mb-1" style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:900;">Weekly Knockout</h3><p class="text-xs text-slate-700">Head-to-head bracket tournaments with prize pools.</p></div>
+                </div>
+                <div class="group relative bg-card/20 rounded-2xl border border-slate-800/50 overflow-hidden cursor-not-allowed" style="filter:grayscale(0.8) opacity:0.6;">
+                    <div class="h-36 bg-gradient-to-br from-slate-800/30 to-slate-900/50 flex items-center justify-center relative overflow-hidden">
+                        <svg viewBox="0 0 120 80" width="100" height="70" xmlns="http://www.w3.org/2000/svg" class="opacity-15"><rect x="10" y="10" width="100" height="60" rx="8" fill="none" stroke="#475569" stroke-width="2"/><circle cx="60" cy="40" r="15" fill="#475569" opacity="0.5"/></svg>
+                        <div class="absolute inset-0 bg-dark/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                            <div class="text-center"><p class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">🔒 Coming Soon</p><p class="text-slate-600 text-[10px]">Feature in development</p></div>
+                        </div>
+                    </div>
+                    <div class="p-5"><h3 class="font-display text-slate-700 mb-1" style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:900;">Season Leagues</h3><p class="text-xs text-slate-700">Compete across a full season for the grand prize.</p></div>
+                </div>
+                <div class="group relative bg-card/20 rounded-2xl border border-slate-800/50 overflow-hidden cursor-not-allowed" style="filter:grayscale(0.8) opacity:0.6;">
+                    <div class="h-36 bg-gradient-to-br from-slate-800/30 to-slate-900/50 flex items-center justify-center relative overflow-hidden">
+                        <svg viewBox="0 0 120 80" width="100" height="70" xmlns="http://www.w3.org/2000/svg" class="opacity-15"><circle cx="60" cy="40" r="30" fill="none" stroke="#475569" stroke-width="2"/><circle cx="60" cy="40" r="18" fill="none" stroke="#475569" stroke-width="1.5"/><circle cx="60" cy="40" r="8" fill="#475569" opacity="0.5"/></svg>
+                        <div class="absolute inset-0 bg-dark/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                            <div class="text-center"><p class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">🔒 Coming Soon</p><p class="text-slate-600 text-[10px]">Feature in development</p></div>
+                        </div>
+                    </div>
+                    <div class="p-5"><h3 class="font-display text-slate-700 mb-1" style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:900;">Pro Challenges</h3><p class="text-xs text-slate-700">Beat the pro's score — win the prize outright.</p></div>
                 </div>
             </div>
         </div>
-        
-        <div class="mt-8 md:mt-10 h-auto flex flex-col gap-3 md:gap-4 items-center z-10">
-            <button id="spin-btn" onclick="spinWheel()" class="bg-white hover:bg-slate-200 text-dark font-black px-8 md:px-10 py-2 md:py-3 rounded-xl md:rounded-2xl text-base md:text-lg transition-all transform hover:scale-105 shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:shadow-[0_15px_40px_rgba(255,255,255,0.3)]">
+
+        <!-- ============================
+             FAQ SECTION
+             ============================ -->
+        <section id="faq" class="mt-20 scroll-mt-24">
+            <div class="flex items-end gap-4 mb-10">
+                <div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Got Questions?</p>
+                    <h2 class="font-display text-white leading-none" style="font-family:'Barlow Condensed',sans-serif;font-size:3rem;font-weight:900;font-style:italic;letter-spacing:-0.02em;">FAQ</h2>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl">
+                <div class="bg-card/50 border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/70 transition-colors">
+                    <h3 class="font-display text-white mb-2" style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;">Is this gambling?</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">No. OcheRaffles runs skill-based prize competitions, which are entirely exempt from the Gambling Act 2005. Every entry requires answering a darts-related question to qualify.</p>
+                </div>
+                <div class="bg-card/50 border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/70 transition-colors">
+                    <h3 class="font-display text-white mb-2" style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;">How is the winner chosen?</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Once a draw closes (timer hits zero or tickets sell out), our provably-fair randomiser picks a winning ticket number. Results are published on the Past Winners page within 24 hours.</p>
+                </div>
+                <div class="bg-card/50 border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/70 transition-colors">
+                    <h3 class="font-display text-white mb-2" style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;">Where does the money go?</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">80% of all proceeds go directly to the player's chosen charity — currently ADOA. The remaining 20% covers prizes, logistics, and platform costs. Every penny is tracked.</p>
+                </div>
+                <div class="bg-card/50 border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/70 transition-colors">
+                    <h3 class="font-display text-white mb-2" style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;">Are the items genuinely signed?</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Yes. We work directly with the players and their management. Every item comes with a certificate of authenticity and is photographed during the signing session.</p>
+                </div>
+                <div class="bg-card/50 border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/70 transition-colors">
+                    <h3 class="font-display text-white mb-2" style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;">How do I pay?</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">All payments are processed securely via PayPal. You don't need a PayPal account — card payments are accepted. Promo codes can be applied at checkout for discounts.</p>
+                </div>
+                <div class="bg-card/50 border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/70 transition-colors">
+                    <h3 class="font-display text-white mb-2" style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;">What if I win?</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Winners are contacted directly via the email used to register within 48 hours of the draw. Prizes are dispatched within 7 working days with tracked delivery. 100% delivery rate to date.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SPIN THE WHEEL MODAL -->
+    <!-- ==================== SPIN THE WHEEL MODAL ==================== -->
+    <div id="wheel-modal" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center text-center p-4" style="background:rgba(12,18,32,0.97);backdrop-filter:blur(20px);">
+
+        <!-- Ambient glow blobs -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand/10 blur-[160px] rounded-full pointer-events-none z-0"></div>
+        <div class="absolute top-1/4 right-1/4 w-48 h-48 bg-accent/8 blur-[100px] rounded-full pointer-events-none z-0"></div>
+
+        <div class="relative z-10 flex flex-col items-center w-full max-w-lg px-4">
+
+            <!-- Badge -->
+            <div class="bg-brand/10 text-brand text-[10px] font-bold px-5 py-2 rounded-full mb-5 uppercase tracking-widest border border-brand/25 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+                Welcome Bonus — New Members Only
+            </div>
+
+            <!-- Headline -->
+            <h2 id="wheel-title" class="text-white mb-2 transition-all duration-500" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;font-size:clamp(2.8rem,8vw,5rem);line-height:1;">Spin to Win!</h2>
+            <p id="wheel-desc" class="text-slate-300 mb-8 max-w-sm mx-auto leading-relaxed" style="font-size:1rem;">
+                Spin the wheel to claim up to
+                <strong style="color:#dc2626;">3 FREE tickets</strong>
+                for the Signed Flights draw!
+            </p>
+
+            <!-- Wheel container + pointer -->
+            <div class="relative flex flex-col items-center mb-8">
+
+                <!-- Gold pointer triangle at top -->
+                <div style="
+                    width:0; height:0;
+                    border-left:16px solid transparent;
+                    border-right:16px solid transparent;
+                    border-top:34px solid #f59e0b;
+                    position:absolute;
+                    top:-2px;
+                    left:50%;
+                    transform:translateX(-50%);
+                    z-index:30;
+                    filter:drop-shadow(0 0 10px rgba(245,158,11,0.8));
+                "></div>
+
+                <!-- Outer glow ring (decoration, non-spinning) -->
+                <div style="
+                    width:304px; height:304px;
+                    border-radius:50%;
+                    border:2px solid rgba(220,38,38,0.2);
+                    box-shadow: 0 0 40px rgba(220,38,38,0.15), inset 0 0 40px rgba(0,0,0,0.3);
+                    position:absolute;
+                    top:6px; left:50%;
+                    transform:translateX(-50%);
+                    pointer-events:none;
+                    z-index:0;
+                "></div>
+
+                <!-- THE CANVAS WHEEL -->
+                <canvas id="wheel-canvas" width="292" height="292" style="
+                    border-radius:50%;
+                    border:6px solid #0c1220;
+                    box-shadow: 0 0 60px rgba(220,38,38,0.2);
+                    position:relative;
+                    z-index:10;
+                    cursor:pointer;
+                    display:block;
+                "></canvas>
+
+            </div>
+
+            <!-- Buttons -->
+            <button id="spin-btn" onclick="spinWheel()"
+                style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:0.08em;"
+                class="bg-white hover:bg-slate-100 active:scale-95 text-dark px-12 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_rgba(255,255,255,0.15)] hover:shadow-[0_8px_40px_rgba(255,255,255,0.25)]">
                 CLICK TO SPIN
             </button>
-            <a id="vault-btn" href="dashboard.html" class="hidden bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white font-black px-8 md:px-10 py-2 md:py-3 rounded-xl md:rounded-2xl text-base md:text-lg transition-all shadow-[0_0_40px_rgba(220,38,38,0.5)] animate-bounce border border-brand/50">
+
+            <a id="vault-btn" href="dashboard.html"
+                style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:0.08em;display:none;"
+                class="bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white px-12 py-3.5 rounded-2xl transition-all shadow-[0_0_30px_rgba(220,38,38,0.45)] border border-brand/50">
                 VIEW YOUR VAULT →
             </a>
         </div>
     </div>
 
-    <footer class="bg-dark border-t border-slate-700/50 pt-16 pb-8 mt-auto relative z-10">
+    <!-- FOOTER -->
+    <footer class="bg-dark/80 border-t border-slate-700/50 pt-16 pb-8 mt-auto relative z-10 backdrop-blur-sm">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                 <div class="col-span-1 md:col-span-2">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-6 h-6 bg-brand rounded flex items-center justify-center font-bold text-white text-xs">OR</div>
-                        <span class="font-bold text-lg text-white">OcheRaffles</span>
+                    <div class="flex items-center gap-2.5 mb-5">
+                        <div class="relative w-7 h-7 flex-shrink-0">
+                            <svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="14" cy="14" r="13" fill="#dc2626"/>
+                                <circle cx="14" cy="14" r="9" fill="#1e293b"/>
+                                <circle cx="14" cy="14" r="5.5" fill="#dc2626"/>
+                                <circle cx="14" cy="14" r="2.5" fill="#1e293b"/>
+                                <circle cx="14" cy="14" r="1" fill="#f59e0b"/>
+                            </svg>
+                        </div>
+                        <span class="font-display font-900 text-xl text-white" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;">OcheRaffles</span>
                     </div>
                     <p class="text-slate-500 text-sm max-w-sm mb-6 leading-relaxed">Providing fair, transparent, and legally compliant skill-based competitions for the global darts community.</p>
                     <div class="flex gap-4">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal Accepted" class="h-6 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition duration-300">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal Accepted" class="h-6 opacity-35 grayscale hover:grayscale-0 hover:opacity-100 transition duration-300">
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-white font-bold mb-4">Platform</h4>
+                    <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Platform</h4>
                     <ul class="space-y-3 text-sm text-slate-500">
-                        <li><a href="#" class="hover:text-white transition">Live Draws</a></li>
-                        <li><a href="past.html" class="hover:text-white transition">Past Winners</a></li>
-                        <li><a href="#" class="hover:text-white transition">Charity Partners</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Live Draws</a></li>
+                        <li><a href="past.html" class="hover:text-white transition-colors">Past Winners</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Charity Partners</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-white font-bold mb-4">Support & Legal</h4>
+                    <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Support & Legal</h4>
                     <ul class="space-y-3 text-sm text-slate-500">
-                        <li><a href="mailto:contact@sharpsolutions.live" class="hover:text-brand text-white transition font-medium">Contact Sharp Solutions</a></li>
-                        <li><a href="#" class="hover:text-white transition">Terms & Conditions</a></li>
-                        <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                        <li><a href="mailto:contact@sharpsolutions.live" class="hover:text-brand text-white transition-colors font-medium">Contact Sharp Solutions</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms & Conditions</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
             
-            <div class="border-t border-slate-700/50 pt-8 mt-8 text-xs text-slate-600 text-center space-y-2">
+            <div class="border-t border-slate-700/40 pt-8 text-xs text-slate-600 text-center space-y-2">
                 <p>OcheRaffles operates prize competitions which are free from regulation under the Gambling Act 2005. All entrants must be 18 years or older and answer a skill-based question to qualify.</p>
                 <p>OcheRaffles is not affiliated with, maintained by, or in any way officially connected with the Professional Darts Corporation (PDC) or Target Darts.</p>
                 <p>&copy; 2026 OcheRaffles Ltd. All rights reserved. | <a href="https://sharpsolutions.live" class="text-brand hover:underline">Powered by Sharp Solutions</a></p>
@@ -330,68 +1170,252 @@
         </div>
     </footer>
 
+    <!-- ==================== WHEEL + PAGE JS ==================== -->
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user } } = await window.supabaseClient.auth.getUser();
-            if (user) {
-                // If they are logged in and haven't spun the wheel, show it here!
-                if (!localStorage.getItem(`hasSpunWheel_${user.id}`)) {
-                    document.getElementById('wheel-modal').classList.remove('hidden');
-                    document.getElementById('wheel-modal').classList.add('flex');
-                }
+    // ─── Canvas Wheel Setup ───────────────────────────────────────────────────
+    const SEGMENTS = [
+        { label: '3', value: 3, colors: ['#dc2626', '#b91c1c'] },
+        { label: '1', value: 1, colors: ['#141f35', '#1e2f52'] },
+        { label: '2', value: 2, colors: ['#991b1b', '#7f1d1d'] },
+    ];
+    const NUM_SEG = SEGMENTS.length;
+    const SLICE = (Math.PI * 2) / NUM_SEG;
+
+    let wheelAngle = -Math.PI / 2;  // pointer always at top
+    let spinVelocity = 0;
+    let spinning = false;
+    let animFrame = null;
+    let targetWon = null;
+
+    function drawWheel(angle) {
+        const canvas = document.getElementById('wheel-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const cx = W / 2, cy = H / 2, r = cx - 2;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Draw segments
+        for (let i = 0; i < NUM_SEG; i++) {
+            const startAngle = angle + i * SLICE;
+            const endAngle = startAngle + SLICE;
+            const seg = SEGMENTS[i];
+
+            // Segment fill with gradient
+            const grad = ctx.createRadialGradient(cx, cy, r * 0.18, cx, cy, r);
+            grad.addColorStop(0, seg.colors[1]);
+            grad.addColorStop(1, seg.colors[0]);
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Subtle segment divider
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, startAngle, endAngle);
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Segment label
+            const midAngle = startAngle + SLICE / 2;
+            const textR = r * 0.6;
+            const tx = cx + Math.cos(midAngle) * textR;
+            const ty = cy + Math.sin(midAngle) * textR;
+
+            ctx.save();
+            ctx.translate(tx, ty);
+            ctx.rotate(midAngle + Math.PI / 2);
+            ctx.font = "900 52px 'Barlow Condensed', sans-serif";
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'rgba(255,255,255,0.92)';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 6;
+            ctx.fillText(seg.label, 0, 0);
+            ctx.restore();
+
+            // Decorative dots along outer edge
+            const dotR = r - 10;
+            const dotMid = startAngle + SLICE / 2;
+            for (let d = 0; d < 3; d++) {
+                const da = startAngle + (SLICE * (d + 1)) / 4;
+                const dx = cx + Math.cos(da) * dotR;
+                const dy = cy + Math.sin(da) * dotR;
+                ctx.beginPath();
+                ctx.arc(dx, dy, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fill();
             }
-        });
-
-        async function spinWheel() {
-            const btn = document.getElementById('spin-btn');
-            btn.disabled = true;
-            btn.innerText = "Spinning...";
-            btn.classList.add('opacity-50');
-            
-            const wheel = document.getElementById('spin-wheel');
-            // Spin incredibly fast then settle into the final number
-            const randomDegree = Math.floor(Math.random() * 360);
-            const totalRotation = (360 * 6) + randomDegree; // 6 full, fast rotations + remainder
-            
-            wheel.style.transform = `rotate(${totalRotation}deg)`;
-            
-            // Wait for 4.5 seconds for the custom physics easing to finish
-            setTimeout(async () => {
-                const finalAngle = totalRotation % 360;
-                const pointerAngle = (360 - finalAngle) % 360;
-                let won = 2; // Default
-                if(pointerAngle >= 0 && pointerAngle < 120) won = 3;
-                else if(pointerAngle >= 120 && pointerAngle < 240) won = 1;
-
-                // --- PREMIUM UI UPDATE (REPLACES ALERT) ---
-                const title = document.getElementById('wheel-title');
-                title.innerHTML = `YOU WON <span class="text-accent drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]">${won}</span> TICKETS!`;
-                title.classList.add('text-success', 'scale-110'); // Pop effect
-                
-                document.getElementById('wheel-desc').innerText = "We are securing them in your vault right now.";
-                document.getElementById('wheel-desc').classList.add('text-success', 'font-medium');
-
-                // Update UI: Show a "Securing Tickets" loading state first
-                btn.classList.add('hidden'); 
-                const vaultBtn = document.getElementById('vault-btn');
-                vaultBtn.innerText = "SECURING TICKETS...";
-                vaultBtn.classList.remove('hidden');
-                vaultBtn.classList.add('inline-block', 'opacity-50', 'pointer-events-none', 'animate-pulse');
-                
-                // --- SECURE DB INJECTION HAPPENS BEFORE THEY CAN CLICK ---
-                const { data: { user } } = await window.supabaseClient.auth.getUser();
-                localStorage.setItem(`hasSpunWheel_${user.id}`, 'true');
-                
-                // Wait for the secure save to finish...
-                await window.injectFreeTickets(won);
-
-                // NOW reveal the clickable button!
-                vaultBtn.innerText = `CLAIM ${won} FREE TICKET${won > 1 ? 'S' : ''} →`;
-                vaultBtn.classList.remove('opacity-50', 'pointer-events-none', 'animate-pulse');
-                vaultBtn.classList.add('shadow-[0_0_40px_rgba(220,38,38,0.6)]', 'animate-bounce');
-
-            }, 4500); 
         }
+
+        // Outer ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Inner ring lines (spoke dividers)
+        for (let i = 0; i < NUM_SEG; i++) {
+            const a = angle + i * SLICE;
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(a) * 28, cy + Math.sin(a) * 28);
+            ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Hub (center bullseye decoration)
+        // Outer hub ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+        ctx.fillStyle = '#0c1220';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Inner hub: mini dartboard rings
+        ctx.beginPath();
+        ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+        ctx.fillStyle = '#dc2626';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#0c1220';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#dc2626';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+    }
+
+    // Determine which segment the pointer (top, -90°) lands on
+    function getWinner(angle) {
+        // Normalize angle so pointer is at 0
+        const norm = (((-Math.PI / 2) - angle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+        const idx = Math.floor(norm / SLICE) % NUM_SEG;
+        return SEGMENTS[idx].value;
+    }
+
+    function easeOut(t) {
+        return 1 - Math.pow(1 - t, 4);
+    }
+
+    // ─── Spin Logic ─────────────────────────────────────────────────────────
+    let spinStartAngle = 0;
+    let spinTotalAngle = 0;
+    let spinDuration = 0;
+    let spinStartTime = 0;
+
+    function spinWheel() {
+        if (spinning) return;
+        const btn = document.getElementById('spin-btn');
+        btn.disabled = true;
+        btn.textContent = 'Spinning…';
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+
+        spinning = true;
+        spinStartAngle = wheelAngle;
+
+        // 5–7 full rotations + random offset to land on any of 3 segments
+        const extraTurns = (5 + Math.random() * 2) * Math.PI * 2;
+        const randomSegmentOffset = Math.random() * Math.PI * 2;
+        spinTotalAngle = extraTurns + randomSegmentOffset;
+
+        spinDuration = 4800; // ms
+        spinStartTime = performance.now();
+
+        requestAnimationFrame(animateSpin);
+    }
+
+    function animateSpin(now) {
+        const elapsed = now - spinStartTime;
+        const t = Math.min(elapsed / spinDuration, 1);
+        const eased = easeOut(t);
+
+        wheelAngle = spinStartAngle + spinTotalAngle * eased;
+        drawWheel(wheelAngle);
+
+        // Haptic-style tick sound via short AudioContext beep when passing dividers
+        // (optional — skip if no AudioContext)
+
+        if (t < 1) {
+            animFrame = requestAnimationFrame(animateSpin);
+        } else {
+            // Done
+            spinning = false;
+            wheelAngle = spinStartAngle + spinTotalAngle;
+            drawWheel(wheelAngle);
+            onSpinComplete(getWinner(wheelAngle));
+        }
+    }
+
+    async function onSpinComplete(won) {
+        // Pulse the title
+        const title = document.getElementById('wheel-title');
+        title.style.transition = 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+        title.innerHTML = `YOU WON <span style="color:#f59e0b;text-shadow:0 0 20px rgba(245,158,11,0.6)">${won}</span> TICKET${won > 1 ? 'S' : ''}!`;
+
+        const desc = document.getElementById('wheel-desc');
+        desc.style.color = '#10b981';
+        desc.textContent = 'Securing them in your vault right now…';
+
+        const spinBtn = document.getElementById('spin-btn');
+        spinBtn.style.display = 'none';
+
+        const vaultBtn = document.getElementById('vault-btn');
+        vaultBtn.textContent = 'SECURING TICKETS…';
+        vaultBtn.style.display = 'inline-block';
+        vaultBtn.style.opacity = '0.5';
+        vaultBtn.style.pointerEvents = 'none';
+        vaultBtn.classList.add('animate-pulse');
+
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        localStorage.setItem(`hasSpunWheel_${user.id}`, 'true');
+        await window.injectFreeTickets(won);
+
+        // Reveal vault CTA
+        vaultBtn.textContent = `CLAIM ${won} FREE TICKET${won > 1 ? 'S' : ''} →`;
+        vaultBtn.style.opacity = '1';
+        vaultBtn.style.pointerEvents = 'auto';
+        vaultBtn.classList.remove('animate-pulse');
+        // Add bounce animation inline
+        vaultBtn.style.animation = 'bounce 1s infinite';
+    }
+
+    // ─── Init on DOM load ────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Draw initial wheel
+        drawWheel(wheelAngle);
+
+        // Auth check + wheel gate
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (user) {
+            if (!localStorage.getItem(`hasSpunWheel_${user.id}`)) {
+                const modal = document.getElementById('wheel-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+    });
     </script>
 </body>
 </html>

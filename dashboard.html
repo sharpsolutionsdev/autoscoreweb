@@ -4,162 +4,613 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Vault | OcheRaffles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { brand: '#e11d48', dark: '#080c16', card: '#131c2f' } } }
-        }
+        tailwind.config={theme:{extend:{fontFamily:{display:['"Barlow Condensed"','sans-serif'],sans:['"Plus Jakarta Sans"','sans-serif']},colors:{brand:'#dc2626',dark:'#0c1220',card:'#141f35',accent:'#f59e0b',success:'#10b981'}}}}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
+    <style>
+        body{font-family:'Plus Jakarta Sans',sans-serif;}
+        .display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;}
+        .display-normal{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-0.01em;}
+        .oche-bg{background-image:repeating-conic-gradient(from 0deg,rgba(220,38,38,0.025) 0deg 18deg,rgba(255,255,255,0.008) 18deg 36deg);}
+        .vault-card{background:linear-gradient(135deg,rgba(20,31,53,0.95) 0%,rgba(12,18,32,0.9) 100%);border-left:3px solid #dc2626;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.3s,border-color 0.2s;}
+        .vault-card:hover{transform:translateX(4px);box-shadow:0 8px 30px -8px rgba(0,0,0,0.5),-4px 0 0 0 #f59e0b;border-left-color:#f59e0b;}
+        .ticket-badge{background:conic-gradient(from 0deg,#dc2626 0deg 120deg,#141f35 120deg 240deg,#991b1b 240deg 360deg);}
+        .oche-input{background:rgba(12,18,32,0.9);border:1.5px solid rgba(255,255,255,0.08);transition:border-color 0.2s,box-shadow 0.2s;}
+        .oche-input:focus{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,0.1);outline:none;}
+        @keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(110%);opacity:0}}
+        .toast-enter{animation:slideInRight 0.4s cubic-bezier(0.22,1,0.36,1) forwards;}
+        .toast-exit{animation:slideOutRight 0.4s cubic-bezier(0.55,0,1,0.45) forwards;}
+        @keyframes shimmer{0%{background-position:-500px 0}100%{background-position:500px 0}}
+        .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:500px 100%;animation:shimmer 1.8s ease-in-out infinite;}
+        @keyframes floatUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .float-in{animation:floatUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards;}
+
+        /* Avatar upload */
+        .avatar-ring{background:conic-gradient(from 0deg,#dc2626 0deg 120deg,#141f35 120deg 240deg,#991b1b 240deg 360deg);padding:3px;border-radius:50%;}
+        .avatar-inner{background:#0c1220;border-radius:50%;overflow:hidden;}
+        .avatar-upload-btn{opacity:0;transition:opacity 0.2s;}
+        .avatar-wrap:hover .avatar-upload-btn{opacity:1;}
+
+        /* Tab system */
+        .vault-tab{padding:10px 20px;border-radius:12px;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s;color:#64748b;white-space:nowrap;}
+        .vault-tab.active{background:rgba(220,38,38,0.12);color:#dc2626;border:1px solid rgba(220,38,38,0.25);}
+        .vault-tab:not(.active):hover{color:#cbd5e1;background:rgba(255,255,255,0.04);}
+
+        /* Leaderboard */
+        .lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;transition:background 0.15s;}
+        .lb-row:hover{background:rgba(255,255,255,0.03);}
+        .lb-row.you{background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);}
+        .lb-rank-1{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0c1220;}
+        .lb-rank-2{background:linear-gradient(135deg,#94a3b8,#64748b);color:#0c1220;}
+        .lb-rank-3{background:linear-gradient(135deg,#cd7c3a,#a85a28);color:white;}
+
+        /* Footer */
+        .footer-link{color:#475569;font-size:0.8rem;transition:color 0.2s;}
+        .footer-link:hover{color:#94a3b8;}
+    </style>
 </head>
-<body class="bg-dark text-slate-300 font-sans antialiased min-h-screen relative">
-    
-    <nav class="border-b border-slate-800/80 bg-dark sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-bold text-white">OR</div>
-                <span class="font-extrabold text-2xl text-white tracking-tight hidden sm:block">OcheRaffles</span>
+<body class="bg-dark text-slate-300 antialiased min-h-screen relative flex flex-col">
+
+    <div class="absolute inset-0 oche-bg pointer-events-none z-0 opacity-60"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[400px] bg-brand/6 blur-[160px] rounded-full pointer-events-none z-0"></div>
+
+    <!-- NAV -->
+    <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="19" fill="#dc2626"/><circle cx="20" cy="20" r="14" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="9" fill="#dc2626"/><circle cx="20" cy="20" r="4" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
+                </svg>
+                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheRaffles</span>
             </a>
-            <div class="flex items-center gap-4">
-                <span id="user-email-display" class="text-sm text-slate-400">Loading...</span>
-                <button onclick="signOut()" class="text-slate-500 hover:text-white text-sm border border-slate-700 px-3 py-1 rounded-lg transition">Sign Out</button>
+            <div class="flex items-center gap-3">
+                <!-- Username + avatar pill -->
+                <div class="flex items-center gap-2.5 bg-card/60 border border-white/8 rounded-xl px-3 py-2 cursor-pointer hover:border-white/15 transition-colors" onclick="document.getElementById('settings-panel').classList.toggle('hidden')">
+                    <!-- Avatar -->
+                    <div class="avatar-ring w-8 h-8 flex-shrink-0">
+                        <div class="avatar-inner w-full h-full flex items-center justify-center">
+                            <img id="nav-avatar" src="" alt="" class="w-full h-full object-cover hidden rounded-full">
+                            <svg id="nav-avatar-fallback" class="w-4 h-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                        </div>
+                    </div>
+                    <div class="hidden sm:block">
+                        <p id="nav-username" class="text-sm text-white font-semibold leading-none">Loading…</p>
+                        <p class="text-[10px] text-slate-600 mt-0.5 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                            <span id="nav-ticket-count" style="color:#f59e0b;font-weight:700;">0</span>
+                        </p>
+                    </div>
+                    <svg class="w-3 h-3 text-slate-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                </div>
+
+                <!-- Quick settings dropdown -->
+                <div id="settings-panel" class="hidden absolute right-4 top-20 w-52 bg-card border border-white/10 rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)] backdrop-blur-xl overflow-hidden z-50">
+                    <div class="p-3 border-b border-white/5">
+                        <p class="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Quick Actions</p>
+                    </div>
+                    <div class="p-2">
+                        <button onclick="triggerAvatarUpload()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-sm text-slate-300 transition-colors">
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Change Profile Picture
+                        </button>
+                        <a href="index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-sm text-slate-300 transition-colors">
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Enter More Draws
+                        </a>
+                        <button onclick="signOut()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-sm text-brand transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden avatar file input -->
+                <input type="file" id="avatar-file-input" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-4 py-12 z-10 relative flex-grow">
-        <!-- Success Toast -->
-        <div id="success-toast" class="hidden fixed top-8 right-8 bg-success/10 border border-success/30 text-success rounded-xl p-6 shadow-2xl backdrop-blur-md z-50 animate-pulse max-w-sm">
-            <div class="flex items-center gap-3">
-                <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                </svg>
-                <div>
-                    <h3 class="font-bold">Purchase Successful!</h3>
-                    <p class="text-sm text-slate-400">Your tickets have been added to your vault.</p>
-                </div>
+    <!-- SUCCESS TOAST -->
+    <div id="success-toast" class="hidden fixed top-6 right-6 z-[200] max-w-sm">
+        <div class="bg-success/10 border border-success/30 text-success rounded-2xl p-5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] backdrop-blur-xl flex items-start gap-4">
+            <div class="w-10 h-10 bg-success/15 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
             </div>
-        </div>
-
-        <h1 class="text-3xl font-black text-white mb-2">My Ticket Vault</h1>
-        <p class="text-slate-400 mb-10">Manage your active entries and view past results.</p>
-        
-        <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-800 pb-2">Secured Entries</h2>
-        
-        <div id="ticket-list" class="space-y-4">
-            <p class="text-slate-500">Loading your vault...</p>
-        </div>
-    </main>
-
-    <!-- PROFILE COMPLETION MODAL -->
-    <div id="profile-modal" class="fixed inset-0 bg-dark/95 backdrop-blur-md z-[110] hidden flex-col items-center justify-center p-4">
-        <div class="w-full max-w-md bg-card border border-brand/30 rounded-3xl p-8 shadow-2xl relative">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-white mb-2">Claim your OcheTag</h2>
-                <p class="text-sm text-slate-400">Choose a username to display on the live draw leaderboards!</p>
+            <div>
+                <h3 class="font-bold text-white mb-0.5">Purchase Successful!</h3>
+                <p class="text-sm text-success/80">Your tickets are now secured in the vault.</p>
             </div>
-            <form class="space-y-5" onsubmit="saveProfile(event)">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Username *</label>
-                    <input type="text" id="dash-username-input" required placeholder="e.g. HeavyMetalFan99" class="w-full bg-dark border border-slate-700 rounded-xl px-5 py-4 text-white focus:border-brand focus:outline-none transition-all font-bold text-lg text-center">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number (Win Alerts)</label>
-                    <input type="tel" id="dash-phone-input" placeholder="+44 7700 900000" class="w-full bg-dark border border-slate-700 rounded-xl px-5 py-4 text-white focus:border-brand focus:outline-none transition-all text-center">
-                </div>
-                <button type="submit" class="w-full bg-brand hover:bg-rose-600 text-white font-bold py-4 rounded-xl transition-colors mt-4 shadow-lg shadow-brand/20" id="btn-save-profile">Secure Profile & Enter Vault</button>
-            </form>
         </div>
     </div>
 
-    <footer class="bg-dark border-t border-slate-800/80 pt-8 pb-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-xs text-slate-600 text-center space-y-2">
-            <p>&copy; 2026 OcheRaffles Ltd. All rights reserved.</p>
+    <main class="max-w-6xl mx-auto px-4 py-10 w-full relative z-10 flex-grow">
+
+        <!-- Profile hero row -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-6 mb-10 float-in">
+            <!-- Avatar (large, clickable) -->
+            <div class="avatar-wrap relative cursor-pointer flex-shrink-0" onclick="triggerAvatarUpload()">
+                <div class="avatar-ring w-20 h-20">
+                    <div class="avatar-inner w-full h-full flex items-center justify-center">
+                        <img id="profile-avatar" src="" alt="" class="w-full h-full object-cover hidden">
+                        <div id="profile-avatar-fallback" class="w-full h-full flex items-center justify-center bg-card">
+                            <svg class="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="avatar-upload-btn absolute inset-0 flex items-center justify-center rounded-full" style="background:rgba(0,0,0,0.6)">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+            </div>
+
+            <div class="flex-1">
+                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.25em] mb-1">Member Vault</p>
+                <h1 id="profile-username-display" class="display text-white leading-none" style="font-size:2.6rem;">Loading…</h1>
+                <p id="profile-email-display" class="text-slate-500 text-sm mt-1"></p>
+            </div>
+
+            <!-- Stat pills -->
+            <div class="flex gap-3 flex-wrap sm:flex-nowrap">
+                <div class="bg-card/60 border border-white/6 rounded-2xl px-5 py-3 text-center">
+                    <p class="text-[9px] text-slate-600 uppercase tracking-wider font-bold mb-1">Tickets</p>
+                    <p id="stat-total" class="display text-brand" style="font-size:1.6rem;">—</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-2xl px-5 py-3 text-center">
+                    <p class="text-[9px] text-slate-600 uppercase tracking-wider font-bold mb-1">Draws</p>
+                    <p id="stat-draws" class="display text-white" style="font-size:1.6rem;">—</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-2xl px-5 py-3 text-center">
+                    <p class="text-[9px] text-slate-600 uppercase tracking-wider font-bold mb-1">Since</p>
+                    <p id="stat-since" class="display text-accent" style="font-size:1.6rem;">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex gap-2 mb-8 overflow-x-auto pb-1">
+            <button class="vault-tab active" onclick="switchTab('vault',this)">🎟 My Tickets</button>
+            <button class="vault-tab" onclick="switchTab('weekly',this)">⚡ Weekly Board</button>
+            <button class="vault-tab" onclick="switchTab('monthly',this)">🏆 Monthly Board</button>
+        </div>
+
+        <!-- TAB: VAULT -->
+        <div id="tab-vault">
+            <div class="flex items-center gap-4 mb-5">
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">Secured Entries</h2>
+                <div class="flex-1 h-px bg-white/5"></div>
+                <a href="index.html" class="text-xs font-bold text-brand hover:text-red-400 uppercase tracking-wider transition-colors flex items-center gap-1">
+                    + Enter Draw
+                </a>
+            </div>
+            <div id="ticket-list" class="space-y-3">
+                <div class="skeleton h-24 rounded-2xl"></div>
+                <div class="skeleton h-24 rounded-2xl opacity-70"></div>
+                <div class="skeleton h-24 rounded-2xl opacity-40"></div>
+            </div>
+        </div>
+
+        <!-- TAB: WEEKLY LEADERBOARD -->
+        <div id="tab-weekly" class="hidden">
+            <div class="flex items-center gap-4 mb-2">
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">Weekly Leaderboard</h2>
+                <div class="flex-1 h-px bg-white/5"></div>
+                <span id="weekly-resets" class="text-[11px] text-slate-600 font-medium">Resets Monday</span>
+            </div>
+            <p class="text-sm text-slate-500 mb-6">Top 3 this week earn <strong class="text-accent">free entries</strong> into next week's draw. Ranking based on tickets purchased this week.</p>
+            <div id="weekly-board" class="space-y-2">
+                <div class="skeleton h-14 rounded-2xl"></div>
+                <div class="skeleton h-14 rounded-2xl opacity-70"></div>
+                <div class="skeleton h-14 rounded-2xl opacity-50"></div>
+            </div>
+            <!-- Weekly prizes -->
+            <div class="mt-6 grid grid-cols-3 gap-3">
+                <div class="bg-accent/8 border border-accent/20 rounded-xl p-4 text-center">
+                    <div class="display text-accent mb-1" style="font-size:1.5rem;">🥇</div>
+                    <p class="text-xs font-bold text-white mb-0.5">1st Place</p>
+                    <p class="text-[11px] text-slate-500">3 free tickets</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-xl p-4 text-center">
+                    <div class="display text-slate-400 mb-1" style="font-size:1.5rem;">🥈</div>
+                    <p class="text-xs font-bold text-white mb-0.5">2nd Place</p>
+                    <p class="text-[11px] text-slate-500">2 free tickets</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-xl p-4 text-center">
+                    <div class="display text-slate-500 mb-1" style="font-size:1.5rem;">🥉</div>
+                    <p class="text-xs font-bold text-white mb-0.5">3rd Place</p>
+                    <p class="text-[11px] text-slate-500">1 free ticket</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: MONTHLY LEADERBOARD -->
+        <div id="tab-monthly" class="hidden">
+            <div class="flex items-center gap-4 mb-2">
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">Monthly Leaderboard</h2>
+                <div class="flex-1 h-px bg-white/5"></div>
+                <span id="monthly-resets" class="text-[11px] text-slate-600 font-medium">Resets 1st of month</span>
+            </div>
+            <p class="text-sm text-slate-500 mb-6">Top 5 this month win <strong class="text-accent">exclusive prizes</strong> and free entry bundles. Every ticket purchase earns Oche Points.</p>
+            <div id="monthly-board" class="space-y-2">
+                <div class="skeleton h-14 rounded-2xl"></div>
+                <div class="skeleton h-14 rounded-2xl opacity-70"></div>
+                <div class="skeleton h-14 rounded-2xl opacity-50"></div>
+                <div class="skeleton h-14 rounded-2xl opacity-30"></div>
+            </div>
+            <!-- Monthly prizes -->
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div class="bg-accent/8 border border-accent/25 rounded-xl p-4 text-center">
+                    <div class="display text-accent mb-1" style="font-size:1.4rem;">🥇</div>
+                    <p class="text-xs font-bold text-white mb-0.5">1st</p>
+                    <p class="text-[11px] text-slate-500">Signed Flights + 10 tickets</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-xl p-4 text-center">
+                    <div class="display text-slate-300 mb-1" style="font-size:1.4rem;">🥈</div>
+                    <p class="text-xs font-bold text-white mb-0.5">2nd</p>
+                    <p class="text-[11px] text-slate-500">5 free tickets</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-xl p-4 text-center">
+                    <div class="display text-slate-500 mb-1" style="font-size:1.4rem;">🥉</div>
+                    <p class="text-xs font-bold text-white mb-0.5">3rd</p>
+                    <p class="text-[11px] text-slate-500">3 free tickets</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-xl p-4 text-center">
+                    <p class="text-sm mb-1">4th</p>
+                    <p class="text-[11px] text-slate-500">2 free tickets</p>
+                </div>
+                <div class="bg-card/60 border border-white/6 rounded-xl p-4 text-center">
+                    <p class="text-sm mb-1">5th</p>
+                    <p class="text-[11px] text-slate-500">1 free ticket</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- PROFILE MODAL -->
+    <div id="profile-modal" class="fixed inset-0 bg-dark/90 z-[110] hidden flex-col items-center justify-center p-4" style="backdrop-filter:blur(12px);">
+        <div class="w-full max-w-md bg-card/95 border border-brand/25 rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
+            <div class="h-1 bg-gradient-to-r from-brand via-red-400 to-accent"></div>
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <!-- Clickable avatar in modal too -->
+                    <div class="avatar-wrap relative inline-block cursor-pointer mb-5" onclick="triggerAvatarUpload()">
+                        <div class="avatar-ring w-20 h-20 mx-auto">
+                            <div class="avatar-inner w-full h-full flex items-center justify-center">
+                                <img id="modal-avatar" src="" alt="" class="w-full h-full object-cover hidden">
+                                <div id="modal-avatar-fallback" class="w-full h-full flex items-center justify-center bg-card">
+                                    <svg class="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="avatar-upload-btn absolute inset-0 flex items-center justify-center rounded-full" style="background:rgba(0,0,0,0.6)">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-600 mb-1">Tap to add a profile picture</p>
+                    <h2 class="display text-white mb-2" style="font-size:2rem;line-height:1;">Claim Your OcheTag</h2>
+                    <p class="text-sm text-slate-400">Your username shows on the live draw leaderboard.</p>
+                </div>
+                <form class="space-y-4" onsubmit="saveProfile(event)">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Username *</label>
+                        <input type="text" id="dash-username-input" required placeholder="e.g. HeavyMetalFan99"
+                            class="oche-input w-full rounded-xl px-5 py-4 text-white font-bold text-lg text-center placeholder:text-slate-600 placeholder:font-normal"
+                            style="font-family:'Barlow Condensed',sans-serif;">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Mobile <span class="text-slate-700 font-normal normal-case tracking-normal text-xs">— for win alerts</span></label>
+                        <input type="tel" id="dash-phone-input" placeholder="+44 7700 900000"
+                            class="oche-input w-full rounded-xl px-5 py-4 text-white text-center placeholder:text-slate-600">
+                    </div>
+                    <button type="submit" id="btn-save-profile"
+                        class="w-full bg-brand hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] relative overflow-hidden group">
+                        <span id="save-btn-text" class="relative z-10">Claim Tag & Enter Vault →</span>
+                        <div class="absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="relative z-10 mt-auto">
+        <div class="border-t border-slate-700/30 bg-dark/60 backdrop-blur-sm">
+            <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2.5">
+                    <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="14" r="13" fill="#dc2626"/>
+                        <circle cx="14" cy="14" r="9" fill="#0c1220"/>
+                        <circle cx="14" cy="14" r="5.5" fill="#dc2626"/>
+                        <circle cx="14" cy="14" r="2.5" fill="#0c1220"/>
+                        <circle cx="14" cy="14" r="1" fill="#f59e0b"/>
+                    </svg>
+                    <span class="display text-slate-500 text-sm">OcheRaffles</span>
+                </div>
+                <div class="flex items-center gap-5 flex-wrap justify-center">
+                    <a href="index.html" class="footer-link">Live Draws</a>
+                    <a href="past.html" class="footer-link">Past Winners</a>
+                    <a href="how-it-works.html" class="footer-link">How It Works</a>
+                    <a href="mailto:contact@sharpsolutions.live" class="footer-link">Contact</a>
+                    <a href="#" class="footer-link">Terms</a>
+                </div>
+                <p class="text-xs text-slate-700">&copy; 2026 OcheRaffles Ltd.</p>
+            </div>
         </div>
     </footer>
 
     <script>
-        let currentUser = null;
+    let currentUser=null;
+    let currentProfile=null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user } } = await window.supabaseClient.auth.getUser();
-            
-            if (!user) {
-                window.location.href = "auth.html";
-                return;
-            }
+    document.addEventListener('DOMContentLoaded',async()=>{
+        const{data:{user}}=await window.supabaseClient.auth.getUser();
+        if(!user){window.location.href="auth.html";return;}
+        currentUser=user;
 
-            currentUser = user;
-            document.getElementById('user-email-display').innerText = user.email;
-
-            // Check if this is a successful purchase return
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('success') === 'true') {
-                showSuccessToast();
-                // Clean up URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
-            // Check if profile has a username
-            const { data: profile, error: profileError } = await window.supabaseClient.from('profiles').select('*').eq('id', user.id).single();
-            
-            // Show modal if they haven't picked a username
-            if (profileError || !profile || !profile.username) {
-                document.getElementById('profile-modal').classList.remove('hidden');
-                document.getElementById('profile-modal').classList.add('flex');
-            }
-
-            // CRITICAL FIX: Trigger the new global vault fetcher from app.js
-            if (window.loadGlobalVault) {
-                window.loadGlobalVault(user.id);
-            } else {
-                console.error("loadGlobalVault is missing. You need to hard-refresh to load the new app.js!");
-                document.getElementById('ticket-list').innerHTML = `<p class="text-brand">Error: Please do a Hard Refresh (Ctrl+F5 or Cmd+Shift+R) to clear your cache.</p>`;
+        // Close dropdown when clicking outside
+        document.addEventListener('click',e=>{
+            const panel=document.getElementById('settings-panel');
+            if(!panel.contains(e.target)&&!e.target.closest('[onclick*="settings-panel"]')){
+                panel.classList.add('hidden');
             }
         });
 
-        function showSuccessToast() {
-            const toast = document.getElementById('success-toast');
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 5000);
+        const since=new Date(user.created_at);
+        document.getElementById('stat-since').innerText=since.toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+        document.getElementById('profile-email-display').innerText=user.email;
+
+        const urlParams=new URLSearchParams(window.location.search);
+        if(urlParams.get('success')==='true'){showSuccessToast();window.history.replaceState({},document.title,window.location.pathname);}
+
+        const{data:profile,error:profileError}=await window.supabaseClient.from('profiles').select('*').eq('id',user.id).single();
+        currentProfile=profile;
+
+        if(profileError||!profile||!profile.username){
+            document.getElementById('profile-modal').classList.remove('hidden');
+            document.getElementById('profile-modal').classList.add('flex');
+        } else {
+            updateAvatarUI(profile);
         }
 
-        async function saveProfile(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-save-profile');
-            btn.innerText = "Saving...";
-            
-            const username = document.getElementById('dash-username-input').value;
-            const phone = document.getElementById('dash-phone-input').value;
+        if(window.loadGlobalVault){
+            await window.loadGlobalVault(user.id);
+        }
+        updateStats();
+        loadLeaderboards();
+    });
 
-            // Fully upsert and save all details to Database (Email, Phone, Username)
-            const { error } = await window.supabaseClient.from('profiles').upsert({
-                id: currentUser.id,
-                email: currentUser.email,
-                username: username,
-                phone: phone
+    function updateAvatarUI(profile){
+        const username=profile?.username||'Vault';
+        document.getElementById('nav-username').innerText=username;
+        document.getElementById('profile-username-display').innerText=username;
+
+        if(profile?.avatar_url){
+            const avatarUrl=profile.avatar_url;
+            // Set all avatar images
+            ['nav-avatar','profile-avatar','modal-avatar'].forEach(id=>{
+                const img=document.getElementById(id);
+                if(img){img.src=avatarUrl;img.classList.remove('hidden');}
             });
+            // Hide fallbacks
+            ['nav-avatar-fallback','profile-avatar-fallback','modal-avatar-fallback'].forEach(id=>{
+                const el=document.getElementById(id);
+                if(el) el.classList.add('hidden');
+            });
+        }
+    }
 
-            if (error) {
-                console.error(error);
-                alert("Error saving profile. The Username might be taken.");
-                btn.innerText = "Secure Profile & Enter Vault";
-            } else {
-                document.getElementById('profile-modal').classList.add('hidden');
-                document.getElementById('profile-modal').classList.remove('flex');
-                
-                // Refresh vault immediately now that profile is linked!
-                if (window.loadGlobalVault) window.loadGlobalVault(currentUser.id);
+    async function updateStats(){
+        const{data:tickets}=await window.supabaseClient.from('user_tickets').select('qty,raffle_id').eq('user_id',currentUser.id);
+        if(tickets){
+            const totalQty=tickets.reduce((s,t)=>s+(t.qty||0),0);
+            const uniqueDraws=new Set(tickets.map(t=>t.raffle_id)).size;
+            document.getElementById('stat-total').innerText=totalQty;
+            document.getElementById('stat-draws').innerText=uniqueDraws;
+            document.getElementById('nav-ticket-count').innerText=totalQty;
+        }
+    }
+
+    // ── Tab switching ──────────────────────────────────────────────
+    function switchTab(tab,btn){
+        ['vault','weekly','monthly'].forEach(t=>{
+            document.getElementById('tab-'+t).classList.add('hidden');
+        });
+        document.getElementById('tab-'+tab).classList.remove('hidden');
+        document.querySelectorAll('.vault-tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // ── Leaderboards (populated from user_tickets) ─────────────────
+    async function loadLeaderboards(){
+        // Weekly
+        const weekStart=new Date();
+        weekStart.setDate(weekStart.getDate()-weekStart.getDay());
+        weekStart.setHours(0,0,0,0);
+
+        // Monthly
+        const monthStart=new Date();
+        monthStart.setDate(1);monthStart.setHours(0,0,0,0);
+
+        // Days until reset labels
+        const daysUntilMonday=((8-new Date().getDay())%7)||7;
+        document.getElementById('weekly-resets').innerText=`Resets in ${daysUntilMonday} day${daysUntilMonday===1?'':'s'}`;
+        const daysInMonth=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+        const daysLeft=daysInMonth-new Date().getDate();
+        document.getElementById('monthly-resets').innerText=`Resets in ${daysLeft} day${daysLeft===1?'':'s'}`;
+
+        await renderBoard('weekly-board',weekStart.toISOString());
+        await renderBoard('monthly-board',monthStart.toISOString());
+    }
+
+    async function renderBoard(boardId,since){
+        const container=document.getElementById(boardId);
+
+        // Try date-filtered tickets first
+        let query=window.supabaseClient.from('user_tickets').select('user_id,qty,profiles(username,avatar_url)');
+        if(since) query=query.gte('created_at',since);
+        const{data,error}=await query;
+
+        // If no results for this period, fall back to all-time via profiles.total_tickets
+        if(!data||data.length===0){
+            const{data:profiles}=await window.supabaseClient
+                .from('profiles')
+                .select('id,username,avatar_url,total_tickets')
+                .not('username','is',null)
+                .order('total_tickets',{ascending:false})
+                .limit(10);
+            if(!profiles||profiles.length===0){
+                container.innerHTML=`<div class="text-center py-8 text-slate-600 text-sm">No entries yet — be the first! 🎯</div>`;
+                return;
             }
+            container.innerHTML=profiles.map((p,i)=>{
+                const rank=i+1,isYou=p.id===currentUser?.id;
+                const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
+                const rankBadge=rank<=3?`lb-rank-${rank}`:'bg-slate-800 text-slate-400';
+                return `<div class="lb-row ${isYou?'you':''}">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black ${rankBadge} ${rank<=3?'shadow-lg':''}">${rank<=3?medal:rank}</div>
+                    <div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-card border border-white/10 flex items-center justify-center">
+                        ${p.avatar_url?`<img src="${p.avatar_url}" class="w-full h-full object-cover">`:`<svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>`}
+                    </div>
+                    <div class="flex-1 min-w-0"><p class="font-semibold text-sm ${isYou?'text-brand':'text-white'} truncate">${p.username}${isYou?' <span style="font-size:10px;font-weight:900;background:rgba(220,38,38,0.15);color:#dc2626;padding:1px 6px;border-radius:4px;border:1px solid rgba(220,38,38,0.25)">YOU</span>':''}</p></div>
+                    <div class="text-right flex-shrink-0"><p class="display ${isYou?'text-brand':'text-white'}" style="font-size:1.1rem;">${p.total_tickets||0}</p><p class="text-[9px] text-slate-600 uppercase tracking-wider">tickets</p></div>
+                </div>`;
+            }).join('');
+            return;
         }
 
-        async function signOut() {
-            await window.supabaseClient.auth.signOut();
-            window.location.href = "index.html";
+        // Aggregate from ticket data
+        const agg={};
+        data.forEach(t=>{
+            const uid=t.user_id;
+            if(!agg[uid]){agg[uid]={qty:0,username:t.profiles?.username||'Anonymous',avatar:t.profiles?.avatar_url||null};}
+            agg[uid].qty+=(t.qty||0);
+        });
+
+        const sorted=Object.entries(agg).sort((a,b)=>b[1].qty-a[1].qty).slice(0,10);
+
+        container.innerHTML=sorted.map(([uid,info],i)=>{
+            const rank=i+1;
+            const isYou=uid===currentUser?.id;
+            const rankBadge=rank<=3?`lb-rank-${rank}`:'';
+            const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
+            return `
+            <div class="lb-row ${isYou?'you':''}">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black ${rankBadge||'bg-slate-800 text-slate-400'} ${rank<=3?'shadow-lg':''}">${rank<=3?medal:rank}</div>
+                <div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-card border border-white/10 flex items-center justify-center">
+                    ${info.avatar?`<img src="${info.avatar}" class="w-full h-full object-cover">`:`<svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>`}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-sm ${isYou?'text-brand':'text-white'} truncate">
+                        ${info.username}${isYou?' <span class="text-[10px] font-black bg-brand/15 text-brand px-1.5 py-0.5 rounded-md border border-brand/25">YOU</span>':''}
+                    </p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="display ${isYou?'text-brand':'text-white'}" style="font-size:1.1rem;">${info.qty}</p>
+                    <p class="text-[9px] text-slate-600 uppercase tracking-wider">tickets</p>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Avatar upload ──────────────────────────────────────────────
+    function triggerAvatarUpload(){
+        document.getElementById('settings-panel').classList.add('hidden');
+        document.getElementById('avatar-file-input').click();
+    }
+
+    async function uploadAvatar(event){
+        const file=event.target.files[0];
+        if(!file||!currentUser) return;
+        if(file.size>2*1024*1024){alert('Image must be under 2MB.');return;}
+
+        // Show local preview immediately
+        const reader=new FileReader();
+        reader.onload=e=>{
+            const src=e.target.result;
+            ['nav-avatar','profile-avatar','modal-avatar'].forEach(id=>{
+                const img=document.getElementById(id);
+                if(img){img.src=src;img.classList.remove('hidden');}
+            });
+            ['nav-avatar-fallback','profile-avatar-fallback','modal-avatar-fallback'].forEach(id=>{
+                const el=document.getElementById(id);
+                if(el) el.classList.add('hidden');
+            });
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to Supabase Storage
+        try {
+            const ext=file.name.split('.').pop();
+            const filePath=`avatars/${currentUser.id}.${ext}`;
+            const{error:uploadError}=await window.supabaseClient.storage
+                .from('avatars')
+                .upload(filePath,file,{upsert:true,contentType:file.type});
+
+            if(uploadError){console.error('Avatar upload error:',uploadError);return;}
+
+            const{data:urlData}=window.supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+            const publicUrl=urlData?.publicUrl;
+
+            if(publicUrl){
+                await window.supabaseClient.from('profiles').upsert({
+                    id:currentUser.id,
+                    email:currentUser.email,
+                    avatar_url:publicUrl
+                });
+                // Update nav avatar with public URL
+                ['nav-avatar','profile-avatar','modal-avatar'].forEach(id=>{
+                    const img=document.getElementById(id);
+                    if(img) img.src=publicUrl;
+                });
+            }
+        } catch(e){ console.error('Avatar error:',e); }
+    }
+
+    // ── Toast ──────────────────────────────────────────────────────
+    function showSuccessToast(){
+        const toast=document.getElementById('success-toast');
+        toast.classList.remove('hidden');
+        toast.firstElementChild.classList.add('toast-enter');
+        setTimeout(()=>{
+            toast.firstElementChild.classList.replace('toast-enter','toast-exit');
+            setTimeout(()=>toast.classList.add('hidden'),400);
+        },4500);
+    }
+
+    // ── Save profile ───────────────────────────────────────────────
+    async function saveProfile(e){
+        e.preventDefault();
+        const btn=document.getElementById('btn-save-profile');
+        const btnText=document.getElementById('save-btn-text');
+        btnText.innerHTML=`<svg class="inline w-4 h-4 animate-spin mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Saving…`;
+        btn.disabled=true;
+        const username=document.getElementById('dash-username-input').value;
+        const phone=document.getElementById('dash-phone-input').value;
+        const{error}=await window.supabaseClient.from('profiles').upsert({id:currentUser.id,email:currentUser.email,username,phone});
+        if(error){
+            alert("Error saving profile. That username may be taken.");
+            btnText.innerHTML='Claim Tag & Enter Vault →';btn.disabled=false;
+        } else {
+            document.getElementById('profile-modal').classList.add('hidden');
+            document.getElementById('profile-modal').classList.remove('flex');
+            document.getElementById('nav-username').innerText=username;
+            document.getElementById('profile-username-display').innerText=username;
+            if(window.loadGlobalVault) window.loadGlobalVault(currentUser.id);
         }
+    }
+
+    async function signOut(){
+        await window.supabaseClient.auth.signOut();
+        window.location.href="index.html";
+    }
     </script>
 </body>
 </html>

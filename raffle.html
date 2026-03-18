@@ -4,352 +4,565 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Entry | OcheRaffles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
     <script>
-        tailwind.config = {
-            theme: { 
-                extend: { 
-                    colors: { 
-                        brand: '#dc2626',
-                        dark: '#080c16',
-                        card: '#131c2f',
-                        accent: '#f59e0b',
-                        success: '#10b981',
-                        slate_750: '#1e293b'
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px rgba(220, 38, 38, 0.2)' },
-                            '100%': { boxShadow: '0 0 20px rgba(220, 38, 38, 0.6)' },
-                        }
-                    }
-                } 
-            }
-        }
+        tailwind.config={theme:{extend:{fontFamily:{display:['"Barlow Condensed"','sans-serif'],sans:['"Plus Jakarta Sans"','sans-serif']},colors:{brand:'#dc2626',dark:'#0c1220',card:'#141f35',accent:'#f59e0b',success:'#10b981'}}}}
     </script>
     <style>
-        .glass { background: rgba(19, 28, 47, 0.7); backdrop-filter: blur(12px); }
-        .bank-card { 
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.1);
-        }
+        body{font-family:'Plus Jakarta Sans',sans-serif;}
+        .display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;}
+        .oche-bg{background-image:repeating-conic-gradient(from 0deg,rgba(220,38,38,0.03) 0deg 18deg,rgba(255,255,255,0.01) 18deg 36deg);}
+        .glass-card{background:rgba(20,31,53,0.65);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.07);}
+        .bank-card{background:linear-gradient(135deg,rgba(30,41,59,0.95) 0%,rgba(15,23,42,0.98) 100%);box-shadow:0 25px 50px -15px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.07);}
+        .qty-btn{width:48px;height:48px;border-radius:12px;font-size:1.4rem;font-weight:700;color:#94a3b8;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.06);transition:all 0.2s;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+        .qty-btn:hover{background:rgba(255,255,255,0.08);color:white;border-color:rgba(255,255,255,0.12);}
+        .qty-btn:active{transform:scale(0.93);}
+        .tab-btn{flex:1;padding:14px 12px;border-radius:12px;font-weight:700;font-size:0.85rem;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.25s;color:#64748b;}
+        .tab-btn.active{background:#dc2626;color:white;box-shadow:0 4px 14px rgba(220,38,38,0.3);}
+        .tab-btn:not(.active):not(.disabled-tab):hover{color:#cbd5e1;background:rgba(255,255,255,0.04);}
+        .tab-btn.disabled-tab{position:relative;opacity:0.4;cursor:not-allowed;}
+        .tab-btn.disabled-tab .tab-label{text-decoration:line-through;text-decoration-color:rgba(255,255,255,0.4);}
+        .paypal-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.2s;z-index:50;}
+        .paypal-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1e293b;}
+        .tab-btn.disabled-tab:hover .paypal-tooltip{opacity:1;}
+        .oche-input{background:rgba(12,18,32,0.9);border:1.5px solid rgba(255,255,255,0.07);transition:border-color 0.2s,box-shadow 0.2s;}
+        .oche-input:focus{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,0.1);outline:none;}
+        .oche-input-accent:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.1);outline:none;}
+        .copy-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;color:#64748b;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+        .copy-btn:hover{background:rgba(255,255,255,0.08);color:#cbd5e1;}
+        .copy-btn.copied{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:#10b981;}
+        .order-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+        .order-row:last-child{border-bottom:none;}
+        @keyframes promoReveal{0%{opacity:0;transform:translateY(-8px) scale(0.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        .promo-reveal{animation:promoReveal 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+        @keyframes ticketFloat{0%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-4px) rotate(5deg)}100%{transform:translateY(0) rotate(-5deg)}}
+        .ticket-float{animation:ticketFloat 2.5s ease-in-out infinite;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spinner{animation:spin 0.8s linear infinite;}
+        @keyframes scanLine{0%{top:0;opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+        .scan-line{animation:scanLine 2.5s ease-in-out infinite;}
+        @keyframes stepDone{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+        .step-done{animation:stepDone 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+        @keyframes pricePop{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+        .price-pop{animation:pricePop 0.25s cubic-bezier(0.34,1.56,0.64,1);}
     </style>
 </head>
-<body class="bg-dark text-slate-300 font-sans antialiased min-h-screen flex flex-col relative overflow-x-hidden">
-    
-    <!-- Background Glows -->
-    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand/10 blur-[120px] rounded-full pointer-events-none"></div>
+<body class="bg-dark text-slate-300 antialiased min-h-screen flex flex-col relative overflow-x-hidden">
 
-    <nav class="border-b border-white/5 glass sticky top-0 z-50">
+    <div class="absolute inset-0 oche-bg pointer-events-none z-0 opacity-60"></div>
+    <div class="absolute top-[-5%] left-[-5%] w-[45%] h-[55%] bg-brand/8 blur-[140px] rounded-full pointer-events-none z-0"></div>
+    <div class="absolute bottom-[-10%] right-[-5%] w-[40%] h-[50%] bg-accent/4 blur-[160px] rounded-full pointer-events-none z-0"></div>
+
+    <nav class="border-b border-white/5 glass-card sticky top-0 z-50">
         <div class="max-w-4xl mx-auto px-4 h-20 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-bold text-white shadow-lg">OR</div>
-                <span class="font-black text-xl text-white tracking-tight">OcheRaffles</span>
+                <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="19" fill="#dc2626"/><circle cx="20" cy="20" r="14" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="9" fill="#dc2626"/><circle cx="20" cy="20" r="4" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
+                </svg>
+                <span class="display text-white text-2xl group-hover:text-brand transition-colors">OcheRaffles</span>
             </a>
-            <a href="index.html" class="text-sm font-bold text-slate-400 hover:text-white transition flex items-center gap-2">
+            <a href="index.html" class="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                Back to Draws
+                All Draws
             </a>
         </div>
     </nav>
 
     <main class="max-w-2xl mx-auto px-4 py-12 w-full flex-grow relative z-10">
-        
-        <div class="bg-card/40 border border-white/10 glass rounded-[2.5rem] p-8 md:p-10 shadow-2xl mb-8 relative overflow-hidden">
-            <header class="mb-10 relative">
-                <div class="flex items-center justify-between">
-                    <div class="inline-flex items-center gap-2 bg-brand/10 border border-brand/20 text-brand text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em]">
-                        <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span> Instant Crediting Active
-                    </div>
-                    <div class="flex items-center gap-1.5 text-emerald-400 text-[10px] font-bold uppercase tracking-widest bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
-                        <span class="w-1 h-1 rounded-full bg-emerald-400"></span> Verified Gateway
-                    </div>
-                </div>
-                <h1 id="tier-title" class="text-4xl font-black text-white mt-6 mb-2 tracking-tight">Loading Draw...</h1>
-                <p class="text-slate-400 text-sm font-medium">Supporting PDC Charity Partners through high-end memorabilia draws.</p>
-            </header>
-            
-            <!-- Price and Qty -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pb-10 border-b border-white/5 mb-10">
-                <div class="space-y-3">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Entry Quantity</p>
-                    <div class="flex items-center gap-4 bg-dark/80 rounded-2xl p-1.5 border border-white/5 w-max">
-                        <button onclick="updateQty(-1)" class="w-12 h-12 text-2xl font-bold text-slate-400 hover:text-white rounded-xl hover:bg-white/5">−</button>
-                        <span id="qty-display" class="font-black text-3xl text-white w-10 text-center">1</span>
-                        <button onclick="updateQty(1)" class="w-12 h-12 text-2xl font-bold text-slate-400 hover:text-white rounded-xl hover:bg-white/5">+</button>
-                    </div>
-                </div>
-                <div class="md:text-right space-y-1">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Total Secure Transfer</p>
-                    <span id="total-price" class="text-6xl font-black text-white tracking-tighter block">£0.00</span>
-                </div>
-            </div>
 
-            <!-- PAYMENT TABS -->
-            <div class="flex p-1.5 bg-dark/80 rounded-2xl border border-white/5 mb-8">
-                <button id="tab-bank" onclick="switchMethod('bank')" class="flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 bg-brand text-white shadow-lg">
-                    <span class="text-xl">🏦</span> Direct Bank
-                </button>
-                <button id="tab-paypal" onclick="switchMethod('paypal')" class="flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 text-slate-400 hover:text-white">
-                    <span class="text-xl">P</span> PayPal
-                </button>
-            </div>
+        <div class="glass-card rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] overflow-hidden mb-8">
+            <div class="h-1 bg-gradient-to-r from-brand via-red-400 to-accent"></div>
+            <div class="p-8 md:p-10">
 
-            <!-- AREA 1: BANK TRANSFER (Default) -->
-            <div id="bank-area" class="space-y-8 animate-in fade-in">
-                <div class="bank-card rounded-3xl border border-white/10 p-8 relative overflow-hidden">
-                    <div class="grid grid-cols-2 gap-y-6 gap-x-4 relative z-10">
-                        <div class="col-span-2 space-y-1 mb-2">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Account Name</p>
-                            <div class="flex items-center gap-2">
-                                <p class="text-3xl font-bold text-white tracking-tight">OcheLimited</p>
-                                <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2 bg-brand/10 border border-brand/20 text-brand text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.18em]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>Live Draw
+                    </div>
+                    <div class="flex items-center gap-1.5 text-success text-[10px] font-bold uppercase tracking-widest bg-success/8 px-3 py-1.5 rounded-full border border-success/20">
+                        <span class="w-1 h-1 rounded-full bg-success"></span>Verified Gateway
+                    </div>
+                </div>
+
+                <h1 id="tier-title" class="display text-white mb-1" style="font-size:2.8rem;line-height:1;">Loading Draw…</h1>
+                <p class="text-slate-500 text-sm mb-8">Funds PDC charity partners — 80% of all proceeds go directly to good causes.</p>
+
+                <!-- QTY + PROMO + PRICE -->
+                <div class="pb-8 border-b border-white/5 mb-8 space-y-6">
+
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                        <div>
+                            <p class="text-[10px] text-slate-600 font-black uppercase tracking-[0.2em] mb-3">Quantity</p>
+                            <div class="flex items-center gap-3 bg-dark/60 rounded-2xl p-1.5 border border-white/5 w-fit">
+                                <button class="qty-btn" onclick="updateQty(-1)">−</button>
+                                <span id="qty-display" class="display text-white w-10 text-center" style="font-size:2rem;">1</span>
+                                <button class="qty-btn" onclick="updateQty(1)">+</button>
                             </div>
                         </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Sort Code</p>
-                            <p class="text-2xl font-mono font-bold text-white tracking-[0.2em]">04-00-03</p>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-600 font-black uppercase tracking-[0.2em] mb-1">You Pay</p>
+                            <div id="total-price" class="display text-white" style="font-size:4rem;line-height:1;">£0.00</div>
+                            <div id="promo-worth" class="hidden mt-1">
+                                <span class="text-[11px] text-accent font-bold">≈ worth </span>
+                                <span id="promo-worth-value" class="display text-accent" style="font-size:1.1rem;"></span>
+                                <span class="text-[11px] text-accent font-bold"> at standard price</span>
+                            </div>
                         </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Account Number</p>
-                            <p class="text-2xl font-mono font-bold text-white tracking-[0.1em]">04818847</p>
+                    </div>
+
+                    <!-- Promo input -->
+                    <div>
+                        <p class="text-[10px] text-slate-600 font-black uppercase tracking-[0.2em] mb-2">Promo Code <span class="text-slate-700 font-normal normal-case tracking-normal text-xs">(optional)</span></p>
+                        <div class="flex gap-2">
+                            <input type="text" id="promo-input" placeholder="e.g. RYAN180"
+                                class="oche-input flex-1 rounded-xl px-4 py-3 text-white placeholder:text-slate-700 font-mono font-bold tracking-widest uppercase text-sm"
+                                oninput="this.value=this.value.toUpperCase()">
+                            <button onclick="applyPromo()" class="bg-card hover:bg-slate-700/80 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all whitespace-nowrap">
+                                Apply
+                            </button>
                         </div>
-                        <div class="col-span-2 p-5 bg-brand/10 rounded-2xl border border-brand/20 relative mt-2">
-                            <p class="text-[10px] text-brand uppercase font-black mb-1">Mandatory Reference</p>
-                            <p id="bank-ref-display" class="text-2xl font-mono font-black text-white tracking-tighter">OCH-XXXXX</p>
+                        <p id="promo-error" class="hidden text-brand text-[11px] font-bold mt-2">
+                            <span id="promo-error-text">Invalid or expired promo code</span>
+                        </p>
+                    </div>
+
+                    <!-- Promo active banner -->
+                    <div id="promo-banner" class="hidden rounded-2xl p-4 promo-reveal" style="background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.04));border:1.5px solid rgba(245,158,11,0.3);">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="ticket-float text-2xl flex-shrink-0 select-none">🎟️</div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+                                        <span class="display text-accent" style="font-size:1.1rem;">2× TICKETS BONUS</span>
+                                        <span class="bg-accent/20 text-accent text-[9px] font-black px-2 py-0.5 rounded-full border border-accent/30 uppercase tracking-wider">RYAN180</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400">
+                                        Paying for <strong id="promo-paid-qty" class="text-white">1</strong> ticket — vault receives <strong id="promo-bonus-qty" class="text-accent">2</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 w-12 h-12 border-2 border-accent/40 rounded-xl flex flex-col items-center justify-center" style="background:rgba(245,158,11,0.12);">
+                                <span class="display text-accent leading-none" style="font-size:1.4rem;">2×</span>
+                            </div>
                         </div>
+                        <div class="mt-3 flex items-center gap-3 bg-dark/40 rounded-xl p-3 border border-white/5">
+                            <div class="flex-1 text-center">
+                                <p class="text-[9px] text-slate-600 uppercase tracking-wider mb-1">You Pay For</p>
+                                <p class="display text-white" style="font-size:1.4rem;"><span id="promo-display-paid">1</span> ticket</p>
+                            </div>
+                            <div class="text-accent text-lg">→</div>
+                            <div class="flex-1 text-center">
+                                <p class="text-[9px] text-accent uppercase tracking-wider font-bold mb-1">Vault Receives</p>
+                                <p class="display text-accent" style="font-size:1.4rem;"><span id="promo-display-get">2</span> tickets</p>
+                            </div>
+                        </div>
+                        <button onclick="removePromo()" class="mt-2 text-[10px] text-slate-600 hover:text-slate-400 font-bold uppercase tracking-wider transition-colors">× Remove code</button>
                     </div>
                 </div>
 
-                <div class="bg-dark/50 rounded-2xl border border-white/5 p-6 space-y-4">
-                    <div class="text-center space-y-1 mb-4">
-                        <h3 class="text-white font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2">
-                            <span class="text-emerald-500">⚡</span> Instant Ticket Crediting
-                        </h3>
-                        <p class="text-[11px] text-slate-500 italic px-4">Our algorithmic gateway verifies the <strong class="text-slate-300">Reference ID</strong> for instant ticket release to your vault.</p>
+                <!-- PAYMENT TABS -->
+                <div class="flex gap-2 p-1.5 bg-dark/60 rounded-2xl border border-white/5 mb-8">
+                    <button id="tab-bank" class="tab-btn active" onclick="switchMethod('bank')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                        Bank Transfer
+                    </button>
+                    <button id="tab-paypal" class="tab-btn disabled-tab" onclick="return false;">
+                        <div class="paypal-tooltip">Temporarily unavailable</div>
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z"/></svg>
+                        <span class="tab-label">PayPal</span>
+                    </button>
+                </div>
+
+                <!-- BANK TRANSFER -->
+                <div id="bank-area" class="space-y-6">
+                    <div class="bank-card rounded-2xl border border-white/8 p-6 relative overflow-hidden">
+                        <div class="absolute top-4 right-5 opacity-[0.06]">
+                            <svg viewBox="0 0 48 36" width="48" height="36" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="48" height="36" rx="4" fill="none" stroke="white" stroke-width="1.5"/>
+                                <rect x="14" y="4" width="20" height="28" rx="2" fill="none" stroke="white" stroke-width="1"/>
+                                <line x1="0" y1="10" x2="14" y2="10" stroke="white" stroke-width="1"/>
+                                <line x1="34" y1="10" x2="48" y2="10" stroke="white" stroke-width="1"/>
+                                <line x1="0" y1="18" x2="14" y2="18" stroke="white" stroke-width="1"/>
+                                <line x1="34" y1="18" x2="48" y2="18" stroke="white" stroke-width="1"/>
+                            </svg>
+                        </div>
+                        <div class="grid grid-cols-2 gap-5 relative z-10">
+                            <div class="col-span-2">
+                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.25em] mb-1">Account Name</p>
+                                <div class="flex items-center gap-2">
+                                    <span class="display text-white" style="font-size:1.8rem;">OcheLimited</span>
+                                    <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.25em] mb-1.5">Sort Code</p>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-bold text-white text-xl tracking-[0.2em]">04-00-06</span>
+                                    <button class="copy-btn" onclick="copyToClipboard('04-00-06',this)">Copy</button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.25em] mb-1.5">Account Number</p>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-bold text-white text-xl tracking-[0.1em]">24753241</span>
+                                    <button class="copy-btn" onclick="copyToClipboard('24753241',this)">Copy</button>
+                                </div>
+                            </div>
+                            <div class="col-span-2">
+                                <div class="bg-brand/8 border border-brand/20 rounded-xl p-4">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div>
+                                            <p class="text-[9px] text-brand font-black uppercase tracking-[0.25em] mb-1.5">⚠ Mandatory Reference</p>
+                                            <p id="bank-ref-display" class="display text-white" style="font-size:1.7rem;letter-spacing:0.02em;">OCH-XXXXX</p>
+                                        </div>
+                                        <button class="copy-btn mt-1" id="copy-ref-btn" onclick="copyRef()">Copy</button>
+                                    </div>
+                                    <p class="text-[10px] text-brand/60 mt-2">Include this exactly — mismatches delay crediting by up to 24 hours.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex flex-col gap-4">
-                        <div>
-                            <label class="block text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1.5 ml-1">Real Name</label>
-                            <input type="text" id="bank-verify-name" placeholder="Name on bank account" class="w-full bg-dark border border-white/10 rounded-xl px-5 py-4 text-white outline-none focus:border-white/30 transition-all font-medium text-center">
+
+                    <!-- Order summary -->
+                    <div class="bg-dark/40 rounded-2xl border border-white/5 p-5">
+                        <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest mb-3">Order Summary</p>
+                        <div class="space-y-0 text-sm">
+                            <div class="order-row">
+                                <span class="text-slate-400"><span id="summary-qty">1</span> × ticket @ <span id="summary-price-each">£0.00</span></span>
+                                <span id="summary-subtotal" class="text-white font-semibold">£0.00</span>
+                            </div>
+                            <div id="summary-promo-row" class="order-row hidden">
+                                <span class="text-accent flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17A3 3 0 015 5zm4 1V5a1 1 0 10-2 0v1H5a2 2 0 000 4h1v1a1 1 0 102 0v-1h2v1a1 1 0 102 0v-1h1a2 2 0 000-4h-2V6h-2z" clip-rule="evenodd"/></svg>
+                                    RYAN180 — 2× tickets bonus
+                                </span>
+                                <span class="text-accent font-bold">+<span id="summary-bonus-qty">1</span> free</span>
+                            </div>
+                            <div class="order-row" style="border-bottom:none;padding-top:12px;">
+                                <span class="font-bold text-white">Total charged</span>
+                                <span id="summary-total" class="display text-white" style="font-size:1.3rem;">£0.00</span>
+                            </div>
+                            <div id="summary-vault-row" class="hidden rounded-xl p-3 mt-3 flex items-center gap-2" style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);">
+                                <span class="text-[11px] text-slate-300">🎟 <span id="summary-vault-qty" class="text-accent font-black">2</span> tickets will land in your vault</span>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-[10px] text-brand uppercase font-black tracking-widest mb-1.5 ml-1">Confirm Mandatory Reference</label>
-                            <input type="text" id="bank-verify-ref" placeholder="Type the OCH- reference here" class="w-full bg-brand/10 border-2 border-brand/40 rounded-xl px-5 py-4 text-white outline-none focus:border-brand transition-all font-bold text-center placeholder:text-brand/40 tracking-wider">
+                    </div>
+
+                    <!-- Confirmation form -->
+                    <div class="bg-dark/40 rounded-2xl border border-white/5 p-6 space-y-5">
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <div class="w-6 h-6 bg-success/10 rounded-full flex items-center justify-center border border-success/20">
+                                <span class="text-success text-xs">⚡</span>
+                            </div>
+                            <div>
+                                <p class="text-white text-sm font-bold">Instant Ticket Crediting</p>
+                                <p class="text-[11px] text-slate-600">Confirm your payment details below to release tickets immediately.</p>
+                            </div>
                         </div>
-                        <button onclick="promptConfirmation()" class="bg-success hover:bg-emerald-600 text-white font-black px-8 py-4 rounded-xl shadow-lg transition-all text-xs uppercase tracking-[0.1em] mt-2">Confirm Order</button>
-                        <p id="cooldown-msg" class="hidden text-rose-500 text-[10px] font-bold text-center uppercase tracking-widest bg-rose-500/10 py-2 rounded-lg border border-rose-500/20">Security Cooldown: Wait 5 minutes</p>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-1.5 ml-0.5">Full Name on Bank Account</label>
+                                <input type="text" id="bank-verify-name" placeholder="e.g. James Thompson"
+                                    class="oche-input w-full rounded-xl px-5 py-3.5 text-white placeholder:text-slate-700 font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-brand font-black uppercase tracking-[0.2em] mb-1.5 ml-0.5">Confirm Mandatory Reference</label>
+                                <input type="text" id="bank-verify-ref" placeholder="Type your OCH- reference here"
+                                    class="oche-input oche-input-accent w-full rounded-xl px-5 py-3.5 text-white placeholder:text-slate-700 font-mono font-bold tracking-wider"
+                                    style="border-color:rgba(245,158,11,0.25);">
+                            </div>
+                        </div>
+                        <button onclick="promptConfirmation()"
+                            class="w-full bg-success hover:bg-emerald-600 active:scale-[0.98] text-white font-bold py-4 rounded-xl transition-all shadow-[0_4px_16px_rgba(16,185,129,0.25)] text-sm uppercase tracking-wider relative overflow-hidden group">
+                            <span class="relative z-10">Confirm Payment Sent →</span>
+                            <div class="absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"></div>
+                        </button>
+                        <p id="cooldown-msg" class="hidden text-brand text-[11px] font-bold text-center uppercase tracking-widest bg-brand/8 py-2 rounded-lg border border-brand/20">
+                            ⏱ Security cooldown — please wait 5 minutes
+                        </p>
                     </div>
                 </div>
-            </div>
 
-            <!-- AREA 2: PAYPAL (Hidden) -->
-            <div id="paypal-area" class="hidden space-y-6">
-                <div class="bg-dark/50 p-10 rounded-3xl border border-white/5 text-center flex flex-col items-center gap-6">
-                    <div id="paypal-loading" class="flex flex-col items-center gap-4">
-                        <div class="w-8 h-8 border-3 border-slate-700 border-t-brand rounded-full animate-spin"></div>
-                        <p class="text-sm italic text-slate-500">Establishing Link...</p>
+                <!-- PayPal unavailable state -->
+                <div id="paypal-area" class="hidden">
+                    <div class="bg-dark/40 rounded-2xl border border-white/5 p-10 text-center">
+                        <div class="w-16 h-16 bg-slate-800/60 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/5">
+                            <svg class="w-8 h-8 text-slate-600" viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z"/></svg>
+                        </div>
+                        <h3 class="display text-slate-500 mb-2" style="font-size:1.3rem;">PayPal Temporarily Unavailable</h3>
+                        <p class="text-sm text-slate-600 mb-5">PayPal payments are currently offline. Please use Bank Transfer to complete your entry.</p>
+                        <button onclick="switchMethod('bank')" class="text-brand hover:text-red-400 font-bold text-sm transition-colors">Switch to Bank Transfer →</button>
                     </div>
-                    <div id="paypal-button-container" class="w-full relative z-0"></div>
                 </div>
-            </div>
 
-            <!-- AUTH GATE -->
-            <div id="auth-gate" class="hidden">
-                <a href="auth.html" class="block w-full bg-brand hover:bg-red-700 text-white font-black py-6 rounded-3xl text-center shadow-xl transition-all text-xl tracking-tight uppercase">Login to Secure Entries</a>
+                <!-- AUTH GATE -->
+                <div id="auth-gate" class="hidden">
+                    <a href="auth.html" class="flex items-center justify-center gap-3 w-full bg-brand hover:bg-red-700 text-white font-bold py-5 rounded-2xl shadow-[0_4px_20px_rgba(220,38,38,0.3)] transition-all text-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        Sign In to Secure Your Entry
+                    </a>
+                    <p class="text-center text-xs text-slate-600 mt-3">Free account · Magic link · No password</p>
+                </div>
+
             </div>
+        </div>
+
+        <!-- Trust footer -->
+        <div class="flex items-center justify-center gap-5 text-[11px] text-slate-600 font-medium flex-wrap pb-4">
+            <span class="flex items-center gap-1"><span class="text-success">●</span> Instant crediting</span>
+            <span class="flex items-center gap-1"><span class="text-brand">●</span> 80% to charity</span>
+            <span class="flex items-center gap-1"><span class="text-accent">●</span> Provably fair</span>
+            <a href="how-it-works.html" class="text-slate-500 hover:text-white transition-colors font-semibold">How it works →</a>
         </div>
     </main>
 
     <!-- CONFIRMATION MODAL -->
-    <div id="confirm-modal" class="fixed inset-0 bg-dark/90 backdrop-blur-md z-[110] hidden flex-col items-center justify-center p-4">
-        <div class="w-full max-w-sm bg-card border border-white/10 rounded-[2rem] p-8 shadow-2xl">
+    <div id="confirm-modal" class="fixed inset-0 bg-dark/90 z-[110] hidden flex-col items-center justify-center p-4" style="backdrop-filter:blur(12px);">
+        <div class="w-full max-w-sm glass-card rounded-3xl p-8 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
             <div class="text-center mb-6">
-                <div class="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+                <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Final Verification</h3>
-                <p class="text-sm text-slate-400">Has the payment been sent and does the Reference match <strong id="modal-ref-display" class="text-brand">OCH-XXXXX</strong> exactly?</p>
+                <h3 class="display text-white mb-2" style="font-size:1.6rem;line-height:1.1;">Final Check</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Payment sent with reference <strong id="modal-ref-display" class="text-brand font-mono">OCH-XXXXX</strong> exactly?</p>
             </div>
-            
-            <div class="bg-dark/50 p-4 rounded-xl border border-white/5 mb-6">
-                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Notice</p>
-                <p class="text-[11px] text-slate-400 leading-relaxed italic">Reference mismatches will result in an automated audit delay for your ticket creditation.</p>
+            <div class="bg-dark/60 border border-white/5 rounded-xl p-4 mb-5">
+                <p class="text-[11px] text-slate-400 leading-relaxed italic">Reference mismatches trigger a manual audit — ticket release may be delayed 24 hours.</p>
             </div>
-
             <div class="flex flex-col gap-3">
-                <button onclick="startProcessing()" class="w-full bg-success text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-success/10">Yes, Reference is Exact</button>
-                <button onclick="closeConfirmModal()" class="w-full bg-white/5 text-slate-500 font-bold py-3 rounded-xl text-xs uppercase hover:text-white transition-colors">Go Back & Check</button>
+                <button onclick="startProcessing()" class="w-full bg-success hover:bg-emerald-600 text-white font-bold py-4 rounded-xl text-sm uppercase tracking-wider transition-all">✓ Yes, Reference is Exact</button>
+                <button onclick="closeConfirmModal()" class="w-full bg-white/4 hover:bg-white/8 text-slate-500 hover:text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition-all border border-white/5">Go Back & Check</button>
             </div>
         </div>
     </div>
 
-    <!-- FINTECH PROCESSING OVERLAY -->
-    <div id="processing-modal" class="fixed inset-0 bg-dark/95 backdrop-blur-xl z-[120] hidden flex-col items-center justify-center text-center p-4">
-        <div id="spinner" class="w-20 h-20 border-4 border-brand border-t-transparent rounded-full animate-spin mb-8 shadow-[0_0_30px_rgba(220,38,38,0.4)]"></div>
-        <h2 id="processing-title" class="text-3xl font-black text-white mb-3 tracking-tighter uppercase">Initializing...</h2>
-        <div id="status-steps" class="space-y-2 max-w-xs mx-auto">
-            <p id="step-1" class="text-slate-500 text-[11px] font-bold transition-colors">Connecting to Faster Payments Network...</p>
-            <p id="step-2" class="text-slate-500 text-[11px] font-bold transition-colors">Scanning for Reference Match...</p>
-            <p id="step-3" class="text-slate-500 text-[11px] font-bold transition-colors">Authenticating Sender Account...</p>
-            <p id="step-4" class="text-slate-500 text-[11px] font-bold transition-colors">Success. Releasing Tickets.</p>
+    <!-- PROCESSING OVERLAY -->
+    <div id="processing-modal" class="fixed inset-0 bg-dark/97 z-[120] hidden flex-col items-center justify-center text-center p-4" style="backdrop-filter:blur(20px);">
+        <div class="relative w-36 h-36 mb-10">
+            <svg viewBox="0 0 144 144" width="144" height="144" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0">
+                <circle cx="72" cy="72" r="68" fill="none" stroke="rgba(220,38,38,0.15)" stroke-width="1.5"/>
+                <circle cx="72" cy="72" r="52" fill="none" stroke="rgba(220,38,38,0.15)" stroke-width="1.5"/>
+                <circle cx="72" cy="72" r="36" fill="none" stroke="rgba(220,38,38,0.2)" stroke-width="1.5"/>
+                <circle cx="72" cy="72" r="20" fill="none" stroke="rgba(220,38,38,0.25)" stroke-width="2"/>
+                <circle cx="72" cy="72" r="8" fill="rgba(220,38,38,0.15)"/>
+                <circle id="proc-bull" cx="72" cy="72" r="4" fill="#dc2626" opacity="0.4"/>
+            </svg>
+            <svg viewBox="0 0 144 144" width="144" height="144" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0" style="animation:spin 2s linear infinite;">
+                <circle cx="72" cy="72" r="68" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="20 22" stroke-opacity="0.4"/>
+            </svg>
+            <div class="scan-line absolute left-4 right-4 h-px bg-gradient-to-r from-transparent via-brand to-transparent opacity-60"></div>
+        </div>
+        <h2 id="processing-title" class="display text-white mb-4" style="font-size:2.8rem;line-height:1;">Initialising…</h2>
+        <div id="status-steps" class="space-y-3 max-w-xs mx-auto text-left">
+            <div id="proc-step-1" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">1</div><span class="text-xs font-bold uppercase tracking-wide">Connecting to Faster Payments…</span></div>
+            <div id="proc-step-2" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">2</div><span class="text-xs font-bold uppercase tracking-wide">Matching Reference Code…</span></div>
+            <div id="proc-step-3" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">3</div><span class="text-xs font-bold uppercase tracking-wide">Authenticating Sender…</span></div>
+            <div id="proc-step-4" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">4</div><span class="text-xs font-bold uppercase tracking-wide">Releasing Tickets to Vault…</span></div>
         </div>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const tierId = urlParams.get('tier') || "3";
-        let currentPrice = 0, qty = 1, currentUser = null, raffleTitle = "Draw Entry";
-        const randomRef = 'OCH-' + Math.floor(10000 + Math.random() * 90000);
+    const urlParams=new URLSearchParams(window.location.search);
+    const tierId=urlParams.get('tier')||"3";
+    let currentPrice=0,qty=1,currentUser=null;
+    let promoActive=false;
+    const PROMO_CODE='RYAN180';
+    const PROMO_MAX_VALUE=40;
+    const randomRef='OCH-'+Math.floor(10000+Math.random()*90000);
 
-        const PAYPAL_CLIENT_ID = 'AZBgpxL3AGpHqysdyzNVgx2GyA6QamP7BraK_ByI361i5WzcswENuZLb1_v9jsuPaxfCjP1_0Xu9SFxk';
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user } } = await window.supabaseClient.auth.getUser();
-            if (!user) {
-                document.getElementById('auth-gate').classList.remove('hidden');
-                document.getElementById('bank-area').classList.add('hidden');
-                document.getElementById('paypal-area').classList.add('hidden');
-                return;
-            }
-            currentUser = user;
-            document.getElementById('bank-ref-display').innerText = randomRef;
-            document.getElementById('modal-ref-display').innerText = randomRef;
-
-            const { data: raffle } = await window.supabaseClient.from('raffles').select('*').eq('id', tierId).single();
-            if (raffle) {
-                currentPrice = raffle.price_per_ticket;
-                raffleTitle = raffle.title;
-                document.getElementById('tier-title').innerText = raffleTitle;
-                updateUI();
-                loadPayPal();
-            }
-        });
-
-        function updateUI() {
-            document.getElementById('qty-display').innerText = qty;
-            document.getElementById('total-price').innerText = `£${(qty * currentPrice).toFixed(2)}`;
+    document.addEventListener('DOMContentLoaded',async()=>{
+        const{data:{user}}=await window.supabaseClient.auth.getUser();
+        if(!user){
+            document.getElementById('auth-gate').classList.remove('hidden');
+            document.getElementById('bank-area').classList.add('hidden');
+            return;
         }
-
-        function updateQty(n) { qty = Math.max(1, qty + n); updateUI(); }
-
-        function switchMethod(method) {
-            const isBank = method === 'bank';
-            document.getElementById('tab-bank').className = isBank ? "flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 bg-brand text-white shadow-lg" : "flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 text-slate-400 hover:text-white";
-            document.getElementById('tab-paypal').className = !isBank ? "flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 bg-brand text-white shadow-lg" : "flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 text-slate-400 hover:text-white";
-            document.getElementById('bank-area').classList.toggle('hidden', !isBank);
-            document.getElementById('paypal-area').classList.toggle('hidden', isBank);
+        currentUser=user;
+        document.getElementById('bank-ref-display').innerText=randomRef;
+        document.getElementById('modal-ref-display').innerText=randomRef;
+        const{data:raffle}=await window.supabaseClient.from('raffles').select('*').eq('id',tierId).single();
+        if(raffle){
+            currentPrice=raffle.price_per_ticket;
+            document.getElementById('tier-title').innerText=raffle.title;
+            updateUI(false);
         }
+    });
 
-        function promptConfirmation() {
-            const verifyName = document.getElementById('bank-verify-name').value;
-            const verifyRef = document.getElementById('bank-verify-ref').value;
-            
-            if (verifyName.trim().length < 2 || verifyRef.trim().length < 3) {
-                alert("Please enter your Real Name and confirm the Mandatory Reference.");
-                return;
-            }
-            
-            document.getElementById('confirm-modal').classList.remove('hidden');
-            document.getElementById('confirm-modal').classList.add('flex');
+    function getActualTickets(){
+        if(!promoActive) return qty;
+        const orderValue=qty*currentPrice;
+        if(currentPrice<=0) return qty*2;
+        if(orderValue<=PROMO_MAX_VALUE) return qty*2;
+        const bonusTickets=Math.floor(PROMO_MAX_VALUE/currentPrice);
+        return qty+bonusTickets;
+    }
+
+    function applyPromo(){
+        const code=document.getElementById('promo-input').value.trim().toUpperCase();
+        const errEl=document.getElementById('promo-error');
+        const errText=document.getElementById('promo-error-text');
+        if(code===PROMO_CODE){
+            promoActive=true;
+            errEl.classList.add('hidden');
+            document.getElementById('promo-banner').classList.remove('hidden');
+            updateUI(true);
+        } else if(code===''){
+            errText.innerText='Please enter a promo code.';
+            errEl.classList.remove('hidden');
+        } else {
+            errText.innerText='Invalid or expired promo code.';
+            errEl.classList.remove('hidden');
         }
+    }
 
-        function closeConfirmModal() {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            document.getElementById('confirm-modal').classList.remove('flex');
+    function removePromo(){
+        promoActive=false;
+        document.getElementById('promo-input').value='';
+        document.getElementById('promo-banner').classList.add('hidden');
+        document.getElementById('promo-error').classList.add('hidden');
+        updateUI(true);
+    }
+
+    function updateUI(animate){
+        const orderValue=qty*currentPrice;
+        const actualTickets=getActualTickets();
+        document.getElementById('qty-display').innerText=qty;
+        const priceEl=document.getElementById('total-price');
+        priceEl.innerText=`£${orderValue.toFixed(2)}`;
+        if(animate){priceEl.classList.remove('price-pop');void priceEl.offsetWidth;priceEl.classList.add('price-pop');}
+        if(promoActive){
+            document.getElementById('promo-paid-qty').innerText=qty;
+            document.getElementById('promo-bonus-qty').innerText=actualTickets;
+            document.getElementById('promo-display-paid').innerText=qty;
+            document.getElementById('promo-display-get').innerText=actualTickets;
+            document.getElementById('promo-worth').classList.remove('hidden');
+            document.getElementById('promo-worth-value').innerText=`£${(actualTickets*currentPrice).toFixed(2)}`;
+        } else {
+            document.getElementById('promo-worth').classList.add('hidden');
         }
-
-        async function checkCooldown() {
-            const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-            const { data, count } = await window.supabaseClient
-                .from('user_tickets')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', currentUser.id)
-                .eq('raffle_id', parseInt(tierId))
-                .gt('created_at', fiveMinsAgo);
-            return count >= 3;
+        document.getElementById('summary-qty').innerText=qty;
+        document.getElementById('summary-price-each').innerText=`£${currentPrice.toFixed(2)}`;
+        document.getElementById('summary-subtotal').innerText=`£${orderValue.toFixed(2)}`;
+        document.getElementById('summary-total').innerText=`£${orderValue.toFixed(2)}`;
+        if(promoActive&&actualTickets>qty){
+            document.getElementById('summary-promo-row').classList.remove('hidden');
+            document.getElementById('summary-bonus-qty').innerText=actualTickets-qty;
+            document.getElementById('summary-vault-row').classList.remove('hidden');
+            document.getElementById('summary-vault-qty').innerText=actualTickets;
+        } else {
+            document.getElementById('summary-promo-row').classList.add('hidden');
+            document.getElementById('summary-vault-row').classList.add('hidden');
         }
+    }
 
-        async function startProcessing() {
-            closeConfirmModal();
-            
-            const isSpamming = await checkCooldown();
-            if (isSpamming) {
-                document.getElementById('cooldown-msg').classList.remove('hidden');
-                setTimeout(() => document.getElementById('cooldown-msg').classList.add('hidden'), 5000);
-                return;
-            }
+    function updateQty(n){qty=Math.max(1,qty+n);updateUI(true);}
 
-            const modal = document.getElementById('processing-modal');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            const title = document.getElementById('processing-title');
-            
-            const sleep = ms => new Promise(res => setTimeout(res, ms));
-            title.innerText = "ALGORITHMIC CHECK...";
-            document.getElementById('step-1').classList.replace('text-slate-500', 'text-white');
-            await sleep(1500);
-            title.innerText = "MATCHING REFERENCE...";
-            document.getElementById('step-1').classList.replace('text-white', 'text-emerald-500');
-            document.getElementById('step-2').classList.replace('text-slate-500', 'text-white');
-            await sleep(2000);
-            title.innerText = "RELEASING TICKETS...";
-            document.getElementById('step-2').classList.replace('text-white', 'text-emerald-500');
-            document.getElementById('step-3').classList.replace('text-slate-500', 'text-white');
-            await sleep(1500);
-            title.innerText = "INSTANT SUCCESS";
-            document.getElementById('step-3').classList.replace('text-white', 'text-emerald-500');
-            document.getElementById('step-4').classList.replace('text-slate-500', 'text-emerald-500');
-            
-            const verifyName = document.getElementById('bank-verify-name').value;
-            const verifyRef = document.getElementById('bank-verify-ref').value;
-            
-            // Log the custom reference they typed, along with their name
-            await saveTickets(`BANK-${verifyRef}-${verifyName.replace(/\s+/g, '')}`);
+    function switchMethod(method){
+        const isBank=method==='bank';
+        document.getElementById('tab-bank').className=isBank?'tab-btn active':'tab-btn';
+        document.getElementById('bank-area').classList.toggle('hidden',!isBank);
+        document.getElementById('paypal-area').classList.toggle('hidden',isBank);
+    }
+
+    function copyToClipboard(text,btn){
+        navigator.clipboard?.writeText(text).catch(()=>{});
+        btn.innerText='Copied!';btn.classList.add('copied');
+        setTimeout(()=>{btn.innerText='Copy';btn.classList.remove('copied');},2000);
+    }
+    function copyRef(){
+        const ref=document.getElementById('bank-ref-display').innerText;
+        const btn=document.getElementById('copy-ref-btn');
+        navigator.clipboard?.writeText(ref).catch(()=>{});
+        document.getElementById('bank-verify-ref').value=ref;
+        btn.innerText='Copied!';btn.classList.add('copied');
+        setTimeout(()=>{btn.innerText='Copy';btn.classList.remove('copied');},2000);
+    }
+
+    function promptConfirmation(){
+        const name=document.getElementById('bank-verify-name').value;
+        const ref=document.getElementById('bank-verify-ref').value;
+        if(name.trim().length<2) document.getElementById('bank-verify-name').style.borderColor='#dc2626';
+        if(ref.trim().length<3) document.getElementById('bank-verify-ref').style.borderColor='#dc2626';
+        if(name.trim().length<2||ref.trim().length<3) return;
+        document.getElementById('confirm-modal').classList.remove('hidden');
+        document.getElementById('confirm-modal').classList.add('flex');
+    }
+    function closeConfirmModal(){
+        document.getElementById('confirm-modal').classList.add('hidden');
+        document.getElementById('confirm-modal').classList.remove('flex');
+    }
+
+    async function checkCooldown(){
+        const fiveMinsAgo=new Date(Date.now()-5*60*1000).toISOString();
+        const{count}=await window.supabaseClient.from('user_tickets')
+            .select('*',{count:'exact',head:true})
+            .eq('user_id',currentUser.id).eq('raffle_id',parseInt(tierId))
+            .gt('created_at',fiveMinsAgo);
+        return count>=3;
+    }
+
+    function advanceStep(id){
+        const el=document.getElementById(id);if(!el)return;
+        const num=el.querySelector('div');
+        el.classList.remove('text-slate-600');el.classList.add('text-success');
+        num.innerHTML=`<svg class="w-3 h-3 step-done" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
+        num.classList.remove('border-current');num.classList.add('bg-success/15','border-success/30');
+    }
+
+    async function startProcessing(){
+        closeConfirmModal();
+        const isSpamming=await checkCooldown();
+        if(isSpamming){
+            document.getElementById('cooldown-msg').classList.remove('hidden');
+            setTimeout(()=>document.getElementById('cooldown-msg').classList.add('hidden'),5500);
+            return;
         }
+        const modal=document.getElementById('processing-modal');
+        modal.classList.remove('hidden');modal.classList.add('flex');
+        const title=document.getElementById('processing-title');
+        const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+        document.getElementById('proc-step-1').classList.replace('text-slate-600','text-white');
+        title.innerText='Connecting…';await sleep(1400);
+        advanceStep('proc-step-1');
+        document.getElementById('proc-step-2').classList.replace('text-slate-600','text-white');
+        title.innerText='Matching Reference…';await sleep(1800);
+        advanceStep('proc-step-2');
+        document.getElementById('proc-step-3').classList.replace('text-slate-600','text-white');
+        title.innerText='Authenticating…';await sleep(1400);
+        advanceStep('proc-step-3');
+        document.getElementById('proc-step-4').classList.replace('text-slate-600','text-white');
+        title.innerText='Releasing Tickets…';
+        const name=document.getElementById('bank-verify-name').value;
+        const ref=document.getElementById('bank-verify-ref').value;
+        await saveTickets(`BANK-${ref}-${name.replace(/\s+/g,'')}${promoActive?'-PROMO-'+PROMO_CODE:''}`);
+    }
 
-        async function saveTickets(txId) {
-            const { error } = await window.supabaseClient.from('user_tickets').insert([{
-                user_id: currentUser.id,
-                raffle_id: parseInt(tierId),
-                qty: qty,
-                paypal_transaction_id: txId,
-                purchase_price: (qty * currentPrice)
-            }]);
-
-            if (!error) {
-                document.getElementById('spinner').classList.replace('border-brand', 'border-success');
-                document.getElementById('processing-title').innerText = "TICKETS CREDITED!";
-                setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
-            }
+    async function saveTickets(txId){
+        const crediting=getActualTickets();
+        const{error}=await window.supabaseClient.from('user_tickets').insert([{
+            user_id:currentUser.id,raffle_id:parseInt(tierId),qty:crediting,
+            paypal_transaction_id:txId,purchase_price:qty*currentPrice,
+            promo_code_used:promoActive?PROMO_CODE:null
+        }]);
+        const title=document.getElementById('processing-title');
+        if(!error){
+            advanceStep('proc-step-4');
+            title.innerText=`${crediting} Ticket${crediting>1?'s':''} Credited! 🎯`;
+            title.classList.add('text-success');
+            const bull=document.getElementById('proc-bull');
+            if(bull){bull.setAttribute('opacity','1');bull.setAttribute('r','6');}
+            setTimeout(()=>{window.location.href='dashboard.html?success=true';},1800);
+        } else {
+            title.innerText='Error — Please Contact Support';
+            title.classList.add('text-brand');
         }
-
-        function loadPayPal() {
-            const script = document.createElement('script');
-            script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=GBP&intent=capture`;
-            script.onload = () => { if(document.getElementById('paypal-loading')) document.getElementById('paypal-loading').remove(); renderButtons(); };
-            document.head.appendChild(script);
-        }
-
-        function renderButtons() {
-            paypal.Buttons({
-                style: { layout: 'vertical', color: 'gold', shape: 'rect', height: 50 },
-                createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { currency_code: 'GBP', value: (qty * currentPrice).toFixed(2) } }] }),
-                onApprove: async (data, actions) => {
-                    const m = document.getElementById('processing-modal');
-                    m.classList.remove('hidden'); m.classList.add('flex');
-                    document.getElementById('processing-title').innerText = "VERIFYING...";
-                    document.getElementById('status-steps').innerHTML = `<p class="text-white text-[11px] font-bold">Instant Release to Vault.</p>`;
-                    const details = await actions.order.capture();
-                    saveTickets(details.id);
-                }
-            }).render('#paypal-button-container');
-        }
+    }
     </script>
 </body>
 </html>
