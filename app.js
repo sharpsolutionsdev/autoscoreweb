@@ -201,8 +201,13 @@ window.injectFreeTickets = async function(wonAmount) {
         // 1. Ensure Profile Exists (Email tracking)
         await window.supabaseClient.from('profiles').upsert({ id: user.id, email: user.email });
         
-        // 2. Dynamically fetch a valid Raffle ID safely without crashing
-        const { data: raffles, error: raffleErr } = await window.supabaseClient.from('raffles').select('id').limit(1);
+        // 2. Fetch a £2 raffle for free spin tickets only
+        const { data: raffles, error: raffleErr } = await window.supabaseClient
+            .from('raffles')
+            .select('id')
+            .eq('price_per_ticket', 2)
+            .eq('status', 'live')
+            .limit(1);
         const fallbackId = (raffles && raffles.length > 0) ? raffles[0].id : null;
 
         // 3. Insert Tickets Safely

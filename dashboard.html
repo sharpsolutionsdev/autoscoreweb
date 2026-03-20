@@ -303,7 +303,7 @@
         <!-- TAB: DART GAME -->
         <div id="tab-dartgame" class="hidden">
             <div class="flex items-center gap-4 mb-6">
-                <h2 class="display-normal text-white text-xl uppercase tracking-wider">Dart Game</h2>
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">Triple Twenty</h2>
                 <div class="flex-1 h-px bg-white/5"></div>
             </div>
             <div class="bg-card/70 border border-white/8 rounded-2xl p-8 text-center max-w-lg mx-auto">
@@ -314,7 +314,7 @@
                 <p class="text-sm text-slate-400 mb-6">3 darts per entry &middot; 3 entries per hour &middot; Top scorer wins a free ticket daily</p>
                 <a href="/" class="inline-flex items-center gap-2 bg-brand hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    Play Dart Game Now
+                    Play Triple Twenty Now
                 </a>
             </div>
 
@@ -525,6 +525,33 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIRSTORDER PROMO MODAL -->
+    <div id="firstorder-modal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4" style="background:rgba(12,18,32,0.95);backdrop-filter:blur(20px);">
+        <div class="bg-card border border-white/10 rounded-3xl p-8 max-w-md w-full text-center relative" style="animation:floatUp 0.4s cubic-bezier(0.22,1,0.36,1) both;">
+            <div class="w-16 h-16 bg-accent/10 border-2 border-accent/30 rounded-full flex items-center justify-center mx-auto mb-5">
+                <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            </div>
+            <h2 class="display text-white mb-2" style="font-size:1.8rem;">Welcome Gift!</h2>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">As a thank you for joining, here's your exclusive promo code. Use it on your first order to <strong class="text-accent">double your tickets</strong> (up to £25 value).</p>
+            <div class="bg-dark/60 border border-accent/25 rounded-2xl p-5 mb-6">
+                <p class="text-[10px] text-accent/60 font-bold uppercase tracking-widest mb-2">Your Promo Code</p>
+                <div class="flex items-center justify-center gap-3">
+                    <span id="firstorder-code" class="display text-accent" style="font-size:2rem;letter-spacing:0.05em;">FIRSTORDER</span>
+                    <button onclick="copyFirstOrder()" id="btn-copy-firstorder" class="w-10 h-10 bg-accent/10 border border-accent/25 rounded-xl flex items-center justify-center hover:bg-accent/20 transition-all" title="Copy code">
+                        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg>
+                    </button>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2">One-time use · Doubles ticket quantity</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeFirstOrderModal()" class="flex-1 py-3.5 rounded-xl border border-white/10 text-slate-400 font-bold hover:bg-white/5 transition-all text-sm">Maybe Later</button>
+                <a href="/#draws" onclick="closeFirstOrderModal()" class="flex-1 py-3.5 rounded-xl bg-accent hover:bg-yellow-500 text-dark font-bold transition-all shadow-[0_4px_20px_rgba(245,158,11,0.3)] text-sm flex items-center justify-center gap-2">
+                    View Live Draws <span>→</span>
+                </a>
             </div>
         </div>
     </div>
@@ -928,6 +955,7 @@
             btnText.innerHTML=origText;btn.disabled=false;
             if(profileEditMode) cancelConfirm();
         } else {
+            const wasFirstSetup=!profileEditMode;
             currentProfile={...currentProfile,username,phone,is_anonymous};
             closeProfileModal();
             const navU=document.getElementById('nav-username');
@@ -935,7 +963,26 @@
             document.getElementById('profile-username-display').innerText=username;
             btnText.innerHTML=origText;btn.disabled=false;
             if(window.loadGlobalVault) window.loadGlobalVault(currentUser.id);
+            // Show FIRSTORDER promo after first-time setup
+            if(wasFirstSetup && !localStorage.getItem('ochevault_firstorder_shown')){
+                localStorage.setItem('ochevault_firstorder_shown','1');
+                setTimeout(()=>{
+                    const m=document.getElementById('firstorder-modal');
+                    if(m){m.classList.remove('hidden');m.style.display='flex';}
+                },400);
+            }
         }
+    }
+
+    function closeFirstOrderModal(){
+        const m=document.getElementById('firstorder-modal');
+        if(m){m.classList.add('hidden');m.style.display='none';}
+    }
+    function copyFirstOrder(){
+        navigator.clipboard.writeText('FIRSTORDER');
+        const btn=document.getElementById('btn-copy-firstorder');
+        btn.innerHTML='<svg class="w-4 h-4 text-accent" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+        setTimeout(()=>{btn.innerHTML='<svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg>';},2000);
     }
 
     async function signOut(){
