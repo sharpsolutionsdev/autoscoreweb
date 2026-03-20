@@ -47,7 +47,7 @@
     <!-- NAV -->
     <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3 group">
+            <a href="/" class="flex items-center gap-3 group">
                 <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="20" cy="20" r="19" fill="#dc2626"/>
                     <circle cx="20" cy="20" r="14" fill="#0c1220"/>
@@ -59,12 +59,12 @@
             </a>
             <div class="flex items-center gap-5">
                 <div class="hidden md:flex items-center gap-6">
-                    <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
-                    <a href="past.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
-                    <a href="how-it-works.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
-                    <a href="leaderboard.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
+                    <a href="/" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
+                    <a href="/past" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
+                    <a href="/how-it-works" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
+                    <a href="/leaderboard" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
                 </div>
-                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
+                <a href="/auth" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
                 <button onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
@@ -72,12 +72,12 @@
         </div>
         <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-                <a href="index.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
-                <a href="past.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
-                <a href="how-it-works.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
-                <a href="leaderboard.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
+                <a href="/" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
+                <a href="/past" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
+                <a href="/how-it-works" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
+                <a href="/leaderboard" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
                 <div class="h-px bg-slate-700/40 my-2"></div>
-                <a href="auth.html" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
+                <a href="/auth" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
             </div>
         </div>
     </nav>
@@ -138,7 +138,7 @@
                     <li>Winners are selected using a <strong>cryptographically verified random number generator (RNG)</strong>.</li>
                     <li>Each draw closes either when the timer expires or when the maximum ticket count is reached — whichever comes first.</li>
                     <li>If a draw's maximum entry count is not reached, the draw still proceeds with all participating tickets.</li>
-                    <li>Draw results are published on the <a href="past.html" class="text-brand hover:underline">Past Winners</a> page within 24 hours of close.</li>
+                    <li>Draw results are published on the <a href="/past" class="text-brand hover:underline">Past Winners</a> page within 24 hours of close.</li>
                     <li>OcheVault reserves the right to cancel a draw in exceptional circumstances. In such cases, all entry fees will be refunded in full.</li>
                 </ul>
             </div>
@@ -251,17 +251,17 @@
                     <div>
                         <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Platform</h4>
                         <ul class="space-y-3">
-                            <li><a href="index.html" class="text-sm text-slate-500 hover:text-white transition-colors">Live Draws</a></li>
-                            <li><a href="past.html" class="text-sm text-slate-500 hover:text-white transition-colors">Past Winners</a></li>
-                            <li><a href="how-it-works.html" class="text-sm text-slate-500 hover:text-white transition-colors">How It Works</a></li>
-                            <li><a href="dashboard.html" class="text-sm text-slate-500 hover:text-white transition-colors">My Vault</a></li>
+                            <li><a href="/" class="text-sm text-slate-500 hover:text-white transition-colors">Live Draws</a></li>
+                            <li><a href="/past" class="text-sm text-slate-500 hover:text-white transition-colors">Past Winners</a></li>
+                            <li><a href="/how-it-works" class="text-sm text-slate-500 hover:text-white transition-colors">How It Works</a></li>
+                            <li><a href="/dashboard" class="text-sm text-slate-500 hover:text-white transition-colors">My Vault</a></li>
                         </ul>
                     </div>
                     <div>
                         <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Legal & Support</h4>
                         <ul class="space-y-3">
-                            <li><a href="terms.html" class="text-sm text-white font-medium flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-brand"></span>Terms & Conditions</a></li>
-                            <li><a href="terms.html#privacy" class="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="/terms" class="text-sm text-white font-medium flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-brand"></span>Terms & Conditions</a></li>
+                            <li><a href="/terms#privacy" class="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
                             <li><a href="mailto:contact@ochevault.com" class="text-sm text-white hover:text-brand transition-colors font-medium">Contact Us</a></li>
                         </ul>
                     </div>

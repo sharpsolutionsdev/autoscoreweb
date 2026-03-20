@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             : `<span style="width:26px;height:26px;border-radius:50%;background:rgba(220,38,38,0.25);border:1.5px solid rgba(220,38,38,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:white;flex-shrink:0;">${initial}</span>`;
 
         authLinks.forEach(link => {
-            link.href = 'dashboard.html';
+            link.href = '/dashboard';
             link.innerHTML = avatarHtml + `<span style="font-size:13px;font-weight:600;color:white;">${displayName}</span>`;
             link.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;';
             link.classList.remove('bg-card','bg-brand','border-brand');
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             authLinks.forEach(link => {
                 const pill = document.createElement('a');
                 pill.id   = 'nav-ticket-pill';
-                pill.href = 'dashboard.html';
+                pill.href = '/dashboard';
                 pill.innerHTML = `<svg style="width:14px;height:14px;color:#f59e0b;flex-shrink:0;" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v2a1 1 0 01-1 1 1 1 0 100 2 1 1 0 011 1v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2a1 1 0 011-1 1 1 0 100-2 1 1 0 01-1-1V6z"/></svg><span style="font-size:13px;font-weight:700;color:#f59e0b;">${totalTickets}</span>`;
                 pill.style.cssText = 'display:flex;align-items:center;gap:5px;background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.22);border-radius:12px;padding:6px 11px;text-decoration:none;transition:all 0.2s;';
                 pill.onmouseenter = () => { pill.style.background='rgba(245,158,11,0.14)'; pill.style.borderColor='rgba(245,158,11,0.45)'; };
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- IF ON HOMEPAGE: INJECT LIVE RAFFLE STATS ---
-    if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
+    if (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname.includes('index')) {
         const { data: raffles, error } = await window.supabaseClient
             .from('raffles')
             .select('id, tickets_sold, max_tickets, status')
@@ -154,7 +154,7 @@ window.loadGlobalVault = async function(passedUserId) {
     }
 
     if (error || !tickets || tickets.length === 0) {
-        list.innerHTML = `<p class="text-slate-400 p-6 bg-card rounded-xl border border-slate-800">Your vault is empty. <a href="index.html" class="text-brand hover:underline">View live draws</a>.</p>`;
+        list.innerHTML = `<p class="text-slate-400 p-6 bg-card rounded-xl border border-slate-800">Your vault is empty. <a href="/" class="text-brand hover:underline">View live draws</a>.</p>`;
         return;
     }
 

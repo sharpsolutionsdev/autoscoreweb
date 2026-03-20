@@ -137,7 +137,7 @@
 
         <!-- Logo mark -->
         <div class="flex justify-center mb-8 float-in">
-            <a href="index.html" class="flex items-center gap-3 group">
+            <a href="/" class="flex items-center gap-3 group">
                 <div class="relative w-14 h-14 flex-shrink-0">
                     <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="28" cy="28" r="26" fill="#dc2626"/>
@@ -218,7 +218,7 @@
                     </div>
 
                     <p class="text-center mt-8">
-                        <a href="index.html" class="text-xs text-slate-600 hover:text-slate-300 font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
+                        <a href="/" class="text-xs text-slate-600 hover:text-slate-300 font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                             Return to Live Draws
                         </a>
@@ -292,7 +292,7 @@
 
             // Include ref code in redirect URL so it survives if magic link opens in a different browser
             const storedRef = localStorage.getItem('ochevault_ref') || '';
-            let redirectUrl = window.location.origin + '/index.html';
+            let redirectUrl = window.location.origin + '/';
             if (storedRef) redirectUrl += '?ref=' + encodeURIComponent(storedRef);
 
             const { error } = await window.supabaseClient.auth.signInWithOtp({

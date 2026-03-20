@@ -116,7 +116,7 @@
 
     <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3 group">
+            <a href="/" class="flex items-center gap-3 group">
                 <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="20" cy="20" r="19" fill="#dc2626"/>
                     <circle cx="20" cy="20" r="14" fill="#0c1220"/>
@@ -128,12 +128,12 @@
             </a>
             <div class="flex items-center gap-5">
                 <div class="hidden md:flex items-center gap-6">
-                    <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
-                    <a href="past.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
-                    <a href="how-it-works.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
-                    <a href="leaderboard.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
+                    <a href="/" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
+                    <a href="/past" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
+                    <a href="/how-it-works" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
+                    <a href="/leaderboard" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
                 </div>
-                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
+                <a href="/auth" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
                 <button onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
@@ -141,12 +141,12 @@
         </div>
         <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-                <a href="index.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
-                <a href="past.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
-                <a href="how-it-works.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
-                <a href="leaderboard.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
+                <a href="/" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
+                <a href="/past" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
+                <a href="/how-it-works" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
+                <a href="/leaderboard" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
                 <div class="h-px bg-slate-700/40 my-2"></div>
-                <a href="auth.html" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
+                <a href="/auth" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
             </div>
         </div>
     </nav>
@@ -335,7 +335,7 @@
 
                 <!-- AUTH GATE -->
                 <div id="auth-gate" class="hidden">
-                    <a href="auth.html" class="flex items-center justify-center gap-3 w-full bg-brand hover:bg-red-700 text-white font-bold py-5 rounded-2xl shadow-[0_4px_20px_rgba(220,38,38,0.3)] transition-all text-lg">
+                    <a href="/auth" class="flex items-center justify-center gap-3 w-full bg-brand hover:bg-red-700 text-white font-bold py-5 rounded-2xl shadow-[0_4px_20px_rgba(220,38,38,0.3)] transition-all text-lg">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         Sign In to Secure Your Entry
                     </a>
@@ -350,7 +350,7 @@
             <span class="flex items-center gap-1 trust-pulse"><span class="text-success">●</span> Instant crediting</span>
             <span class="flex items-center gap-1 trust-pulse" style="animation-delay:0.3s"><span class="text-brand">●</span> 80% to charity</span>
             <span class="flex items-center gap-1 trust-pulse" style="animation-delay:0.6s"><span class="text-accent">●</span> Provably fair</span>
-            <a href="how-it-works.html" class="text-slate-500 hover:text-white transition-colors font-semibold">How it works →</a>
+            <a href="/how-it-works" class="text-slate-500 hover:text-white transition-colors font-semibold">How it works →</a>
         </div>
     </main>
 
@@ -480,8 +480,8 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <a href="leaderboard.html" class="text-slate-500 hover:text-white transition-colors" style="font-size:11px;font-weight:600;">Leaderboard</a>
-                <a href="terms.html" class="text-slate-500 hover:text-white transition-colors" style="font-size:11px;font-weight:600;">Terms</a>
+                <a href="/leaderboard" class="text-slate-500 hover:text-white transition-colors" style="font-size:11px;font-weight:600;">Leaderboard</a>
+                <a href="/terms" class="text-slate-500 hover:text-white transition-colors" style="font-size:11px;font-weight:600;">Terms</a>
                 <p style="font-size:10px;color:#334155;">© 2026 OcheVault Ltd.</p>
             </div>
         </div>
@@ -650,8 +650,8 @@
                     quantity:qty,
                     promoCode:promoActive?PROMO_CODE:null,
                     useCredit:creditEnabled,
-                    successUrl:`${window.location.origin}/payment-success.html`,
-                    cancelUrl:`${window.location.origin}/payment-cancel.html`
+                    successUrl:`${window.location.origin}/payment-success`,
+                    cancelUrl:`${window.location.origin}/payment-cancel`
                 })
             });
             const result=await response.json();
@@ -661,7 +661,7 @@
             if(result.paid_with_credit){
                 btn.innerHTML='<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span style="margin-left:8px;">Tickets Secured!</span>';
                 btn.style.background='linear-gradient(135deg,#059669,#10b981)';
-                setTimeout(()=>{window.location.href='dashboard.html?success=true';},1500);
+                setTimeout(()=>{window.location.href='/dashboard?success=true';},1500);
                 return;
             }
 
@@ -698,13 +698,13 @@
                 // Try to read the popup URL (same-origin only)
                 try {
                     const popupUrl=stripePopup.location.href;
-                    if(popupUrl.includes('payment-success.html')){
+                    if(popupUrl.includes('payment-success')){
                         clearInterval(stripePopupPoll);
                         stripePopup.close();
                         overlay.classList.add('hidden');
                         overlay.classList.remove('flex');
-                        window.location.href='dashboard.html?success=true';
-                    } else if(popupUrl.includes('payment-cancel.html')){
+                        window.location.href='/dashboard?success=true';
+                    } else if(popupUrl.includes('payment-cancel')){
                         clearInterval(stripePopupPoll);
                         stripePopup.close();
                         overlay.classList.add('hidden');
@@ -741,7 +741,7 @@
             .order('created_at',{ascending:false})
             .limit(1);
         if(tickets&&tickets.length>0){
-            window.location.href='dashboard.html?success=true';
+            window.location.href='/dashboard?success=true';
         }
     }
 

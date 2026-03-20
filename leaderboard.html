@@ -58,7 +58,7 @@
     <!-- NAV -->
     <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3 group">
+            <a href="/" class="flex items-center gap-3 group">
                 <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="20" cy="20" r="19" fill="#dc2626"/>
                     <circle cx="20" cy="20" r="14" fill="#0c1220"/>
@@ -70,12 +70,12 @@
             </a>
             <div class="flex items-center gap-5">
                 <div class="hidden md:flex items-center gap-6">
-                    <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
-                    <a href="past.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
-                    <a href="how-it-works.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
+                    <a href="/" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
+                    <a href="/past" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
+                    <a href="/how-it-works" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
                     <span class="text-white text-sm font-semibold border-b border-brand pb-0.5">Leaderboard</span>
                 </div>
-                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault &rarr;</a>
+                <a href="/auth" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault &rarr;</a>
                 <button onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
@@ -83,12 +83,12 @@
         </div>
         <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-                <a href="index.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
-                <a href="past.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
-                <a href="how-it-works.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
-                <a href="leaderboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
+                <a href="/" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
+                <a href="/past" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
+                <a href="/how-it-works" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
+                <a href="/leaderboard" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
                 <div class="h-px bg-slate-700/40 my-2"></div>
-                <a href="auth.html" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
+                <a href="/auth" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
             </div>
         </div>
     </nav>
@@ -115,11 +115,11 @@
 
             <!-- Links to ticket leaderboards in vault -->
             <div class="flex items-center justify-center gap-3 mb-8">
-                <a href="dashboard.html" onclick="localStorage.setItem('vaultTab','weekly')" class="inline-flex items-center gap-2 bg-accent/10 hover:bg-accent/20 text-accent font-bold px-5 py-2.5 rounded-xl transition-all border border-accent/25 hover:border-accent/40 text-sm">
+                <a href="/dashboard" onclick="localStorage.setItem('vaultTab','weekly')" class="inline-flex items-center gap-2 bg-accent/10 hover:bg-accent/20 text-accent font-bold px-5 py-2.5 rounded-xl transition-all border border-accent/25 hover:border-accent/40 text-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     Weekly Board
                 </a>
-                <a href="dashboard.html" onclick="localStorage.setItem('vaultTab','monthly')" class="inline-flex items-center gap-2 bg-brand/10 hover:bg-brand/20 text-brand font-bold px-5 py-2.5 rounded-xl transition-all border border-brand/25 hover:border-brand/40 text-sm">
+                <a href="/dashboard" onclick="localStorage.setItem('vaultTab','monthly')" class="inline-flex items-center gap-2 bg-brand/10 hover:bg-brand/20 text-brand font-bold px-5 py-2.5 rounded-xl transition-all border border-brand/25 hover:border-brand/40 text-sm">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
                     Monthly Board
                 </a>
@@ -139,8 +139,8 @@
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p class="text-[11px] text-slate-600">&copy; 2026 OcheVault Ltd. Skill-based &middot; Gambling Act Exempt &middot; 18+ UK</p>
                 <div class="flex items-center gap-4">
-                    <a href="terms.html" class="text-[11px] text-slate-500 hover:text-slate-300 transition-colors">Terms</a>
-                    <a href="terms.html#privacy" class="text-[11px] text-slate-500 hover:text-slate-300 transition-colors">Privacy</a>
+                    <a href="/terms" class="text-[11px] text-slate-500 hover:text-slate-300 transition-colors">Terms</a>
+                    <a href="/terms#privacy" class="text-[11px] text-slate-500 hover:text-slate-300 transition-colors">Privacy</a>
                 </div>
             </div>
         </div>
@@ -203,7 +203,7 @@
                     list.innerHTML = `<div class="text-center py-16">
                         <svg class="w-12 h-12 text-slate-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <p class="text-slate-500 text-sm font-medium mb-1">No scores yet</p>
-                        <p class="text-slate-600 text-xs">Head to the <a href="index.html" class="text-brand hover:underline">homepage</a> and throw some darts!</p>
+                        <p class="text-slate-600 text-xs">Head to the <a href="/" class="text-brand hover:underline">homepage</a> and throw some darts!</p>
                     </div>`;
                     return;
                 }

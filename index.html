@@ -239,7 +239,7 @@
     <!-- NAV -->
     <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3 group">
+            <a href="/" class="flex items-center gap-3 group">
                 <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="20" cy="20" r="19" fill="#dc2626"/>
                     <circle cx="20" cy="20" r="14" fill="#0c1220"/>
@@ -252,11 +252,11 @@
             <div class="flex items-center gap-5">
                 <div class="hidden md:flex items-center gap-6">
                     <span class="text-white text-sm font-semibold border-b border-brand pb-0.5">Live Draws</span>
-                    <a href="past.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
-                    <a href="how-it-works.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
-                    <a href="leaderboard.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
+                    <a href="/past" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
+                    <a href="/how-it-works" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
+                    <a href="/leaderboard" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
                 </div>
-                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
+                <a href="/auth" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
                 <!-- Mobile hamburger -->
                 <button id="mobile-toggle" onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -266,16 +266,16 @@
         <!-- Mobile dropdown menu -->
         <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-                <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold">
+                <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold">
                     <span class="w-1.5 h-1.5 rounded-full bg-brand"></span> Live Draws
                 </a>
-                <a href="past.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
-                <a href="how-it-works.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
-                <a href="leaderboard.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2">
+                <a href="/past" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
+                <a href="/how-it-works" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
+                <a href="/leaderboard" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2">
                     <svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard
                 </a>
                 <div class="h-px bg-slate-700/40 my-2"></div>
-                <a href="auth.html" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
+                <a href="/auth" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
             </div>
         </div>
     </nav>
@@ -326,7 +326,7 @@
                     <a href="#draws" class="cta-pulse bg-brand hover:bg-red-700 text-white font-bold px-7 py-3.5 rounded-2xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.35)] hover:shadow-[0_8px_30px_rgba(220,38,38,0.5)] text-sm uppercase tracking-wider">
                         View Live Draws →
                     </a>
-                    <a href="how-it-works.html" class="bg-card/80 hover:bg-card border border-slate-700/60 hover:border-slate-500 text-white font-semibold px-7 py-3.5 rounded-2xl transition-all text-sm">
+                    <a href="/how-it-works" class="bg-card/80 hover:bg-card border border-slate-700/60 hover:border-slate-500 text-white font-semibold px-7 py-3.5 rounded-2xl transition-all text-sm">
                         How It Works
                     </a>
                 </div>
@@ -698,7 +698,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£2.00</span>
-                            <a href="raffle.html?tier=1" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
+                            <a href="/raffle?tier=1" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
                         </div>
                     </div>
                 </div>
@@ -760,7 +760,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£5.00</span>
-                            <a href="raffle.html?tier=2" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
+                            <a href="/raffle?tier=2" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
                         </div>
                     </div>
                 </div>
@@ -880,7 +880,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.5rem;">£10.00</span>
-                            <a href="raffle.html?tier=3" class="btn-brand bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_18px_rgba(220,38,38,0.35)] hover:shadow-[0_0_28px_rgba(220,38,38,0.55)] flex items-center gap-1.5 border border-brand/50">Secure Entry →</a>
+                            <a href="/raffle?tier=3" class="btn-brand bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_18px_rgba(220,38,38,0.35)] hover:shadow-[0_0_28px_rgba(220,38,38,0.55)] flex items-center gap-1.5 border border-brand/50">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1088,7 +1088,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="price-num text-white" style="font-size:2.5rem;">£25.00</span>
-                                <a href="raffle.html?tier=4" class="btn-accent bg-gradient-to-r from-accent to-yellow-500 hover:from-yellow-500 hover:to-accent text-dark font-black px-7 py-3.5 rounded-xl transition-all shadow-[0_0_18px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] border border-accent/50 flex items-center gap-1.5">Secure Entry →</a>
+                                <a href="/raffle?tier=4" class="btn-accent bg-gradient-to-r from-accent to-yellow-500 hover:from-yellow-500 hover:to-accent text-dark font-black px-7 py-3.5 rounded-xl transition-all shadow-[0_0_18px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] border border-accent/50 flex items-center gap-1.5">Secure Entry →</a>
                             </div>
                         </div>
                     </div>
@@ -1191,7 +1191,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£15.00</span>
-                            <a href="raffle.html?tier=5" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
+                            <a href="/raffle?tier=5" class="btn-brand bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">Secure Entry <span class="text-slate-400">→</span></a>
                         </div>
                     </div>
                 </div>
@@ -1245,7 +1245,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£8.00</span>
-                            <a href="raffle.html?tier=6" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-blue-500/50 hover:border-blue-400 flex items-center gap-1.5 shadow-[0_0_14px_rgba(59,130,246,0.2)]">Secure Entry →</a>
+                            <a href="/raffle?tier=6" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-blue-500/50 hover:border-blue-400 flex items-center gap-1.5 shadow-[0_0_14px_rgba(59,130,246,0.2)]">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1299,7 +1299,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£6.00</span>
-                            <a href="raffle.html?tier=7" class="bg-purple-700 hover:bg-purple-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-purple-500/50 hover:border-purple-400 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=7" class="bg-purple-700 hover:bg-purple-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-purple-500/50 hover:border-purple-400 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1343,7 +1343,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£12.00</span>
-                            <a href="raffle.html?tier=8" class="bg-success/15 hover:bg-success/25 text-success font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-success/40 hover:border-success/60 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=8" class="bg-success/15 hover:bg-success/25 text-success font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-success/40 hover:border-success/60 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1390,7 +1390,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="price-num text-white" style="font-size:2.5rem;">£20.00</span>
-                                <a href="raffle.html?tier=9" class="btn-accent bg-gradient-to-r from-accent to-yellow-500 hover:from-yellow-500 hover:to-accent text-dark font-black px-7 py-3.5 rounded-xl transition-all shadow-[0_0_18px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] border border-accent/50 flex items-center gap-1.5">Secure Entry →</a>
+                                <a href="/raffle?tier=9" class="btn-accent bg-gradient-to-r from-accent to-yellow-500 hover:from-yellow-500 hover:to-accent text-dark font-black px-7 py-3.5 rounded-xl transition-all shadow-[0_0_18px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] border border-accent/50 flex items-center gap-1.5">Secure Entry →</a>
                             </div>
                         </div>
                     </div>
@@ -1438,7 +1438,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£5.00</span>
-                            <a href="raffle.html?tier=10" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-cyan-500/50 hover:border-cyan-400 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=10" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-cyan-500/50 hover:border-cyan-400 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1492,7 +1492,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£8.00</span>
-                            <a href="raffle.html?tier=11" class="bg-amber-700 hover:bg-amber-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-amber-600/50 hover:border-amber-500 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=11" class="bg-amber-700 hover:bg-amber-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-amber-600/50 hover:border-amber-500 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1546,7 +1546,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£7.00</span>
-                            <a href="raffle.html?tier=12" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-500/50 hover:border-slate-400 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=12" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-500/50 hover:border-slate-400 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1601,7 +1601,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£5.00</span>
-                            <a href="raffle.html?tier=13" class="bg-red-700 hover:bg-red-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-red-500/50 hover:border-red-400 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=13" class="bg-red-700 hover:bg-red-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-red-500/50 hover:border-red-400 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1656,7 +1656,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£6.00</span>
-                            <a href="raffle.html?tier=14" class="bg-violet-700 hover:bg-violet-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-purple-500/50 hover:border-purple-400 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=14" class="bg-violet-700 hover:bg-violet-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-purple-500/50 hover:border-purple-400 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1709,7 +1709,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£4.00</span>
-                            <a href="raffle.html?tier=15" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-400/50 hover:border-slate-300 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=15" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-slate-400/50 hover:border-slate-300 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1762,7 +1762,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£4.00</span>
-                            <a href="raffle.html?tier=16" class="bg-red-900 hover:bg-red-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-red-800/50 hover:border-red-700 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=16" class="bg-red-900 hover:bg-red-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-red-800/50 hover:border-red-700 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -1818,7 +1818,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="price-num text-white" style="font-size:2.25rem;">£5.00</span>
-                            <a href="raffle.html?tier=17" class="bg-orange-700 hover:bg-orange-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-orange-600/50 hover:border-orange-500 flex items-center gap-1.5">Secure Entry →</a>
+                            <a href="/raffle?tier=17" class="bg-orange-700 hover:bg-orange-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all text-sm border border-orange-600/50 hover:border-orange-500 flex items-center gap-1.5">Secure Entry →</a>
                         </div>
                     </div>
                 </div>
@@ -2040,7 +2040,7 @@
                 CLICK TO SPIN
             </button>
 
-            <a id="vault-btn" href="dashboard.html"
+            <a id="vault-btn" href="/dashboard"
                 style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:0.08em;display:none;"
                 class="bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white px-12 py-3.5 rounded-2xl transition-all shadow-[0_0_30px_rgba(220,38,38,0.45)] border border-brand/50">
                 VIEW YOUR VAULT →
@@ -2322,18 +2322,18 @@
                     <div>
                         <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Platform</h4>
                         <ul class="space-y-3">
-                            <li><a href="index.html" class="text-sm text-white font-medium flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-brand"></span>Live Draws</a></li>
-                            <li><a href="past.html" class="text-sm text-slate-500 hover:text-white transition-colors">Past Winners</a></li>
-                            <li><a href="how-it-works.html" class="text-sm text-slate-500 hover:text-white transition-colors">How It Works</a></li>
-                            <li><a href="leaderboard.html" class="text-sm text-slate-500 hover:text-white transition-colors">Leaderboard</a></li>
-                            <li><a href="dashboard.html" class="text-sm text-slate-500 hover:text-white transition-colors">My Vault</a></li>
+                            <li><a href="/" class="text-sm text-white font-medium flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-brand"></span>Live Draws</a></li>
+                            <li><a href="/past" class="text-sm text-slate-500 hover:text-white transition-colors">Past Winners</a></li>
+                            <li><a href="/how-it-works" class="text-sm text-slate-500 hover:text-white transition-colors">How It Works</a></li>
+                            <li><a href="/leaderboard" class="text-sm text-slate-500 hover:text-white transition-colors">Leaderboard</a></li>
+                            <li><a href="/dashboard" class="text-sm text-slate-500 hover:text-white transition-colors">My Vault</a></li>
                         </ul>
                     </div>
                     <div>
                         <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Legal & Support</h4>
                         <ul class="space-y-3">
-                            <li><a href="terms.html" class="text-sm text-slate-500 hover:text-white transition-colors">Terms & Conditions</a></li>
-                            <li><a href="terms.html#privacy" class="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="/terms" class="text-sm text-slate-500 hover:text-white transition-colors">Terms & Conditions</a></li>
+                            <li><a href="/terms#privacy" class="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
                             <li><a href="mailto:contact@ochevault.com" class="text-sm text-white hover:text-brand transition-colors font-medium">Contact Us</a></li>
                         </ul>
                     </div>
@@ -2489,7 +2489,7 @@
             if (!user) {
                 // Not logged in — show sign-in prompt instead of throw button
                 btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg><span>Sign in to play</span>`;
-                btn.onclick = () => { window.location.href = 'auth.html'; };
+                btn.onclick = () => { window.location.href = '/auth'; };
                 return;
             }
             currentUser = user;
