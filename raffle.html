@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Entry | OcheRaffles</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Secure Entry | OcheVault</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -50,6 +51,61 @@
         .step-done{animation:stepDone 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;}
         @keyframes pricePop{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
         .price-pop{animation:pricePop 0.25s cubic-bezier(0.34,1.56,0.64,1);}
+        .mobile-menu { transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.3s; opacity: 0; pointer-events: none; }
+        .mobile-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+        /* Scroll reveal animations */
+        .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .stagger-1 { transition-delay: 0.08s; }
+        .stagger-2 { transition-delay: 0.16s; }
+        .stagger-3 { transition-delay: 0.24s; }
+
+        /* Hero entrance */
+        @keyframes cardSlideUp { from { opacity: 0; transform: translateY(40px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .card-entrance { animation: cardSlideUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.15s both; }
+
+        /* Gradient border shimmer */
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .shimmer-bar { background: linear-gradient(90deg, #dc2626, #f59e0b, #dc2626, #7c3aed, #dc2626); background-size: 200% 100%; animation: shimmer 4s linear infinite; }
+
+        /* Floating badge */
+        @keyframes badgeFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        .badge-float { animation: badgeFloat 3s ease-in-out infinite; }
+
+        /* Tab glow on active */
+        .tab-btn.active { position: relative; }
+        .tab-btn.active::after { content: ''; position: absolute; inset: -1px; border-radius: 12px; background: linear-gradient(135deg, rgba(220,38,38,0.3), rgba(220,38,38,0.05)); z-index: -1; filter: blur(8px); }
+
+        /* Payment area fade-in */
+        @keyframes areaFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .area-enter { animation: areaFadeIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards; }
+
+        /* Button shine sweep */
+        @keyframes btnShine { 0% { left: -75%; } 100% { left: 125%; } }
+        .btn-shine { position: relative; overflow: hidden; }
+        .btn-shine::before { content: ''; position: absolute; top: 0; left: -75%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent); transform: skewX(-20deg); animation: btnShine 3.5s ease-in-out infinite; pointer-events: none; }
+
+        /* Security challenge */
+        @keyframes dartThrow { 0% { opacity:0; transform:scale(3) translate(20px,-20px); } 100% { opacity:1; transform:scale(1) translate(0,0); } }
+        .dart-throw { animation: dartThrow 0.35s cubic-bezier(0.22,1,0.36,1) forwards; }
+        @keyframes challengeIn { from { opacity:0; transform:scale(0.92) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        .challenge-enter { animation: challengeIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+        .hint-revealed { background: rgba(245,158,11,0.1) !important; border-color: rgba(245,158,11,0.4) !important; color: #f59e0b !important; }
+        @keyframes shakeInput { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+        .shake-input { animation: shakeInput 0.4s ease; }
+
+        /* Trust badge pulse */
+        @keyframes trustPulse { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
+        .trust-pulse { animation: trustPulse 2.5s ease-in-out infinite; }
+
+        /* Quantity button press */
+        .qty-btn { transition: all 0.2s cubic-bezier(0.22,1,0.36,1); }
+        .qty-btn:active { transform: scale(0.88) !important; background: rgba(220,38,38,0.15) !important; border-color: rgba(220,38,38,0.3) !important; color: #dc2626 !important; }
+
+        /* Glass card hover glow */
+        .glass-card { transition: box-shadow 0.4s ease; }
+        .glass-card:hover { box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7), 0 0 60px -10px rgba(220,38,38,0.08); }
     </style>
 </head>
 <body class="bg-dark text-slate-300 antialiased min-h-screen flex flex-col relative overflow-x-hidden">
@@ -58,31 +114,51 @@
     <div class="absolute top-[-5%] left-[-5%] w-[45%] h-[55%] bg-brand/8 blur-[140px] rounded-full pointer-events-none z-0"></div>
     <div class="absolute bottom-[-10%] right-[-5%] w-[40%] h-[50%] bg-accent/4 blur-[160px] rounded-full pointer-events-none z-0"></div>
 
-    <nav class="border-b border-white/5 glass-card sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 h-20 flex items-center justify-between">
+    <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 group">
                 <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="20" cy="20" r="19" fill="#dc2626"/><circle cx="20" cy="20" r="14" fill="#0c1220"/>
-                    <circle cx="20" cy="20" r="9" fill="#dc2626"/><circle cx="20" cy="20" r="4" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="19" fill="#dc2626"/>
+                    <circle cx="20" cy="20" r="14" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="9" fill="#dc2626"/>
+                    <circle cx="20" cy="20" r="4" fill="#0c1220"/>
                     <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
                 </svg>
-                <span class="display text-white text-2xl group-hover:text-brand transition-colors">OcheRaffles</span>
+                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheVault</span>
             </a>
-            <a href="index.html" class="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                All Draws
-            </a>
+            <div class="flex items-center gap-5">
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
+                    <a href="past.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
+                    <a href="how-it-works.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
+                    <a href="leaderboard.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
+                </div>
+                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
+                <button onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+                <a href="index.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
+                <a href="past.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
+                <a href="how-it-works.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
+                <a href="leaderboard.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
+                <div class="h-px bg-slate-700/40 my-2"></div>
+                <a href="auth.html" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
+            </div>
         </div>
     </nav>
 
     <main class="max-w-2xl mx-auto px-4 py-12 w-full flex-grow relative z-10">
 
-        <div class="glass-card rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] overflow-hidden mb-8">
-            <div class="h-1 bg-gradient-to-r from-brand via-red-400 to-accent"></div>
+        <div class="glass-card rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] overflow-hidden mb-8 card-entrance">
+            <div class="h-1 shimmer-bar"></div>
             <div class="p-8 md:p-10">
 
                 <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center gap-2 bg-brand/10 border border-brand/20 text-brand text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.18em]">
+                    <div class="flex items-center gap-2 bg-brand/10 border border-brand/20 text-brand text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.18em] badge-float">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>Live Draw
                     </div>
                     <div class="flex items-center gap-1.5 text-success text-[10px] font-bold uppercase tracking-widest bg-success/8 px-3 py-1.5 rounded-full border border-success/20">
@@ -166,48 +242,45 @@
                     </div>
                 </div>
 
-                <!-- PAYMENT TABS -->
-                <div class="flex gap-2 p-1.5 bg-dark/60 rounded-2xl border border-white/5 mb-8">
-                    <button id="tab-tl" class="tab-btn active" onclick="switchMethod('tl')">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Pay by Bank
-                    </button>
-                    <button id="tab-bank" class="tab-btn" onclick="switchMethod('bank')">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                        Manual Transfer
-                    </button>
-                    <button id="tab-paypal" class="tab-btn disabled-tab" onclick="return false;">
-                        <div class="paypal-tooltip">Temporarily unavailable</div>
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z"/></svg>
-                        <span class="tab-label">PayPal</span>
-                    </button>
+                <!-- PAYMENT INFO -->
+                <div class="flex items-center gap-3 p-4 bg-dark/60 rounded-2xl border border-white/5 mb-8">
+                    <div class="flex items-center gap-2 text-slate-400 text-sm">
+                        <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        <span class="font-semibold text-white">Multiple payment options</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                        <span>Card</span><span class="text-slate-700">·</span>
+                        <span>Pay by Bank</span><span class="text-slate-700">·</span>
+                        <span>Bank Transfer</span>
+                    </div>
                 </div>
 
-                <!-- PAY BY BANK (TRUELAYER) -->
-                <div id="tl-area" class="space-y-5">
+                <!-- STRIPE CHECKOUT -->
+                <div id="stripe-area" class="space-y-5">
                     <!-- What happens explainer -->
-                    <div class="flex items-start gap-4 bg-success/6 border border-success/20 rounded-2xl p-5">
-                        <div class="w-10 h-10 bg-success/10 rounded-xl flex items-center justify-center border border-success/20 flex-shrink-0 mt-0.5">
-                            <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <div class="flex items-start gap-4 rounded-2xl p-5" style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.22);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);">
+                            <svg class="w-5 h-5" style="color:#818cf8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                         </div>
                         <div>
-                            <p class="text-white text-sm font-bold mb-0.5">Instant bank payment — no card, no PayPal</p>
-                            <p class="text-xs text-slate-400 leading-relaxed">We generate a secure TrueLayer payment link pre-filled with the exact amount and your unique reference. Tap it, approve in your banking app, and your tickets are credited automatically.</p>
+                            <p class="text-white text-sm font-bold mb-0.5">Secure checkout via Stripe</p>
+                            <p class="text-xs text-slate-400 leading-relaxed">Pay by card (Visa, Mastercard, Amex), Pay by Bank (instant open banking), or Bank Transfer. Choose your preferred method at checkout — tickets are credited automatically.</p>
                         </div>
                     </div>
 
                     <!-- How it works steps -->
                     <div class="grid grid-cols-3 gap-3 text-center">
                         <div class="bg-dark/40 border border-white/5 rounded-xl p-3">
-                            <div class="w-7 h-7 bg-brand/15 border border-brand/30 rounded-full flex items-center justify-center text-brand text-xs font-black mx-auto mb-2">1</div>
-                            <p class="text-[11px] text-slate-400 leading-tight">Click <strong class="text-white">Generate Link</strong> below</p>
+                            <div class="w-7 h-7 flex items-center justify-center text-xs font-black mx-auto mb-2 rounded-full" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#818cf8;">1</div>
+                            <p class="text-[11px] text-slate-400 leading-tight">Click <strong class="text-white">Secure Checkout</strong></p>
                         </div>
                         <div class="bg-dark/40 border border-white/5 rounded-xl p-3">
-                            <div class="w-7 h-7 bg-accent/15 border border-accent/30 rounded-full flex items-center justify-center text-accent text-xs font-black mx-auto mb-2">2</div>
-                            <p class="text-[11px] text-slate-400 leading-tight">Approve in your <strong class="text-white">banking app</strong></p>
+                            <div class="w-7 h-7 flex items-center justify-center text-xs font-black mx-auto mb-2 rounded-full" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;">2</div>
+                            <p class="text-[11px] text-slate-400 leading-tight">Choose <strong class="text-white">payment method</strong></p>
                         </div>
                         <div class="bg-dark/40 border border-white/5 rounded-xl p-3">
-                            <div class="w-7 h-7 bg-success/15 border border-success/30 rounded-full flex items-center justify-center text-success text-xs font-black mx-auto mb-2">3</div>
+                            <div class="w-7 h-7 flex items-center justify-center text-xs font-black mx-auto mb-2 rounded-full" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#10b981;">3</div>
                             <p class="text-[11px] text-slate-400 leading-tight">Tickets land in your <strong class="text-white">vault</strong></p>
                         </div>
                     </div>
@@ -217,182 +290,47 @@
                         <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest mb-3">Order Summary</p>
                         <div class="space-y-0 text-sm">
                             <div class="order-row">
-                                <span class="text-slate-400"><span id="tl-summary-qty">1</span> × ticket @ <span id="tl-summary-price-each">£0.00</span></span>
-                                <span id="tl-summary-subtotal" class="text-white font-semibold">£0.00</span>
+                                <span class="text-slate-400"><span id="stripe-summary-qty">1</span> × ticket @ <span id="stripe-summary-price-each">£0.00</span></span>
+                                <span id="stripe-summary-subtotal" class="text-white font-semibold">£0.00</span>
                             </div>
-                            <div id="tl-summary-promo-row" class="order-row hidden">
+                            <div id="stripe-summary-promo-row" class="order-row hidden">
                                 <span class="text-accent">RYAN180 — 2× bonus</span>
-                                <span id="tl-summary-bonus-qty" class="text-accent font-bold">+1 free</span>
+                                <span id="stripe-summary-bonus-qty" class="text-accent font-bold">+1 free</span>
+                            </div>
+                            <!-- Credit balance row -->
+                            <div id="credit-row" class="hidden" style="padding:10px 0 4px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                                        <input type="checkbox" id="use-credit-toggle" onchange="toggleCredit()" class="w-4 h-4 rounded accent-emerald-500" style="accent-color:#10b981;">
+                                        <span class="text-sm text-emerald-400 font-semibold">Apply credit</span>
+                                        <span id="credit-balance-label" class="text-xs text-emerald-400/70">(£0.00 available)</span>
+                                    </label>
+                                    <span id="credit-discount" class="text-emerald-400 font-bold text-sm">-£0.00</span>
+                                </div>
                             </div>
                             <div class="order-row" style="border-bottom:none;padding-top:12px;">
                                 <span class="font-bold text-white">Total charged</span>
-                                <span id="tl-summary-total" class="display text-white" style="font-size:1.3rem;">£0.00</span>
+                                <span id="stripe-summary-total" class="display text-white" style="font-size:1.3rem;">£0.00</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Generate link button -->
-                    <div id="tl-btn-wrap">
-                        <button onclick="generateTrueLayerLink()" id="tl-generate-btn"
-                            class="w-full bg-gradient-to-r from-success to-emerald-500 hover:from-emerald-500 hover:to-success text-white font-black py-5 rounded-2xl transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] hover:shadow-[0_4px_30px_rgba(16,185,129,0.5)] flex items-center justify-center gap-3 text-base uppercase tracking-wider"
-                            style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;letter-spacing:0.08em;">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            Generate Secure Payment Link
-                        </button>
-                        <p class="text-center text-[10px] text-slate-600 mt-2">Powered by TrueLayer · UK Open Banking · No card data</p>
-                    </div>
-
-                    <!-- Payment link ready state (hidden until generated) -->
-                    <div id="tl-link-ready" class="hidden space-y-4">
-                        <div class="bg-success/8 border border-success/25 rounded-2xl p-5">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-8 h-8 bg-success/15 rounded-full flex items-center justify-center border border-success/25 flex-shrink-0">
-                                    <svg class="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                </div>
-                                <div>
-                                    <p class="text-success text-sm font-bold">Payment link ready</p>
-                                    <p class="text-[11px] text-slate-500">Ref: <span id="tl-ref-display" class="font-mono text-white">OCH-XXXXX</span> · Amount: <span id="tl-amount-display" class="text-white font-bold">£0.00</span></p>
-                                </div>
-                            </div>
-                            <a id="tl-pay-link" href="#" target="_blank"
-                                class="flex items-center justify-center gap-2 w-full bg-success hover:bg-emerald-600 text-white font-black py-4 rounded-xl transition-all shadow-[0_4px_16px_rgba(16,185,129,0.35)] text-sm uppercase tracking-wider"
-                                style="font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;"
-                                onclick="onTrueLayerLinkClicked()">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                Open Payment in Banking App
-                            </a>
-                        </div>
-                        <!-- Waiting for confirmation -->
-                        <div id="tl-waiting" class="hidden bg-dark/50 border border-white/6 rounded-2xl p-5 text-center">
-                            <div class="flex items-center justify-center gap-3 text-slate-400 text-sm mb-2">
-                                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                Waiting for payment confirmation…
-                            </div>
-                            <p class="text-[11px] text-slate-600">Complete the payment in your banking app. This page will update automatically.</p>
+                    <!-- Pay button -->
+                    <button onclick="payStripe()" id="stripe-pay-btn"
+                        class="w-full text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 uppercase tracking-wider btn-shine"
+                        style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;letter-spacing:0.08em;background:linear-gradient(135deg,#4f46e5,#7c3aed);box-shadow:0 4px 20px rgba(99,102,241,0.35);">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                        Secure Checkout →
+                    </button>
+                    <div class="flex items-center justify-center gap-4 mt-3">
+                        <p class="text-[10px] text-slate-600">256-bit encryption · Card, Bank & Open Banking</p>
+                        <div class="flex items-center gap-1.5">
+                            <svg width="20" height="13" viewBox="0 0 32 20" fill="none"><rect width="32" height="20" rx="3" fill="#1A1F71"/><path d="M13 15l1.5-10h2.4L15.4 15H13zm-4.3 0L6 5h2.7l1.7 7.3L12 5h2.5l-3.6 10H8.7zm14.5-10L21 15h-2.3l2.2-10h2.3zm5.2 0L26 9.2 25.2 5H23l2.5 10h2.2l3.5-10h-2.8z" fill="white"/></svg>
+                            <svg width="20" height="13" viewBox="0 0 32 20" fill="none"><rect width="32" height="20" rx="3" fill="#252525"/><circle cx="12.5" cy="10" r="6" fill="#EB001B"/><circle cx="19.5" cy="10" r="6" fill="#F79E1B"/><path d="M16 5.5a6 6 0 010 9 6 6 0 000-9z" fill="#FF5F00"/></svg>
+                            <svg width="20" height="13" viewBox="0 0 32 20" fill="none"><rect width="32" height="20" rx="3" fill="#0F4C2E"/><path d="M8 7h4v6H8z" fill="#2ECC71" opacity="0.6"/><path d="M14 7h4v6h-4z" fill="#2ECC71" opacity="0.8"/><path d="M20 7h4v6h-4z" fill="#2ECC71"/></svg>
                         </div>
                     </div>
-                </div>
-
-                <!-- BANK TRANSFER -->
-                <div id="bank-area" class="space-y-6 hidden">
-                    <div class="bank-card rounded-2xl border border-white/8 p-6 relative overflow-hidden">
-                        <div class="absolute top-4 right-5 opacity-[0.06]">
-                            <svg viewBox="0 0 48 36" width="48" height="36" xmlns="http://www.w3.org/2000/svg">
-                                <rect width="48" height="36" rx="4" fill="none" stroke="white" stroke-width="1.5"/>
-                                <rect x="14" y="4" width="20" height="28" rx="2" fill="none" stroke="white" stroke-width="1"/>
-                                <line x1="0" y1="10" x2="14" y2="10" stroke="white" stroke-width="1"/>
-                                <line x1="34" y1="10" x2="48" y2="10" stroke="white" stroke-width="1"/>
-                                <line x1="0" y1="18" x2="14" y2="18" stroke="white" stroke-width="1"/>
-                                <line x1="34" y1="18" x2="48" y2="18" stroke="white" stroke-width="1"/>
-                            </svg>
-                        </div>
-                        <div class="grid grid-cols-2 gap-5 relative z-10">
-                            <div class="col-span-2">
-                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.25em] mb-1">Account Name</p>
-                                <div class="flex items-center gap-2">
-                                    <span class="display text-white" style="font-size:1.8rem;">OcheLimited</span>
-                                    <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.25em] mb-1.5">Sort Code</p>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-mono font-bold text-white text-xl tracking-[0.2em]">04-00-03</span>
-                                    <button class="copy-btn" onclick="copyToClipboard('04-00-03',this)">Copy</button>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.25em] mb-1.5">Account Number</p>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-mono font-bold text-white text-xl tracking-[0.1em]">04818847</span>
-                                    <button class="copy-btn" onclick="copyToClipboard('04818847',this)">Copy</button>
-                                </div>
-                            </div>
-                            <div class="col-span-2">
-                                <div class="bg-brand/8 border border-brand/20 rounded-xl p-4">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <div>
-                                            <p class="text-[9px] text-brand font-black uppercase tracking-[0.25em] mb-1.5">⚠ Mandatory Reference</p>
-                                            <p id="bank-ref-display" class="display text-white" style="font-size:1.7rem;letter-spacing:0.02em;">OCH-XXXXX</p>
-                                        </div>
-                                        <button class="copy-btn mt-1" id="copy-ref-btn" onclick="copyRef()">Copy</button>
-                                    </div>
-                                    <p class="text-[10px] text-brand/60 mt-2">Include this exactly — mismatches delay crediting by up to 24 hours.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order summary -->
-                    <div class="bg-dark/40 rounded-2xl border border-white/5 p-5">
-                        <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest mb-3">Order Summary</p>
-                        <div class="space-y-0 text-sm">
-                            <div class="order-row">
-                                <span class="text-slate-400"><span id="summary-qty">1</span> × ticket @ <span id="summary-price-each">£0.00</span></span>
-                                <span id="summary-subtotal" class="text-white font-semibold">£0.00</span>
-                            </div>
-                            <div id="summary-promo-row" class="order-row hidden">
-                                <span class="text-accent flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17A3 3 0 015 5zm4 1V5a1 1 0 10-2 0v1H5a2 2 0 000 4h1v1a1 1 0 102 0v-1h2v1a1 1 0 102 0v-1h1a2 2 0 000-4h-2V6h-2z" clip-rule="evenodd"/></svg>
-                                    RYAN180 — 2× tickets bonus
-                                </span>
-                                <span class="text-accent font-bold">+<span id="summary-bonus-qty">1</span> free</span>
-                            </div>
-                            <div class="order-row" style="border-bottom:none;padding-top:12px;">
-                                <span class="font-bold text-white">Total charged</span>
-                                <span id="summary-total" class="display text-white" style="font-size:1.3rem;">£0.00</span>
-                            </div>
-                            <div id="summary-vault-row" class="hidden rounded-xl p-3 mt-3 flex items-center gap-2" style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);">
-                                <span class="text-[11px] text-slate-300">🎟 <span id="summary-vault-qty" class="text-accent font-black">2</span> tickets will land in your vault</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Confirmation form -->
-                    <div class="bg-dark/40 rounded-2xl border border-white/5 p-6 space-y-5">
-                        <div class="flex items-center gap-2.5 mb-2">
-                            <div class="w-6 h-6 bg-success/10 rounded-full flex items-center justify-center border border-success/20">
-                                <span class="text-success text-xs">⚡</span>
-                            </div>
-                            <div>
-                                <p class="text-white text-sm font-bold">Instant Ticket Crediting</p>
-                                <p class="text-[11px] text-slate-600">Confirm your payment details below to release tickets immediately.</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 gap-4">
-                            <div>
-                                <label class="block text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-1.5 ml-0.5">Full Name on Bank Account</label>
-                                <input type="text" id="bank-verify-name" placeholder="e.g. James Thompson"
-                                    class="oche-input w-full rounded-xl px-5 py-3.5 text-white placeholder:text-slate-700 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-[9px] text-brand font-black uppercase tracking-[0.2em] mb-1.5 ml-0.5">Confirm Mandatory Reference</label>
-                                <input type="text" id="bank-verify-ref" placeholder="Type your OCH- reference here"
-                                    class="oche-input oche-input-accent w-full rounded-xl px-5 py-3.5 text-white placeholder:text-slate-700 font-mono font-bold tracking-wider"
-                                    style="border-color:rgba(245,158,11,0.25);">
-                            </div>
-                        </div>
-                        <button onclick="promptConfirmation()"
-                            class="w-full bg-success hover:bg-emerald-600 active:scale-[0.98] text-white font-bold py-4 rounded-xl transition-all shadow-[0_4px_16px_rgba(16,185,129,0.25)] text-sm uppercase tracking-wider relative overflow-hidden group">
-                            <span class="relative z-10">Confirm Payment Sent →</span>
-                            <div class="absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"></div>
-                        </button>
-                        <p id="cooldown-msg" class="hidden text-brand text-[11px] font-bold text-center uppercase tracking-widest bg-brand/8 py-2 rounded-lg border border-brand/20">
-                            ⏱ Security cooldown — please wait 5 minutes
-                        </p>
-                    </div>
-                </div>
-
-                <!-- PayPal unavailable state -->
-                <div id="paypal-area" class="hidden">
-                    <div class="bg-dark/40 rounded-2xl border border-white/5 p-10 text-center">
-                        <div class="w-16 h-16 bg-slate-800/60 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/5">
-                            <svg class="w-8 h-8 text-slate-600" viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z"/></svg>
-                        </div>
-                        <h3 class="display text-slate-500 mb-2" style="font-size:1.3rem;">PayPal Temporarily Unavailable</h3>
-                        <p class="text-sm text-slate-600 mb-5">PayPal payments are currently offline. Please use Bank Transfer to complete your entry.</p>
-                        <button onclick="switchMethod('bank')" class="text-brand hover:text-red-400 font-bold text-sm transition-colors">Switch to Bank Transfer →</button>
-                    </div>
+                    <p id="stripe-error" class="hidden text-brand text-[11px] font-bold text-center bg-brand/8 py-2 px-4 rounded-lg border border-brand/20"></p>
                 </div>
 
                 <!-- AUTH GATE -->
@@ -408,86 +346,186 @@
         </div>
 
         <!-- Trust footer -->
-        <div class="flex items-center justify-center gap-5 text-[11px] text-slate-600 font-medium flex-wrap pb-4">
-            <span class="flex items-center gap-1"><span class="text-success">●</span> Instant crediting</span>
-            <span class="flex items-center gap-1"><span class="text-brand">●</span> 80% to charity</span>
-            <span class="flex items-center gap-1"><span class="text-accent">●</span> Provably fair</span>
+        <div class="reveal flex items-center justify-center gap-5 text-[11px] text-slate-600 font-medium flex-wrap pb-2">
+            <span class="flex items-center gap-1 trust-pulse"><span class="text-success">●</span> Instant crediting</span>
+            <span class="flex items-center gap-1 trust-pulse" style="animation-delay:0.3s"><span class="text-brand">●</span> 80% to charity</span>
+            <span class="flex items-center gap-1 trust-pulse" style="animation-delay:0.6s"><span class="text-accent">●</span> Provably fair</span>
             <a href="how-it-works.html" class="text-slate-500 hover:text-white transition-colors font-semibold">How it works →</a>
         </div>
     </main>
 
-    <!-- CONFIRMATION MODAL -->
-    <div id="confirm-modal" class="fixed inset-0 bg-dark/90 z-[110] hidden flex-col items-center justify-center p-4" style="backdrop-filter:blur(12px);">
-        <div class="w-full max-w-sm glass-card rounded-3xl p-8 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <!-- SECURITY CHALLENGE MODAL -->
+    <div id="security-challenge" class="fixed inset-0 bg-dark/92 z-[95] hidden flex-col items-center justify-center p-4" style="backdrop-filter:blur(20px);">
+        <div class="challenge-enter w-full max-w-md">
+            <div class="glass-card rounded-3xl overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
+                <div class="h-1 shimmer-bar"></div>
+                <div class="p-8 text-center">
+                    <!-- Header -->
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-full bg-brand/15 border border-brand/30 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                        <h3 class="display text-white" style="font-size:1.5rem;">Security Check</h3>
+                    </div>
+                    <p class="text-slate-400 text-sm mb-6">3 darts are about to be thrown. <strong class="text-white">Calculate the total score</strong> to proceed.</p>
+
+                    <!-- Dartboard -->
+                    <div class="relative mx-auto mb-5" style="width:220px;height:220px;">
+                        <svg id="challenge-board" viewBox="0 0 300 300" width="220" height="220" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 20px rgba(220,38,38,0.2));">
+                            <circle cx="150" cy="150" r="149" fill="#111"/>
+                            <circle cx="150" cy="150" r="139" fill="none" stroke="#444" stroke-width="0.8"/>
+                            <circle cx="150" cy="150" r="135" fill="#1a1612"/>
+                            <g fill="#c8b87a" opacity="0.92">
+                                <path d="M 150,150 L 191.7,21.6 A 135 135 0 0 1 229.4,40.8 Z"/><path d="M 150,150 L 259.2,70.6 A 135 135 0 0 1 278.4,108.3 Z"/><path d="M 150,150 L 285,150 A 135 135 0 0 1 278.4,191.7 Z"/><path d="M 150,150 L 259.2,229.4 A 135 135 0 0 1 229.4,259.2 Z"/><path d="M 150,150 L 191.7,278.4 A 135 135 0 0 1 150,285 Z"/><path d="M 150,150 L 108.3,278.4 A 135 135 0 0 1 70.6,259.2 Z"/><path d="M 150,150 L 40.8,229.4 A 135 135 0 0 1 21.6,191.7 Z"/><path d="M 150,150 L 15,150 A 135 135 0 0 1 21.6,108.3 Z"/><path d="M 150,150 L 40.8,70.6 A 135 135 0 0 1 70.6,40.8 Z"/><path d="M 150,150 L 108.3,21.6 A 135 135 0 0 1 150,15 Z"/>
+                            </g>
+                            <g fill="#b91c1c">
+                                <path d="M 150,15 A 135 135 0 0 1 191.7,21.6 L 188.3,32.1 A 124 124 0 0 0 150,26 Z"/><path d="M 229.4,40.8 A 135 135 0 0 1 259.2,70.6 L 250.3,77.1 A 124 124 0 0 0 222.9,49.7 Z"/><path d="M 278.4,108.3 A 135 135 0 0 1 285,150 L 274,150 A 124 124 0 0 0 267.9,111.7 Z"/><path d="M 278.4,191.7 A 135 135 0 0 1 259.2,229.4 L 250.3,222.9 A 124 124 0 0 0 267.9,188.3 Z"/><path d="M 229.4,259.2 A 135 135 0 0 1 191.7,278.4 L 188.3,267.9 A 124 124 0 0 0 222.9,250.3 Z"/><path d="M 150,285 A 135 135 0 0 1 108.3,278.4 L 111.7,267.9 A 124 124 0 0 0 150,274 Z"/><path d="M 70.6,259.2 A 135 135 0 0 1 40.8,229.4 L 49.7,222.9 A 124 124 0 0 0 77.1,250.3 Z"/><path d="M 21.6,191.7 A 135 135 0 0 1 15,150 L 26,150 A 124 124 0 0 0 32.1,188.3 Z"/><path d="M 21.6,108.3 A 135 135 0 0 1 40.8,70.6 L 49.7,77.1 A 124 124 0 0 0 32.1,111.7 Z"/><path d="M 70.6,40.8 A 135 135 0 0 1 108.3,21.6 L 111.7,32.1 A 124 124 0 0 0 77.1,49.7 Z"/>
+                            </g>
+                            <g fill="#166534">
+                                <path d="M 191.7,21.6 A 135 135 0 0 1 229.4,40.8 L 222.9,49.7 A 124 124 0 0 0 188.3,32.1 Z"/><path d="M 259.2,70.6 A 135 135 0 0 1 278.4,108.3 L 267.9,111.7 A 124 124 0 0 0 250.3,77.1 Z"/><path d="M 285,150 A 135 135 0 0 1 278.4,191.7 L 267.9,188.3 A 124 124 0 0 0 274,150 Z"/><path d="M 259.2,229.4 A 135 135 0 0 1 229.4,259.2 L 222.9,250.3 A 124 124 0 0 0 250.3,222.9 Z"/><path d="M 191.7,278.4 A 135 135 0 0 1 150,285 L 150,274 A 124 124 0 0 0 188.3,267.9 Z"/><path d="M 108.3,278.4 A 135 135 0 0 1 70.6,259.2 L 77.1,250.3 A 124 124 0 0 0 111.7,267.9 Z"/><path d="M 40.8,229.4 A 135 135 0 0 1 21.6,191.7 L 32.1,188.3 A 124 124 0 0 0 49.7,222.9 Z"/><path d="M 15,150 A 135 135 0 0 1 21.6,108.3 L 32.1,111.7 A 124 124 0 0 0 26,150 Z"/><path d="M 40.8,70.6 A 135 135 0 0 1 70.6,40.8 L 77.1,49.7 A 124 124 0 0 0 49.7,77.1 Z"/><path d="M 108.3,21.6 A 135 135 0 0 1 150,15 L 150,26 A 124 124 0 0 0 111.7,32.1 Z"/>
+                            </g>
+                            <g fill="#b91c1c">
+                                <path d="M 150,66 A 84 84 0 0 1 176.0,70.1 L 172.6,80.6 A 73 73 0 0 0 150,77 Z"/><path d="M 199.4,82.0 A 84 84 0 0 1 217.9,100.6 L 209.1,107.1 A 73 73 0 0 0 192.9,90.9 Z"/><path d="M 229.9,124.0 A 84 84 0 0 1 234,150 L 223,150 A 73 73 0 0 0 219.4,127.4 Z"/><path d="M 229.9,176.0 A 84 84 0 0 1 217.9,199.4 L 209.1,192.9 A 73 73 0 0 0 219.4,172.6 Z"/><path d="M 199.4,218.0 A 84 84 0 0 1 176.0,229.9 L 172.6,219.4 A 73 73 0 0 0 192.9,209.1 Z"/><path d="M 150,234 A 84 84 0 0 1 124.0,229.9 L 127.4,219.4 A 73 73 0 0 0 150,223 Z"/><path d="M 100.6,218.0 A 84 84 0 0 1 82.1,199.4 L 90.9,192.9 A 73 73 0 0 0 107.1,209.1 Z"/><path d="M 70.1,176.0 A 84 84 0 0 1 66,150 L 77,150 A 73 73 0 0 0 80.6,172.6 Z"/><path d="M 70.1,124.0 A 84 84 0 0 1 82.1,100.6 L 90.9,107.1 A 73 73 0 0 0 80.6,127.4 Z"/><path d="M 100.6,82.0 A 84 84 0 0 1 124.0,70.1 L 127.4,80.6 A 73 73 0 0 0 107.1,90.9 Z"/>
+                            </g>
+                            <g fill="#166534">
+                                <path d="M 176.0,70.1 A 84 84 0 0 1 199.4,82.0 L 192.9,90.9 A 73 73 0 0 0 172.6,80.6 Z"/><path d="M 217.9,100.6 A 84 84 0 0 1 229.9,124.0 L 219.4,127.4 A 73 73 0 0 0 209.1,107.1 Z"/><path d="M 234,150 A 84 84 0 0 1 229.9,176.0 L 219.4,172.6 A 73 73 0 0 0 223,150 Z"/><path d="M 217.9,199.4 A 84 84 0 0 1 199.4,218.0 L 192.9,209.1 A 73 73 0 0 0 209.1,192.9 Z"/><path d="M 176.0,229.9 A 84 84 0 0 1 150,234 L 150,223 A 73 73 0 0 0 172.6,219.4 Z"/><path d="M 124.0,229.9 A 84 84 0 0 1 100.6,218.0 L 107.1,209.1 A 73 73 0 0 0 127.4,219.4 Z"/><path d="M 82.1,199.4 A 84 84 0 0 1 70.1,176.0 L 80.6,172.6 A 73 73 0 0 0 90.9,192.9 Z"/><path d="M 66,150 A 84 84 0 0 1 70.1,124.0 L 80.6,127.4 A 73 73 0 0 0 77,150 Z"/><path d="M 82.1,100.6 A 84 84 0 0 1 100.6,82.0 L 107.1,90.9 A 73 73 0 0 0 90.9,107.1 Z"/><path d="M 124.0,70.1 A 84 84 0 0 1 150,66 L 150,77 A 73 73 0 0 0 127.4,80.6 Z"/>
+                            </g>
+                            <circle cx="150" cy="150" r="135" fill="none" stroke="#666" stroke-width="0.8"/><circle cx="150" cy="150" r="124" fill="none" stroke="#444" stroke-width="0.6"/><circle cx="150" cy="150" r="84" fill="none" stroke="#666" stroke-width="0.8"/><circle cx="150" cy="150" r="73" fill="none" stroke="#444" stroke-width="0.6"/><circle cx="150" cy="150" r="15" fill="none" stroke="#666" stroke-width="0.8"/>
+                            <g stroke="#666" stroke-width="0.6"><line x1="150" y1="135" x2="150" y2="15"/><line x1="154.6" y1="135.7" x2="191.7" y2="21.6"/><line x1="158.8" y1="137.9" x2="229.4" y2="40.8"/><line x1="162.1" y1="141.2" x2="259.2" y2="70.6"/><line x1="164.3" y1="145.4" x2="278.4" y2="108.3"/><line x1="165" y1="150" x2="285" y2="150"/><line x1="164.3" y1="154.6" x2="278.4" y2="191.7"/><line x1="162.1" y1="158.8" x2="259.2" y2="229.4"/><line x1="158.8" y1="162.1" x2="229.4" y2="259.2"/><line x1="154.6" y1="164.3" x2="191.7" y2="278.4"/><line x1="150" y1="165" x2="150" y2="285"/><line x1="145.4" y1="164.3" x2="108.3" y2="278.4"/><line x1="141.2" y1="162.1" x2="70.6" y2="259.2"/><line x1="137.9" y1="158.8" x2="40.8" y2="229.4"/><line x1="135.7" y1="154.6" x2="21.6" y2="191.7"/><line x1="135" y1="150" x2="15" y2="150"/><line x1="135.7" y1="145.4" x2="21.6" y2="108.3"/><line x1="137.9" y1="141.2" x2="40.8" y2="70.6"/><line x1="141.2" y1="137.9" x2="70.6" y2="40.8"/><line x1="145.4" y1="135.7" x2="108.3" y2="21.6"/></g>
+                            <circle cx="150" cy="150" r="15" fill="#166534"/><circle cx="150" cy="150" r="6" fill="#b91c1c"/><circle cx="150" cy="150" r="2.5" fill="white" opacity="0.8"/>
+                            <g font-family="'Barlow Condensed',sans-serif" font-size="11" font-weight="700" fill="white" text-anchor="middle" dominant-baseline="central" opacity="0.85"><text x="172.2" y="9.8">20</text><text x="214.5" y="23.5">1</text><text x="250.4" y="49.6">18</text><text x="276.5" y="85.5">4</text><text x="290.2" y="127.8">13</text><text x="290.2" y="172.2">6</text><text x="276.5" y="214.5">10</text><text x="250.4" y="250.4">15</text><text x="214.5" y="276.5">2</text><text x="172.2" y="290.2">17</text><text x="127.8" y="290.2">3</text><text x="85.5" y="276.5">19</text><text x="49.6" y="250.4">7</text><text x="23.5" y="214.5">16</text><text x="9.8" y="172.2">8</text><text x="9.8" y="127.8">11</text><text x="23.5" y="85.5">14</text><text x="49.6" y="49.6">9</text><text x="85.5" y="23.5">12</text><text x="127.8" y="9.8">5</text></g>
+                        </svg>
+                        <!-- Dart landing layer -->
+                        <div id="challenge-dart-layer" class="absolute inset-0" style="pointer-events:none;"></div>
+                    </div>
+
+                    <!-- Dart score pills -->
+                    <div id="challenge-pills" class="flex items-center justify-center gap-3 mb-5">
+                        <div id="ch-pill-1" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-dark/50 text-sm">
+                            <span class="text-[9px] text-slate-600 font-black">D1</span>
+                            <span id="ch-pill-1-score" class="font-bold text-slate-500">?</span>
+                        </div>
+                        <span class="text-slate-700">+</span>
+                        <div id="ch-pill-2" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-dark/50 text-sm">
+                            <span class="text-[9px] text-slate-600 font-black">D2</span>
+                            <span id="ch-pill-2-score" class="font-bold text-slate-500">?</span>
+                        </div>
+                        <span class="text-slate-700">+</span>
+                        <div id="ch-pill-3" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-dark/50 text-sm">
+                            <span class="text-[9px] text-slate-600 font-black">D3</span>
+                            <span id="ch-pill-3-score" class="font-bold text-slate-500">?</span>
+                        </div>
+                        <span class="text-slate-700">=</span>
+                        <div class="px-3 py-1.5 rounded-lg border border-brand/30 bg-brand/10 text-sm">
+                            <span class="font-black text-brand">?</span>
+                        </div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="flex gap-2 mb-4 max-w-xs mx-auto">
+                        <input type="number" id="challenge-input" placeholder="Total score"
+                            class="oche-input flex-1 rounded-xl px-4 py-3 text-white text-center font-bold text-lg placeholder:text-slate-700"
+                            onkeydown="if(event.key==='Enter')submitChallenge()">
+                        <button onclick="submitChallenge()" class="bg-brand hover:bg-red-700 text-white font-black px-6 py-3 rounded-xl transition-all text-sm uppercase tracking-wider">
+                            Confirm
+                        </button>
+                    </div>
+
+                    <!-- Hint + error -->
+                    <div class="flex items-center justify-center gap-4 mb-2">
+                        <button id="challenge-hint-btn" onclick="revealHint()" class="text-accent/60 hover:text-accent text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                            Reveal a hint
+                        </button>
+                        <button onclick="cancelChallenge()" class="text-slate-600 hover:text-slate-400 text-xs font-bold uppercase tracking-wider transition-colors">Cancel</button>
+                    </div>
+                    <p id="challenge-error" class="hidden text-brand text-xs font-bold mt-2">Incorrect — try again!</p>
+                    <p id="challenge-success" class="hidden text-success text-xs font-bold mt-2">Correct! Processing payment...</p>
                 </div>
-                <h3 class="display text-white mb-2" style="font-size:1.6rem;line-height:1.1;">Final Check</h3>
-                <p class="text-sm text-slate-400 leading-relaxed">Payment sent with reference <strong id="modal-ref-display" class="text-brand font-mono">OCH-XXXXX</strong> exactly?</p>
-            </div>
-            <div class="bg-dark/60 border border-white/5 rounded-xl p-4 mb-5">
-                <p class="text-[11px] text-slate-400 leading-relaxed italic">Reference mismatches trigger a manual audit — ticket release may be delayed 24 hours.</p>
-            </div>
-            <div class="flex flex-col gap-3">
-                <button onclick="startProcessing()" class="w-full bg-success hover:bg-emerald-600 text-white font-bold py-4 rounded-xl text-sm uppercase tracking-wider transition-all">✓ Yes, Reference is Exact</button>
-                <button onclick="closeConfirmModal()" class="w-full bg-white/4 hover:bg-white/8 text-slate-500 hover:text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition-all border border-white/5">Go Back & Check</button>
             </div>
         </div>
     </div>
 
-    <!-- PROCESSING OVERLAY -->
-    <div id="processing-modal" class="fixed inset-0 bg-dark/97 z-[120] hidden flex-col items-center justify-center text-center p-4" style="backdrop-filter:blur(20px);">
-        <div class="relative w-36 h-36 mb-10">
-            <svg viewBox="0 0 144 144" width="144" height="144" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0">
-                <circle cx="72" cy="72" r="68" fill="none" stroke="rgba(220,38,38,0.15)" stroke-width="1.5"/>
-                <circle cx="72" cy="72" r="52" fill="none" stroke="rgba(220,38,38,0.15)" stroke-width="1.5"/>
-                <circle cx="72" cy="72" r="36" fill="none" stroke="rgba(220,38,38,0.2)" stroke-width="1.5"/>
-                <circle cx="72" cy="72" r="20" fill="none" stroke="rgba(220,38,38,0.25)" stroke-width="2"/>
-                <circle cx="72" cy="72" r="8" fill="rgba(220,38,38,0.15)"/>
-                <circle id="proc-bull" cx="72" cy="72" r="4" fill="#dc2626" opacity="0.4"/>
-            </svg>
-            <svg viewBox="0 0 144 144" width="144" height="144" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0" style="animation:spin 2s linear infinite;">
-                <circle cx="72" cy="72" r="68" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="20 22" stroke-opacity="0.4"/>
-            </svg>
-            <div class="scan-line absolute left-4 right-4 h-px bg-gradient-to-r from-transparent via-brand to-transparent opacity-60"></div>
-        </div>
-        <h2 id="processing-title" class="display text-white mb-4" style="font-size:2.8rem;line-height:1;">Initialising…</h2>
-        <div id="status-steps" class="space-y-3 max-w-xs mx-auto text-left">
-            <div id="proc-step-1" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">1</div><span class="text-xs font-bold uppercase tracking-wide">Connecting to Faster Payments…</span></div>
-            <div id="proc-step-2" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">2</div><span class="text-xs font-bold uppercase tracking-wide">Matching Reference Code…</span></div>
-            <div id="proc-step-3" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">3</div><span class="text-xs font-bold uppercase tracking-wide">Authenticating Sender…</span></div>
-            <div id="proc-step-4" class="flex items-center gap-3 text-slate-600"><div class="w-5 h-5 rounded-full border border-current flex items-center justify-center flex-shrink-0 text-xs">4</div><span class="text-xs font-bold uppercase tracking-wide">Releasing Tickets to Vault…</span></div>
+    <!-- STRIPE POPUP OVERLAY -->
+    <div id="stripe-popup-overlay" class="fixed inset-0 bg-dark/85 z-[100] hidden flex-col items-center justify-center p-4" style="backdrop-filter:blur(16px);">
+        <div class="glass-card rounded-3xl p-10 max-w-sm w-full text-center shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(124,58,237,0.15));border:1.5px solid rgba(99,102,241,0.3);">
+                <svg class="w-9 h-9" style="color:#818cf8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            </div>
+            <h3 class="display text-white mb-2" style="font-size:1.8rem;line-height:1.1;">Complete Payment</h3>
+            <p class="text-slate-400 text-sm mb-1">A secure Stripe checkout window has opened.</p>
+            <p class="text-slate-500 text-xs mb-8">Complete your payment there — this page will update automatically.</p>
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <svg class="w-4 h-4 animate-spin text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span class="text-indigo-400 text-sm font-bold uppercase tracking-wider">Waiting for payment…</span>
+            </div>
+            <button onclick="cancelStripePopup()" class="text-slate-600 hover:text-slate-400 text-xs font-bold uppercase tracking-wider transition-colors">Cancel & Close Window</button>
         </div>
     </div>
+
+    <!-- FOOTER -->
+    <footer style="border-top:1px solid rgba(255,255,255,0.08);background:#0c1220;" class="mt-auto relative z-10">
+        <div class="max-w-2xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
+                <div class="flex items-center gap-2 rounded-lg px-3 py-1.5" style="background:rgba(103,114,229,0.12);border:1px solid rgba(103,114,229,0.3);">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="#6772e5"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/></svg>
+                    <span style="font-size:11px;font-weight:600;color:#818cf8;">Secured by Stripe</span>
+                </div>
+                <div class="flex items-center gap-2 rounded-lg px-3 py-1.5" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);">
+                    <svg width="14" height="14" fill="#10b981" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                    <span style="font-size:11px;font-weight:600;color:#6ee7b7;">PCI DSS Level 1</span>
+                </div>
+                <div class="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);">
+                    <span style="font-size:11px;font-weight:600;color:#94a3b8;">Visa · Mastercard · Amex</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="leaderboard.html" class="text-slate-500 hover:text-white transition-colors" style="font-size:11px;font-weight:600;">Leaderboard</a>
+                <a href="terms.html" class="text-slate-500 hover:text-white transition-colors" style="font-size:11px;font-weight:600;">Terms</a>
+                <p style="font-size:10px;color:#334155;">© 2026 OcheVault Ltd.</p>
+            </div>
+        </div>
+    </footer>
+
 
     <script>
     const urlParams=new URLSearchParams(window.location.search);
     const tierId=urlParams.get('tier')||"3";
     let currentPrice=0,qty=1,currentUser=null;
     let promoActive=false;
+    let userCreditBalance=0;
+    let creditEnabled=false;
     const PROMO_CODE='RYAN180';
     const PROMO_MAX_VALUE=40;
-    const randomRef='OCH-'+Math.floor(10000+Math.random()*90000);
-    let tlLinkGenerated=false;
-    let tlPollInterval=null;
 
     document.addEventListener('DOMContentLoaded',async()=>{
         const{data:{user}}=await window.supabaseClient.auth.getUser();
         if(!user){
             document.getElementById('auth-gate').classList.remove('hidden');
-            document.getElementById('bank-area').classList.add('hidden');
+            document.getElementById('stripe-area').classList.add('hidden');
             return;
         }
         currentUser=user;
-        document.getElementById('bank-ref-display').innerText=randomRef;
-        document.getElementById('modal-ref-display').innerText=randomRef;
         const{data:raffle}=await window.supabaseClient.from('raffles').select('*').eq('id',tierId).single();
         if(raffle){
             currentPrice=raffle.price_per_ticket;
             document.getElementById('tier-title').innerText=raffle.title;
             updateUI(false);
         }
+
+        // Fetch user's credit balance
+        const{data:profile}=await window.supabaseClient.from('profiles').select('credit_balance').eq('id',user.id).single();
+        if(profile&&parseFloat(profile.credit_balance)>0){
+            userCreditBalance=parseFloat(profile.credit_balance);
+            document.getElementById('credit-row').classList.remove('hidden');
+            document.getElementById('credit-balance-label').innerText=`(£${userCreditBalance.toFixed(2)} available)`;
+        }
+
+        // Scroll reveal observer
+        const revealObs=new IntersectionObserver((entries)=>{
+            entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}});
+        },{threshold:0.15});
+        document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
     });
 
     function getActualTickets(){
@@ -542,411 +580,319 @@
         } else {
             document.getElementById('promo-worth').classList.add('hidden');
         }
-        document.getElementById('summary-qty').innerText=qty;
-        document.getElementById('summary-price-each').innerText=`£${currentPrice.toFixed(2)}`;
-        document.getElementById('summary-subtotal').innerText=`£${orderValue.toFixed(2)}`;
-        document.getElementById('summary-total').innerText=`£${orderValue.toFixed(2)}`;
-        if(promoActive&&actualTickets>qty){
-            document.getElementById('summary-promo-row').classList.remove('hidden');
-            document.getElementById('summary-bonus-qty').innerText=actualTickets-qty;
-            document.getElementById('summary-vault-row').classList.remove('hidden');
-            document.getElementById('summary-vault-qty').innerText=actualTickets;
-        } else {
-            document.getElementById('summary-promo-row').classList.add('hidden');
-            document.getElementById('summary-vault-row').classList.add('hidden');
+        // Stripe summary
+        const stQtyEl=document.getElementById('stripe-summary-qty');
+        if(stQtyEl){
+            stQtyEl.innerText=qty;
+            document.getElementById('stripe-summary-price-each').innerText=`£${currentPrice.toFixed(2)}`;
+            document.getElementById('stripe-summary-subtotal').innerText=`£${orderValue.toFixed(2)}`;
+            const stPromo=document.getElementById('stripe-summary-promo-row');
+            if(promoActive&&actualTickets>qty){stPromo.classList.remove('hidden');document.getElementById('stripe-summary-bonus-qty').innerText='+'+(actualTickets-qty)+' free';}
+            else{stPromo.classList.add('hidden');}
+
+            // Credit discount
+            let chargeAmount=orderValue;
+            if(creditEnabled&&userCreditBalance>0){
+                const creditUsed=Math.min(userCreditBalance,orderValue);
+                chargeAmount=orderValue-creditUsed;
+                document.getElementById('credit-discount').innerText=`-£${creditUsed.toFixed(2)}`;
+            }
+            document.getElementById('stripe-summary-total').innerText=chargeAmount>0?`£${chargeAmount.toFixed(2)}`:'£0.00 (Credit)';
+            // Update button text if fully covered by credit
+            const btn=document.getElementById('stripe-pay-btn');
+            if(creditEnabled&&chargeAmount<=0){
+                btn.querySelector('span,svg')||null;
+                btn.innerHTML='<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Confirm — Pay with Credit →';
+                btn.style.background='linear-gradient(135deg,#059669,#10b981)';
+                btn.style.boxShadow='0 4px 20px rgba(16,185,129,0.35)';
+            } else {
+                btn.innerHTML='<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg> Secure Checkout →';
+                btn.style.background='linear-gradient(135deg,#4f46e5,#7c3aed)';
+                btn.style.boxShadow='0 4px 20px rgba(99,102,241,0.35)';
+            }
         }
     }
 
     function updateQty(n){qty=Math.max(1,qty+n);updateUI(true);}
 
-    function switchMethod(method){
-        // Tab buttons
-        ['tl','bank','paypal'].forEach(m=>{
-            const btn=document.getElementById('tab-'+m);
-            if(btn) btn.classList.remove('active');
-        });
-        const activeBtn=document.getElementById('tab-'+method);
-        if(activeBtn) activeBtn.classList.add('active');
-        // Areas
-        const tlArea=document.getElementById('tl-area');
-        const bankArea=document.getElementById('bank-area');
-        if(tlArea) tlArea.classList.toggle('hidden', method!=='tl');
-        if(bankArea) bankArea.classList.toggle('hidden', method!=='bank');
-    }
-
-
-    function copyToClipboard(text,btn){
-        navigator.clipboard?.writeText(text).catch(()=>{});
-        btn.innerText='Copied!';btn.classList.add('copied');
-        setTimeout(()=>{btn.innerText='Copy';btn.classList.remove('copied');},2000);
-    }
-    function copyRef(){
-        const ref=document.getElementById('bank-ref-display').innerText;
-        const btn=document.getElementById('copy-ref-btn');
-        navigator.clipboard?.writeText(ref).catch(()=>{});
-        document.getElementById('bank-verify-ref').value=ref;
-        btn.innerText='Copied!';btn.classList.add('copied');
-        setTimeout(()=>{btn.innerText='Copy';btn.classList.remove('copied');},2000);
-    }
-
-    function promptConfirmation(){
-        const name=document.getElementById('bank-verify-name').value;
-        const ref=document.getElementById('bank-verify-ref').value;
-        if(name.trim().length<2) document.getElementById('bank-verify-name').style.borderColor='#dc2626';
-        if(ref.trim().length<3) document.getElementById('bank-verify-ref').style.borderColor='#dc2626';
-        if(name.trim().length<2||ref.trim().length<3) return;
-        document.getElementById('confirm-modal').classList.remove('hidden');
-        document.getElementById('confirm-modal').classList.add('flex');
-    }
-    function closeConfirmModal(){
-        document.getElementById('confirm-modal').classList.add('hidden');
-        document.getElementById('confirm-modal').classList.remove('flex');
-    }
-
-    async function checkCooldown(){
-        const fiveMinsAgo=new Date(Date.now()-5*60*1000).toISOString();
-        const{count}=await window.supabaseClient.from('user_tickets')
-            .select('*',{count:'exact',head:true})
-            .eq('user_id',currentUser.id).eq('raffle_id',parseInt(tierId))
-            .gt('created_at',fiveMinsAgo);
-        return count>=3;
-    }
-
-    function advanceStep(id){
-        const el=document.getElementById(id);if(!el)return;
-        const num=el.querySelector('div');
-        el.classList.remove('text-slate-600');el.classList.add('text-success');
-        num.innerHTML=`<svg class="w-3 h-3 step-done" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
-        num.classList.remove('border-current');num.classList.add('bg-success/15','border-success/30');
-    }
-
-    async function startProcessing(){
-        closeConfirmModal();
-        const isSpamming=await checkCooldown();
-        if(isSpamming){
-            document.getElementById('cooldown-msg').classList.remove('hidden');
-            setTimeout(()=>document.getElementById('cooldown-msg').classList.add('hidden'),5500);
-            return;
-        }
-        const modal=document.getElementById('processing-modal');
-        modal.classList.remove('hidden');modal.classList.add('flex');
-        const title=document.getElementById('processing-title');
-        const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-        document.getElementById('proc-step-1').classList.replace('text-slate-600','text-white');
-        title.innerText='Connecting…';await sleep(1400);
-        advanceStep('proc-step-1');
-        document.getElementById('proc-step-2').classList.replace('text-slate-600','text-white');
-        title.innerText='Matching Reference…';await sleep(1800);
-        advanceStep('proc-step-2');
-        document.getElementById('proc-step-3').classList.replace('text-slate-600','text-white');
-        title.innerText='Authenticating…';await sleep(1400);
-        advanceStep('proc-step-3');
-        document.getElementById('proc-step-4').classList.replace('text-slate-600','text-white');
-        title.innerText='Releasing Tickets…';
-        const name=document.getElementById('bank-verify-name').value;
-        const ref=document.getElementById('bank-verify-ref').value;
-        await saveTickets(`BANK-${ref}-${name.replace(/\s+/g,'')}${promoActive?'-PROMO-'+PROMO_CODE:''}`);
-    }
-
-    async function saveTickets(txId){
-        const crediting=getActualTickets();
-        const{error}=await window.supabaseClient.from('user_tickets').insert([{
-            user_id:currentUser.id,raffle_id:parseInt(tierId),qty:crediting,
-            paypal_transaction_id:txId,purchase_price:qty*currentPrice,
-            promo_code_used:promoActive?PROMO_CODE:null
-        }]);
-        const title=document.getElementById('processing-title');
-        if(!error){
-            advanceStep('proc-step-4');
-            title.innerText=`${crediting} Ticket${crediting>1?'s':''} Credited! 🎯`;
-            title.classList.add('text-success');
-            const bull=document.getElementById('proc-bull');
-            if(bull){bull.setAttribute('opacity','1');bull.setAttribute('r','6');}
-            setTimeout(()=>{window.location.href='dashboard.html?success=true';},1800);
-        } else {
-            title.innerText='Error — Please Contact Support';
-            title.classList.add('text-brand');
-        }
-    }
-
-    function getActualTickets(){
-        if(!promoActive) return qty;
-        const orderValue=qty*currentPrice;
-        if(currentPrice<=0) return qty*2;
-        if(orderValue<=PROMO_MAX_VALUE) return qty*2;
-        const bonusTickets=Math.floor(PROMO_MAX_VALUE/currentPrice);
-        return qty+bonusTickets;
-    }
-
-    function applyPromo(){
-        const code=document.getElementById('promo-input').value.trim().toUpperCase();
-        const errEl=document.getElementById('promo-error');
-        const errText=document.getElementById('promo-error-text');
-        if(code===PROMO_CODE){
-            promoActive=true;
-            errEl.classList.add('hidden');
-            document.getElementById('promo-banner').classList.remove('hidden');
-            updateUI(true);
-        } else if(code===''){
-            errText.innerText='Please enter a promo code.';
-            errEl.classList.remove('hidden');
-        } else {
-            errText.innerText='Invalid or expired promo code.';
-            errEl.classList.remove('hidden');
-        }
-    }
-
-    function removePromo(){
-        promoActive=false;
-        document.getElementById('promo-input').value='';
-        document.getElementById('promo-banner').classList.add('hidden');
-        document.getElementById('promo-error').classList.add('hidden');
+    function toggleCredit(){
+        creditEnabled=document.getElementById('use-credit-toggle').checked;
         updateUI(true);
     }
 
-    function updateUI(animate){
-        const orderValue=qty*currentPrice;
-        const actualTickets=getActualTickets();
-        document.getElementById('qty-display').innerText=qty;
-        const priceEl=document.getElementById('total-price');
-        priceEl.innerText=`£${orderValue.toFixed(2)}`;
-        if(animate){priceEl.classList.remove('price-pop');void priceEl.offsetWidth;priceEl.classList.add('price-pop');}
-        if(promoActive){
-            document.getElementById('promo-paid-qty').innerText=qty;
-            document.getElementById('promo-bonus-qty').innerText=actualTickets;
-            document.getElementById('promo-display-paid').innerText=qty;
-            document.getElementById('promo-display-get').innerText=actualTickets;
-            document.getElementById('promo-worth').classList.remove('hidden');
-            document.getElementById('promo-worth-value').innerText=`£${(actualTickets*currentPrice).toFixed(2)}`;
-        } else {
-            document.getElementById('promo-worth').classList.add('hidden');
-        }
-        document.getElementById('summary-qty').innerText=qty;
-        document.getElementById('summary-price-each').innerText=`£${currentPrice.toFixed(2)}`;
-        document.getElementById('summary-subtotal').innerText=`£${orderValue.toFixed(2)}`;
-        document.getElementById('summary-total').innerText=`£${orderValue.toFixed(2)}`;
-        if(promoActive&&actualTickets>qty){
-            document.getElementById('summary-promo-row').classList.remove('hidden');
-            document.getElementById('summary-bonus-qty').innerText=actualTickets-qty;
-            document.getElementById('summary-vault-row').classList.remove('hidden');
-            document.getElementById('summary-vault-qty').innerText=actualTickets;
-        } else {
-            document.getElementById('summary-promo-row').classList.add('hidden');
-            document.getElementById('summary-vault-row').classList.add('hidden');
-        }
-        // Sync TrueLayer summary
-        const tlEl=id=>document.getElementById(id);
-        if(tlEl('tl-summary-qty')) tlEl('tl-summary-qty').innerText=qty;
-        if(tlEl('tl-summary-price-each')) tlEl('tl-summary-price-each').innerText='£'+currentPrice.toFixed(2);
-        if(tlEl('tl-summary-subtotal')) tlEl('tl-summary-subtotal').innerText='£'+(qty*currentPrice).toFixed(2);
-        if(tlEl('tl-summary-total')) tlEl('tl-summary-total').innerText='£'+(qty*currentPrice).toFixed(2);
-        if(tlEl('tl-summary-promo-row')) tlEl('tl-summary-promo-row').classList.toggle('hidden',!promoActive);
-        if(tlLinkGenerated){
-            tlLinkGenerated=false;
-            if(tlEl('tl-link-ready')) tlEl('tl-link-ready').classList.add('hidden');
-            if(tlEl('tl-btn-wrap')) tlEl('tl-btn-wrap').classList.remove('hidden');
-            if(tlPollInterval){clearInterval(tlPollInterval);tlPollInterval=null;}
-        }
-    }
-    function updateQty(n){qty=Math.max(1,qty+n);updateUI(true);}
+    // No tab switching needed — single Stripe checkout handles all payment methods
 
-    function switchMethod(method){
-        // Tab buttons
-        ['tl','bank','paypal'].forEach(m=>{
-            const btn=document.getElementById('tab-'+m);
-            if(btn) btn.classList.remove('active');
-        });
-        const activeBtn=document.getElementById('tab-'+method);
-        if(activeBtn) activeBtn.classList.add('active');
-        // Areas
-        const tlArea=document.getElementById('tl-area');
-        const bankArea=document.getElementById('bank-area');
-        if(tlArea) tlArea.classList.toggle('hidden', method!=='tl');
-        if(bankArea) bankArea.classList.toggle('hidden', method!=='bank');
+    // Bank transfer and TrueLayer functions removed — all handled by Stripe Checkout
+
+    let stripePopup=null;
+    let stripePopupPoll=null;
+
+    function payStripe(){
+        showSecurityChallenge('stripe');
     }
 
-
-    function copyToClipboard(text,btn){
-        navigator.clipboard?.writeText(text).catch(()=>{});
-        btn.innerText='Copied!';btn.classList.add('copied');
-        setTimeout(()=>{btn.innerText='Copy';btn.classList.remove('copied');},2000);
-    }
-    function copyRef(){
-        const ref=document.getElementById('bank-ref-display').innerText;
-        const btn=document.getElementById('copy-ref-btn');
-        navigator.clipboard?.writeText(ref).catch(()=>{});
-        document.getElementById('bank-verify-ref').value=ref;
-        btn.innerText='Copied!';btn.classList.add('copied');
-        setTimeout(()=>{btn.innerText='Copy';btn.classList.remove('copied');},2000);
-    }
-
-    function promptConfirmation(){
-        const name=document.getElementById('bank-verify-name').value;
-        const ref=document.getElementById('bank-verify-ref').value;
-        if(name.trim().length<2) document.getElementById('bank-verify-name').style.borderColor='#dc2626';
-        if(ref.trim().length<3) document.getElementById('bank-verify-ref').style.borderColor='#dc2626';
-        if(name.trim().length<2||ref.trim().length<3) return;
-        document.getElementById('confirm-modal').classList.remove('hidden');
-        document.getElementById('confirm-modal').classList.add('flex');
-    }
-    function closeConfirmModal(){
-        document.getElementById('confirm-modal').classList.add('hidden');
-        document.getElementById('confirm-modal').classList.remove('flex');
-    }
-
-    async function checkCooldown(){
-        const fiveMinsAgo=new Date(Date.now()-5*60*1000).toISOString();
-        const{count}=await window.supabaseClient.from('user_tickets')
-            .select('*',{count:'exact',head:true})
-            .eq('user_id',currentUser.id).eq('raffle_id',parseInt(tierId))
-            .gt('created_at',fiveMinsAgo);
-        return count>=3;
-    }
-
-    function advanceStep(id){
-        const el=document.getElementById(id);if(!el)return;
-        const num=el.querySelector('div');
-        el.classList.remove('text-slate-600');el.classList.add('text-success');
-        num.innerHTML=`<svg class="w-3 h-3 step-done" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
-        num.classList.remove('border-current');num.classList.add('bg-success/15','border-success/30');
-    }
-
-    async function startProcessing(){
-        closeConfirmModal();
-        const isSpamming=await checkCooldown();
-        if(isSpamming){
-            document.getElementById('cooldown-msg').classList.remove('hidden');
-            setTimeout(()=>document.getElementById('cooldown-msg').classList.add('hidden'),5500);
-            return;
-        }
-        const modal=document.getElementById('processing-modal');
-        modal.classList.remove('hidden');modal.classList.add('flex');
-        const title=document.getElementById('processing-title');
-        const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-        document.getElementById('proc-step-1').classList.replace('text-slate-600','text-white');
-        title.innerText='Connecting…';await sleep(1400);
-        advanceStep('proc-step-1');
-        document.getElementById('proc-step-2').classList.replace('text-slate-600','text-white');
-        title.innerText='Matching Reference…';await sleep(1800);
-        advanceStep('proc-step-2');
-        document.getElementById('proc-step-3').classList.replace('text-slate-600','text-white');
-        title.innerText='Authenticating…';await sleep(1400);
-        advanceStep('proc-step-3');
-        document.getElementById('proc-step-4').classList.replace('text-slate-600','text-white');
-        title.innerText='Releasing Tickets…';
-        const name=document.getElementById('bank-verify-name').value;
-        const ref=document.getElementById('bank-verify-ref').value;
-        await saveTickets(`BANK-${ref}-${name.replace(/\s+/g,'')}${promoActive?'-PROMO-'+PROMO_CODE:''}`);
-    }
-
-    async function saveTickets(txId){
-        const crediting=getActualTickets();
-        const{error}=await window.supabaseClient.from('user_tickets').insert([{
-            user_id:currentUser.id,raffle_id:parseInt(tierId),qty:crediting,
-            paypal_transaction_id:txId,purchase_price:qty*currentPrice,
-            promo_code_used:promoActive?PROMO_CODE:null
-        }]);
-        const title=document.getElementById('processing-title');
-        if(!error){
-            advanceStep('proc-step-4');
-            title.innerText=`${crediting} Ticket${crediting>1?'s':''} Credited! 🎯`;
-            title.classList.add('text-success');
-            const bull=document.getElementById('proc-bull');
-            if(bull){bull.setAttribute('opacity','1');bull.setAttribute('r','6');}
-            setTimeout(()=>{window.location.href='dashboard.html?success=true';},1800);
-        } else {
-            title.innerText='Error — Please Contact Support';
-            title.classList.add('text-brand');
-        }
-    }
-
-    async function generateTrueLayerLink(){
-        const btn=document.getElementById('tl-generate-btn');
-        const originalText=btn.innerHTML;
-        btn.innerHTML='<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span style="margin-left:8px;">Generating…</span>';
+    async function payStripeActual(){
+        const btn=document.getElementById('stripe-pay-btn');
+        const errEl=document.getElementById('stripe-error');
+        errEl.classList.add('hidden');
+        const originalHtml=btn.innerHTML;
         btn.disabled=true;
-
-        const amount=(qty*currentPrice).toFixed(2);
-        const ref=randomRef;
-
+        btn.innerHTML='<svg class="w-4 h-4 animate-spin flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span style="margin-left:8px;">Opening Stripe…</span>';
         try {
-            // Call Supabase edge function to create TrueLayer payment request
             const supabaseUrl=window.supabaseClient.supabaseUrl;
             const{data:{session}}=await window.supabaseClient.auth.getSession();
-            const response=await fetch(`${supabaseUrl}/functions/v1/create-truelayer-payment`,{
+            if(!session?.access_token) throw new Error('Please sign in to continue');
+            const response=await fetch(`${supabaseUrl}/functions/v1/create-stripe-session`,{
                 method:'POST',
-                headers:{
-                    'Content-Type':'application/json',
-                    'Authorization':`Bearer ${session?.access_token||''}`
-                },
+                headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},
                 body:JSON.stringify({
-                    amount:parseFloat(amount),
-                    reference:ref,
-                    raffle_id:parseInt(tierId),
-                    qty:qty,
-                    actual_tickets:getActualTickets(),
-                    user_id:currentUser.id,
-                    promo_code:promoActive?PROMO_CODE:null
+                    raffleId:parseInt(tierId),
+                    quantity:qty,
+                    promoCode:promoActive?PROMO_CODE:null,
+                    useCredit:creditEnabled,
+                    successUrl:`${window.location.origin}/payment-success.html`,
+                    cancelUrl:`${window.location.origin}/payment-cancel.html`
                 })
             });
-
             const result=await response.json();
+            if(!response.ok||result.error) throw new Error(result.error||'Failed to create payment session');
 
-            if(!response.ok||!result.payment_url){
-                throw new Error(result.error||'Failed to generate payment link');
+            // If fully paid with credit, no Stripe redirect needed
+            if(result.paid_with_credit){
+                btn.innerHTML='<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span style="margin-left:8px;">Tickets Secured!</span>';
+                btn.style.background='linear-gradient(135deg,#059669,#10b981)';
+                setTimeout(()=>{window.location.href='dashboard.html?success=true';},1500);
+                return;
             }
 
-            // Show the link
-            document.getElementById('tl-btn-wrap').classList.add('hidden');
-            const readyEl=document.getElementById('tl-link-ready');
-            readyEl.classList.remove('hidden');
-            document.getElementById('tl-ref-display').innerText=ref;
-            document.getElementById('tl-amount-display').innerText='£'+amount;
-            document.getElementById('tl-pay-link').href=result.payment_url;
-            tlLinkGenerated=true;
+            // Open Stripe Checkout in a popup window
+            const w=520,h=700;
+            const left=Math.round((screen.width-w)/2);
+            const top=Math.round((screen.height-h)/2);
+            stripePopup=window.open(result.url,'stripe_checkout',`width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`);
 
-            // Save pending order to DB so webhook can credit tickets
-            await window.supabaseClient.from('pending_orders').upsert({
-                reference:ref,
-                user_id:currentUser.id,
-                raffle_id:parseInt(tierId),
-                qty:qty,
-                actual_tickets:getActualTickets(),
-                amount:parseFloat(amount),
-                promo_code:promoActive?PROMO_CODE:null,
-                status:'pending',
-                tl_payment_id:result.payment_id||null
-            },{onConflict:'reference'});
+            // If popup was blocked, fall back to redirect
+            if(!stripePopup||stripePopup.closed){
+                window.location.href=result.url;
+                return;
+            }
+
+            // Show the waiting overlay
+            const overlay=document.getElementById('stripe-popup-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            btn.innerHTML=originalHtml;
+            btn.disabled=false;
+
+            // Poll to detect when popup closes or navigates to success/cancel
+            stripePopupPoll=setInterval(()=>{
+                if(!stripePopup||stripePopup.closed){
+                    clearInterval(stripePopupPoll);
+                    stripePopupPoll=null;
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                    // Check if payment succeeded by checking URL params or pending_orders
+                    checkStripePaymentResult();
+                    return;
+                }
+                // Try to read the popup URL (same-origin only)
+                try {
+                    const popupUrl=stripePopup.location.href;
+                    if(popupUrl.includes('payment-success.html')){
+                        clearInterval(stripePopupPoll);
+                        stripePopup.close();
+                        overlay.classList.add('hidden');
+                        overlay.classList.remove('flex');
+                        window.location.href='dashboard.html?success=true';
+                    } else if(popupUrl.includes('payment-cancel.html')){
+                        clearInterval(stripePopupPoll);
+                        stripePopup.close();
+                        overlay.classList.add('hidden');
+                        overlay.classList.remove('flex');
+                    }
+                } catch(e){ /* cross-origin, keep polling */ }
+            },500);
 
         } catch(err){
-            console.error('TrueLayer error:',err);
-            btn.innerHTML=originalText;
+            console.error('Stripe error:',err);
+            errEl.textContent=err.message||'Payment failed — please try again.';
+            errEl.classList.remove('hidden');
             btn.disabled=false;
-            alert('Could not generate payment link. Please try the Manual Transfer tab.');
+            btn.innerHTML=originalHtml;
         }
     }
 
-    function onTrueLayerLinkClicked(){
-        // Show waiting state and start polling for webhook confirmation
+    function cancelStripePopup(){
+        if(stripePopup&&!stripePopup.closed) stripePopup.close();
+        if(stripePopupPoll) clearInterval(stripePopupPoll);
+        const overlay=document.getElementById('stripe-popup-overlay');
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+    }
+
+    async function checkStripePaymentResult(){
+        // Give webhook a moment, then check if tickets were credited
+        await new Promise(r=>setTimeout(r,2000));
+        const{data:tickets}=await window.supabaseClient
+            .from('user_tickets')
+            .select('id')
+            .eq('user_id',currentUser.id)
+            .eq('raffle_id',parseInt(tierId))
+            .order('created_at',{ascending:false})
+            .limit(1);
+        if(tickets&&tickets.length>0){
+            window.location.href='dashboard.html?success=true';
+        }
+    }
+
+    // ── SECURITY CHALLENGE ──────────────────────────────────────
+    const CH_NUMBERS=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+    const CH_CX=150,CH_CY=150,CH_R_BOARD=135;
+    const CH_R_DOUBLE_OUT=135,CH_R_DOUBLE_IN=124,CH_R_TREBLE_OUT=84,CH_R_TREBLE_IN=73;
+    const CH_R_BULL_OUT=15,CH_R_BULL_IN=6;
+    let challengeDarts=[]; // {score, label, x, y}
+    let challengeHintsUsed=0;
+    let challengePaymentType=null; // 'stripe' or 'bank'
+
+    function chCalcScore(x,y){
+        const dx=x-CH_CX,dy=y-CH_CY;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist>CH_R_BOARD) return {score:0,label:'Miss'};
+        if(dist<=CH_R_BULL_IN) return {score:50,label:'BULL'};
+        if(dist<=CH_R_BULL_OUT) return {score:25,label:'25'};
+        let angle=Math.atan2(dx,-dy);
+        if(angle<0) angle+=2*Math.PI;
+        const number=CH_NUMBERS[Math.floor(angle/(2*Math.PI/20))];
+        if(dist>=CH_R_DOUBLE_IN&&dist<=CH_R_DOUBLE_OUT) return {score:number*2,label:`D${number}`};
+        if(dist>=CH_R_TREBLE_IN&&dist<=CH_R_TREBLE_OUT) return {score:number*3,label:`T${number}`};
+        return {score:number,label:`${number}`};
+    }
+
+    function showSecurityChallenge(paymentType){
+        challengePaymentType=paymentType;
+        challengeDarts=[];
+        challengeHintsUsed=0;
+        const modal=document.getElementById('security-challenge');
+        const layer=document.getElementById('challenge-dart-layer');
+        const input=document.getElementById('challenge-input');
+        const errEl=document.getElementById('challenge-error');
+        const successEl=document.getElementById('challenge-success');
+        const hintBtn=document.getElementById('challenge-hint-btn');
+
+        layer.innerHTML='';
+        input.value='';
+        errEl.classList.add('hidden');
+        successEl.classList.add('hidden');
+        hintBtn.classList.remove('hidden');
+        hintBtn.innerHTML='<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg> Reveal a hint';
+
+        // Reset pills
+        for(let i=1;i<=3;i++){
+            document.getElementById(`ch-pill-${i}-score`).textContent='?';
+            document.getElementById(`ch-pill-${i}-score`).style.color='#475569';
+            document.getElementById(`ch-pill-${i}`).className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-dark/50 text-sm';
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Auto-throw 3 darts with staggered timing
+        const colors=['#dc2626','#f59e0b','#3b82f6'];
+        const boardScale=220/300;
+
+        function throwDart(i){
+            const randAngle=Math.random()*2*Math.PI;
+            const randR=CH_R_BOARD*Math.pow(Math.random(),0.55);
+            const svgX=CH_CX+randR*Math.cos(randAngle);
+            const svgY=CH_CY+randR*Math.sin(randAngle);
+            const result=chCalcScore(svgX,svgY);
+            challengeDarts.push({...result,x:svgX,y:svgY});
+
+            const pxX=svgX*boardScale;
+            const pxY=svgY*boardScale;
+
+            const dart=document.createElement('div');
+            dart.className='dart-throw';
+            dart.style.cssText=`position:absolute;left:${pxX-7}px;top:${pxY-7}px;width:14px;height:14px;pointer-events:none;filter:drop-shadow(0 0 6px ${colors[i]}88);`;
+            dart.innerHTML=`<svg viewBox="0 0 14 14" width="14" height="14"><circle cx="7" cy="7" r="6" fill="${colors[i]}" stroke="white" stroke-width="1.5" opacity="0.95"/><text x="7" y="7" text-anchor="middle" dominant-baseline="central" fill="white" font-size="7" font-weight="900">${i+1}</text></svg>`;
+            layer.appendChild(dart);
+        }
+
+        setTimeout(()=>throwDart(0),400);
+        setTimeout(()=>throwDart(1),900);
+        setTimeout(()=>throwDart(2),1400);
+        setTimeout(()=>input.focus(),1600);
+    }
+
+    function revealHint(){
+        if(challengeHintsUsed>=3) return;
+        const i=challengeHintsUsed;
+        const d=challengeDarts[i];
+        if(!d) return;
+        const pill=document.getElementById(`ch-pill-${i+1}`);
+        const scoreEl=document.getElementById(`ch-pill-${i+1}-score`);
+        scoreEl.textContent=`${d.label} (${d.score})`;
+        scoreEl.style.color='#f59e0b';
+        pill.classList.add('hint-revealed');
+        challengeHintsUsed++;
+        if(challengeHintsUsed>=3){
+            document.getElementById('challenge-hint-btn').classList.add('hidden');
+        } else {
+            document.getElementById('challenge-hint-btn').innerHTML=`<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg> Reveal dart ${challengeHintsUsed+1}`;
+        }
+    }
+
+    function submitChallenge(){
+        const input=document.getElementById('challenge-input');
+        const answer=parseInt(input.value);
+        const correct=challengeDarts.reduce((s,d)=>s+d.score,0);
+        const errEl=document.getElementById('challenge-error');
+        const successEl=document.getElementById('challenge-success');
+
+        if(isNaN(answer)){
+            input.classList.remove('shake-input');
+            void input.offsetWidth;
+            input.classList.add('shake-input');
+            errEl.textContent='Please enter a number.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        if(answer!==correct){
+            input.classList.remove('shake-input');
+            void input.offsetWidth;
+            input.classList.add('shake-input');
+            errEl.textContent=`Incorrect — try again! (Hint: use the reveal button)`;
+            errEl.classList.remove('hidden');
+            input.value='';
+            input.focus();
+            return;
+        }
+
+        // Correct!
+        errEl.classList.add('hidden');
+        successEl.classList.remove('hidden');
+        // Reveal all scores
+        challengeDarts.forEach((d,i)=>{
+            const scoreEl=document.getElementById(`ch-pill-${i+1}-score`);
+            scoreEl.textContent=d.score;
+            scoreEl.style.color='#10b981';
+            document.getElementById(`ch-pill-${i+1}`).style.borderColor='rgba(16,185,129,0.4)';
+        });
+
         setTimeout(()=>{
-            const waiting=document.getElementById('tl-waiting');
-            if(waiting) waiting.classList.remove('hidden');
-        },2000);
-        // Poll every 4 seconds for up to 5 minutes
-        let polls=0;
-        tlPollInterval=setInterval(async()=>{
-            polls++;
-            if(polls>75){clearInterval(tlPollInterval);return;}
-            const{data}=await window.supabaseClient
-                .from('pending_orders')
-                .select('status')
-                .eq('reference',randomRef)
-                .single();
-            if(data?.status==='completed'){
-                clearInterval(tlPollInterval);
-                window.location.href='dashboard.html?success=true';
-            }
-        },4000);
+            const modal=document.getElementById('security-challenge');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            // Proceed with actual payment
+            payStripeActual();
+        },1000);
+    }
+
+    function cancelChallenge(){
+        const modal=document.getElementById('security-challenge');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 
     </script>

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Vault | OcheRaffles</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>My Vault | OcheVault</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,8 +19,8 @@
         .display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;}
         .display-normal{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-0.01em;}
         .oche-bg{background-image:repeating-conic-gradient(from 0deg,rgba(220,38,38,0.025) 0deg 18deg,rgba(255,255,255,0.008) 18deg 36deg);}
-        .vault-card{background:linear-gradient(135deg,rgba(20,31,53,0.95) 0%,rgba(12,18,32,0.9) 100%);border-left:3px solid #dc2626;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.3s,border-color 0.2s;}
-        .vault-card:hover{transform:translateX(4px);box-shadow:0 8px 30px -8px rgba(0,0,0,0.5),-4px 0 0 0 #f59e0b;border-left-color:#f59e0b;}
+        .vault-card{background:linear-gradient(135deg,rgba(20,31,53,0.98) 0%,rgba(12,18,32,0.95) 100%);border-left:3px solid rgba(220,38,38,0.6);border:1px solid rgba(255,255,255,0.05);border-left:3px solid #dc2626;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.3s,border-color 0.2s;}
+        .vault-card:hover{transform:translateX(5px);box-shadow:0 12px 40px -10px rgba(0,0,0,0.6),-4px 0 0 0 #f59e0b;border-left-color:#f59e0b;}
         .ticket-badge{background:conic-gradient(from 0deg,#dc2626 0deg 120deg,#141f35 120deg 240deg,#991b1b 240deg 360deg);}
         .oche-input{background:rgba(12,18,32,0.9);border:1.5px solid rgba(255,255,255,0.08);transition:border-color 0.2s,box-shadow 0.2s;}
         .oche-input:focus{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,0.1);outline:none;}
@@ -39,21 +40,25 @@
         .avatar-wrap:hover .avatar-upload-btn{opacity:1;}
 
         /* Tab system */
-        .vault-tab{padding:10px 20px;border-radius:12px;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s;color:#64748b;white-space:nowrap;}
-        .vault-tab.active{background:rgba(220,38,38,0.12);color:#dc2626;border:1px solid rgba(220,38,38,0.25);}
-        .vault-tab:not(.active):hover{color:#cbd5e1;background:rgba(255,255,255,0.04);}
+        .vault-tab{padding:10px 22px;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;color:#475569;white-space:nowrap;border:1px solid transparent;letter-spacing:0.02em;}
+        .vault-tab.active{background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(220,38,38,0.06));color:#ef4444;border:1px solid rgba(220,38,38,0.3);box-shadow:0 0 16px rgba(220,38,38,0.08);}
+        .vault-tab:not(.active):hover{color:#94a3b8;background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.06);}
 
         /* Leaderboard */
-        .lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;transition:background 0.15s;}
-        .lb-row:hover{background:rgba(255,255,255,0.03);}
-        .lb-row.you{background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);}
-        .lb-rank-1{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0c1220;}
-        .lb-rank-2{background:linear-gradient(135deg,#94a3b8,#64748b);color:#0c1220;}
-        .lb-rank-3{background:linear-gradient(135deg,#cd7c3a,#a85a28);color:white;}
+        .lb-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:14px;transition:background 0.15s;border:1px solid transparent;}
+        .lb-row:hover{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.04);}
+        .lb-row.you{background:rgba(220,38,38,0.07);border:1px solid rgba(220,38,38,0.22);box-shadow:0 0 20px rgba(220,38,38,0.04);}
+        .lb-rank-1{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0c1220;box-shadow:0 4px 12px rgba(245,158,11,0.3);}
+        .lb-rank-2{background:linear-gradient(135deg,#94a3b8,#64748b);color:#0c1220;box-shadow:0 4px 12px rgba(148,163,184,0.2);}
+        .lb-rank-3{background:linear-gradient(135deg,#cd7c3a,#a85a28);color:white;box-shadow:0 4px 12px rgba(205,124,58,0.25);}
 
         /* Footer */
         .footer-link{color:#475569;font-size:0.8rem;transition:color 0.2s;}
         .footer-link:hover{color:#94a3b8;}
+
+        /* Mobile nav */
+        .mobile-menu { transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.3s; opacity: 0; pointer-events: none; }
+        .mobile-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body class="bg-dark text-slate-300 antialiased min-h-screen relative flex flex-col">
@@ -63,61 +68,73 @@
 
     <!-- NAV -->
     <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 group">
                 <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="20" cy="20" r="19" fill="#dc2626"/><circle cx="20" cy="20" r="14" fill="#0c1220"/>
                     <circle cx="20" cy="20" r="9" fill="#dc2626"/><circle cx="20" cy="20" r="4" fill="#0c1220"/>
                     <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
                 </svg>
-                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheRaffles</span>
+                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheVault</span>
             </a>
-            <div class="flex items-center gap-3">
-                <!-- Username + avatar pill -->
-                <div class="flex items-center gap-2.5 bg-card/60 border border-white/8 rounded-xl px-3 py-2 cursor-pointer hover:border-white/15 transition-colors" onclick="document.getElementById('settings-panel').classList.toggle('hidden')">
-                    <!-- Avatar -->
-                    <div class="avatar-ring w-8 h-8 flex-shrink-0">
-                        <div class="avatar-inner w-full h-full flex items-center justify-center">
-                            <img id="nav-avatar" src="" alt="" class="w-full h-full object-cover hidden rounded-full">
-                            <svg id="nav-avatar-fallback" class="w-4 h-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
-                        </div>
-                    </div>
-                    <div class="hidden sm:block">
-                        <p id="nav-username" class="text-sm text-white font-semibold leading-none">Loading…</p>
-                        <p class="text-[10px] text-slate-600 mt-0.5 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
-                            <span id="nav-ticket-count" style="color:#f59e0b;font-weight:700;">0</span>
-                        </p>
-                    </div>
-                    <svg class="w-3 h-3 text-slate-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <div class="flex items-center gap-5">
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
+                    <a href="past.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
+                    <a href="how-it-works.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
+                    <a href="leaderboard.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
                 </div>
-
-                <!-- Quick settings dropdown -->
-                <div id="settings-panel" class="hidden absolute right-4 top-20 w-52 bg-card border border-white/10 rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)] backdrop-blur-xl overflow-hidden z-50">
-                    <div class="p-3 border-b border-white/5">
-                        <p class="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Quick Actions</p>
-                    </div>
-                    <div class="p-2">
-                        <button onclick="triggerAvatarUpload()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-sm text-slate-300 transition-colors">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            Change Profile Picture
-                        </button>
-                        <a href="index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-sm text-slate-300 transition-colors">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Enter More Draws
-                        </a>
-                        <button onclick="signOut()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-sm text-brand transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                            Sign Out
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Hidden avatar file input -->
-                <input type="file" id="avatar-file-input" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
+                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)] border-b border-brand pb-0.5">My Vault →</a>
+                <!-- Mobile hamburger -->
+                <button id="mobile-toggle" onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile dropdown menu -->
+        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+                <a href="index.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
+                <a href="past.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
+                <a href="how-it-works.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
+                <a href="leaderboard.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard
+                </a>
+                <div class="h-px bg-slate-700/40 my-2"></div>
+                <a href="auth.html" class="auth-link-mobile flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span> My Vault
+                </a>
             </div>
         </div>
     </nav>
+
+    <!-- Quick settings dropdown (moved outside nav for positioning) -->
+    <div id="settings-panel" class="hidden fixed right-4 top-20 w-52 bg-card border border-white/10 rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)] backdrop-blur-xl overflow-hidden z-[60]">
+        <div class="p-3 border-b border-white/5">
+            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Quick Actions</p>
+        </div>
+        <div class="p-2">
+            <button onclick="openProfileModal(true)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-sm text-slate-300 transition-colors">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                Edit Profile
+            </button>
+            <button onclick="triggerAvatarUpload()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-sm text-slate-300 transition-colors">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Change Profile Picture
+            </button>
+            <a href="index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-sm text-slate-300 transition-colors">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Enter More Draws
+            </a>
+            <button onclick="signOut()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-sm text-brand transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                Sign Out
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden avatar file input -->
+    <input type="file" id="avatar-file-input" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
 
     <!-- SUCCESS TOAST -->
     <div id="success-toast" class="hidden fixed top-6 right-6 z-[200] max-w-sm">
@@ -152,33 +169,44 @@
             </div>
 
             <div class="flex-1">
-                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.25em] mb-1">Member Vault</p>
-                <h1 id="profile-username-display" class="display text-white leading-none" style="font-size:2.6rem;">Loading…</h1>
-                <p id="profile-email-display" class="text-slate-500 text-sm mt-1"></p>
+                <div class="inline-flex items-center gap-1.5 bg-brand/8 border border-brand/20 rounded-full px-3 py-1 mb-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+                    <p class="text-[10px] font-black text-brand/70 uppercase tracking-[0.2em]">Member Vault</p>
+                </div>
+                <h1 id="profile-username-display" class="display text-white leading-none" style="font-size:2.8rem;">Loading…</h1>
+                <p id="profile-email-display" class="text-slate-500 text-sm mt-1.5"></p>
             </div>
 
             <!-- Stat pills -->
             <div class="flex gap-3 flex-wrap sm:flex-nowrap">
-                <div class="bg-card/60 border border-white/6 rounded-2xl px-5 py-3 text-center">
-                    <p class="text-[9px] text-slate-600 uppercase tracking-wider font-bold mb-1">Tickets</p>
-                    <p id="stat-total" class="display text-brand" style="font-size:1.6rem;">—</p>
+                <div class="bg-gradient-to-br from-brand/12 to-brand/5 border border-brand/25 rounded-2xl px-5 py-4 text-center min-w-[80px] shadow-[0_0_20px_rgba(220,38,38,0.06)]">
+                    <p class="text-[9px] text-brand/60 uppercase tracking-wider font-black mb-1.5">Tickets</p>
+                    <p id="stat-total" class="display text-white" style="font-size:1.8rem;line-height:1;">—</p>
                 </div>
-                <div class="bg-card/60 border border-white/6 rounded-2xl px-5 py-3 text-center">
-                    <p class="text-[9px] text-slate-600 uppercase tracking-wider font-bold mb-1">Draws</p>
-                    <p id="stat-draws" class="display text-white" style="font-size:1.6rem;">—</p>
+                <div class="bg-card/70 border border-white/8 rounded-2xl px-5 py-4 text-center min-w-[80px]">
+                    <p class="text-[9px] text-slate-600 uppercase tracking-wider font-black mb-1.5">Draws</p>
+                    <p id="stat-draws" class="display text-white" style="font-size:1.8rem;line-height:1;">—</p>
                 </div>
-                <div class="bg-card/60 border border-white/6 rounded-2xl px-5 py-3 text-center">
-                    <p class="text-[9px] text-slate-600 uppercase tracking-wider font-bold mb-1">Since</p>
-                    <p id="stat-since" class="display text-accent" style="font-size:1.6rem;">—</p>
+                <div class="bg-gradient-to-br from-accent/10 to-accent/4 border border-accent/20 rounded-2xl px-5 py-4 text-center min-w-[80px]">
+                    <p class="text-[9px] text-accent/60 uppercase tracking-wider font-black mb-1.5">Since</p>
+                    <p id="stat-since" class="display text-accent" style="font-size:1.8rem;line-height:1;">—</p>
                 </div>
             </div>
+                <!-- Settings button -->
+                <button onclick="document.getElementById('settings-panel').classList.toggle('hidden')" class="w-11 h-11 rounded-xl bg-card/70 border border-white/8 flex items-center justify-center hover:bg-white/5 hover:border-white/15 transition-all group flex-shrink-0" title="Account settings">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
         </div>
 
         <!-- TABS -->
-        <div class="flex gap-2 mb-8 overflow-x-auto pb-1">
-            <button class="vault-tab active" onclick="switchTab('vault',this)">🎟 My Tickets</button>
-            <button class="vault-tab" onclick="switchTab('weekly',this)">⚡ Weekly Board</button>
-            <button class="vault-tab" onclick="switchTab('monthly',this)">🏆 Monthly Board</button>
+        <div class="flex gap-2 mb-8 overflow-x-auto pb-1 border-b border-white/5 pb-0">
+            <div class="flex gap-2 pb-3">
+                <button class="vault-tab active" onclick="switchTab('vault',this)">🎟 My Tickets</button>
+                <button class="vault-tab" onclick="switchTab('weekly',this)">⚡ Weekly Board</button>
+                <button class="vault-tab" onclick="switchTab('monthly',this)">🏆 Monthly Board</button>
+                <button class="vault-tab" onclick="switchTab('dartgame',this)">🎯 Triple Twenty</button>
+                <button class="vault-tab" onclick="switchTab('referrals',this)">🔗 Referrals</button>
+            </div>
         </div>
 
         <!-- TAB: VAULT -->
@@ -272,6 +300,137 @@
             </div>
         </div>
 
+        <!-- TAB: DART GAME -->
+        <div id="tab-dartgame" class="hidden">
+            <div class="flex items-center gap-4 mb-6">
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">Dart Game</h2>
+                <div class="flex-1 h-px bg-white/5"></div>
+            </div>
+            <div class="bg-card/70 border border-white/8 rounded-2xl p-8 text-center max-w-lg mx-auto">
+                <div class="w-16 h-16 bg-brand/10 border border-brand/25 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <svg class="w-8 h-8 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <h3 class="display text-white mb-3" style="font-size:1.6rem;">Play the free dart game on the homepage!</h3>
+                <p class="text-sm text-slate-400 mb-6">3 darts per entry &middot; 3 entries per hour &middot; Top scorer wins a free ticket daily</p>
+                <a href="index.html" class="inline-flex items-center gap-2 bg-brand hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Play Dart Game Now
+                </a>
+            </div>
+
+            <!-- View Leaderboard button -->
+            <div class="mt-8 text-center">
+                <a href="leaderboard.html" class="inline-flex items-center gap-2 bg-success/15 hover:bg-success/25 text-success font-bold px-5 py-3 rounded-xl transition-all border border-success/30 hover:border-success/50 text-sm">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    View Leaderboard
+                </a>
+            </div>
+        </div>
+
+        <!-- TAB: REFERRALS -->
+        <div id="tab-referrals" class="hidden">
+            <div class="flex items-center gap-4 mb-6">
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">Refer & Earn</h2>
+                <div class="flex-1 h-px bg-white/5"></div>
+            </div>
+
+            <!-- Credit balance -->
+            <div class="bg-gradient-to-br from-accent/12 to-accent/5 border border-accent/25 rounded-2xl p-6 mb-6 shadow-[0_0_30px_rgba(245,158,11,0.06)]">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <p class="text-[9px] text-accent/60 uppercase tracking-wider font-black mb-1">Your Credit Balance</p>
+                        <p id="ref-credit-balance" class="display text-accent" style="font-size:2.5rem;line-height:1;">£0.00</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Use at checkout on any draw</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] text-slate-600 uppercase tracking-wider font-black mb-1">Successful Referrals</p>
+                        <p id="ref-completed-count" class="display text-white" style="font-size:2rem;line-height:1;">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral link -->
+            <div class="bg-card/70 border border-white/8 rounded-2xl p-6 mb-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-brand/10 border border-brand/25 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-white text-sm font-bold">Your Referral Link</p>
+                        <p class="text-[11px] text-slate-500">Share this link to invite friends</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                    <input type="text" id="ref-link-input" readonly
+                        class="oche-input flex-1 rounded-xl px-4 py-3 text-white font-mono text-sm truncate"
+                        value="Loading...">
+                    <button onclick="copyRefLink()" id="ref-copy-btn"
+                        class="bg-brand hover:bg-red-700 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all whitespace-nowrap flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                        Copy
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="shareRefLink('whatsapp')" class="flex-1 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/25 text-[#25D366] font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        WhatsApp
+                    </button>
+                    <button onclick="shareRefLink('twitter')" class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        X / Twitter
+                    </button>
+                    <button onclick="shareRefLink('email')" class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        Email
+                    </button>
+                </div>
+            </div>
+
+            <!-- Milestone rewards -->
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div id="ref-milestone-1" class="bg-card/60 border border-white/6 rounded-xl p-4 text-center transition-all">
+                    <p class="display text-accent mb-1" style="font-size:1.4rem;">£5</p>
+                    <p class="text-xs font-bold text-white mb-0.5">1st Referral</p>
+                    <p class="text-[10px] text-slate-500">1 successful invite</p>
+                    <div id="ref-milestone-1-status" class="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">Locked</div>
+                </div>
+                <div id="ref-milestone-2" class="bg-card/60 border border-white/6 rounded-xl p-4 text-center transition-all">
+                    <p class="display text-accent mb-1" style="font-size:1.4rem;">£20</p>
+                    <p class="text-xs font-bold text-white mb-0.5">3 Referrals</p>
+                    <p class="text-[10px] text-slate-500">3 successful invites</p>
+                    <div id="ref-milestone-2-status" class="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">Locked</div>
+                </div>
+                <div id="ref-milestone-3" class="bg-card/60 border border-white/6 rounded-xl p-4 text-center transition-all">
+                    <p class="display text-accent mb-1" style="font-size:1.4rem;">£50</p>
+                    <p class="text-xs font-bold text-white mb-0.5">10 Referrals</p>
+                    <p class="text-[10px] text-slate-500">10 successful invites</p>
+                    <div id="ref-milestone-3-status" class="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">Locked</div>
+                </div>
+            </div>
+
+            <!-- Invite by email -->
+            <div class="bg-card/70 border border-white/8 rounded-2xl p-6 mb-6">
+                <p class="text-white text-sm font-bold mb-3">Invite by Email</p>
+                <div class="flex items-center gap-2">
+                    <input type="email" id="ref-invite-email" placeholder="friend@example.com"
+                        class="oche-input flex-1 rounded-xl px-4 py-3 text-white placeholder:text-slate-700 text-sm">
+                    <button onclick="sendReferralInvite()" id="ref-invite-btn"
+                        class="bg-success hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all whitespace-nowrap">
+                        Send Invite
+                    </button>
+                </div>
+                <p id="ref-invite-msg" class="hidden text-[11px] font-bold mt-2"></p>
+            </div>
+
+            <!-- Referral list -->
+            <div class="bg-card/70 border border-white/8 rounded-2xl p-6">
+                <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest mb-4">Your Referrals</p>
+                <div id="ref-list" class="space-y-2">
+                    <p class="text-sm text-slate-500 text-center py-4">No referrals yet — share your link to get started!</p>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- PROFILE MODAL -->
@@ -279,69 +438,151 @@
         <div class="w-full max-w-md bg-card/95 border border-brand/25 rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
             <div class="h-1 bg-gradient-to-r from-brand via-red-400 to-accent"></div>
             <div class="p-8">
-                <div class="text-center mb-8">
-                    <!-- Clickable avatar in modal too -->
-                    <div class="avatar-wrap relative inline-block cursor-pointer mb-5" onclick="triggerAvatarUpload()">
-                        <div class="avatar-ring w-20 h-20 mx-auto">
-                            <div class="avatar-inner w-full h-full flex items-center justify-center">
-                                <img id="modal-avatar" src="" alt="" class="w-full h-full object-cover hidden">
-                                <div id="modal-avatar-fallback" class="w-full h-full flex items-center justify-center bg-card">
-                                    <svg class="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                <!-- Close button (only in edit mode) -->
+                <button id="profile-modal-close" onclick="closeProfileModal()" class="hidden absolute top-5 right-5 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-colors z-10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+
+                <!-- Step 1: Edit form -->
+                <div id="profile-step-form">
+                    <div class="text-center mb-8">
+                        <div class="avatar-wrap relative inline-block cursor-pointer mb-5" onclick="triggerAvatarUpload()">
+                            <div class="avatar-ring w-20 h-20 mx-auto">
+                                <div class="avatar-inner w-full h-full flex items-center justify-center">
+                                    <img id="modal-avatar" src="" alt="" class="w-full h-full object-cover hidden">
+                                    <div id="modal-avatar-fallback" class="w-full h-full flex items-center justify-center bg-card">
+                                        <svg class="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="avatar-upload-btn absolute inset-0 flex items-center justify-center rounded-full" style="background:rgba(0,0,0,0.6)">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
                         </div>
-                        <div class="avatar-upload-btn absolute inset-0 flex items-center justify-center rounded-full" style="background:rgba(0,0,0,0.6)">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
+                        <p class="text-[10px] text-slate-600 mb-1">Tap to change profile picture</p>
+                        <h2 id="profile-modal-title" class="display text-white mb-2" style="font-size:2rem;line-height:1;">Set Up Your Profile</h2>
+                        <p id="profile-modal-subtitle" class="text-sm text-slate-400">Choose a username for the leaderboard and optionally add your mobile for win alerts.</p>
                     </div>
-                    <p class="text-[10px] text-slate-600 mb-1">Tap to add a profile picture</p>
-                    <h2 class="display text-white mb-2" style="font-size:2rem;line-height:1;">Claim Your OcheTag</h2>
-                    <p class="text-sm text-slate-400">Your username shows on the live draw leaderboard.</p>
+                    <form class="space-y-4" onsubmit="confirmProfileSave(event)">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Username *</label>
+                            <input type="text" id="dash-username-input" required placeholder="e.g. HeavyMetalFan99"
+                                class="oche-input w-full rounded-xl px-5 py-4 text-white font-bold text-lg text-center placeholder:text-slate-600 placeholder:font-normal"
+                                style="font-family:'Barlow Condensed',sans-serif;">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Mobile <span class="text-slate-700 font-normal normal-case tracking-normal text-xs">— for win alerts</span></label>
+                            <input type="tel" id="dash-phone-input" placeholder="+44 7700 900000"
+                                class="oche-input w-full rounded-xl px-5 py-4 text-white text-center placeholder:text-slate-600">
+                        </div>
+                        <!-- Anonymous toggle -->
+                        <div class="flex items-center justify-between p-4 rounded-xl bg-dark/40 border border-white/5">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+                                <div>
+                                    <p class="text-sm text-white font-semibold">Anonymous Mode</p>
+                                    <p class="text-[10px] text-slate-600">Hide your username on leaderboards & past winners</p>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="dash-anonymous-toggle" class="sr-only peer">
+                                <div class="w-10 h-5 bg-slate-700 rounded-full peer peer-checked:bg-brand/60 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
+                            </label>
+                        </div>
+                        <button type="submit" id="btn-save-profile"
+                            class="w-full bg-brand hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] relative overflow-hidden group">
+                            <span id="save-btn-text" class="relative z-10">Save & Continue →</span>
+                            <div class="absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"></div>
+                        </button>
+                    </form>
                 </div>
-                <form class="space-y-4" onsubmit="saveProfile(event)">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Username *</label>
-                        <input type="text" id="dash-username-input" required placeholder="e.g. HeavyMetalFan99"
-                            class="oche-input w-full rounded-xl px-5 py-4 text-white font-bold text-lg text-center placeholder:text-slate-600 placeholder:font-normal"
-                            style="font-family:'Barlow Condensed',sans-serif;">
+
+                <!-- Step 2: Confirmation (edit mode only) -->
+                <div id="profile-step-confirm" class="hidden text-center">
+                    <div class="w-14 h-14 rounded-full bg-accent/10 border border-accent/25 flex items-center justify-center mx-auto mb-5">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Mobile <span class="text-slate-700 font-normal normal-case tracking-normal text-xs">— for win alerts</span></label>
-                        <input type="tel" id="dash-phone-input" placeholder="+44 7700 900000"
-                            class="oche-input w-full rounded-xl px-5 py-4 text-white text-center placeholder:text-slate-600">
+                    <h3 class="display text-white mb-2" style="font-size:1.6rem;">Confirm Changes</h3>
+                    <p class="text-sm text-slate-400 mb-2">You're about to update your profile to:</p>
+                    <div class="bg-dark/50 rounded-xl border border-white/5 p-4 mb-6 text-left space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500">Username</span>
+                            <span id="confirm-username" class="text-white font-semibold"></span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500">Mobile</span>
+                            <span id="confirm-phone" class="text-white font-semibold"></span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500">Leaderboard</span>
+                            <span id="confirm-visibility" class="font-semibold"></span>
+                        </div>
                     </div>
-                    <button type="submit" id="btn-save-profile"
-                        class="w-full bg-brand hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] relative overflow-hidden group">
-                        <span id="save-btn-text" class="relative z-10">Claim Tag & Enter Vault →</span>
-                        <div class="absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"></div>
-                    </button>
-                </form>
+                    <div class="flex gap-3">
+                        <button onclick="cancelConfirm()" class="flex-1 py-3.5 rounded-xl border border-white/10 text-slate-400 font-bold hover:bg-white/5 transition-all">Back</button>
+                        <button onclick="executeSaveProfile()" id="btn-confirm-save" class="flex-1 py-3.5 rounded-xl bg-brand hover:bg-red-700 text-white font-bold transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)]">
+                            <span id="confirm-btn-text">Yes, Save Changes</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- FOOTER -->
     <footer class="relative z-10 mt-auto">
-        <div class="border-t border-slate-700/30 bg-dark/60 backdrop-blur-sm">
-            <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-2.5">
-                    <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="14" cy="14" r="13" fill="#dc2626"/>
-                        <circle cx="14" cy="14" r="9" fill="#0c1220"/>
-                        <circle cx="14" cy="14" r="5.5" fill="#dc2626"/>
-                        <circle cx="14" cy="14" r="2.5" fill="#0c1220"/>
-                        <circle cx="14" cy="14" r="1" fill="#f59e0b"/>
-                    </svg>
-                    <span class="display text-slate-500 text-sm">OcheRaffles</span>
+        <div class="h-px bg-gradient-to-r from-transparent via-brand/25 to-transparent"></div>
+        <div class="bg-dark/95">
+            <div class="max-w-7xl mx-auto px-4 pt-14 pb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="15" fill="#dc2626"/>
+                                <circle cx="16" cy="16" r="11" fill="#0c1220"/>
+                                <circle cx="16" cy="16" r="7" fill="#dc2626"/>
+                                <circle cx="16" cy="16" r="3" fill="#0c1220"/>
+                                <circle cx="16" cy="16" r="1.5" fill="#f59e0b"/>
+                            </svg>
+                            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;font-size:1.4rem;" class="text-white">OcheVault</span>
+                        </div>
+                        <p class="text-slate-500 text-sm leading-relaxed mb-5 max-w-xs">Your personal draw hub — track entries, climb leaderboards, and win exclusive darts memorabilia.</p>
+                        <div class="inline-flex items-center gap-2 bg-success/6 border border-success/15 rounded-xl px-3 py-2.5">
+                            <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
+                            <span class="text-xs text-success font-bold">£12,450 raised for ADOA</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Platform</h4>
+                        <ul class="space-y-3">
+                            <li><a href="index.html" class="text-sm text-slate-500 hover:text-white transition-colors">Live Draws</a></li>
+                            <li><a href="past.html" class="text-sm text-slate-500 hover:text-white transition-colors">Past Winners</a></li>
+                            <li><a href="how-it-works.html" class="text-sm text-slate-500 hover:text-white transition-colors">How It Works</a></li>
+                            <li><a href="dashboard.html" class="text-sm text-white font-medium flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-brand"></span>My Vault</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Legal & Support</h4>
+                        <ul class="space-y-3">
+                            <li><a href="terms.html" class="text-sm text-slate-500 hover:text-white transition-colors">Terms & Conditions</a></li>
+                            <li><a href="terms.html#privacy" class="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="mailto:contact@ochevault.com" class="text-sm text-white hover:text-brand transition-colors font-medium">Contact Us</a></li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="flex items-center gap-5 flex-wrap justify-center">
-                    <a href="index.html" class="footer-link">Live Draws</a>
-                    <a href="past.html" class="footer-link">Past Winners</a>
-                    <a href="how-it-works.html" class="footer-link">How It Works</a>
-                    <a href="/cdn-cgi/l/email-protection#44272b2a3025273004372c253634372b2831302d2b2a376a282d3221" class="footer-link">Contact</a>
-                    <a href="#" class="footer-link">Terms</a>
+                <div class="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-700">
+                        <span>© 2026 OcheVault Ltd. All rights reserved.</span>
+                        <span class="hidden sm:inline">·</span>
+                        <span>Skill-based competitions — exempt from Gambling Act 2005</span>
+                        <span class="hidden sm:inline">·</span>
+                        <span>18+ UK only</span>
+                    </div>
+                    <a href="https://sharpsolutions.live" target="_blank" class="text-[11px] text-slate-700 hover:text-brand transition-colors flex items-center gap-1.5 group">
+                        Powered by <span class="font-bold text-slate-500 group-hover:text-brand ml-1">Sharp Solutions</span>
+                        <svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
                 </div>
-                <p class="text-xs text-slate-700">&copy; 2026 OcheRaffles Ltd.</p>
             </div>
         </div>
     </footer>
@@ -374,8 +615,7 @@
         currentProfile=profile;
 
         if(profileError||!profile||!profile.username){
-            document.getElementById('profile-modal').classList.remove('hidden');
-            document.getElementById('profile-modal').classList.add('flex');
+            openProfileModal(false);
         } else {
             updateAvatarUI(profile);
         }
@@ -385,11 +625,21 @@
         }
         updateStats();
         loadLeaderboards();
+        loadReferrals();
+
+        // Auto-switch tab if coming from leaderboard page
+        const vaultTab=localStorage.getItem('vaultTab');
+        if(vaultTab){
+            localStorage.removeItem('vaultTab');
+            const tabBtn=document.querySelector(`.vault-tab[onclick*="'${vaultTab}'"]`);
+            if(tabBtn) switchTab(vaultTab,tabBtn);
+        }
     });
 
     function updateAvatarUI(profile){
         const username=profile?.username||'Vault';
-        document.getElementById('nav-username').innerText=username;
+        const navUser=document.getElementById('nav-username');
+        if(navUser) navUser.innerText=username;
         document.getElementById('profile-username-display').innerText=username;
 
         if(profile?.avatar_url){
@@ -414,13 +664,14 @@
             const uniqueDraws=new Set(tickets.map(t=>t.raffle_id)).size;
             document.getElementById('stat-total').innerText=totalQty;
             document.getElementById('stat-draws').innerText=uniqueDraws;
-            document.getElementById('nav-ticket-count').innerText=totalQty;
+            const navTC=document.getElementById('nav-ticket-count');
+            if(navTC) navTC.innerText=totalQty;
         }
     }
 
     // ── Tab switching ──────────────────────────────────────────────
     function switchTab(tab,btn){
-        ['vault','weekly','monthly'].forEach(t=>{
+        ['vault','weekly','monthly','dartgame','referrals'].forEach(t=>{
             document.getElementById('tab-'+t).classList.add('hidden');
         });
         document.getElementById('tab-'+tab).classList.remove('hidden');
@@ -453,13 +704,22 @@
     async function renderBoard(boardId,since){
         const container=document.getElementById(boardId);
 
-        // Try date-filtered tickets first
-        let query=window.supabaseClient.from('user_tickets').select('user_id,qty,profiles(username,avatar_url)');
+        // Step 1: fetch tickets for the period (no join — avoids FK dependency issues)
+        let query=window.supabaseClient.from('user_tickets').select('user_id,qty');
         if(since) query=query.gte('created_at',since);
-        const{data,error}=await query;
+        const{data:tickets,error}=await query;
 
-        // If no results for this period, fall back to all-time via profiles.total_tickets
-        if(!data||data.length===0){
+        // Aggregate qty by user
+        const agg={};
+        if(tickets&&tickets.length>0){
+            tickets.forEach(t=>{
+                if(!agg[t.user_id]) agg[t.user_id]=0;
+                agg[t.user_id]+=(t.qty||0);
+            });
+        }
+
+        // If no results for this period, fall back to all-time profiles.total_tickets
+        if(Object.keys(agg).length===0){
             const{data:profiles}=await window.supabaseClient
                 .from('profiles')
                 .select('id,username,avatar_url,total_tickets')
@@ -470,54 +730,56 @@
                 container.innerHTML=`<div class="text-center py-8 text-slate-600 text-sm">No entries yet — be the first! 🎯</div>`;
                 return;
             }
-            container.innerHTML=profiles.map((p,i)=>{
+            const rows=profiles.map((p,i)=>{
                 const rank=i+1,isYou=p.id===currentUser?.id;
-                const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
+                const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
                 const rankBadge=rank<=3?`lb-rank-${rank}`:'bg-slate-800 text-slate-400';
-                return `<div class="lb-row ${isYou?'you':''}">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black ${rankBadge} ${rank<=3?'shadow-lg':''}">${rank<=3?medal:rank}</div>
-                    <div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-card border border-white/10 flex items-center justify-center">
-                        ${p.avatar_url?`<img src="${p.avatar_url}" class="w-full h-full object-cover">`:`<svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>`}
-                    </div>
-                    <div class="flex-1 min-w-0"><p class="font-semibold text-sm ${isYou?'text-brand':'text-white'} truncate">${p.username}${isYou?' <span style="font-size:10px;font-weight:900;background:rgba(220,38,38,0.15);color:#dc2626;padding:1px 6px;border-radius:4px;border:1px solid rgba(220,38,38,0.25)">YOU</span>':''}</p></div>
-                    <div class="text-right flex-shrink-0"><p class="display ${isYou?'text-brand':'text-white'}" style="font-size:1.1rem;">${p.total_tickets||0}</p><p class="text-[9px] text-slate-600 uppercase tracking-wider">tickets</p></div>
-                </div>`;
-            }).join('');
+                return buildRow(rank,isYou,medal,rankBadge,p.username,p.avatar_url,p.total_tickets||0);
+            });
+            container.innerHTML=rows.join('');
             return;
         }
 
-        // Aggregate from ticket data
-        const agg={};
-        data.forEach(t=>{
-            const uid=t.user_id;
-            if(!agg[uid]){agg[uid]={qty:0,username:t.profiles?.username||'Anonymous',avatar:t.profiles?.avatar_url||null};}
-            agg[uid].qty+=(t.qty||0);
-        });
+        // Step 2: fetch profiles for these user_ids
+        const userIds=Object.keys(agg);
+        const{data:profiles}=await window.supabaseClient
+            .from('profiles')
+            .select('id,username,avatar_url')
+            .in('id',userIds);
+        const profileMap={};
+        if(profiles) profiles.forEach(p=>{profileMap[p.id]=p;});
 
-        const sorted=Object.entries(agg).sort((a,b)=>b[1].qty-a[1].qty).slice(0,10);
+        // Sort and render
+        const sorted=Object.entries(agg)
+            .map(([uid,qty])=>({uid,qty,username:profileMap[uid]?.username||'Anonymous',avatar:profileMap[uid]?.avatar_url||null}))
+            .sort((a,b)=>b.qty-a.qty)
+            .slice(0,10);
 
-        container.innerHTML=sorted.map(([uid,info],i)=>{
+        container.innerHTML=sorted.map((entry,i)=>{
             const rank=i+1;
-            const isYou=uid===currentUser?.id;
-            const rankBadge=rank<=3?`lb-rank-${rank}`:'';
-            const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
-            return `
-            <div class="lb-row ${isYou?'you':''}">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black ${rankBadge||'bg-slate-800 text-slate-400'} ${rank<=3?'shadow-lg':''}">${rank<=3?medal:rank}</div>
-                <div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-card border border-white/10 flex items-center justify-center">
-                    ${info.avatar?`<img src="${info.avatar}" class="w-full h-full object-cover">`:`<svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>`}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-sm ${isYou?'text-brand':'text-white'} truncate">
-                        ${info.username}${isYou?' <span class="text-[10px] font-black bg-brand/15 text-brand px-1.5 py-0.5 rounded-md border border-brand/25">YOU</span>':''}
-                    </p>
-                </div>
-                <div class="text-right flex-shrink-0">
-                    <p class="display ${isYou?'text-brand':'text-white'}" style="font-size:1.1rem;">${info.qty}</p>
-                    <p class="text-[9px] text-slate-600 uppercase tracking-wider">tickets</p>
-                </div>
-            </div>`;
+            const isYou=entry.uid===currentUser?.id;
+            const rankBadge=rank<=3?`lb-rank-${rank}`:'bg-slate-800 text-slate-400';
+            const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+            return buildRow(rank,isYou,medal,rankBadge,entry.username,entry.avatar,entry.qty);
         }).join('');
+    }
+
+    function buildRow(rank,isYou,medal,rankBadge,username,avatar,qty){
+        return `<div class="lb-row ${isYou?'you':''}">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black ${rankBadge} ${rank<=3?'shadow-lg':''}">${rank<=3?medal:rank}</div>
+            <div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-card border border-white/10 flex items-center justify-center">
+                ${avatar?`<img src="${avatar}" class="w-full h-full object-cover">`:`<svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>`}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm ${isYou?'text-brand':'text-white'} truncate">
+                    ${username}${isYou?' <span class="text-[10px] font-black bg-brand/15 text-brand px-1.5 py-0.5 rounded-md border border-brand/25">YOU</span>':''}
+                </p>
+            </div>
+            <div class="text-right flex-shrink-0">
+                <p class="display ${isYou?'text-brand':'text-white'}" style="font-size:1.1rem;">${qty}</p>
+                <p class="text-[9px] text-slate-600 uppercase tracking-wider">tickets</p>
+            </div>
+        </div>`;
     }
 
     // ── Avatar upload ──────────────────────────────────────────────
@@ -585,26 +847,291 @@
         },4500);
     }
 
-    // ── Save profile ───────────────────────────────────────────────
-    async function saveProfile(e){
-        e.preventDefault();
-        const btn=document.getElementById('btn-save-profile');
+    // ── Profile modal helpers ────────────────────────────────────
+    let profileEditMode=false;
+
+    function openProfileModal(isEdit){
+        profileEditMode=isEdit;
+        const modal=document.getElementById('profile-modal');
+        const closeBtn=document.getElementById('profile-modal-close');
+        const title=document.getElementById('profile-modal-title');
+        const subtitle=document.getElementById('profile-modal-subtitle');
         const btnText=document.getElementById('save-btn-text');
+
+        document.getElementById('profile-step-form').classList.remove('hidden');
+        document.getElementById('profile-step-confirm').classList.add('hidden');
+
+        if(isEdit){
+            closeBtn.classList.remove('hidden');closeBtn.classList.add('flex');
+            title.innerText='Edit Profile';
+            subtitle.innerText='Update your username, phone number, or visibility settings.';
+            btnText.innerText='Save Changes';
+            if(currentProfile){
+                document.getElementById('dash-username-input').value=currentProfile.username||'';
+                document.getElementById('dash-phone-input').value=currentProfile.phone||'';
+                document.getElementById('dash-anonymous-toggle').checked=currentProfile.is_anonymous||false;
+            }
+        } else {
+            closeBtn.classList.add('hidden');closeBtn.classList.remove('flex');
+            title.innerText='Set Up Your Profile';
+            subtitle.innerText='Choose a username for the leaderboard and optionally add your mobile for win alerts.';
+            btnText.innerText='Save & Continue →';
+            document.getElementById('dash-anonymous-toggle').checked=false;
+        }
+
+        modal.classList.remove('hidden');modal.classList.add('flex');
+        document.getElementById('settings-panel').classList.add('hidden');
+    }
+
+    function closeProfileModal(){
+        document.getElementById('profile-modal').classList.add('hidden');
+        document.getElementById('profile-modal').classList.remove('flex');
+    }
+
+    function confirmProfileSave(e){
+        e.preventDefault();
+        const username=document.getElementById('dash-username-input').value.trim();
+        const phone=document.getElementById('dash-phone-input').value.trim();
+        const isAnon=document.getElementById('dash-anonymous-toggle').checked;
+        if(!username){alert('Username is required.');return;}
+
+        if(profileEditMode){
+            document.getElementById('confirm-username').innerText=username;
+            document.getElementById('confirm-phone').innerText=phone||'Not set';
+            const visEl=document.getElementById('confirm-visibility');
+            if(isAnon){visEl.innerText='Anonymous';visEl.className='font-semibold text-accent';}
+            else{visEl.innerText='Public';visEl.className='font-semibold text-success';}
+            document.getElementById('profile-step-form').classList.add('hidden');
+            document.getElementById('profile-step-confirm').classList.remove('hidden');
+        } else {
+            executeSaveProfile();
+        }
+    }
+
+    function cancelConfirm(){
+        document.getElementById('profile-step-form').classList.remove('hidden');
+        document.getElementById('profile-step-confirm').classList.add('hidden');
+    }
+
+    async function executeSaveProfile(){
+        const btn=profileEditMode?document.getElementById('btn-confirm-save'):document.getElementById('btn-save-profile');
+        const btnText=profileEditMode?document.getElementById('confirm-btn-text'):document.getElementById('save-btn-text');
+        const origText=btnText.innerText;
         btnText.innerHTML=`<svg class="inline w-4 h-4 animate-spin mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Saving…`;
         btn.disabled=true;
-        const username=document.getElementById('dash-username-input').value;
-        const phone=document.getElementById('dash-phone-input').value;
-        const{error}=await window.supabaseClient.from('profiles').upsert({id:currentUser.id,email:currentUser.email,username,phone});
+        const username=document.getElementById('dash-username-input').value.trim();
+        const phone=document.getElementById('dash-phone-input').value.trim();
+        const is_anonymous=document.getElementById('dash-anonymous-toggle').checked;
+        const{error}=await window.supabaseClient.from('profiles').upsert({id:currentUser.id,email:currentUser.email,username,phone,is_anonymous});
         if(error){
             alert("Error saving profile. That username may be taken.");
-            btnText.innerHTML='Claim Tag & Enter Vault →';btn.disabled=false;
+            btnText.innerHTML=origText;btn.disabled=false;
+            if(profileEditMode) cancelConfirm();
         } else {
-            document.getElementById('profile-modal').classList.add('hidden');
-            document.getElementById('profile-modal').classList.remove('flex');
-            document.getElementById('nav-username').innerText=username;
+            currentProfile={...currentProfile,username,phone,is_anonymous};
+            closeProfileModal();
+            const navU=document.getElementById('nav-username');
+            if(navU) navU.innerText=username;
             document.getElementById('profile-username-display').innerText=username;
+            btnText.innerHTML=origText;btn.disabled=false;
             if(window.loadGlobalVault) window.loadGlobalVault(currentUser.id);
         }
     }
 
-    asyn
+    async function signOut(){
+        await window.supabaseClient.auth.signOut();
+        window.location.href="auth.html";
+    }
+
+    // ── Referral System ─────────────────────────────────────────
+    async function loadReferrals(){
+        if(!currentUser||!currentProfile) return;
+
+        // Set referral link
+        const code=currentProfile.referral_code;
+        const link=`${window.location.origin}/auth.html?ref=${code}`;
+        document.getElementById('ref-link-input').value=link;
+
+        // Credit balance
+        const balance=parseFloat(currentProfile.credit_balance||0);
+        document.getElementById('ref-credit-balance').innerText=`£${balance.toFixed(2)}`;
+
+        // Load referrals, then fetch referred users' profiles separately
+        const{data:refs,error:refErr}=await window.supabaseClient
+            .from('referrals')
+            .select('*')
+            .eq('referrer_id',currentUser.id)
+            .order('created_at',{ascending:false});
+
+        if(refErr) console.error('Referral fetch error:', refErr);
+
+        // Fetch profiles for referred users who have signed up
+        const referredUserIds=(refs||[]).filter(r=>r.referred_user_id).map(r=>r.referred_user_id);
+        let profileMap={};
+        if(referredUserIds.length>0){
+            const{data:profiles}=await window.supabaseClient
+                .from('profiles')
+                .select('id, username, avatar_url')
+                .in('id',referredUserIds);
+            if(profiles) profiles.forEach(p=>{ profileMap[p.id]=p; });
+        }
+
+        const completed=(refs||[]).filter(r=>r.status==='completed').length;
+        document.getElementById('ref-completed-count').innerText=completed;
+
+        // Update milestones
+        updateMilestones(completed);
+
+        // Render referral list
+        const list=document.getElementById('ref-list');
+        if(!refs||refs.length===0){
+            list.innerHTML='<p class="text-sm text-slate-500 text-center py-4">No referrals yet — share your link to get started!</p>';
+            return;
+        }
+
+        list.innerHTML=refs.map(r=>{
+            const date=new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+            const email=r.referred_email;
+            const masked=email.replace(/^(.{2}).*(@.*)$/,'$1***$2');
+            const refProfile=r.referred_user_id?profileMap[r.referred_user_id]:null;
+            const username=refProfile?.username||null;
+            const avatarUrl=refProfile?.avatar_url||null;
+            const displayName=username||masked;
+            const initial=displayName.charAt(0).toUpperCase();
+
+            // Step states
+            const step1Done=r.status==='signed_up'||r.status==='completed';
+            const step2Done=r.status==='completed';
+
+            // Avatar or initial
+            const avatarHtml=avatarUrl
+                ?`<img src="${avatarUrl}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.1);flex-shrink:0;">`
+                :`<div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:${step1Done?'rgba(245,158,11,0.15)':'rgba(100,116,139,0.15)'};border:1.5px solid ${step1Done?'rgba(245,158,11,0.3)':'rgba(100,116,139,0.2)'};color:${step1Done?'#f59e0b':'#64748b'};">${initial}</div>`;
+
+            // Progress bar
+            const step1Color=step1Done?'#f59e0b':'#334155';
+            const step2Color=step2Done?'#10b981':'#334155';
+            const step1Text=step1Done?'text-accent':'text-slate-600';
+            const step2Text=step2Done?'text-success':'text-slate-600';
+            const connectorColor=step1Done?(step2Done?'#10b981':'#334155'):'#334155';
+
+            return `<div class="p-4 rounded-xl bg-dark/30 border border-white/5">
+                <div class="flex items-center gap-3 mb-3">
+                    ${avatarHtml}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-white font-semibold truncate">${displayName}</p>
+                        ${username?`<p class="text-[10px] text-slate-600 truncate">${masked}</p>`:''}
+                        <p class="text-[10px] text-slate-600">${date}</p>
+                    </div>
+                    ${step2Done?`<span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border text-success bg-success/10 border-success/20">Complete</span>`:''}
+                </div>
+                <!-- 2-step progress bar -->
+                <div class="flex items-center gap-0">
+                    <!-- Step 1 -->
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background:${step1Done?'rgba(245,158,11,0.2)':'rgba(51,65,85,0.5)'};border:1.5px solid ${step1Color};">
+                            ${step1Done?`<svg class="w-3 h-3" fill="${step1Color}" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`:`<span class="w-1.5 h-1.5 rounded-full" style="background:${step1Color};"></span>`}
+                        </div>
+                        <span class="${step1Text} text-[10px] font-semibold">Registered</span>
+                    </div>
+                    <!-- Connector -->
+                    <div class="flex-1 h-[2px] mx-2 rounded-full" style="background:${connectorColor};min-width:20px;"></div>
+                    <!-- Step 2 -->
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background:${step2Done?'rgba(16,185,129,0.2)':'rgba(51,65,85,0.5)'};border:1.5px solid ${step2Color};">
+                            ${step2Done?`<svg class="w-3 h-3" fill="${step2Color}" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`:`<span class="w-1.5 h-1.5 rounded-full" style="background:${step2Color};"></span>`}
+                        </div>
+                        <span class="${step2Text} text-[10px] font-semibold">First Order (£10+)</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function updateMilestones(completed){
+        const milestones=[
+            {el:'ref-milestone-1',statusEl:'ref-milestone-1-status',need:1,reward:'£5'},
+            {el:'ref-milestone-2',statusEl:'ref-milestone-2-status',need:3,reward:'£20'},
+            {el:'ref-milestone-3',statusEl:'ref-milestone-3-status',need:10,reward:'£50'}
+        ];
+        milestones.forEach(m=>{
+            const card=document.getElementById(m.el);
+            const status=document.getElementById(m.statusEl);
+            if(completed>=m.need){
+                card.classList.remove('border-white/6');
+                card.classList.add('border-success/30','bg-success/5');
+                status.innerHTML='<span class="text-success">Unlocked ✓</span>';
+            } else {
+                status.innerHTML=`<span class="text-slate-600">${completed}/${m.need}</span>`;
+            }
+        });
+    }
+
+    function copyRefLink(){
+        const input=document.getElementById('ref-link-input');
+        navigator.clipboard?.writeText(input.value).catch(()=>{});
+        const btn=document.getElementById('ref-copy-btn');
+        btn.innerHTML='<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Copied!';
+        setTimeout(()=>{
+            btn.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> Copy';
+        },2000);
+    }
+
+    function shareRefLink(platform){
+        const link=document.getElementById('ref-link-input').value;
+        const text='Join OcheVault — win amazing darts prizes and support the Cure ADOA Foundation! Sign up here:';
+        if(platform==='whatsapp'){
+            window.open(`https://wa.me/?text=${encodeURIComponent(text+' '+link)}`,'_blank');
+        } else if(platform==='twitter'){
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`,'_blank');
+        } else if(platform==='email'){
+            window.location.href=`mailto:?subject=${encodeURIComponent('Join OcheVault!')}&body=${encodeURIComponent(text+'\n\n'+link)}`;
+        }
+    }
+
+    async function sendReferralInvite(){
+        const emailInput=document.getElementById('ref-invite-email');
+        const msg=document.getElementById('ref-invite-msg');
+        const email=emailInput.value.trim().toLowerCase();
+        if(!email||!email.includes('@')){
+            msg.className='text-[11px] font-bold mt-2 text-brand';
+            msg.innerText='Please enter a valid email address.';
+            msg.classList.remove('hidden');
+            return;
+        }
+        if(email===currentUser.email){
+            msg.className='text-[11px] font-bold mt-2 text-brand';
+            msg.innerText='You cannot refer yourself!';
+            msg.classList.remove('hidden');
+            return;
+        }
+        const btn=document.getElementById('ref-invite-btn');
+        btn.disabled=true;btn.innerText='Sending...';
+
+        const{error}=await window.supabaseClient.from('referrals').insert([{
+            referrer_id:currentUser.id,
+            referred_email:email
+        }]);
+
+        if(error){
+            if(error.code==='23505'){
+                msg.className='text-[11px] font-bold mt-2 text-accent';
+                msg.innerText='You have already invited this person.';
+            } else {
+                msg.className='text-[11px] font-bold mt-2 text-brand';
+                msg.innerText='Error sending invite. Please try again.';
+            }
+        } else {
+            msg.className='text-[11px] font-bold mt-2 text-success';
+            msg.innerText='Invite recorded! Share your link with them to sign up.';
+            emailInput.value='';
+            loadReferrals();
+        }
+        msg.classList.remove('hidden');
+        btn.disabled=false;btn.innerText='Send Invite';
+        setTimeout(()=>msg.classList.add('hidden'),4000);
+    }
+    </script>
+
+</body>
+</html>

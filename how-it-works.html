@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How It Works | OcheRaffles</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>How It Works | OcheVault</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -57,6 +58,8 @@
             border:1px solid rgba(255,255,255,0.07);
             backdrop-filter:blur(12px);
         }
+        .mobile-menu { transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.3s; opacity: 0; pointer-events: none; }
+        .mobile-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body class="bg-dark text-slate-300 antialiased min-h-screen flex flex-col">
@@ -66,7 +69,7 @@
 
     <!-- NAV -->
     <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 group">
                 <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="20" cy="20" r="19" fill="#dc2626"/>
@@ -75,11 +78,29 @@
                     <circle cx="20" cy="20" r="4" fill="#0c1220"/>
                     <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
                 </svg>
-                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheRaffles</span>
+                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheVault</span>
             </a>
-            <div class="flex gap-5 items-center">
-                <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">← Live Draws</a>
-                <a href="auth.html" class="auth-link bg-card hover:bg-slate-700/80 border border-slate-600/60 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all">Sign In</a>
+            <div class="flex items-center gap-5">
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
+                    <a href="past.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Past Winners</a>
+                    <span class="text-white text-sm font-semibold border-b border-brand pb-0.5">How It Works</span>
+                    <a href="leaderboard.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
+                </div>
+                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
+                <button onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+                <a href="index.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
+                <a href="past.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Past Winners</a>
+                <a href="how-it-works.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span> How It Works</a>
+                <a href="leaderboard.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
+                <div class="h-px bg-slate-700/40 my-2"></div>
+                <a href="auth.html" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
             </div>
         </div>
     </nav>
@@ -89,7 +110,7 @@
         <!-- HERO -->
         <div class="text-center mb-20 float-in">
             <p class="text-[10px] font-bold text-brand/70 uppercase tracking-[0.3em] mb-3">Transparent by Design</p>
-            <h1 class="display text-white mb-5" style="font-size:clamp(3rem,7vw,5.5rem);line-height:0.95;">How OcheRaffles Works</h1>
+            <h1 class="display text-white mb-5" style="font-size:clamp(3rem,7vw,5.5rem);line-height:0.95;">How OcheVault Works</h1>
             <p class="text-slate-400 max-w-2xl mx-auto leading-relaxed text-lg">
                 Fair draws, secure payments, real memorabilia — and every entry funds the sport you love.
                 Here's exactly how your money flows and how winners are chosen.
@@ -106,14 +127,27 @@
                 <div class="flex-1 h-px bg-white/5"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-0 md:gap-0 relative">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-0 relative">
                 <!-- Horizontal connector line (desktop) -->
                 <div class="hidden md:block absolute top-16 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-brand/30 to-transparent z-0"></div>
 
                 <!-- Step 1 -->
                 <div class="float-in-2 text-center p-6 relative z-10">
                     <div class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center border border-slate-700/60 bg-card/80 relative">
-                        <!-- Ticket SVG icon -->
+                        <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="14" r="6" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+                            <path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M20 8l2-4M22 4l-4 0M22 4l0 4" stroke="#f59e0b" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">1</div>
+                    </div>
+                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Create Free Account</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Sign up with just your email. We use magic links — no password needed. Click the link in your inbox and you're in.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="float-in-2 text-center p-6 relative z-10">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center border border-slate-700/60 bg-card/80 relative">
                         <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
                             <rect x="2" y="8" width="28" height="16" rx="3" fill="none" stroke="#dc2626" stroke-width="1.5"/>
                             <circle cx="2" cy="16" r="3" fill="#0c1220" stroke="#dc2626" stroke-width="1.5"/>
@@ -123,14 +157,14 @@
                             <line x1="13" y1="16" x2="22" y2="16" stroke="#dc2626" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
                             <line x1="13" y1="19" x2="20" y2="19" stroke="#dc2626" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
                         </svg>
-                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">1</div>
+                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">2</div>
                     </div>
-                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Choose a Draw</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">Browse live draws and pick the memorabilia you want to win. Each draw has a fixed ticket price and maximum entry count.</p>
+                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Browse Live Draws</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Pick from 17+ active draws — signed memorabilia, premium dart sets, Star Wars themed sets, dartboards, and coaching sessions. Choose your tickets.</p>
                 </div>
 
-                <!-- Step 2 -->
-                <div class="float-in-2 text-center p-6 relative z-10">
+                <!-- Step 3 -->
+                <div class="float-in-3 text-center p-6 relative z-10">
                     <div class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center border border-slate-700/60 bg-card/80 relative">
                         <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
                             <rect x="4" y="6" width="24" height="20" rx="3" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
@@ -140,31 +174,49 @@
                             <circle cx="24" cy="8" r="5" fill="#0c1220" stroke="#f59e0b" stroke-width="1.2"/>
                             <path d="M22 8l1.5 1.5L25.5 7" stroke="#f59e0b" stroke-width="1.2" fill="none" stroke-linecap="round"/>
                         </svg>
-                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">2</div>
+                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">3</div>
                     </div>
-                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Secure Bank Transfer</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">Pay securely via UK Faster Payments using your unique OCH- reference. Our gateway matches your payment automatically within minutes.</p>
+                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Pay Securely</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Checkout via Stripe (card payments), bank transfer, or TrueLayer instant bank payment. Fast, secure, no fuss.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-0 relative mt-2">
+                <!-- Horizontal connector line (desktop) -->
+                <div class="hidden md:block absolute top-16 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-brand/30 to-transparent z-0"></div>
+
+                <!-- Step 4 -->
+                <div class="float-in-3 text-center p-6 relative z-10">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center border border-slate-700/60 bg-card/80 relative">
+                        <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="4" width="22" height="24" rx="3" fill="none" stroke="#10b981" stroke-width="1.5"/>
+                            <path d="M11 12h10M11 16h8M11 20h6" stroke="#10b981" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+                            <path d="M13 8l2 2 4-4" stroke="#10b981" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">4</div>
+                    </div>
+                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Tickets Hit Your Vault</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Your tickets land in your vault instantly. Track all your active draws in one place with real-time status updates.</p>
                 </div>
 
-                <!-- Step 3 -->
-                <div class="float-in-3 text-center p-6 relative z-10">
+                <!-- Step 5 -->
+                <div class="float-in-4 text-center p-6 relative z-10">
                     <div class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center border border-slate-700/60 bg-card/80 relative">
                         <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="16" cy="16" r="13" fill="none" stroke="#10b981" stroke-width="1.5"/>
                             <circle cx="16" cy="16" r="9" fill="none" stroke="#10b981" stroke-width="1" opacity="0.5"/>
                             <circle cx="16" cy="16" r="5" fill="none" stroke="#10b981" stroke-width="1" opacity="0.3"/>
                             <circle cx="16" cy="16" r="2" fill="#10b981"/>
-                            <!-- dart -->
                             <line x1="16" y1="3" x2="16" y2="14" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
                             <polygon points="16,3 14.5,7 17.5,7" fill="#10b981"/>
                         </svg>
-                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">3</div>
+                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">5</div>
                     </div>
-                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Tickets Hit Your Vault</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">Verified entries are instantly credited to your secure vault. Track all your active draws in one place with real-time status.</p>
+                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Play the Free Dart Game</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Hit the homepage dart game for leaderboard glory. 3 darts per entry, 3 entries per hour. Daily winner gets a free bonus ticket.</p>
                 </div>
 
-                <!-- Step 4 -->
+                <!-- Step 6 -->
                 <div class="float-in-4 text-center p-6 relative z-10">
                     <div class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center border border-brand/30 bg-brand/8 relative">
                         <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
@@ -173,10 +225,10 @@
                             <circle cx="16" cy="21" r="3" fill="#dc2626"/>
                             <line x1="16" y1="6" x2="16" y2="3" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round"/>
                         </svg>
-                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">4</div>
+                        <div class="absolute -top-2 -right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center text-white font-black text-[10px]">6</div>
                     </div>
-                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Live Draw & Win</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">When the draw closes, our verifiable randomiser picks the winner live. Winners are notified instantly and prizes shipped within 5 days.</p>
+                    <h3 class="display text-white mb-2" style="font-size:1.1rem;">Winners Drawn Live</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">When the draw closes, our provably fair randomiser picks the winner live. Winners are notified instantly and prizes shipped within 5 days.</p>
                 </div>
             </div>
         </section>
@@ -244,7 +296,7 @@
                             <div>
                                 <p class="text-[10px] text-success/70 font-black uppercase tracking-widest mb-1">80% of Proceeds</p>
                                 <h3 class="display text-white mb-2" style="font-size:1.25rem;">Charity Partners & Prize Pot</h3>
-                                <p class="text-sm text-slate-400 leading-relaxed">The vast majority of every entry fee goes directly to our charity partners — currently the <strong class="text-white">ADOA</strong> (Arrows for Darts Athletes) — and funds future charitable giveaway draws with even bigger prizes at lower entry points.</p>
+                                <p class="text-sm text-slate-400 leading-relaxed">The vast majority of every entry fee goes directly to our charity partners — currently the <strong class="text-white">Cure ADOA Foundation</strong> — and funds future charitable giveaway draws with even bigger prizes at lower entry points.</p>
                             </div>
                         </div>
                         <div class="mt-5 pt-5 border-t border-success/10 flex items-center justify-between">
@@ -285,17 +337,17 @@
         <section class="mb-24">
             <div class="flex items-center gap-3 mb-10">
                 <span class="display text-brand" style="font-size:1rem;">03</span>
-                <h2 class="display text-white" style="font-size:2.2rem;">Secure Payment via Bank Reference</h2>
+                <h2 class="display text-white" style="font-size:2.2rem;">Secure Payment Options</h2>
                 <div class="flex-1 h-px bg-white/5"></div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 <div class="space-y-5">
                     <p class="text-slate-300 leading-relaxed">
-                        OcheRaffles uses <strong class="text-white">UK Faster Payments</strong> — the same infrastructure trusted by every major UK bank. There are no card fees, no PayPal delays, and no third-party data sharing.
+                        OcheVault offers three secure payment methods: <strong class="text-white">Stripe</strong> for card payments, <strong class="text-white">bank transfer</strong> via UK Faster Payments, and <strong class="text-white">TrueLayer</strong> for instant bank payment. Pick whichever suits you best.
                     </p>
                     <p class="text-slate-400 leading-relaxed text-sm">
-                        When you enter a draw, our system generates a unique <strong class="text-white font-mono">OCH-XXXXX</strong> reference code. Include this exactly when making your bank transfer. Our automated verification gateway reads the reference and credits your tickets within minutes.
+                        Card payments via Stripe are processed instantly. For bank transfers, our system generates a unique <strong class="text-white font-mono">OCH-XXXXX</strong> reference code — include this exactly and your tickets are credited automatically. TrueLayer connects directly to your bank for instant confirmation.
                     </p>
 
                     <!-- Steps -->
@@ -303,22 +355,22 @@
                         <div class="flex items-start gap-3">
                             <div class="w-6 h-6 bg-brand/15 border border-brand/30 rounded-lg flex items-center justify-center text-brand text-xs font-black flex-shrink-0 mt-0.5">A</div>
                             <div>
-                                <p class="text-sm font-semibold text-white">Generate your unique reference</p>
-                                <p class="text-xs text-slate-500">A new OCH- code is created for every entry session — it's tied to your account and this specific draw.</p>
+                                <p class="text-sm font-semibold text-white">Stripe (Card Payment)</p>
+                                <p class="text-xs text-slate-500">Pay by debit or credit card via Stripe. Instant processing, PCI compliant, and your tickets land in your vault immediately.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <div class="w-6 h-6 bg-accent/15 border border-accent/30 rounded-lg flex items-center justify-center text-accent text-xs font-black flex-shrink-0 mt-0.5">B</div>
                             <div>
-                                <p class="text-sm font-semibold text-white">Send via your banking app</p>
-                                <p class="text-xs text-slate-500">Standard bank transfer to OcheLimited. Sort code 04-00-03, Account 04818847. Include the reference exactly.</p>
+                                <p class="text-sm font-semibold text-white">Bank Transfer</p>
+                                <p class="text-xs text-slate-500">Transfer to OcheLimited using your unique OCH- reference. Our gateway matches and credits your tickets automatically within minutes.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <div class="w-6 h-6 bg-success/15 border border-success/30 rounded-lg flex items-center justify-center text-success text-xs font-black flex-shrink-0 mt-0.5">C</div>
                             <div>
-                                <p class="text-sm font-semibold text-white">Automatic verification & crediting</p>
-                                <p class="text-xs text-slate-500">Our gateway matches the reference to your vault. Tickets appear instantly once the payment is confirmed — no manual review needed.</p>
+                                <p class="text-sm font-semibold text-white">TrueLayer (Instant Bank Payment)</p>
+                                <p class="text-xs text-slate-500">Connect directly to your bank for instant confirmation. No card details needed — secure open banking powered by TrueLayer.</p>
                             </div>
                         </div>
                     </div>
@@ -350,7 +402,7 @@
                     </div>
                     <div class="mt-4 flex items-center gap-2 text-[10px] text-success font-bold">
                         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
-                        256-bit encrypted · UK Faster Payments · No card data stored
+                        256-bit encrypted · Stripe & TrueLayer · PCI compliant
                     </div>
                 </div>
             </div>
@@ -386,7 +438,7 @@
                         <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
                     </div>
                     <h3 class="display text-white mb-2" style="font-size:1.1rem;">Legal & Compliant</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">OcheRaffles operates as a prize competition under UK law, free from Gambling Act 2005 regulation. All entrants must be 18+ and UK residents.</p>
+                    <p class="text-sm text-slate-500 leading-relaxed">OcheVault operates as a prize competition under UK law, free from Gambling Act 2005 regulation. All entrants must be 18+ and UK residents.</p>
                 </div>
             </div>
         </section>
@@ -409,7 +461,7 @@
                         <div class="faq-icon w-7 h-7 bg-white/5 rounded-full flex items-center justify-center flex-shrink-0 text-slate-400 text-xl font-light group-open:bg-brand/15 group-open:text-brand transition-colors">+</div>
                     </summary>
                     <div class="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-4">
-                        Typically within 2–5 minutes of your payment clearing. UK Faster Payments usually settle within seconds. If you've included the exact OCH- reference, our system matches and credits automatically. Allow up to 30 minutes during busy periods.
+                        Stripe card payments and TrueLayer instant bank payments credit your vault immediately. Bank transfers typically clear within 2–5 minutes via UK Faster Payments. Allow up to 30 minutes during busy periods.
                     </div>
                 </details>
 
@@ -459,7 +511,7 @@
                         <div class="faq-icon w-7 h-7 bg-white/5 rounded-full flex items-center justify-center flex-shrink-0 text-slate-400 text-xl font-light group-open:bg-brand/15 group-open:text-brand transition-colors">+</div>
                     </summary>
                     <div class="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-4">
-                        Every ticket you purchase earns Oche Points. The top players on our weekly leaderboard receive complimentary entries into the next draw — and monthly top players win exclusive prizes. Check the Leaderboard tab in your vault to see your ranking.
+                        Play the free dart game on the homepage — 3 darts per entry, up to 3 entries per hour. Your scores go on the daily leaderboard, and the daily winner gets a free ticket. Check the Leaderboard page to see your ranking.
                     </div>
                 </details>
 
@@ -478,44 +530,58 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="relative z-10 mt-20">
-        <div class="border-t border-slate-700/40 bg-dark/80 backdrop-blur-sm">
-            <div class="max-w-7xl mx-auto px-4 py-12">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-                    <div class="col-span-1 md:col-span-2">
-                        <div class="flex items-center gap-2.5 mb-4">
-                            <svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="14" cy="14" r="13" fill="#dc2626"/>
-                                <circle cx="14" cy="14" r="9" fill="#0c1220"/>
-                                <circle cx="14" cy="14" r="5.5" fill="#dc2626"/>
-                                <circle cx="14" cy="14" r="2.5" fill="#0c1220"/>
-                                <circle cx="14" cy="14" r="1" fill="#f59e0b"/>
+    <footer class="relative z-10 mt-auto">
+        <div class="h-px bg-gradient-to-r from-transparent via-brand/25 to-transparent"></div>
+        <div class="bg-dark/95">
+            <div class="max-w-7xl mx-auto px-4 pt-14 pb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="15" fill="#dc2626"/>
+                                <circle cx="16" cy="16" r="11" fill="#0c1220"/>
+                                <circle cx="16" cy="16" r="7" fill="#dc2626"/>
+                                <circle cx="16" cy="16" r="3" fill="#0c1220"/>
+                                <circle cx="16" cy="16" r="1.5" fill="#f59e0b"/>
                             </svg>
-                            <span class="display text-xl text-white">OcheRaffles</span>
+                            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;font-size:1.4rem;" class="text-white">OcheVault</span>
                         </div>
-                        <p class="text-slate-500 text-sm max-w-xs leading-relaxed mb-4">Fair, transparent prize competitions for the global darts community.</p>
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal Accepted" class="h-5 opacity-30 grayscale hover:opacity-80 hover:grayscale-0 transition duration-300">
+                        <p class="text-slate-500 text-sm leading-relaxed mb-5 max-w-xs">Fair, transparent prize competitions for the global darts community. 80% of all proceeds go directly to charity.</p>
+                        <div class="inline-flex items-center gap-2 bg-success/6 border border-success/15 rounded-xl px-3 py-2.5">
+                            <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
+                            <span class="text-xs text-success font-bold">£12,450 raised for ADOA</span>
+                        </div>
                     </div>
                     <div>
-                        <h4 class="text-white font-bold mb-4 text-xs uppercase tracking-wider">Platform</h4>
-                        <ul class="space-y-2.5 text-sm text-slate-500">
-                            <li><a href="index.html" class="hover:text-white transition-colors">Live Draws</a></li>
-                            <li><a href="past.html" class="hover:text-white transition-colors">Past Winners</a></li>
-                            <li><a href="how-it-works.html" class="hover:text-white transition-colors">How It Works</a></li>
+                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Platform</h4>
+                        <ul class="space-y-3">
+                            <li><a href="index.html" class="text-sm text-slate-500 hover:text-white transition-colors">Live Draws</a></li>
+                            <li><a href="past.html" class="text-sm text-slate-500 hover:text-white transition-colors">Past Winners</a></li>
+                            <li><a href="how-it-works.html" class="text-sm text-white font-medium flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-brand"></span>How It Works</a></li>
+                            <li><a href="dashboard.html" class="text-sm text-slate-500 hover:text-white transition-colors">My Vault</a></li>
                         </ul>
                     </div>
                     <div>
-                        <h4 class="text-white font-bold mb-4 text-xs uppercase tracking-wider">Legal</h4>
-                        <ul class="space-y-2.5 text-sm text-slate-500">
-                            <li><a href="mailto:contact@sharpsolutions.live" class="hover:text-white transition-colors text-white font-medium">Contact Us</a></li>
-                            <li><a href="#" class="hover:text-white transition-colors">Terms & Conditions</a></li>
-                            <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Legal & Support</h4>
+                        <ul class="space-y-3">
+                            <li><a href="terms.html" class="text-sm text-slate-500 hover:text-white transition-colors">Terms & Conditions</a></li>
+                            <li><a href="terms.html#privacy" class="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="mailto:contact@ochevault.com" class="text-sm text-white hover:text-brand transition-colors font-medium">Contact Us</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="border-t border-slate-700/30 pt-6 text-xs text-slate-700 text-center space-y-1.5">
-                    <p>OcheRaffles operates prize competitions free from regulation under the Gambling Act 2005. Entrants must be 18+ and UK residents.</p>
-                    <p>&copy; 2026 OcheRaffles Ltd. | <a href="https://sharpsolutions.live" class="text-brand hover:underline">Powered by Sharp Solutions</a></p>
+                <div class="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-700">
+                        <span>© 2026 OcheVault Ltd. All rights reserved.</span>
+                        <span class="hidden sm:inline">·</span>
+                        <span>Skill-based competitions — exempt from Gambling Act 2005</span>
+                        <span class="hidden sm:inline">·</span>
+                        <span>18+ UK only</span>
+                    </div>
+                    <a href="https://sharpsolutions.live" target="_blank" class="text-[11px] text-slate-700 hover:text-brand transition-colors flex items-center gap-1.5 group">
+                        Powered by <span class="font-bold text-slate-500 group-hover:text-brand ml-1">Sharp Solutions</span>
+                        <svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
                 </div>
             </div>
         </div>

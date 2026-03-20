@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hall of Fame | OcheRaffles</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Hall of Fame | OcheVault</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -67,6 +68,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .float-in { animation: floatUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+        .mobile-menu { transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.3s; opacity: 0; pointer-events: none; }
+        .mobile-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body class="bg-dark text-slate-300 antialiased min-h-screen flex flex-col">
@@ -77,23 +80,38 @@
 
     <!-- NAV -->
     <nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 group">
-                <div class="relative w-10 h-10 flex-shrink-0">
-                    <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="20" cy="20" r="19" fill="#dc2626"/>
-                        <circle cx="20" cy="20" r="14" fill="#0c1220"/>
-                        <circle cx="20" cy="20" r="9" fill="#dc2626"/>
-                        <circle cx="20" cy="20" r="4" fill="#0c1220"/>
-                        <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
-                    </svg>
-                </div>
-                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheRaffles</span>
+                <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="19" fill="#dc2626"/>
+                    <circle cx="20" cy="20" r="14" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="9" fill="#dc2626"/>
+                    <circle cx="20" cy="20" r="4" fill="#0c1220"/>
+                    <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
+                </svg>
+                <span class="display text-white text-2xl group-hover:text-brand transition-colors hidden sm:block">OcheVault</span>
             </a>
-            <div class="flex gap-6 items-center">
-                <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
-                <a href="past.html" class="text-white font-semibold text-sm border-b border-brand pb-0.5">Past Winners</a>
-                <a href="auth.html" class="auth-link bg-card hover:bg-slate-700/80 border border-slate-600/60 hover:border-slate-400 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all">Sign In</a>
+            <div class="flex items-center gap-5">
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Live Draws</a>
+                    <span class="text-white text-sm font-semibold border-b border-brand pb-0.5">Past Winners</span>
+                    <a href="how-it-works.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
+                    <a href="leaderboard.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
+                </div>
+                <a href="auth.html" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)]">My Vault →</a>
+                <button onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+                <a href="index.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
+                <a href="past.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span> Past Winners</a>
+                <a href="how-it-works.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">How It Works</a>
+                <a href="leaderboard.html" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Leaderboard</a>
+                <div class="h-px bg-slate-700/40 my-2"></div>
+                <a href="auth.html" class="auth-link-mobile px-4 py-3 rounded-xl bg-brand/10 border border-brand/25 text-brand text-sm font-bold text-center transition-all hover:bg-brand/20">My Vault →</a>
             </div>
         </div>
     </nav>
@@ -533,67 +551,58 @@
 
     <!-- FOOTER -->
     <footer class="relative z-10 mt-auto">
-        <div class="h-px bg-gradient-to-r from-transparent via-brand/30 to-transparent"></div>
-        <div class="bg-gradient-to-b from-dark/95 to-[#080e1a] backdrop-blur-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-10">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-10 mb-14">
-                    <div class="md:col-span-5">
-                        <div class="flex items-center gap-3 mb-5">
-                            <svg viewBox="0 0 40 40" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="19" fill="#dc2626"/><circle cx="20" cy="20" r="14" fill="#0c1220"/><circle cx="20" cy="20" r="9" fill="#dc2626"/><circle cx="20" cy="20" r="4" fill="#0c1220"/><circle cx="20" cy="20" r="2" fill="#f59e0b"/></svg>
-                            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:1.5rem;letter-spacing:-0.02em;" class="text-white">OcheRaffles</span>
+        <div class="h-px bg-gradient-to-r from-transparent via-brand/25 to-transparent"></div>
+        <div class="bg-dark/95">
+            <div class="max-w-7xl mx-auto px-4 pt-14 pb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="15" fill="#dc2626"/>
+                                <circle cx="16" cy="16" r="11" fill="#0c1220"/>
+                                <circle cx="16" cy="16" r="7" fill="#dc2626"/>
+                                <circle cx="16" cy="16" r="3" fill="#0c1220"/>
+                                <circle cx="16" cy="16" r="1.5" fill="#f59e0b"/>
+                            </svg>
+                            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;font-size:1.4rem;" class="text-white">OcheVault</span>
                         </div>
-                        <p class="text-slate-500 text-sm leading-relaxed mb-6 max-w-xs">Fair, transparent skill-based prize competitions for the global darts community.</p>
-                        <div class="inline-flex items-center gap-2.5 bg-success/6 border border-success/15 rounded-xl px-4 py-2.5 mb-6">
-                            <div class="w-2 h-2 rounded-full bg-success animate-pulse flex-shrink-0"></div>
-                            <div>
-                                <p class="text-[10px] text-success/70 font-bold uppercase tracking-wider leading-none mb-0.5">Live Charity Tracker</p>
-                                <p class="text-success font-black text-sm leading-none" style="font-family:'Barlow Condensed',sans-serif;">£12,450 raised — ADOA</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="h-5 opacity-30 grayscale hover:grayscale-0 hover:opacity-80 transition-all duration-300">
-                            <span class="text-[10px] text-slate-700 font-medium uppercase tracking-wider">Secure Payments</span>
+                        <p class="text-slate-500 text-sm leading-relaxed mb-5 max-w-xs">Fair, transparent prize competitions for the global darts community. 80% of all proceeds go directly to charity.</p>
+                        <div class="inline-flex items-center gap-2 bg-success/6 border border-success/15 rounded-xl px-3 py-2.5">
+                            <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
+                            <span class="text-xs text-success font-bold">£12,450 raised for ADOA</span>
                         </div>
                     </div>
-                    <div class="md:col-span-2">
-                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Draws</h4>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Platform</h4>
                         <ul class="space-y-3">
-                            <li><a href="index.html" class="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-brand transition-colors"></span>Live Draws</a></li>
-                            <li><a href="past.html" class="text-sm text-white font-medium transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-brand"></span>Past Winners</a></li>
-                            <li><a href="dashboard.html" class="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-brand transition-colors"></span>My Vault</a></li>
+                            <li><a href="index.html" class="text-sm text-slate-500 hover:text-white transition-colors">Live Draws</a></li>
+                            <li><a href="past.html" class="text-sm text-white font-medium flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-brand"></span>Past Winners</a></li>
+                            <li><a href="how-it-works.html" class="text-sm text-slate-500 hover:text-white transition-colors">How It Works</a></li>
+                            <li><a href="dashboard.html" class="text-sm text-slate-500 hover:text-white transition-colors">My Vault</a></li>
                         </ul>
                     </div>
-                    <div class="md:col-span-2">
-                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Learn</h4>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Legal & Support</h4>
                         <ul class="space-y-3">
-                            <li><a href="how-it-works.html" class="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-brand transition-colors"></span>How It Works</a></li>
-                            <li><a href="#" class="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-brand transition-colors"></span>Charity Partners</a></li>
-                        </ul>
-                    </div>
-                    <div class="md:col-span-3">
-                        <h4 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-5">Support</h4>
-                        <ul class="space-y-3">
-                            <li><a href="mailto:contact@sharpsolutions.live" class="text-sm text-white hover:text-brand transition-colors flex items-center gap-2 group font-medium"><svg class="w-3.5 h-3.5 text-slate-600 group-hover:text-brand transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Contact Us</a></li>
-                            <li><a href="#" class="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-brand transition-colors"></span>Terms &amp; Conditions</a></li>
-                            <li><a href="#" class="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-brand transition-colors"></span>Privacy Policy</a></li>
+                            <li><a href="terms.html" class="text-sm text-slate-500 hover:text-white transition-colors">Terms & Conditions</a></li>
+                            <li><a href="terms.html#privacy" class="text-sm text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="mailto:contact@ochevault.com" class="text-sm text-white hover:text-brand transition-colors font-medium">Contact Us</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="border-t border-slate-800/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-slate-700">
-                        <span>© 2026 OcheRaffles Ltd. All rights reserved.</span>
-                        <span class="hidden md:inline text-slate-800">·</span>
+                <div class="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-700">
+                        <span>© 2026 OcheVault Ltd. All rights reserved.</span>
+                        <span class="hidden sm:inline">·</span>
                         <span>Skill-based competitions — exempt from Gambling Act 2005</span>
-                        <span class="hidden md:inline text-slate-800">·</span>
-                        <span>18+ only</span>
+                        <span class="hidden sm:inline">·</span>
+                        <span>18+ UK only</span>
                     </div>
-                    <a href="https://sharpsolutions.live" target="_blank" class="flex items-center gap-2 text-[11px] text-slate-700 hover:text-brand transition-colors group">
-                        <span>Powered by</span>
-                        <span class="font-bold text-slate-500 group-hover:text-brand transition-colors">Sharp Solutions</span>
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <a href="https://sharpsolutions.live" target="_blank" class="text-[11px] text-slate-700 hover:text-brand transition-colors flex items-center gap-1.5 group">
+                        Powered by <span class="font-bold text-slate-500 group-hover:text-brand ml-1">Sharp Solutions</span>
+                        <svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     </a>
                 </div>
-                <p class="text-[10px] text-slate-800 mt-4 leading-relaxed">Not affiliated with the PDC or Target Darts. All transactions processed securely via PayPal.</p>
             </div>
         </div>
     </footer>

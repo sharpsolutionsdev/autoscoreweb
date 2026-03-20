@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Login | OcheRaffles</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Sign In | OcheVault</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -146,7 +147,7 @@
                         <circle cx="28" cy="28" r="3.5" fill="#f59e0b"/>
                     </svg>
                 </div>
-                <span class="display text-white text-3xl group-hover:text-brand transition-colors">OcheRaffles</span>
+                <span class="display text-white text-3xl group-hover:text-brand transition-colors">OcheVault</span>
             </a>
         </div>
 
@@ -161,8 +162,8 @@
                 <!-- STEP 1: EMAIL -->
                 <div id="step-1" class="float-in-2">
                     <div class="text-center mb-8">
-                        <h2 class="display text-white mb-2" style="font-size:2.6rem; line-height:1;">Welcome Back</h2>
-                        <p class="text-sm text-slate-400 leading-relaxed">Enter your email — we'll send you a secure, one-click magic link.</p>
+                        <h2 class="display text-white mb-2" style="font-size:2.6rem; line-height:1;">Sign In</h2>
+                        <p class="text-sm text-slate-400 leading-relaxed">Enter your email and we'll send you a secure magic link. No password needed.</p>
                     </div>
 
                     <form class="space-y-5" onsubmit="sendMagicLink(event)">
@@ -197,15 +198,21 @@
                     <!-- Trust signals -->
                     <div class="grid grid-cols-3 gap-3 text-center">
                         <div class="bg-dark/40 rounded-xl p-3 border border-white/5">
-                            <div class="text-success text-lg mb-1">🔒</div>
+                            <div class="flex justify-center mb-1.5">
+                                <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            </div>
                             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-tight">No Password</p>
                         </div>
                         <div class="bg-dark/40 rounded-xl p-3 border border-white/5">
-                            <div class="text-accent text-lg mb-1">⚡</div>
+                            <div class="flex justify-center mb-1.5">
+                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
                             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-tight">Instant Link</p>
                         </div>
                         <div class="bg-dark/40 rounded-xl p-3 border border-white/5">
-                            <div class="text-brand text-lg mb-1">🎯</div>
+                            <div class="flex justify-center mb-1.5">
+                                <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
                             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-tight">Secure Vault</p>
                         </div>
                     </div>
@@ -266,6 +273,13 @@
     </div>
 
     <script>
+        // Store referral code from URL if present
+        (function(){
+            const params = new URLSearchParams(window.location.search);
+            const ref = params.get('ref');
+            if(ref) localStorage.setItem('ochevault_ref', ref);
+        })();
+
         async function sendMagicLink(e) {
             e.preventDefault();
             const email = document.getElementById('email-input').value;
@@ -276,9 +290,14 @@
             btn.classList.add('opacity-80', 'cursor-not-allowed');
             btnText.innerHTML = `<span class="inline-flex items-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Sending…</span>`;
 
+            // Include ref code in redirect URL so it survives if magic link opens in a different browser
+            const storedRef = localStorage.getItem('ochevault_ref') || '';
+            let redirectUrl = window.location.origin + '/index.html';
+            if (storedRef) redirectUrl += '?ref=' + encodeURIComponent(storedRef);
+
             const { error } = await window.supabaseClient.auth.signInWithOtp({
                 email: email,
-                options: { emailRedirectTo: window.location.origin + '/index.html' }
+                options: { emailRedirectTo: redirectUrl }
             });
 
             if (error) {

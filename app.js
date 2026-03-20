@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- GLOBAL AUTHENTICATION CHECK ---
     const { data: { user } } = await window.supabaseClient.auth.getUser();
     
-    // Find all "Sign In" buttons
-    const authLinks = document.querySelectorAll('.auth-link');
+    // Find all "Sign In" buttons (desktop + mobile nav)
+    const authLinks = document.querySelectorAll('.auth-link, .auth-link-mobile');
     
     if (user) {
         const [{ data: profile }, { data: tickets }] = await Promise.all([
@@ -46,6 +46,60 @@ document.addEventListener('DOMContentLoaded', async () => {
                 pill.onmouseleave = () => { pill.style.background='rgba(245,158,11,0.08)'; pill.style.borderColor='rgba(245,158,11,0.22)'; };
                 link.parentNode.insertBefore(pill, link);
             });
+        }
+
+        // --- PROCESS REFERRAL IF PRESENT ---
+        // Check both localStorage AND URL params (magic link may open in different browser)
+        const urlRefParams = new URLSearchParams(window.location.search);
+        const refCode = localStorage.getItem('ochevault_ref') || urlRefParams.get('ref');
+        if (refCode) {
+            localStorage.removeItem('ochevault_ref');
+            // Clean the ref param from URL without reload
+            if (urlRefParams.get('ref')) {
+                urlRefParams.delete('ref');
+                const cleanUrl = urlRefParams.toString()
+                    ? window.location.pathname + '?' + urlRefParams.toString()
+                    : window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+            }
+            try {
+                // Find the referrer by their referral code
+                const { data: referrer } = await window.supabaseClient
+                    .from('profiles')
+                    .select('id')
+                    .eq('referral_code', refCode)
+                    .single();
+
+                if (referrer && referrer.id !== user.id) {
+                    // Update referral record: set referred_user_id and status to signed_up
+                    await window.supabaseClient
+                        .from('referrals')
+                        .update({ referred_user_id: user.id, status: 'signed_up' })
+                        .eq('referrer_id', referrer.id)
+                        .eq('referred_email', user.email)
+                        .eq('status', 'pending');
+
+                    // Also try to create a referral if the referrer shared the link
+                    // but didn't manually invite this specific email
+                    const { data: existing } = await window.supabaseClient
+                        .from('referrals')
+                        .select('id')
+                        .eq('referrer_id', referrer.id)
+                        .eq('referred_email', user.email)
+                        .limit(1);
+
+                    if (!existing || existing.length === 0) {
+                        await window.supabaseClient.from('referrals').insert([{
+                            referrer_id: referrer.id,
+                            referred_email: user.email,
+                            referred_user_id: user.id,
+                            status: 'signed_up'
+                        }]);
+                    }
+                }
+            } catch (e) {
+                console.error('Referral processing error:', e);
+            }
         }
     }
 
