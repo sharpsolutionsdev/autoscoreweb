@@ -199,8 +199,8 @@
         </div>
 
         <!-- TABS -->
-        <div class="flex gap-2 mb-8 overflow-x-auto pb-1 border-b border-white/5 pb-0">
-            <div class="flex gap-2 pb-3">
+        <div class="flex gap-2 mb-8 overflow-x-auto pb-1 border-b border-white/5 pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div class="flex gap-2 pb-3 min-w-max">
                 <button class="vault-tab active" onclick="switchTab('vault',this)">🎟 My Tickets</button>
                 <button class="vault-tab" onclick="switchTab('weekly',this)">⚡ Weekly Board</button>
                 <button class="vault-tab" onclick="switchTab('monthly',this)">🏆 Monthly Board</button>
@@ -414,7 +414,7 @@
                 <p class="text-white text-sm font-bold mb-3">Invite by Email</p>
                 <div class="flex items-center gap-2">
                     <input type="email" id="ref-invite-email" placeholder="friend@example.com"
-                        class="oche-input flex-1 rounded-xl px-4 py-3 text-white placeholder:text-slate-700 text-sm">
+                        class="oche-input flex-1 rounded-xl px-4 py-3 text-white placeholder:text-slate-700 text-base md:text-sm">
                     <button onclick="sendReferralInvite()" id="ref-invite-btn"
                         class="bg-success hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all whitespace-nowrap">
                         Send Invite
@@ -452,7 +452,7 @@
 
     <!-- PROFILE MODAL -->
     <div id="profile-modal" class="fixed inset-0 bg-dark/90 z-[110] hidden flex-col items-center justify-center p-4" style="backdrop-filter:blur(12px);">
-        <div class="w-full max-w-md bg-card/95 border border-brand/25 rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
+        <div class="w-full max-w-md mx-4 sm:mx-auto bg-card/95 border border-brand/25 rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
             <div class="h-1 bg-gradient-to-r from-brand via-red-400 to-accent"></div>
             <div class="p-8">
                 <!-- Close button (only in edit mode) -->
@@ -490,7 +490,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Mobile <span class="text-slate-700 font-normal normal-case tracking-normal text-xs">— for win alerts</span></label>
                             <input type="tel" id="dash-phone-input" placeholder="+44 7700 900000"
-                                class="oche-input w-full rounded-xl px-5 py-4 text-white text-center placeholder:text-slate-600">
+                                class="oche-input w-full rounded-xl px-5 py-4 text-white text-base md:text-sm text-center placeholder:text-slate-600">
                         </div>
                         <!-- Anonymous toggle -->
                         <div class="flex items-center justify-between p-4 rounded-xl bg-dark/40 border border-white/5">
