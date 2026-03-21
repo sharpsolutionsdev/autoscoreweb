@@ -1,9 +1,92 @@
+// --- 0. CAPTURE REF PARAMS IMMEDIATELY (before Supabase strips the URL) ---
+// Supabase's magic link handler does history.replaceState which removes ?query params.
+// Read them synchronously right now and persist to sessionStorage as a fallback.
+(function () {
+    try {
+        const p = new URLSearchParams(window.location.search);
+        const refU = p.get('ref_username');
+        const refC = p.get('ref');
+        if (refU) {
+            sessionStorage.setItem('ov_ref_username', refU);
+            localStorage.setItem('ochevault_ref_username', refU);
+        }
+        if (refC) {
+            sessionStorage.setItem('ov_ref', refC);
+            localStorage.setItem('ochevault_ref', refC);
+        }
+    } catch (e) {}
+})();
+
 // --- 1. INITIALIZE SUPABASE ---
 const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
 
 // Create client attached to window so all pages can use it
 window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Listen for the SIGNED_IN event — fires once when a new session is established
+// (magic link click, OTP verification). Use this to catch referrals the moment
+// a new user authenticates, regardless of what happens to the URL afterwards.
+window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if (event !== 'SIGNED_IN' || !session?.user) return;
+    const user = session.user;
+
+    // Pull ref from every possible store
+    const refUsername = sessionStorage.getItem('ov_ref_username')
+        || localStorage.getItem('ochevault_ref_username')
+        || new URLSearchParams(window.location.search).get('ref_username');
+    const refCode = sessionStorage.getItem('ov_ref')
+        || localStorage.getItem('ochevault_ref')
+        || new URLSearchParams(window.location.search).get('ref');
+
+    if (!refUsername && !refCode) return;
+
+    // Clear all stores so this only runs once
+    sessionStorage.removeItem('ov_ref_username');
+    sessionStorage.removeItem('ov_ref');
+    localStorage.removeItem('ochevault_ref_username');
+    localStorage.removeItem('ochevault_ref');
+
+    try {
+        let referrerId = null;
+
+        if (refUsername) {
+            const needle = refUsername.trim().toLowerCase();
+            let { data: r } = await window.supabaseClient
+                .from('profiles').select('id').ilike('referral_code', needle).maybeSingle();
+            if (!r) {
+                const res = await window.supabaseClient
+                    .from('profiles').select('id').ilike('username', needle).maybeSingle();
+                r = res.data;
+            }
+            if (r && r.id !== user.id) referrerId = r.id;
+        } else if (refCode) {
+            const { data: r } = await window.supabaseClient
+                .from('profiles').select('id').ilike('referral_code', refCode.trim()).maybeSingle();
+            if (r && r.id !== user.id) referrerId = r.id;
+        }
+
+        if (!referrerId) return;
+
+        // Check for duplicate
+        const { data: existing } = await window.supabaseClient
+            .from('referrals').select('id')
+            .eq('referrer_id', referrerId)
+            .eq('referred_user_id', user.id)
+            .limit(1);
+
+        if (!existing || existing.length === 0) {
+            await window.supabaseClient.from('referrals').insert([{
+                referrer_id: referrerId,
+                referred_email: user.email,
+                referred_user_id: user.id,
+                status: 'signed_up'
+            }]);
+        }
+    } catch (e) {
+        console.error('Referral onAuthStateChange error:', e);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- GLOBAL AUTHENTICATION CHECK ---
@@ -72,112 +155,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // --- PROCESS REFERRAL IF PRESENT ---
-        // Check both localStorage AND URL params (magic link may open in different browser)
-        const urlRefParams = new URLSearchParams(window.location.search);
-        const refCode = localStorage.getItem('ochevault_ref') || urlRefParams.get('ref');
-        if (refCode) {
-            localStorage.removeItem('ochevault_ref');
-            // Clean the ref param from URL without reload
-            if (urlRefParams.get('ref')) {
-                urlRefParams.delete('ref');
-                const cleanUrl = urlRefParams.toString()
-                    ? window.location.pathname + '?' + urlRefParams.toString()
-                    : window.location.pathname;
-                window.history.replaceState({}, '', cleanUrl);
-            }
-            try {
-                // Find the referrer by their referral code
-                const { data: referrer } = await window.supabaseClient
-                    .from('profiles')
-                    .select('id')
-                    .eq('referral_code', refCode)
-                    .single();
-
-                if (referrer && referrer.id !== user.id) {
-                    // Update referral record: set referred_user_id and status to signed_up
-                    await window.supabaseClient
-                        .from('referrals')
-                        .update({ referred_user_id: user.id, status: 'signed_up' })
-                        .eq('referrer_id', referrer.id)
-                        .eq('referred_email', user.email)
-                        .eq('status', 'pending');
-
-                    // Also try to create a referral if the referrer shared the link
-                    // but didn't manually invite this specific email
-                    const { data: existing } = await window.supabaseClient
-                        .from('referrals')
-                        .select('id')
-                        .eq('referrer_id', referrer.id)
-                        .eq('referred_email', user.email)
-                        .limit(1);
-
-                    if (!existing || existing.length === 0) {
-                        await window.supabaseClient.from('referrals').insert([{
-                            referrer_id: referrer.id,
-                            referred_email: user.email,
-                            referred_user_id: user.id,
-                            status: 'signed_up'
-                        }]);
-                    }
-                }
-            } catch (e) {
-                console.error('Referral processing error:', e);
-            }
-        }
-
-        // --- PROCESS USERNAME-BASED REFERRAL ---
-        const refUsername = localStorage.getItem('ochevault_ref_username') || urlRefParams.get('ref_username');
-        if (refUsername) {
-            localStorage.removeItem('ochevault_ref_username');
-            // Clean url param
-            if (urlRefParams.get('ref_username')) {
-                urlRefParams.delete('ref_username');
-                const cleanUrl = urlRefParams.toString()
-                    ? window.location.pathname + '?' + urlRefParams.toString()
-                    : window.location.pathname;
-                window.history.replaceState({}, '', cleanUrl);
-            }
-            try {
-                const needle = refUsername.trim().toLowerCase();
-                // Match on referral_code first (exact), then username (case-insensitive)
-                let { data: referrer } = await window.supabaseClient
-                    .from('profiles')
-                    .select('id')
-                    .ilike('referral_code', needle)
-                    .maybeSingle();
-
-                if (!referrer) {
-                    const res = await window.supabaseClient
-                        .from('profiles')
-                        .select('id')
-                        .ilike('username', needle)
-                        .maybeSingle();
-                    referrer = res.data;
-                }
-
-                if (referrer && referrer.id !== user.id) {
-                    // Check no duplicate referral exists
-                    const { data: existing } = await window.supabaseClient
-                        .from('referrals')
-                        .select('id')
-                        .eq('referrer_id', referrer.id)
-                        .eq('referred_user_id', user.id)
-                        .limit(1);
-
-                    if (!existing || existing.length === 0) {
-                        await window.supabaseClient.from('referrals').insert([{
-                            referrer_id: referrer.id,
-                            referred_email: user.email,
-                            referred_user_id: user.id,
-                            status: 'signed_up'
-                        }]);
-                    }
-                }
-            } catch (e) {
-                console.error('Username referral processing error:', e);
-            }
-        }
+        // Referral processing is handled by onAuthStateChange above,
+        // which fires at the exact moment the session is established.
     }
 
     // --- IF ON HOMEPAGE: INJECT LIVE RAFFLE STATS ---
