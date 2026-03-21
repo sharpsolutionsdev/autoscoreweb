@@ -130,12 +130,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         const refUsername = localStorage.getItem('ochevault_ref_username') || urlRefParams.get('ref_username');
         if (refUsername) {
             localStorage.removeItem('ochevault_ref_username');
+            // Clean url param
+            if (urlRefParams.get('ref_username')) {
+                urlRefParams.delete('ref_username');
+                const cleanUrl = urlRefParams.toString()
+                    ? window.location.pathname + '?' + urlRefParams.toString()
+                    : window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+            }
             try {
-                const { data: referrer } = await window.supabaseClient
+                const needle = refUsername.trim().toLowerCase();
+                // Match on referral_code first (exact), then username (case-insensitive)
+                let { data: referrer } = await window.supabaseClient
                     .from('profiles')
                     .select('id')
-                    .ilike('username', refUsername.trim())
-                    .single();
+                    .ilike('referral_code', needle)
+                    .maybeSingle();
+
+                if (!referrer) {
+                    const res = await window.supabaseClient
+                        .from('profiles')
+                        .select('id')
+                        .ilike('username', needle)
+                        .maybeSingle();
+                    referrer = res.data;
+                }
 
                 if (referrer && referrer.id !== user.id) {
                     // Check no duplicate referral exists

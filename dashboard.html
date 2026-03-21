@@ -879,10 +879,10 @@
             list.innerHTML = `<p class="text-slate-500 text-sm text-center py-6">No transactions yet — top up to get started!</p>`;
             return;
         }
-        const typeLabel = { deposit: 'Top-up', spend: 'Spent', refund: 'Refund', prize: 'Prize' };
-        const typeColour = { deposit: '#10b981', spend: '#dc2626', refund: '#f59e0b', prize: '#f59e0b' };
+        const typeLabel = { topup: 'Top-up', deposit: 'Top-up', bonus: 'Bonus', spend: 'Spent', refund: 'Refund', prize: 'Prize' };
+        const typeColour = { topup: '#10b981', deposit: '#10b981', bonus: '#f59e0b', spend: '#dc2626', refund: '#f59e0b', prize: '#f59e0b' };
         list.innerHTML = txs.map(tx => {
-            const sign = tx.type === 'deposit' || tx.type === 'refund' || tx.type === 'prize' ? '+' : '-';
+            const sign = (tx.type === 'topup' || tx.type === 'deposit' || tx.type === 'bonus' || tx.type === 'refund' || tx.type === 'prize') ? '+' : '-';
             const col = typeColour[tx.type] || '#94a3b8';
             const date = new Date(tx.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
             return `<div class="flex items-center gap-4 py-3 border-b border-white/4 last:border-0">
@@ -1075,7 +1075,7 @@
 
     // ── Tab switching ──────────────────────────────────────────────
     function switchTab(tab,btn){
-        ['vault','weekly','monthly','dartgame','referrals','leagues'].forEach(t=>{
+        ['vault','weekly','monthly','dartgame','referrals','leagues','wallet'].forEach(t=>{
             const el=document.getElementById('tab-'+t);
             if(el){el.classList.add('hidden');el.style.display='';}
         });
