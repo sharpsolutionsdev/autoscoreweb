@@ -3354,6 +3354,92 @@
     })();
     </script>
 
+<!-- SIGN-UP POPUP MODAL -->
+<div id="signup-popup" class="fixed inset-0 z-[200] hidden items-center justify-center p-4" style="background:rgba(12,18,32,0.92);backdrop-filter:blur(16px);" onclick="if(event.target===this)closeSignupPopup()">
+    <div class="bg-card border border-white/10 rounded-3xl w-full max-w-md relative overflow-hidden" style="animation:floatUp 0.4s cubic-bezier(0.22,1,0.36,1) both;">
+        <div class="h-1 bg-gradient-to-r from-brand via-red-400 to-accent"></div>
+        <button onclick="closeSignupPopup()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-colors z-10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="p-8">
+            <!-- Dartboard icon -->
+            <div class="mx-auto mb-6 w-20 h-20">
+                <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="40" cy="40" r="38" fill="rgba(220,38,38,0.15)" stroke="rgba(220,38,38,0.3)" stroke-width="1.5"/>
+                    <circle cx="40" cy="40" r="28" fill="rgba(20,31,53,0.8)" stroke="rgba(220,38,38,0.2)" stroke-width="1"/>
+                    <circle cx="40" cy="40" r="18" fill="rgba(220,38,38,0.2)" stroke="rgba(220,38,38,0.25)" stroke-width="1"/>
+                    <circle cx="40" cy="40" r="10" fill="rgba(20,31,53,0.9)" stroke="rgba(220,38,38,0.2)" stroke-width="1"/>
+                    <circle cx="40" cy="40" r="5" fill="#dc2626"/>
+                    <circle cx="40" cy="40" r="2" fill="#f59e0b"/>
+                </svg>
+            </div>
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center gap-1.5 bg-brand/8 border border-brand/20 rounded-full px-3 py-1 mb-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+                    <p class="text-[10px] font-black text-brand/70 uppercase tracking-[0.2em]">Limited Entries Open</p>
+                </div>
+                <h2 class="font-black text-white mb-2" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:2.2rem;letter-spacing:-0.02em;line-height:1.05;">Win Premium Darts Gear</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">Skill-based prize draws with <strong class="text-white">limited entries</strong> — your best chance of winning. Join free and get your first order bonus.</p>
+            </div>
+
+            <!-- Perks list -->
+            <div class="space-y-2.5 mb-7">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-success/10 border border-success/25 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    </div>
+                    <p class="text-slate-300 text-sm">Free to join — pay only per entry</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-success/10 border border-success/25 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    </div>
+                    <p class="text-slate-300 text-sm">Max 500 tickets per draw — 20× better odds</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-accent/10 border border-accent/25 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12z"/></svg>
+                    </div>
+                    <p class="text-slate-300 text-sm"><strong class="text-accent">FIRSTORDER</strong> promo — double tickets on your first buy</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-success/10 border border-success/25 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    </div>
+                    <p class="text-slate-300 text-sm">Leagues, tournaments & leaderboards</p>
+                </div>
+            </div>
+
+            <a href="/auth" class="w-full flex items-center justify-center gap-2 bg-brand hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.35)] text-sm mb-3">
+                Create Free Account →
+            </a>
+            <button onclick="closeSignupPopup()" class="w-full py-3 text-slate-500 hover:text-slate-300 text-sm transition-colors">
+                Maybe later — browse draws first
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function closeSignupPopup() {
+    const el = document.getElementById('signup-popup');
+    el.classList.remove('flex');
+    el.classList.add('hidden');
+    sessionStorage.setItem('signupPopupDismissed', '1');
+}
+
+// Show popup to logged-out visitors after 3s, once per session
+(async function() {
+    if (sessionStorage.getItem('signupPopupDismissed')) return;
+    const { data: { user } } = await window.supabaseClient.auth.getUser();
+    if (user) return; // already signed in
+    setTimeout(() => {
+        const el = document.getElementById('signup-popup');
+        if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
+    }, 3000);
+})();
+</script>
+
 <script>
 function toggleFaq(btn) {
     const answer = btn.nextElementSibling;

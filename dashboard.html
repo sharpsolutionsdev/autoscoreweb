@@ -195,6 +195,11 @@
                     <p class="text-[9px] text-accent/60 uppercase tracking-wider font-black mb-1.5">Since</p>
                     <p id="stat-since" class="display text-accent" style="font-size:1.8rem;line-height:1;">—</p>
                 </div>
+                <!-- Wallet balance pill -->
+                <button onclick="switchTab('wallet',document.querySelector('.vault-tab[onclick*=\'wallet\']'))" class="bg-gradient-to-br from-success/15 to-success/5 border border-success/30 rounded-2xl px-5 py-4 text-center min-w-[80px] shadow-[0_0_20px_rgba(16,185,129,0.08)] hover:border-success/50 transition-all group" title="My Wallet — click to top up">
+                    <p class="text-[9px] text-success/60 uppercase tracking-wider font-black mb-1.5">Wallet</p>
+                    <p id="stat-wallet" class="display text-success group-hover:scale-105 transition-transform" style="font-size:1.8rem;line-height:1;">£0.00</p>
+                </button>
             </div>
                 <!-- Settings button -->
                 <button onclick="document.getElementById('settings-panel').classList.toggle('hidden')" class="w-11 h-11 rounded-xl bg-card/70 border border-white/8 flex items-center justify-center hover:bg-white/5 hover:border-white/15 transition-all group flex-shrink-0" title="Account settings">
@@ -814,6 +819,9 @@
         const bal = parseFloat(profile?.wallet_balance || 0);
         const balStr = '£' + bal.toFixed(2);
         document.getElementById('wallet-balance-display').textContent = balStr;
+        // Update stat pill
+        const statWallet = document.getElementById('stat-wallet');
+        if (statWallet) statWallet.textContent = balStr;
         // Update nav chip
         const navBal = document.getElementById('nav-wallet-balance');
         const navBtn = document.getElementById('nav-wallet-btn');
