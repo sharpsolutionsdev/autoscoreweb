@@ -266,7 +266,7 @@
             </div>
         </div>
         <!-- Mobile dropdown menu -->
-        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
+        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 backdrop-blur-xl border-b border-slate-700/40 z-40" style="background:#0c1220;">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
                 <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold">
                     <span class="w-1.5 h-1.5 rounded-full bg-brand"></span> Live Draws
@@ -515,7 +515,7 @@
                 </div>
 
                 <!-- Floating stat card: Charity -->
-                <div class="absolute top-4 left-0 lg:-left-8 bg-card/95 backdrop-blur-md border border-success/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob">
+                <div class="hidden sm:block absolute top-4 left-0 lg:-left-8 bg-card/95 backdrop-blur-md border border-success/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 bg-success/15 rounded-xl flex items-center justify-center flex-shrink-0">
                             <svg class="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
@@ -528,7 +528,7 @@
                 </div>
 
                 <!-- Floating stat card: Live draws -->
-                <div class="absolute bottom-10 right-0 lg:-right-8 bg-card/95 backdrop-blur-md border border-brand/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob float-bob-delay-1">
+                <div class="hidden sm:block absolute bottom-10 right-0 lg:-right-8 bg-card/95 backdrop-blur-md border border-brand/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob float-bob-delay-1">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 bg-brand/15 rounded-xl flex items-center justify-center flex-shrink-0">
                             <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
@@ -541,7 +541,7 @@
                 </div>
 
                 <!-- Floating stat card: Winners -->
-                <div class="absolute top-1/2 -translate-y-1/2 right-0 lg:-right-10 bg-card/95 backdrop-blur-md border border-accent/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob float-bob-delay-2">
+                <div class="hidden sm:block absolute top-1/2 -translate-y-1/2 right-0 lg:-right-10 bg-card/95 backdrop-blur-md border border-accent/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob float-bob-delay-2">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 bg-accent/15 rounded-xl flex items-center justify-center flex-shrink-0">
                             <svg class="w-4 h-4 text-accent" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
@@ -1684,7 +1684,7 @@
                 </div>
                 <span class="bg-slate-800/60 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-full border border-slate-700/50 mb-1.5 uppercase tracking-wider">Starting Soon</span>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <!-- ============================
                  TIER 1: SIGNED FLIGHTS
                  ============================ -->

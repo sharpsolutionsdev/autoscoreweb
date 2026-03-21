@@ -104,7 +104,7 @@
                 </button>
             </div>
         </div>
-        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 bg-dark/98 backdrop-blur-xl border-b border-slate-700/40 z-40">
+        <div id="mobile-nav" class="mobile-menu md:hidden absolute top-full left-0 right-0 backdrop-blur-xl border-b border-slate-700/40 z-40" style="background:#0c1220;">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
                 <a href="/" class="px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-card/50 text-sm font-medium transition-all">Live Draws</a>
                 <a href="/past" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand/10 border border-brand/20 text-white text-sm font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span> Past Winners</a>
@@ -528,22 +528,18 @@
                 </div>
             </div>
 
-            <!-- PLACEHOLDER: More draws coming -->
-            <div class="bg-card/30 border border-dashed border-slate-700/50 rounded-2xl flex flex-col items-center justify-center p-10 text-center min-h-[300px]">
-                <!-- Mini dartboard -->
-                <svg viewBox="0 0 64 64" width="56" height="56" xmlns="http://www.w3.org/2000/svg" class="mb-5 opacity-30">
-                    <circle cx="32" cy="32" r="30" fill="none" stroke="white" stroke-width="1.5"/>
-                    <circle cx="32" cy="32" r="22" fill="none" stroke="white" stroke-width="1"/>
-                    <circle cx="32" cy="32" r="14" fill="none" stroke="white" stroke-width="1.5"/>
-                    <circle cx="32" cy="32" r="7" fill="none" stroke="white" stroke-width="2"/>
-                    <circle cx="32" cy="32" r="3" fill="white"/>
-                </svg>
-                <p class="display text-slate-600 mb-2" style="font-size:1.25rem;">More to Come</p>
-                <p class="text-sm text-slate-700 leading-relaxed max-w-48">New draws close regularly. Check back after each live round ends.</p>
-                <a href="/" class="mt-6 text-xs font-bold text-brand hover:text-red-400 uppercase tracking-widest transition-colors flex items-center gap-1.5">
-                    View Live Draws
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
+            <!-- Empty state: more draws coming -->
+            <div class="col-span-full">
+                <div class="text-center py-20 px-4">
+                    <div class="w-16 h-16 bg-accent/10 border border-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="text-white font-bold text-xl mb-2">First Draws Closing Soon</h3>
+                    <p class="text-slate-400 text-sm max-w-sm mx-auto mb-6">Winners are announced when a draw reaches its ticket limit. Our current draws are filling up — check back here once they close.</p>
+                    <a href="/" class="inline-flex items-center gap-2 bg-brand hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all">
+                        View Live Draws →
+                    </a>
+                </div>
             </div>
 
         </div><!-- end grid -->
