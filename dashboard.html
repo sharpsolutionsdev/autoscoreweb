@@ -206,6 +206,7 @@
                 <button class="vault-tab" onclick="switchTab('monthly',this)">🏆 Monthly Board</button>
                 <button class="vault-tab" onclick="switchTab('dartgame',this)">🎯 Triple Twenty</button>
                 <button class="vault-tab" onclick="switchTab('referrals',this)">🔗 Referrals</button>
+                <button class="vault-tab" onclick="switchTab('leagues',this)">🏆 My Leagues</button>
             </div>
         </div>
 
@@ -431,6 +432,22 @@
             </div>
         </div>
 
+        <!-- TAB: MY LEAGUES -->
+        <div id="tab-leagues" style="display:none;">
+            <div class="flex items-center gap-4 mb-5">
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">My Leagues & Tournaments</h2>
+                <div class="flex-1 h-px bg-white/5"></div>
+                <a href="/leagues" class="text-xs font-bold text-brand hover:text-red-400 uppercase tracking-wider transition-colors flex items-center gap-1">+ Browse →</a>
+            </div>
+
+            <div id="my-leagues-content">
+                <div class="text-center py-10 text-slate-600">
+                    <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p class="text-sm">Loading...</p>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- PROFILE MODAL -->
@@ -618,6 +635,105 @@
     let currentUser=null;
     let currentProfile=null;
 
+    // Load My Leagues data
+    async function loadMyLeagues(userId) {
+        const sc = window.supabaseClient;
+        const container = document.getElementById('my-leagues-content');
+        if (!container) return;
+
+        try {
+            // Fetch user's league entries with league details
+            const { data: leagueEntries } = await sc
+                .from('league_entries')
+                .select('*, leagues(id, name, tier, entry_fee, status, players_joined, max_players, prize_description)')
+                .eq('user_id', userId)
+                .order('joined_at', { ascending: false });
+
+            // Fetch user's tournament entries
+            const { data: tournamentEntries } = await sc
+                .from('tournament_entries')
+                .select('*, tournaments(id, name, type, tier, entry_fee, status, players_joined, max_players, prize_description, starts_at)')
+                .eq('user_id', userId)
+                .order('joined_at', { ascending: false });
+
+            const hasLeagues = leagueEntries && leagueEntries.length > 0;
+            const hasTournaments = tournamentEntries && tournamentEntries.length > 0;
+
+            if (!hasLeagues && !hasTournaments) {
+                container.innerHTML = `
+                    <div class="text-center py-14 px-4">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-slate-400 font-semibold mb-1">No leagues or tournaments yet</p>
+                        <p class="text-slate-600 text-sm mb-5">Join a league to compete for prizes each season.</p>
+                        <a href="/leagues" class="inline-block bg-brand hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all">Browse Leagues →</a>
+                    </div>`;
+                return;
+            }
+
+            const tierColour = { free: '#10b981', bronze: '#dc2626', silver: '#94a3b8', gold: '#f59e0b', starter: '#10b981', challenger: '#dc2626', elite: '#f59e0b', knockout: '#818cf8', pro: '#a855f7', grand_prix: '#fbbf24' };
+            const statusBadge = s => s === 'active' ? '<span style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Active</span>'
+                : s === 'filling' ? '<span style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Filling</span>'
+                : '<span style="background:rgba(100,116,139,0.1);color:#64748b;border:1px solid rgba(100,116,139,0.2);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;text-transform:uppercase;">Completed</span>';
+
+            let html = '';
+
+            if (hasLeagues) {
+                html += `<p class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">Season Leagues</p>`;
+                html += `<div class="space-y-3 mb-7">`;
+                html += leagueEntries.map(entry => {
+                    const l = entry.leagues;
+                    if (!l) return '';
+                    const col = tierColour[l.tier] || '#dc2626';
+                    const pct = l.max_players ? Math.round((l.players_joined / l.max_players) * 100) : 0;
+                    const viewLink = l.status === 'active' ? `<a href="/league-table?id=${l.id}" class="text-xs font-bold text-brand hover:text-red-400 transition-colors">View Table →</a>` : `<span class="text-xs text-slate-600">${l.players_joined}/${l.max_players} players</span>`;
+                    return `<div class="bg-card/40 border border-white/5 rounded-2xl p-4 flex items-center gap-4">
+                        <div style="width:4px;height:52px;background:${col};border-radius:4px;flex-shrink:0;"></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">${statusBadge(l.status)}<span class="text-white font-semibold text-sm truncate">${l.name}</span></div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 h-1.5 bg-dark rounded-full overflow-hidden"><div style="width:${pct}%;background:${col};height:100%;border-radius:4px;transition:width 0.6s;"></div></div>
+                                <span class="text-xs text-slate-500 flex-shrink-0">${pct}%</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 truncate">${l.prize_description || ''}</p>
+                        </div>
+                        <div class="flex-shrink-0">${viewLink}</div>
+                    </div>`;
+                }).join('');
+                html += `</div>`;
+            }
+
+            if (hasTournaments) {
+                html += `<p class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">Tournaments</p>`;
+                html += `<div class="space-y-3">`;
+                html += tournamentEntries.map(entry => {
+                    const t = entry.tournaments;
+                    if (!t) return '';
+                    const col = tierColour[t.tier] || '#818cf8';
+                    const typeBadge = `<span style="background:rgba(129,140,248,0.1);color:#818cf8;border:1px solid rgba(129,140,248,0.2);border-radius:20px;padding:2px 8px;font-size:9px;font-weight:700;text-transform:uppercase;">${t.type?.toUpperCase()}</span>`;
+                    const pct = t.max_players ? Math.round((t.players_joined / t.max_players) * 100) : 0;
+                    const viewLink = t.status === 'active' ? `<a href="/league-table?id=${t.id}&type=tournament" class="text-xs font-bold text-brand hover:text-red-400 transition-colors">View Bracket →</a>` : `<span class="text-xs text-slate-600">${t.players_joined}/${t.max_players} players</span>`;
+                    return `<div class="bg-card/40 border border-white/5 rounded-2xl p-4 flex items-center gap-4">
+                        <div style="width:4px;height:52px;background:${col};border-radius:4px;flex-shrink:0;"></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">${typeBadge}${statusBadge(t.status)}<span class="text-white font-semibold text-sm truncate">${t.name}</span></div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 h-1.5 bg-dark rounded-full overflow-hidden"><div style="width:${pct}%;background:${col};height:100%;border-radius:4px;transition:width 0.6s;"></div></div>
+                                <span class="text-xs text-slate-500 flex-shrink-0">${pct}%</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 truncate">${t.prize_description || ''}</p>
+                        </div>
+                        <div class="flex-shrink-0">${viewLink}</div>
+                    </div>`;
+                }).join('');
+                html += `</div>`;
+            }
+
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `<p class="text-slate-500 text-sm text-center py-8">Could not load leagues — please refresh.</p>`;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded',async()=>{
         const{data:{user}}=await window.supabaseClient.auth.getUser();
         if(!user){window.location.href="/auth";return;}
@@ -698,12 +814,15 @@
 
     // ── Tab switching ──────────────────────────────────────────────
     function switchTab(tab,btn){
-        ['vault','weekly','monthly','dartgame','referrals'].forEach(t=>{
-            document.getElementById('tab-'+t).classList.add('hidden');
+        ['vault','weekly','monthly','dartgame','referrals','leagues'].forEach(t=>{
+            const el=document.getElementById('tab-'+t);
+            if(el){el.classList.add('hidden');el.style.display='';}
         });
-        document.getElementById('tab-'+tab).classList.remove('hidden');
+        const active=document.getElementById('tab-'+tab);
+        if(active){active.classList.remove('hidden');active.style.display='block';}
         document.querySelectorAll('.vault-tab').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
+        if(tab==='leagues'&&currentUser) loadMyLeagues(currentUser.id);
     }
 
     // ── Leaderboards (populated from user_tickets) ─────────────────

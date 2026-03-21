@@ -747,8 +747,25 @@
 
             const isFree = !item.entry_fee || item.entry_fee === 0;
             if (!isFree) {
-                showToast('Payment coming soon — feature in beta', '💳');
-                if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${Number(item.entry_fee).toFixed(2)}`; }
+                // Redirect to Stripe via create-league-session edge function
+                try {
+                    if (btn) { btn.textContent = 'Redirecting to payment...'; }
+                    const { data: { session } } = await sc.auth.getSession();
+                    const res = await fetch('https://poyjykgqsvgimssbhsuz.supabase.co/functions/v1/create-league-session', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({ entryType: type, entryId: itemId })
+                    });
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
+                    window.location.href = data.url;
+                } catch (err) {
+                    showToast(err.message || 'Payment failed — please try again', '❌');
+                    if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${Number(item.entry_fee).toFixed(2)}`; }
+                }
                 return;
             }
 
@@ -818,6 +835,14 @@
     // ─── MAIN DATA LOAD ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
         const sc = window.supabaseClient;
+
+        // Handle Stripe success redirect
+        const urlP = new URLSearchParams(window.location.search);
+        if (urlP.get('joined') === 'true') {
+            showToast('🎉 You\'re in! Welcome to the ' + (urlP.get('type') || 'league') + '. Your entry is confirmed.', '✅');
+            // Clean URL
+            history.replaceState({}, '', '/leagues');
+        }
 
         // Determine auth state
         const { data: { user } } = await sc.auth.getUser();
