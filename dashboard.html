@@ -84,6 +84,10 @@
                     <a href="/how-it-works" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
                     <a href="/leaderboard" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
                 </div>
+                <button onclick="switchTab('wallet',document.querySelector('.vault-tab[onclick*=\'wallet\']'))" id="nav-wallet-btn" class="hidden items-center gap-2 bg-card/70 border border-white/8 hover:border-brand/40 rounded-xl px-4 py-2.5 transition-all group" title="My Wallet">
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span id="nav-wallet-balance" class="text-sm font-bold text-white">£0.00</span>
+                </button>
                 <a href="/auth" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)] border-b border-brand pb-0.5">My Vault →</a>
                 <!-- Mobile hamburger -->
                 <button id="mobile-toggle" onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
@@ -207,6 +211,7 @@
                 <button class="vault-tab" onclick="switchTab('dartgame',this)">🎯 Triple Twenty</button>
                 <button class="vault-tab" onclick="switchTab('referrals',this)">🔗 Referrals</button>
                 <button class="vault-tab" onclick="switchTab('leagues',this)">🏆 My Leagues</button>
+                <button class="vault-tab" onclick="switchTab('wallet',this)">💳 Wallet</button>
             </div>
         </div>
 
@@ -428,6 +433,72 @@
                 <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest mb-4">Your Referrals</p>
                 <div id="ref-list" class="space-y-2">
                     <p class="text-sm text-slate-500 text-center py-4">No referrals yet — share your link to get started!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: WALLET -->
+        <div id="tab-wallet" class="hidden">
+            <div class="flex items-center gap-4 mb-5">
+                <h2 class="display-normal text-white text-xl uppercase tracking-wider">My Wallet</h2>
+                <div class="flex-1 h-px bg-white/5"></div>
+            </div>
+
+            <!-- Balance card -->
+            <div class="bg-gradient-to-br from-brand/12 to-brand/4 border border-brand/25 rounded-2xl p-6 mb-6 shadow-[0_0_40px_rgba(220,38,38,0.06)]">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <p class="text-[9px] text-brand/60 uppercase tracking-wider font-black mb-1">Available Balance</p>
+                        <p id="wallet-balance-display" class="display text-white" style="font-size:3rem;line-height:1;">£0.00</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Use at checkout on any draw, league or tournament</p>
+                    </div>
+                    <div class="w-16 h-16 bg-brand/10 border border-brand/25 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-8 h-8 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top-up amounts -->
+            <div class="bg-card/70 border border-white/8 rounded-2xl p-6 mb-6">
+                <p class="text-white text-sm font-bold mb-4">Top Up Your Wallet</p>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
+                    <button onclick="topUp(500)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                        <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£5</p>
+                    </button>
+                    <button onclick="topUp(1000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                        <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£10</p>
+                    </button>
+                    <button onclick="topUp(2000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                        <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£20</p>
+                    </button>
+                    <button onclick="topUp(5000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                        <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£50</p>
+                    </button>
+                    <button onclick="topUp(10000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                        <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£100</p>
+                    </button>
+                </div>
+                <!-- Custom amount -->
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">£</span>
+                        <input type="number" id="topup-custom" min="1" max="500" step="1" placeholder="Custom amount"
+                            class="oche-input w-full rounded-xl pl-8 pr-4 py-3 text-white placeholder:text-slate-600 text-base md:text-sm">
+                    </div>
+                    <button onclick="topUpCustom()" class="bg-brand hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all whitespace-nowrap shadow-[0_4px_12px_rgba(220,38,38,0.25)]">
+                        Top Up →
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-600 mt-3">Powered by Stripe · Secure · Instant · Min £1 / Max £500</p>
+            </div>
+
+            <!-- Transaction history -->
+            <div class="bg-card/70 border border-white/8 rounded-2xl p-6">
+                <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest mb-4">Transaction History</p>
+                <div id="wallet-tx-list">
+                    <div class="skeleton h-12 rounded-xl mb-2"></div>
+                    <div class="skeleton h-12 rounded-xl mb-2 opacity-70"></div>
+                    <div class="skeleton h-12 rounded-xl opacity-40"></div>
                 </div>
             </div>
         </div>
@@ -734,6 +805,100 @@
         }
     }
 
+    // ── WALLET ──────────────────────────────────────────────────────────────
+
+    async function loadWallet(userId) {
+        const sc = window.supabaseClient;
+        // Load balance from profile
+        const { data: profile } = await sc.from('profiles').select('wallet_balance').eq('id', userId).single();
+        const bal = parseFloat(profile?.wallet_balance || 0);
+        const balStr = '£' + bal.toFixed(2);
+        document.getElementById('wallet-balance-display').textContent = balStr;
+        // Update nav chip
+        const navBal = document.getElementById('nav-wallet-balance');
+        const navBtn = document.getElementById('nav-wallet-btn');
+        if (navBal) navBal.textContent = balStr;
+        if (navBtn) navBtn.classList.replace('hidden', 'flex');
+
+        // Load transactions
+        const { data: txs } = await sc
+            .from('wallet_transactions')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(30);
+
+        const list = document.getElementById('wallet-tx-list');
+        if (!txs || txs.length === 0) {
+            list.innerHTML = `<p class="text-slate-500 text-sm text-center py-6">No transactions yet — top up to get started!</p>`;
+            return;
+        }
+        const typeLabel = { deposit: 'Top-up', spend: 'Spent', refund: 'Refund', prize: 'Prize' };
+        const typeColour = { deposit: '#10b981', spend: '#dc2626', refund: '#f59e0b', prize: '#f59e0b' };
+        list.innerHTML = txs.map(tx => {
+            const sign = tx.type === 'deposit' || tx.type === 'refund' || tx.type === 'prize' ? '+' : '-';
+            const col = typeColour[tx.type] || '#94a3b8';
+            const date = new Date(tx.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+            return `<div class="flex items-center gap-4 py-3 border-b border-white/4 last:border-0">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:${col}1a;border:1px solid ${col}33;">
+                    <span style="color:${col};font-size:0.7rem;font-weight:900;">${typeLabel[tx.type] || tx.type}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-white text-sm font-semibold truncate">${tx.description || typeLabel[tx.type] || 'Transaction'}</p>
+                    <p class="text-slate-500 text-xs">${date}</p>
+                </div>
+                <p class="font-black text-base flex-shrink-0" style="color:${col};font-family:'Barlow Condensed',sans-serif;">${sign}£${parseFloat(tx.amount).toFixed(2)}</p>
+            </div>`;
+        }).join('');
+    }
+
+    async function topUp(amountPence) {
+        const sc = window.supabaseClient;
+        const { data: { session } } = await sc.auth.getSession();
+        if (!session) { window.location.href = '/auth'; return; }
+        const btn = event.currentTarget;
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        try {
+            const res = await fetch('https://poyjykgqsvgimssbhsuz.supabase.co/functions/v1/create-topup-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ amount: amountPence })
+            });
+            const data = await res.json();
+            if (data.url) { window.location.href = data.url; }
+            else { alert(data.error || 'Could not start top-up. Try again.'); }
+        } catch { alert('Network error. Please try again.'); }
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+
+    async function topUpCustom() {
+        const val = parseFloat(document.getElementById('topup-custom').value);
+        if (!val || val < 1 || val > 500) { alert('Please enter an amount between £1 and £500.'); return; }
+        const pence = Math.round(val * 100);
+        // Temporarily patch event for topUp
+        const origEvent = window.event;
+        const btn = document.querySelector('#tab-wallet button[onclick="topUpCustom()"]');
+        btn.disabled = true; btn.style.opacity = '0.6';
+        const sc = window.supabaseClient;
+        const { data: { session } } = await sc.auth.getSession();
+        if (!session) { window.location.href = '/auth'; return; }
+        try {
+            const res = await fetch('https://poyjykgqsvgimssbhsuz.supabase.co/functions/v1/create-topup-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ amount: pence })
+            });
+            const data = await res.json();
+            if (data.url) { window.location.href = data.url; }
+            else { alert(data.error || 'Could not start top-up. Try again.'); }
+        } catch { alert('Network error. Please try again.'); }
+        btn.disabled = false; btn.style.opacity = '1';
+    }
+
+    // ── END WALLET ───────────────────────────────────────────────────────────
+
     document.addEventListener('DOMContentLoaded',async()=>{
         const{data:{user}}=await window.supabaseClient.auth.getUser();
         if(!user){window.location.href="/auth";return;}
@@ -754,6 +919,23 @@
         const urlParams=new URLSearchParams(window.location.search);
         if(urlParams.get('success')==='true'){showSuccessToast();window.history.replaceState({},document.title,window.location.pathname);}
 
+        // Wallet top-up return
+        if(urlParams.get('wallet')==='success'){
+            const amt=parseInt(urlParams.get('amount')||'0',10);
+            const walletToast=document.createElement('div');
+            walletToast.className='fixed top-6 right-6 z-[200] max-w-sm toast-enter';
+            walletToast.innerHTML=`<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;border-radius:1rem;padding:1.25rem 1.5rem;box-shadow:0 20px 50px -10px rgba(0,0,0,0.5);">
+                <p style="font-weight:700;color:white;margin-bottom:2px;">Wallet Topped Up!</p>
+                <p style="font-size:0.8rem;opacity:0.8;">${amt>0?'£'+(amt/100).toFixed(2)+' added to your wallet.':'Balance updated.'}</p>
+            </div>`;
+            document.body.appendChild(walletToast);
+            setTimeout(()=>{walletToast.classList.add('toast-exit');setTimeout(()=>walletToast.remove(),500);},4000);
+            window.history.replaceState({},document.title,window.location.pathname);
+            // Switch to wallet tab
+            const wTab=document.querySelector('.vault-tab[onclick*="\'wallet\'"]');
+            if(wTab) switchTab('wallet',wTab);
+        }
+
         const{data:profile,error:profileError}=await window.supabaseClient.from('profiles').select('*').eq('id',user.id).single();
         currentProfile=profile;
 
@@ -769,6 +951,7 @@
         updateStats();
         loadLeaderboards();
         loadReferrals();
+        loadWallet(user.id);
 
         // Auto-switch tab if coming from leaderboard page
         const vaultTab=localStorage.getItem('vaultTab');
