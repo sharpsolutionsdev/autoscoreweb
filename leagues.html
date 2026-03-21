@@ -170,6 +170,34 @@
         }
         .btn-view:hover { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.5); transform: translateY(-1px); }
 
+        .btn-join-wallet {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            color: white;
+            border: 1px solid rgba(59,130,246,0.4);
+            transition: all 0.25s;
+        }
+        .btn-join-wallet:hover { box-shadow: 0 4px 22px rgba(59,130,246,0.5); transform: translateY(-1px); }
+
+        /* Wallet pay modal */
+        #wallet-pay-modal {
+            display: none;
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            align-items: center; justify-content: center;
+        }
+        #wallet-pay-modal.open { display: flex; }
+        #wallet-pay-modal .modal-box {
+            background: #141f35;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 32px;
+            width: 100%; max-width: 400px;
+            margin: 16px;
+            animation: modalIn 0.3s cubic-bezier(0.22,1,0.36,1);
+        }
+        @keyframes modalIn { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:none; } }
+
         /* Toast */
         #toast {
             position: fixed;
@@ -460,6 +488,36 @@
     <div id="toast">
         <span id="toast-icon">🎉</span>
         <span id="toast-msg">League starting soon — minimum players reached!</span>
+    </div>
+
+    <!-- WALLET PAY MODAL -->
+    <div id="wallet-pay-modal">
+        <div class="modal-box">
+            <p class="text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">Pay with Wallet</p>
+            <h3 class="text-white font-black text-xl mb-1">How would you like to pay?</h3>
+            <p class="text-slate-400 text-sm mb-6">You have enough in your OcheVault wallet to cover this entry.</p>
+
+            <div class="bg-dark/60 rounded-2xl p-4 mb-6 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Entry fee</p>
+                    <p id="wpm-fee" class="text-white font-black text-lg">&pound;0.00</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Your wallet</p>
+                    <p id="wpm-balance" class="text-blue-400 font-black text-lg">&pound;0.00</p>
+                </div>
+            </div>
+
+            <button id="wpm-wallet-btn" class="btn-join-wallet w-full font-bold text-sm py-3 px-4 rounded-xl mb-3">
+                Pay with Wallet
+            </button>
+            <button id="wpm-card-btn" class="w-full font-bold text-sm py-3 px-4 rounded-xl border border-white/10 text-slate-300 hover:bg-white/5 transition-colors mb-3">
+                Pay by Card instead
+            </button>
+            <button onclick="closeWalletPayModal()" class="w-full text-sm text-slate-500 hover:text-slate-400 py-2 transition-colors">
+                Cancel
+            </button>
+        </div>
     </div>
 
     <script>
@@ -757,6 +815,170 @@
         await sc.from('tournament_brackets').insert(matches);
     }
 
+    // ─── WALLET PAY MODAL ────────────────────────────────────────────────────────
+    let _wpmResolve = null;
+
+    function showWalletPayModal(itemId, type, item, entryFee, walletBalance) {
+        const modal = document.getElementById('wallet-pay-modal');
+        document.getElementById('wpm-fee').textContent = '£' + entryFee.toFixed(2);
+        document.getElementById('wpm-balance').textContent = '£' + walletBalance.toFixed(2);
+
+        const walletBtn = document.getElementById('wpm-wallet-btn');
+        const cardBtn   = document.getElementById('wpm-card-btn');
+
+        // Clone to remove old listeners
+        const newWalletBtn = walletBtn.cloneNode(true);
+        const newCardBtn   = cardBtn.cloneNode(true);
+        walletBtn.replaceWith(newWalletBtn);
+        cardBtn.replaceWith(newCardBtn);
+
+        newWalletBtn.addEventListener('click', async () => {
+            closeWalletPayModal();
+            await payWithWallet(itemId, type, item, entryFee);
+        });
+
+        newCardBtn.addEventListener('click', async () => {
+            closeWalletPayModal();
+            const sc = window.supabaseClient;
+            const btn = document.querySelector(`button[data-id="${itemId}"][data-type="${type}"]`);
+            await goToStripeCheckout(sc, btn, type, itemId, entryFee);
+        });
+
+        modal.classList.add('open');
+    }
+
+    function closeWalletPayModal() {
+        document.getElementById('wallet-pay-modal').classList.remove('open');
+    }
+
+    async function goToStripeCheckout(sc, btn, type, itemId, entryFee) {
+        try {
+            if (btn) { btn.disabled = true; btn.textContent = 'Redirecting to payment...'; }
+            const { data: { session } } = await sc.auth.getSession();
+            const res = await fetch('https://poyjykgqsvgimssbhsuz.supabase.co/functions/v1/create-league-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ entryType: type, entryId: itemId })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            window.location.href = data.url;
+        } catch (err) {
+            showToast(err.message || 'Payment failed — please try again', '❌');
+            if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${entryFee.toFixed(2)}`; }
+        }
+    }
+
+    // ─── AFTER ENTRY INSERTED ────────────────────────────────────────────────────
+    // Re-fetches the true count from DB (trigger already updated it), handles
+    // fill-to-start logic and updates the progress bar on the card.
+    async function afterEntryInserted(sc, itemId, type, item, btn, successMsg, successIcon) {
+        const entryTable = type === 'tournament' ? 'tournaments' : 'leagues';
+
+        // Re-fetch true count after trigger has run
+        const { data: updated } = await sc.from(entryTable)
+            .select('players_joined, max_players, min_players, status')
+            .eq('id', itemId).single();
+
+        const newCount  = updated?.players_joined || 0;
+        const maxPlayers = updated?.max_players || item.max_players || (type === 'tournament' ? 16 : 32);
+        const isFull = newCount >= maxPlayers;
+
+        // Activate + generate bracket if just filled
+        if (isFull && updated?.status !== 'active') {
+            await sc.from(entryTable).update({ status: 'active' }).eq('id', itemId);
+            if (type === 'tournament') await generateTournamentBracket(sc, itemId);
+        }
+
+        // Update button
+        if (btn) {
+            btn.className = 'btn-joined w-full font-bold text-sm py-3 px-4 rounded-xl';
+            btn.textContent = '✓ Joined';
+            btn.removeAttribute('onclick');
+        }
+
+        // Update progress bar on card
+        const card = btn?.closest('.league-card');
+        if (card) {
+            const allMb5 = card.querySelectorAll('.mb-5, .mb-4');
+            allMb5.forEach(el => {
+                if (el.querySelector('.progress-track')) {
+                    el.innerHTML = progressBar(newCount, maxPlayers, updated?.min_players || item.min_players || 4, item.tier || 'free');
+                    animateBars();
+                }
+            });
+        }
+
+        if (isFull) {
+            showToast(type === 'tournament' ? 'Tournament is full — bracket generated! Good luck! 🏆' : 'League is full — it\'s now active! Good luck! 🏆', '🎉');
+            setTimeout(() => window.location.reload(), 1400);
+        } else if (newCount >= (updated?.min_players || item.min_players || 4)) {
+            showToast('You\'re in! Waiting for more players to fill the spots.', successIcon || '✅');
+        } else {
+            showToast(successMsg || 'You\'re in!', successIcon || '✅');
+        }
+    }
+
+    async function payWithWallet(itemId, type, item, entryFee) {
+        const sc = window.supabaseClient;
+        const { data: { user } } = await sc.auth.getUser();
+        if (!user) { window.location.href = '/auth'; return; }
+
+        const btn = document.querySelector(`button[data-id="${itemId}"][data-type="${type}"]`);
+        if (btn) { btn.disabled = true; btn.textContent = 'Processing...'; }
+
+        try {
+            const entryTable  = type === 'tournament' ? 'tournaments' : 'leagues';
+            const entriesTable = type === 'tournament' ? 'tournament_entries' : 'league_entries';
+            const entryIdCol  = type === 'tournament' ? 'tournament_id' : 'league_id';
+
+            // Re-fetch profile to get latest balance (avoid race)
+            const { data: profile } = await sc.from('profiles').select('wallet_balance').eq('id', user.id).single();
+            const walletBalance = parseFloat(profile?.wallet_balance || '0');
+            if (walletBalance < entryFee) {
+                showToast('Insufficient wallet balance', '❌');
+                if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${entryFee.toFixed(2)}`; }
+                return;
+            }
+
+            // Deduct from wallet
+            const newBalance = walletBalance - entryFee;
+            const { error: balErr } = await sc.from('profiles').update({ wallet_balance: newBalance }).eq('id', user.id);
+            if (balErr) throw balErr;
+
+            // Log wallet transaction
+            await sc.from('wallet_transactions').insert({
+                user_id: user.id,
+                type: 'spend',
+                amount: -entryFee,
+                description: `Entry fee — ${type === 'tournament' ? 'Tournament' : 'League'}: ${item.name}`,
+            });
+
+            // Insert entry
+            const { error: insertErr } = await sc.from(entriesTable).insert([{ [entryIdCol]: itemId, user_id: user.id }]);
+            if (insertErr) {
+                if (insertErr.code === '23505') {
+                    // Already joined — refund
+                    await sc.from('profiles').update({ wallet_balance: walletBalance }).eq('id', user.id);
+                    showToast('You have already joined this ' + type, 'ℹ️');
+                } else {
+                    // Refund on unexpected error
+                    await sc.from('profiles').update({ wallet_balance: walletBalance }).eq('id', user.id);
+                    throw insertErr;
+                }
+                if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${entryFee.toFixed(2)}`; }
+                return;
+            }
+
+            await afterEntryInserted(sc, itemId, type, item, btn, `You're in! Paid £${entryFee.toFixed(2)} from your wallet.`, '💙');
+
+        } catch (err) {
+            console.error('Wallet pay error:', err);
+            showToast('Something went wrong. Please try again.', '❌');
+            if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${entryFee.toFixed(2)}`; }
+        }
+    }
+
     // ─── JOIN HANDLER ────────────────────────────────────────────────────────────
     async function handleJoin(itemId, type) {
         const sc = window.supabaseClient;
@@ -784,24 +1006,19 @@
 
             const isFree = !item.entry_fee || item.entry_fee === 0;
             if (!isFree) {
-                // Redirect to Stripe via create-league-session edge function
-                try {
-                    if (btn) { btn.textContent = 'Redirecting to payment...'; }
-                    const { data: { session } } = await sc.auth.getSession();
-                    const res = await fetch('https://poyjykgqsvgimssbhsuz.supabase.co/functions/v1/create-league-session', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${session.access_token}`
-                        },
-                        body: JSON.stringify({ entryType: type, entryId: itemId })
-                    });
-                    const data = await res.json();
-                    if (data.error) throw new Error(data.error);
-                    window.location.href = data.url;
-                } catch (err) {
-                    showToast(err.message || 'Payment failed — please try again', '❌');
-                    if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${Number(item.entry_fee).toFixed(2)}`; }
+                const entryFee = parseFloat(item.entry_fee);
+
+                // Check wallet balance
+                const { data: profile } = await sc.from('profiles').select('wallet_balance').eq('id', user.id).single();
+                const walletBalance = parseFloat(profile?.wallet_balance || '0');
+
+                if (walletBalance >= entryFee) {
+                    // Offer wallet payment choice
+                    if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${entryFee.toFixed(2)}`; }
+                    showWalletPayModal(itemId, type, item, entryFee, walletBalance);
+                } else {
+                    // Not enough in wallet — go straight to Stripe
+                    await goToStripeCheckout(sc, btn, type, itemId, entryFee);
                 }
                 return;
             }
@@ -821,51 +1038,7 @@
                 return;
             }
 
-            // Increment players_joined
-            const newCount = (item.players_joined || 0) + 1;
-            const maxPlayers = item.max_players || (type === 'tournament' ? 16 : 32);
-            const isFull = newCount >= maxPlayers;
-
-            const updatePayload = { players_joined: newCount };
-            if (isFull) updatePayload.status = 'active';
-            await sc.from(entryTable).update(updatePayload).eq('id', itemId);
-
-            // If tournament just filled — generate bracket
-            if (isFull && type === 'tournament') {
-                await generateTournamentBracket(sc, itemId);
-            }
-
-            // Update button state
-            if (btn) {
-                btn.className = 'btn-joined w-full font-bold text-sm py-3 px-4 rounded-xl';
-                btn.textContent = '✓ Joined';
-                btn.removeAttribute('onclick');
-            }
-
-            // Update progress bar / card UI
-            const card = btn?.closest('.league-card');
-            if (card) {
-                if (isFull) {
-                    // Reload the page so card shows active/bracket state
-                    setTimeout(() => window.location.reload(), 1200);
-                } else {
-                    const allMb5 = card.querySelectorAll('.mb-5');
-                    allMb5.forEach(el => {
-                        if (el.querySelector('.progress-track')) {
-                            el.innerHTML = progressBar(newCount, maxPlayers, item.min_players || 4, item.tier || 'free');
-                            animateBars();
-                        }
-                    });
-                }
-            }
-
-            if (isFull) {
-                showToast(type === 'tournament' ? 'Tournament is full — bracket generated! Good luck! 🏆' : 'League is full — it\'s now active! Good luck! 🏆', '🎉');
-            } else if (newCount >= (item.min_players || 4)) {
-                showToast('You\'re in! Waiting for remaining spots to fill.', '✅');
-            } else {
-                showToast('You\'re in! Share to fill the remaining spots.', '✅');
-            }
+            await afterEntryInserted(sc, itemId, type, item, btn, 'You\'re in! Share to fill the remaining spots.', '✅');
 
         } catch (err) {
             console.error('Join error:', err);
