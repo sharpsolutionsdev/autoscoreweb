@@ -84,10 +84,6 @@
                     <a href="/how-it-works" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">How It Works</a>
                     <a href="/leaderboard" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">Leaderboard</a>
                 </div>
-                <button onclick="switchTab('wallet',document.querySelector('.vault-tab[onclick*=\'wallet\']'))" id="nav-wallet-btn" class="hidden items-center gap-2 bg-card/70 border border-white/8 hover:border-brand/40 rounded-xl px-4 py-2.5 transition-all group" title="My Wallet">
-                    <svg class="w-4 h-4 text-slate-400 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    <span id="nav-wallet-balance" class="text-sm font-bold text-white">£0.00</span>
-                </button>
                 <a href="/auth" class="auth-link bg-brand hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_12px_rgba(220,38,38,0.25)] border-b border-brand pb-0.5">My Vault →</a>
                 <!-- Mobile hamburger -->
                 <button id="mobile-toggle" onclick="document.getElementById('mobile-nav').classList.toggle('open')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-card/80 border border-slate-700/60 hover:border-slate-500 transition-colors">
@@ -462,6 +458,17 @@
                 </div>
             </div>
 
+            <!-- First deposit bonus banner -->
+            <div id="first-deposit-banner" class="hidden mb-6 rounded-2xl p-5 flex items-center gap-4" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(16,185,129,0.04));border:1.5px solid rgba(16,185,129,0.3);">
+                <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.3);">
+                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-white font-black text-sm uppercase tracking-wide">First Deposit Bonus 🎯</p>
+                    <p class="text-success text-xs mt-0.5">Get <strong>50% extra</strong> on your first top-up — up to <strong>£50 free</strong>. Deposit £50, play with £75!</p>
+                </div>
+            </div>
+
             <!-- Top-up amounts -->
             <div class="bg-card/70 border border-white/8 rounded-2xl p-6 mb-6">
                 <p class="text-white text-sm font-bold mb-4">Top Up Your Wallet</p>
@@ -648,6 +655,28 @@
         </div>
     </div>
 
+    <!-- FIRST DEPOSIT BONUS MODAL -->
+    <div id="first-deposit-bonus-modal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4" style="background:rgba(12,18,32,0.95);backdrop-filter:blur(20px);">
+        <div class="bg-card border border-success/20 rounded-3xl p-8 max-w-md w-full text-center relative" style="animation:floatUp 0.4s cubic-bezier(0.22,1,0.36,1) both;">
+            <div class="w-16 h-16 bg-success/10 border-2 border-success/30 rounded-full flex items-center justify-center mx-auto mb-5">
+                <svg class="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            </div>
+            <p class="text-[10px] text-success/60 font-black uppercase tracking-widest mb-1">First Deposit Bonus</p>
+            <h2 class="display text-white mb-2" style="font-size:1.8rem;">Bonus Added!</h2>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">Your 50% first deposit bonus has been added to your wallet. <strong class="text-success" id="bonus-amount-text"></strong></p>
+            <div class="bg-dark/60 border border-success/20 rounded-2xl p-5 mb-6">
+                <p class="text-[10px] text-success/60 font-bold uppercase tracking-widest mb-3">Your New Balance</p>
+                <p id="bonus-modal-balance" class="display text-success" style="font-size:2.5rem;line-height:1;">£0.00</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeFirstDepositBonusModal()" class="flex-1 py-3.5 rounded-xl border border-white/10 text-slate-400 font-bold hover:bg-white/5 transition-all text-sm">Close</button>
+                <a href="/#draws" onclick="closeFirstDepositBonusModal()" class="flex-1 py-3.5 rounded-xl bg-success hover:bg-emerald-400 text-dark font-bold transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] text-sm flex items-center justify-center gap-2">
+                    Enter a Draw →
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <footer class="relative z-10 mt-auto">
         <div class="h-px bg-gradient-to-r from-transparent via-brand/25 to-transparent"></div>
@@ -814,18 +843,28 @@
     async function loadWallet(userId) {
         const sc = window.supabaseClient;
         // Load balance from profile
-        const { data: profile } = await sc.from('profiles').select('wallet_balance').eq('id', userId).single();
+        const { data: profile } = await sc.from('profiles').select('wallet_balance, first_deposit_bonus_used').eq('id', userId).single();
         const bal = parseFloat(profile?.wallet_balance || 0);
+
+        // Show first deposit bonus banner if bonus not yet used
+        const banner = document.getElementById('first-deposit-banner');
+        if (banner) {
+            if (!profile?.first_deposit_bonus_used) {
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+            } else {
+                banner.classList.add('hidden');
+                banner.classList.remove('flex');
+            }
+        }
         const balStr = '£' + bal.toFixed(2);
         document.getElementById('wallet-balance-display').textContent = balStr;
         // Update stat pill
         const statWallet = document.getElementById('stat-wallet');
         if (statWallet) statWallet.textContent = balStr;
-        // Update nav chip
-        const navBal = document.getElementById('nav-wallet-balance');
-        const navBtn = document.getElementById('nav-wallet-btn');
-        if (navBal) navBal.textContent = balStr;
-        if (navBtn) navBtn.classList.replace('hidden', 'flex');
+        // Update nav wallet pill (injected by app.js)
+        const navWalletPilBal = document.getElementById('nav-wallet-pill-bal');
+        if (navWalletPilBal) navWalletPilBal.textContent = balStr;
 
         // Load transactions
         const { data: txs } = await sc
@@ -929,18 +968,32 @@
         // Wallet top-up return
         if(urlParams.get('wallet')==='success'){
             const amt=parseInt(urlParams.get('amount')||'0',10);
-            const walletToast=document.createElement('div');
-            walletToast.className='fixed top-6 right-6 z-[200] max-w-sm toast-enter';
-            walletToast.innerHTML=`<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;border-radius:1rem;padding:1.25rem 1.5rem;box-shadow:0 20px 50px -10px rgba(0,0,0,0.5);">
-                <p style="font-weight:700;color:white;margin-bottom:2px;">Wallet Topped Up!</p>
-                <p style="font-size:0.8rem;opacity:0.8;">${amt>0?'£'+(amt/100).toFixed(2)+' added to your wallet.':'Balance updated.'}</p>
-            </div>`;
-            document.body.appendChild(walletToast);
-            setTimeout(()=>{walletToast.classList.add('toast-exit');setTimeout(()=>walletToast.remove(),500);},4000);
+            const isFirstBonus=urlParams.get('bonus')==='first';
             window.history.replaceState({},document.title,window.location.pathname);
             // Switch to wallet tab
             const wTab=document.querySelector('.vault-tab[onclick*="\'wallet\'"]');
             if(wTab) switchTab('wallet',wTab);
+            // If first deposit bonus, show modal after wallet loads (slight delay for DB to settle)
+            if(isFirstBonus){
+                setTimeout(async()=>{
+                    const{data:p}=await window.supabaseClient.from('profiles').select('wallet_balance').eq('id',user.id).single();
+                    const bal=parseFloat(p?.wallet_balance||0);
+                    const bonus=Math.min((amt/100)*0.5,50);
+                    document.getElementById('bonus-amount-text').textContent=`£${bonus.toFixed(2)} bonus credited to your wallet!`;
+                    document.getElementById('bonus-modal-balance').textContent=`£${bal.toFixed(2)}`;
+                    const m=document.getElementById('first-deposit-bonus-modal');
+                    m.classList.remove('hidden');m.style.display='flex';
+                },1500);
+            } else {
+                const walletToast=document.createElement('div');
+                walletToast.className='fixed top-6 right-6 z-[200] max-w-sm toast-enter';
+                walletToast.innerHTML=`<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;border-radius:1rem;padding:1.25rem 1.5rem;box-shadow:0 20px 50px -10px rgba(0,0,0,0.5);">
+                    <p style="font-weight:700;color:white;margin-bottom:2px;">Wallet Topped Up!</p>
+                    <p style="font-size:0.8rem;opacity:0.8;">${amt>0?'£'+(amt/100).toFixed(2)+' added to your wallet.':'Balance updated.'}</p>
+                </div>`;
+                document.body.appendChild(walletToast);
+                setTimeout(()=>{walletToast.classList.add('toast-exit');setTimeout(()=>walletToast.remove(),500);},4000);
+            }
         }
 
         const{data:profile,error:profileError}=await window.supabaseClient.from('profiles').select('*').eq('id',user.id).single();
@@ -1285,6 +1338,10 @@
 
     function closeFirstOrderModal(){
         const m=document.getElementById('firstorder-modal');
+        if(m){m.classList.add('hidden');m.style.display='none';}
+    }
+    function closeFirstDepositBonusModal(){
+        const m=document.getElementById('first-deposit-bonus-modal');
         if(m){m.classList.add('hidden');m.style.display='none';}
     }
     function copyFirstOrder(){

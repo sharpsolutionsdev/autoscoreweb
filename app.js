@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // --- PROCESS USERNAME-BASED REFERRAL ---
-        const refUsername = localStorage.getItem('ochevault_ref_username');
+        const refUsername = localStorage.getItem('ochevault_ref_username') || urlRefParams.get('ref_username');
         if (refUsername) {
             localStorage.removeItem('ochevault_ref_username');
             try {

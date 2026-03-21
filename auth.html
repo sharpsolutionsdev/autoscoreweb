@@ -316,10 +316,13 @@
             btn.classList.add('opacity-80', 'cursor-not-allowed');
             btnText.innerHTML = `<span class="inline-flex items-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Sending…</span>`;
 
-            // Include ref code in redirect URL so it survives if magic link opens in a different browser
+            // Include ref code/username in redirect URL so it survives if magic link opens in a different browser
             const storedRef = localStorage.getItem('ochevault_ref') || '';
+            const params = new URLSearchParams();
+            if (storedRef) params.set('ref', storedRef);
+            if (referrerUsername) params.set('ref_username', referrerUsername);
             let redirectUrl = window.location.origin + '/';
-            if (storedRef) redirectUrl += '?ref=' + encodeURIComponent(storedRef);
+            if (params.toString()) redirectUrl += '?' + params.toString();
 
             const { error } = await window.supabaseClient.auth.signInWithOtp({
                 email: email,
