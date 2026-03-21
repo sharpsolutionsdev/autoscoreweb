@@ -125,6 +125,40 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.error('Referral processing error:', e);
             }
         }
+
+        // --- PROCESS USERNAME-BASED REFERRAL ---
+        const refUsername = localStorage.getItem('ochevault_ref_username');
+        if (refUsername) {
+            localStorage.removeItem('ochevault_ref_username');
+            try {
+                const { data: referrer } = await window.supabaseClient
+                    .from('profiles')
+                    .select('id')
+                    .ilike('username', refUsername.trim())
+                    .single();
+
+                if (referrer && referrer.id !== user.id) {
+                    // Check no duplicate referral exists
+                    const { data: existing } = await window.supabaseClient
+                        .from('referrals')
+                        .select('id')
+                        .eq('referrer_id', referrer.id)
+                        .eq('referred_user_id', user.id)
+                        .limit(1);
+
+                    if (!existing || existing.length === 0) {
+                        await window.supabaseClient.from('referrals').insert([{
+                            referrer_id: referrer.id,
+                            referred_email: user.email,
+                            referred_user_id: user.id,
+                            status: 'signed_up'
+                        }]);
+                    }
+                }
+            } catch (e) {
+                console.error('Username referral processing error:', e);
+            }
+        }
     }
 
     // --- IF ON HOMEPAGE: INJECT LIVE RAFFLE STATS ---

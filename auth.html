@@ -180,6 +180,20 @@
                             </div>
                         </div>
 
+                        <!-- Referred by username (optional) -->
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Referred by <span class="text-slate-700 font-normal normal-case tracking-normal">— optional</span></label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </span>
+                                <input type="text" id="referrer-username" placeholder="Friend's OcheVault username"
+                                    class="oche-input w-full bg-dark/80 border border-white/8 rounded-2xl pl-12 pr-5 py-4 text-white transition-all text-base font-medium placeholder:text-slate-600"
+                                    style="background:rgba(12,18,32,0.8);" autocomplete="off" spellcheck="false">
+                            </div>
+                            <p class="text-[10px] text-slate-600 ml-1">Enter the OcheVault username of the player who invited you</p>
+                        </div>
+
                         <button type="submit" id="btn-send"
                             class="w-full bg-brand hover:bg-red-700 active:scale-[0.98] text-white font-bold py-4 rounded-2xl transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] hover:shadow-[0_4px_30px_rgba(220,38,38,0.45)] text-base tracking-wide relative overflow-hidden group">
                             <span id="btn-text" class="relative z-10">Send Magic Link →</span>
@@ -279,7 +293,7 @@
     </div>
 
     <script>
-        // Store referral code from URL if present
+        // Store referral code from URL if present (legacy link-based)
         (function(){
             const params = new URLSearchParams(window.location.search);
             const ref = params.get('ref');
@@ -289,8 +303,14 @@
         async function sendMagicLink(e) {
             e.preventDefault();
             const email = document.getElementById('email-input').value;
+            const referrerUsername = (document.getElementById('referrer-username').value || '').trim();
             const btn = document.getElementById('btn-send');
             const btnText = document.getElementById('btn-text');
+
+            // Save referrer username to localStorage so it survives the magic link redirect
+            if (referrerUsername) {
+                localStorage.setItem('ochevault_ref_username', referrerUsername);
+            }
 
             btn.disabled = true;
             btn.classList.add('opacity-80', 'cursor-not-allowed');
