@@ -1,0 +1,71 @@
+OCHEVAULT — PRODUCT IMAGES NEEDED
+PNG format, no background (transparent), high resolution
+Save to: /images/products/
+
+------- DARTBOARDS -------
+winmau-blade-6-triple-core.png
+    → Winmau Blade 6 Triple Core Carbon dartboard
+
+unicorn-eclipse-hd2-pro.png
+    → Unicorn Eclipse HD2 Pro dartboard
+
+winmau-diamond-plus.png
+    → Winmau Diamond Plus dartboard
+
+------- DART SETS -------
+target-phil-taylor-power-9five-gen9.png
+    → Target Phil Taylor Power 9Five Gen 9 dart set (barrels + flights)
+
+harrows-wolfram-infinity-97.png
+    → Harrows Wolfram Infinity 97% tungsten dart set
+
+red-dragon-snakebite-world-champion-se.png
+    → Red Dragon Snakebite Peter Wright World Champion Special Edition dart set
+
+target-star-wars-stormtrooper.png
+    → Target Star Wars Stormtrooper dart set
+
+target-star-wars-darth-vader.png
+    → Target Star Wars Darth Vader dart set
+
+designa-dark-thunder-v2.png
+    → Designa Dark Thunder V2 dart set
+
+target-bolide.png
+    → Target Bolide dart set
+
+winmau-vengeance.png
+    → Winmau Vengeance dart set
+
+harrows-paragon.png
+    → Harrows Paragon dart set
+
+------- ACCESSORIES / BUNDLES -------
+winmau-prism-force-surround-lighting.png
+    → Winmau Prism Force dartboard surround + LED lighting kit (full setup shot)
+
+mission-darts-accessory-bundle.png
+    → Mission Darts accessory bundle (flights, shafts, case — product shot)
+
+------- CAMERA / TECH -------
+omni-cam-360-bundle.png
+    → Omni-Cam 360° dartboard camera bundle (camera unit + mount)
+
+virtual-camera-session.png
+    → Virtual camera session — use a dartboard + laptop/screen setup image
+
+------- PRO MEMORABILIA -------
+signed-pro-player-flights.png
+    → Signed professional darts player flights (generic signed flights product shot)
+
+signed-pro-replica-shirt.png
+    → Signed professional darts replica shirt (folded or display shot)
+
+match-used-pro-darts.png
+    → Match-used professional darts (barrels only, on display stand or similar)
+
+------- NOTES -------
+- Keep all PNGs transparent background so they sit naturally on dark cards
+- Ideally 800x800px or larger square format
+- Dart sets: show the full set (barrels, flights, shafts) laid out flat if possible
+- Boards: straight-on front view preferred

@@ -553,7 +553,7 @@
                     </div>
                 </div>
 
-                <!-- Floating stat card: Today's Best -->
+                <!-- Floating stat card: Today's Best (everyone) -->
                 <div id="dart-high-score-badge" class="absolute bottom-10 left-0 lg:-left-8 bg-card/95 backdrop-blur-md border border-accent/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob float-bob-delay-3 hidden">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 bg-accent/15 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -562,6 +562,19 @@
                         <div>
                             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Today's Best</p>
                             <p id="dart-high-score" class="text-[17px] text-accent font-black leading-none" style="font-family:'Barlow Condensed',sans-serif;">—</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating stat card: Your Best Today (logged-in user) -->
+                <div id="dart-my-score-badge" class="absolute top-1/2 left-0 lg:-left-10 -translate-y-1/2 bg-card/95 backdrop-blur-md border border-brand/30 rounded-2xl px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-30 float-bob float-bob-delay-2 hidden">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 bg-brand/15 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-brand" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Best Today</p>
+                            <p id="dart-my-score" class="text-[17px] text-brand font-black leading-none" style="font-family:'Barlow Condensed',sans-serif;">—</p>
                         </div>
                     </div>
                 </div>
@@ -3042,6 +3055,7 @@
 
             // Load today's top score for display
             loadTodayHighScore();
+            loadMyBestToday();
         }
 
         // --- COOLDOWN LOGIC ---
@@ -3273,6 +3287,28 @@
             }
         }
 
+        // --- LOAD CURRENT USER'S BEST TODAY ---
+        async function loadMyBestToday() {
+            try {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (!user) return;
+                const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+                const { data } = await window.supabaseClient
+                    .from('dart_scores')
+                    .select('total')
+                    .eq('user_id', user.id)
+                    .gte('created_at', todayStart.toISOString())
+                    .order('total', { ascending: false })
+                    .limit(1);
+                if (data && data.length > 0) {
+                    document.getElementById('dart-my-score').textContent = `${data[0].total} pts`;
+                    document.getElementById('dart-my-score-badge').classList.remove('hidden');
+                }
+            } catch {
+                // Silently fail — non-critical
+            }
+        }
+
         // --- MAIN THROW FUNCTION ---
         window.throwDart = function() {
             if (isCoolingDown()) { startCooldownTimer(); return; }
@@ -3327,7 +3363,7 @@
                 saveScoreToDb(darts[0], darts[1], darts[2], total);
 
                 // Refresh high score display
-                setTimeout(() => loadTodayHighScore(), 500);
+                setTimeout(() => { loadTodayHighScore(); loadMyBestToday(); }, 500);
 
                 // After 3.5s, check if they can go again or start cooldown
                 setTimeout(() => {

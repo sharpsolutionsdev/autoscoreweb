@@ -473,19 +473,19 @@
             <div class="bg-card/70 border border-white/8 rounded-2xl p-6 mb-6">
                 <p class="text-white text-sm font-bold mb-4">Top Up Your Wallet</p>
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
-                    <button onclick="topUp(500)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                    <button onclick="setTopUpAmount(5)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
                         <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£5</p>
                     </button>
-                    <button onclick="topUp(1000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                    <button onclick="setTopUpAmount(10)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
                         <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£10</p>
                     </button>
-                    <button onclick="topUp(2000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                    <button onclick="setTopUpAmount(20)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
                         <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£20</p>
                     </button>
-                    <button onclick="topUp(5000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                    <button onclick="setTopUpAmount(50)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
                         <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£50</p>
                     </button>
-                    <button onclick="topUp(10000)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
+                    <button onclick="setTopUpAmount(100)" class="topup-btn bg-dark/60 hover:bg-brand/15 border border-white/8 hover:border-brand/40 rounded-xl py-3 text-center transition-all group">
                         <p class="text-white font-black text-base group-hover:text-brand transition-colors" style="font-family:'Barlow Condensed',sans-serif;">£100</p>
                     </button>
                 </div>
@@ -898,6 +898,17 @@
         }).join('');
     }
 
+    function setTopUpAmount(pounds) {
+        const input = document.getElementById('topup-custom');
+        if (input) {
+            input.value = pounds;
+            input.focus();
+            // Highlight active button
+            document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('border-brand/60','bg-brand/15'));
+            event.currentTarget.classList.add('border-brand/60','bg-brand/15');
+        }
+    }
+
     async function topUp(amountPence) {
         const sc = window.supabaseClient;
         const { data: { session } } = await sc.auth.getSession();
@@ -964,6 +975,13 @@
 
         const urlParams=new URLSearchParams(window.location.search);
         if(urlParams.get('success')==='true'){showSuccessToast();window.history.replaceState({},document.title,window.location.pathname);}
+
+        // Nav wallet pill click — open wallet tab directly
+        if(urlParams.get('wallet')==='open'){
+            window.history.replaceState({},document.title,window.location.pathname);
+            const wTab=document.querySelector('.vault-tab[onclick*="\'wallet\'"]');
+            if(wTab) switchTab('wallet',wTab);
+        }
 
         // Wallet top-up return
         if(urlParams.get('wallet')==='success'){

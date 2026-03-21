@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             authLinks.forEach(link => {
                 const wpill = document.createElement('a');
                 wpill.id   = 'nav-wallet-pill';
-                wpill.href = '/dashboard#wallet';
+                wpill.href = '/dashboard?wallet=open';
                 wpill.title = 'My Wallet — click to top up';
                 wpill.innerHTML = `<svg style="width:13px;height:13px;color:#10b981;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg><span id="nav-wallet-pill-bal" style="font-size:13px;font-weight:700;color:#10b981;">${balStr}</span>`;
                 wpill.style.cssText = 'display:flex;align-items:center;gap:5px;background:rgba(16,185,129,0.08);border:1.5px solid rgba(16,185,129,0.25);border-radius:12px;padding:6px 11px;text-decoration:none;transition:all 0.2s;';
