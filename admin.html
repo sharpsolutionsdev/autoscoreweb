@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Admin Panel | OcheVault</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+    <script>
+        tailwind.config={theme:{extend:{fontFamily:{display:['"Barlow Condensed"','sans-serif'],sans:['"Plus Jakarta Sans"','sans-serif']},colors:{brand:'#dc2626',dark:'#0c1220',card:'#141f35',accent:'#f59e0b',success:'#10b981'}}}}
+    </script>
+    <style>
+        body{font-family:'Plus Jakarta Sans',sans-serif;}
+        .display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-0.02em;}
+        .oche-bg{background-image:repeating-conic-gradient(from 0deg,rgba(220,38,38,0.025) 0deg 18deg,rgba(255,255,255,0.008) 18deg 36deg);}
+        .admin-card{background:linear-gradient(135deg,rgba(20,31,53,0.98) 0%,rgba(12,18,32,0.95) 100%);border:1px solid rgba(255,255,255,0.06);border-left:3px solid #dc2626;}
+        .admin-input{width:100%;background:rgba(12,18,32,0.9);border:1.5px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px;color:white;font-size:0.875rem;transition:border-color 0.2s;}
+        .admin-input:focus{border-color:#dc2626;outline:none;box-shadow:0 0 0 3px rgba(220,38,38,0.1);}
+        .admin-input::placeholder{color:#475569;}
+        .admin-btn{padding:10px 20px;border-radius:12px;font-weight:700;font-size:0.875rem;transition:all 0.2s;cursor:pointer;}
+        .btn-brand{background:#dc2626;color:white;border:none;}
+        .btn-brand:hover{background:#b91c1c;}
+        .btn-ghost{background:rgba(255,255,255,0.06);color:#94a3b8;border:1px solid rgba(255,255,255,0.08);}
+        .btn-ghost:hover{background:rgba(255,255,255,0.1);color:white;}
+        .btn-gold{background:#f59e0b;color:#0c1220;border:none;}
+        .btn-gold:hover{background:#d97706;}
+        .btn-green{background:#10b981;color:white;border:none;}
+        .btn-green:hover{background:#059669;}
+        .tab-item{padding:10px 20px;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;color:#475569;border:1px solid transparent;}
+        .tab-item.active{background:rgba(220,38,38,0.15);color:#ef4444;border:1px solid rgba(220,38,38,0.3);}
+        .tab-item:not(.active):hover{color:#94a3b8;background:rgba(255,255,255,0.04);}
+        .status-live{background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);}
+        .status-draft{background:rgba(100,116,139,0.15);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);}
+        .status-completed{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);}
+        .raffle-row{border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s;}
+        .raffle-row:hover{background:rgba(255,255,255,0.02);}
+        .winner-banner{background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05));border:1px solid rgba(245,158,11,0.3);}
+        select.admin-input option{background:#141f35;color:white;}
+        textarea.admin-input{resize:vertical;min-height:80px;}
+        label.field-label{display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;}
+        .modal-box{background:#141f35;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+    </style>
+</head>
+<body class="bg-dark text-slate-300 antialiased min-h-screen flex flex-col">
+
+<div class="absolute inset-0 oche-bg pointer-events-none z-0 opacity-60"></div>
+<div class="absolute top-0 right-0 w-[500px] h-[400px] bg-brand/6 blur-[160px] rounded-full pointer-events-none z-0"></div>
+
+<!-- NAV -->
+<nav class="border-b border-slate-700/40 bg-dark/90 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 group">
+            <svg viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="19" fill="#dc2626"/><circle cx="20" cy="20" r="14" fill="#0c1220"/>
+                <circle cx="20" cy="20" r="9" fill="#dc2626"/><circle cx="20" cy="20" r="4" fill="#0c1220"/>
+                <circle cx="20" cy="20" r="2" fill="#f59e0b"/>
+            </svg>
+            <span class="display text-white text-2xl group-hover:text-brand transition-colors">OcheVault</span>
+            <span class="ml-2 px-2.5 py-0.5 rounded-md bg-red-900/50 border border-red-700/50 text-red-400 text-xs font-bold uppercase tracking-wider">Admin</span>
+        </a>
+        <div class="flex items-center gap-3">
+            <a href="/" class="text-slate-400 hover:text-white transition-colors text-sm font-medium">← Live Site</a>
+            <button onclick="signOut()" class="admin-btn btn-ghost text-sm">Sign Out</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ACCESS GATE (shown while loading) -->
+<div id="access-gate" class="relative z-10 flex-1 flex items-center justify-center">
+    <div class="text-center">
+        <div class="w-12 h-12 border-2 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-slate-400 text-sm">Verifying admin access...</p>
+    </div>
+</div>
+
+<!-- MAIN ADMIN PANEL (hidden until access verified) -->
+<div id="admin-panel" class="hidden relative z-10 flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="display text-4xl text-white mb-1">Admin Panel</h1>
+            <p class="text-slate-500 text-sm">Manage raffles, draw winners, and monitor the platform.</p>
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8" id="stats-row">
+            <div class="admin-card rounded-2xl p-5">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Live Raffles</p>
+                <p class="text-3xl font-bold text-white display" id="stat-live">—</p>
+            </div>
+            <div class="admin-card rounded-2xl p-5">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Tickets</p>
+                <p class="text-3xl font-bold text-accent display" id="stat-tickets">—</p>
+            </div>
+            <div class="admin-card rounded-2xl p-5">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Users</p>
+                <p class="text-3xl font-bold text-white display" id="stat-users">—</p>
+            </div>
+            <div class="admin-card rounded-2xl p-5">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Revenue (est.)</p>
+                <p class="text-3xl font-bold text-success display" id="stat-revenue">—</p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 flex-wrap mb-6">
+            <button class="tab-item active" onclick="switchTab('raffles', this)">Raffles</button>
+            <button class="tab-item" onclick="switchTab('transactions', this)">Transactions</button>
+            <button class="tab-item" onclick="switchTab('users', this)">Users</button>
+            <button class="tab-item" onclick="switchTab('promos', this)">Promo Codes</button>
+        </div>
+
+        <!-- ===== RAFFLES TAB ===== -->
+        <div id="tab-raffles" class="tab-content">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-white font-bold text-lg">All Raffles</h2>
+                <button onclick="openRaffleModal()" class="admin-btn btn-brand flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    New Raffle
+                </button>
+            </div>
+            <div class="admin-card rounded-2xl overflow-hidden">
+                <div id="raffles-list" class="divide-y divide-white/5">
+                    <div class="p-6 text-center text-slate-500 text-sm">Loading raffles...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TRANSACTIONS TAB ===== -->
+        <div id="tab-transactions" class="tab-content hidden">
+            <h2 class="text-white font-bold text-lg mb-4">Recent Transactions</h2>
+            <div class="admin-card rounded-2xl overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-white/5">
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">User</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Raffle</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Qty</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Amount</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Promo</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-list">
+                        <tr><td colspan="6" class="text-center text-slate-500 text-sm py-8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== USERS TAB ===== -->
+        <div id="tab-users" class="tab-content hidden">
+            <h2 class="text-white font-bold text-lg mb-4">Users</h2>
+            <div class="admin-card rounded-2xl overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-white/5">
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Username</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Email</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Wallet</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Referral Code</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-list">
+                        <tr><td colspan="5" class="text-center text-slate-500 text-sm py-8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== PROMOS TAB ===== -->
+        <div id="tab-promos" class="tab-content hidden">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-white font-bold text-lg">Promo Codes</h2>
+                <button onclick="openPromoModal()" class="admin-btn btn-brand flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    New Code
+                </button>
+            </div>
+            <div class="admin-card rounded-2xl overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-white/5">
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Code</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Discount</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Max Off</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Remaining</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Expires</th>
+                            <th class="text-left text-slate-500 font-bold uppercase tracking-wider text-xs px-5 py-3.5">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promos-list">
+                        <tr><td colspan="6" class="text-center text-slate-500 text-sm py-8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== RAFFLE CREATE/EDIT MODAL ===== -->
+<div id="raffle-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="display text-2xl text-white" id="raffle-modal-title">New Raffle</h2>
+            <button onclick="closeModal('raffle-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">✕</button>
+        </div>
+        <form id="raffle-form" class="space-y-4" onsubmit="saveRaffle(event)">
+            <input type="hidden" id="raffle-id">
+            <div>
+                <label class="field-label">Title *</label>
+                <input class="admin-input" id="raffle-title" placeholder="e.g. Target Nexus 23 Dart Set" required>
+            </div>
+            <div>
+                <label class="field-label">Description</label>
+                <textarea class="admin-input" id="raffle-description" placeholder="Prize details, what's included..."></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="field-label">Price Per Ticket (£) *</label>
+                    <input class="admin-input" id="raffle-price" type="number" step="0.01" min="0.50" placeholder="2.00" required>
+                </div>
+                <div>
+                    <label class="field-label">Max Tickets *</label>
+                    <input class="admin-input" id="raffle-max" type="number" min="1" placeholder="500" required>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="field-label">Status</label>
+                    <select class="admin-input" id="raffle-status">
+                        <option value="draft">Draft</option>
+                        <option value="live">Live</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label">End Date</label>
+                    <input class="admin-input" id="raffle-end-date" type="datetime-local">
+                </div>
+            </div>
+            <div>
+                <label class="field-label">Image URL</label>
+                <input class="admin-input" id="raffle-image" placeholder="https://..." type="url">
+            </div>
+            <div id="raffle-form-error" class="hidden text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-xl p-3"></div>
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="admin-btn btn-brand flex-1" id="raffle-submit-btn">Create Raffle</button>
+                <button type="button" onclick="closeModal('raffle-modal')" class="admin-btn btn-ghost">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== DRAW WINNER MODAL ===== -->
+<div id="draw-modal" class="modal-overlay hidden">
+    <div class="modal-box text-center">
+        <div class="w-16 h-16 bg-accent/15 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-accent" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+        </div>
+        <h2 class="display text-2xl text-white mb-2">Draw Winner</h2>
+        <p class="text-slate-400 text-sm mb-1" id="draw-raffle-title">—</p>
+        <p class="text-slate-500 text-xs mb-6" id="draw-ticket-count">— tickets entered</p>
+
+        <div id="draw-result" class="hidden winner-banner rounded-2xl p-5 mb-5">
+            <p class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Winner</p>
+            <p class="text-2xl font-bold text-accent display" id="draw-winner-name">—</p>
+            <p class="text-slate-400 text-xs mt-1" id="draw-winner-id">—</p>
+        </div>
+
+        <div id="draw-spinner" class="hidden my-6">
+            <div class="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-slate-400 text-sm mt-3">Drawing winner...</p>
+        </div>
+
+        <div id="draw-error" class="hidden text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-xl p-3 mb-4"></div>
+
+        <div class="flex gap-3">
+            <button id="draw-btn" onclick="executeDraw()" class="admin-btn btn-gold flex-1">🎯 Draw Winner Now</button>
+            <button onclick="closeModal('draw-modal')" class="admin-btn btn-ghost">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PROMO CREATE MODAL ===== -->
+<div id="promo-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="display text-2xl text-white">New Promo Code</h2>
+            <button onclick="closeModal('promo-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">✕</button>
+        </div>
+        <form id="promo-form" class="space-y-4" onsubmit="savePromo(event)">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="field-label">Code *</label>
+                    <input class="admin-input uppercase" id="promo-code" placeholder="SUMMER25" required style="text-transform:uppercase">
+                </div>
+                <div>
+                    <label class="field-label">Discount % *</label>
+                    <input class="admin-input" id="promo-discount" type="number" min="1" max="100" placeholder="50" required>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="field-label">Max Discount (£)</label>
+                    <input class="admin-input" id="promo-max-discount" type="number" step="0.01" placeholder="25.00">
+                </div>
+                <div>
+                    <label class="field-label">Usage Limit</label>
+                    <input class="admin-input" id="promo-usage-limit" type="number" min="1" placeholder="Leave blank = unlimited">
+                </div>
+            </div>
+            <div>
+                <label class="field-label">Expires At *</label>
+                <input class="admin-input" id="promo-expires" type="datetime-local" required>
+            </div>
+            <div id="promo-form-error" class="hidden text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-xl p-3"></div>
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="admin-btn btn-brand flex-1">Create Code</button>
+                <button type="button" onclick="closeModal('promo-modal')" class="admin-btn btn-ghost">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="admin-toast" class="hidden fixed top-6 right-6 z-[200] max-w-sm">
+    <div id="admin-toast-inner" class="rounded-2xl p-4 shadow-xl backdrop-blur-xl flex items-center gap-3 text-sm font-semibold"></div>
+</div>
+
+<script>
+// ── State ──
+let currentUser = null;
+let currentDrawRaffleId = null;
+let adminLoaded = false;
+
+// ── Auth gate ──
+async function initAdmin() {
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (!session) {
+        window.location.href = '/auth';
+        return;
+    }
+    currentUser = session.user;
+
+    const { data: profile, error } = await window.supabaseClient
+        .from('profiles')
+        .select('is_admin, username')
+        .eq('id', currentUser.id)
+        .single();
+
+    if (error || !profile?.is_admin) {
+        document.getElementById('access-gate').innerHTML = `
+            <div class="text-center max-w-sm mx-auto">
+                <div class="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <h2 class="display text-2xl text-white mb-2">Access Denied</h2>
+                <p class="text-slate-400 text-sm mb-5">Your account doesn't have admin permissions.</p>
+                <a href="/" class="admin-btn btn-brand inline-block">← Go Home</a>
+            </div>`;
+        return;
+    }
+
+    document.getElementById('access-gate').classList.add('hidden');
+    document.getElementById('admin-panel').classList.remove('hidden');
+    loadStats();
+    loadRaffles();
+}
+
+// ── Helpers ──
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('admin-toast');
+    const ti = document.getElementById('admin-toast-inner');
+    const styles = {
+        success: 'bg-success/10 border border-success/30 text-success',
+        error: 'bg-red-900/20 border border-red-800/40 text-red-400',
+        info: 'bg-blue-900/20 border border-blue-700/40 text-blue-300'
+    };
+    ti.className = `rounded-2xl p-4 shadow-xl backdrop-blur-xl flex items-center gap-3 text-sm font-semibold ${styles[type] || styles.success}`;
+    ti.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 3500);
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+
+function switchTab(name, el) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.remove('hidden');
+    el.classList.add('active');
+    if (name === 'transactions' && !adminLoaded) loadTransactions();
+    if (name === 'users') loadUsers();
+    if (name === 'promos') loadPromos();
+}
+
+function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function fmtCurrency(n) {
+    return '£' + parseFloat(n || 0).toFixed(2);
+}
+
+// ── Stats ──
+async function loadStats() {
+    const [{ data: raffles }, { data: tickets }, { data: users }] = await Promise.all([
+        window.supabaseClient.from('raffles').select('status, tickets_sold, price_per_ticket'),
+        window.supabaseClient.from('user_tickets').select('qty, purchase_price', { count: 'exact' }),
+        window.supabaseClient.from('profiles').select('id', { count: 'exact' })
+    ]);
+
+    const liveCount = raffles?.filter(r => r.status === 'live').length || 0;
+    const totalTickets = tickets?.reduce((s, t) => s + (t.qty || 1), 0) || 0;
+    const revenue = tickets?.reduce((s, t) => s + parseFloat(t.purchase_price || 0), 0) || 0;
+    const userCount = users?.length || 0;
+
+    document.getElementById('stat-live').textContent = liveCount;
+    document.getElementById('stat-tickets').textContent = totalTickets.toLocaleString();
+    document.getElementById('stat-users').textContent = userCount.toLocaleString();
+    document.getElementById('stat-revenue').textContent = fmtCurrency(revenue);
+}
+
+// ── Raffles ──
+async function loadRaffles() {
+    const { data: raffles, error } = await window.supabaseClient
+        .from('raffles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        document.getElementById('raffles-list').innerHTML = `<div class="p-6 text-red-400 text-sm">Error loading raffles: ${error.message}</div>`;
+        return;
+    }
+
+    if (!raffles?.length) {
+        document.getElementById('raffles-list').innerHTML = `<div class="p-8 text-center text-slate-500 text-sm">No raffles yet. Create your first one!</div>`;
+        return;
+    }
+
+    document.getElementById('raffles-list').innerHTML = raffles.map(r => {
+        const pct = r.max_tickets ? Math.round((r.tickets_sold / r.max_tickets) * 100) : 0;
+        const statusClass = r.status === 'live' ? 'status-live' : r.status === 'completed' ? 'status-completed' : 'status-draft';
+        return `
+        <div class="raffle-row p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 mb-1 flex-wrap">
+                    <span class="font-bold text-white truncate">${r.title || 'Untitled'}</span>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-bold ${statusClass}">${r.status}</span>
+                    ${r.winner_user_id ? '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-accent/15 text-accent border border-accent/30">Winner Drawn</span>' : ''}
+                </div>
+                <div class="text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
+                    <span>${fmtCurrency(r.price_per_ticket)} / ticket</span>
+                    <span>${(r.tickets_sold || 0).toLocaleString()} / ${(r.max_tickets || 0).toLocaleString()} tickets (${pct}%)</span>
+                    ${r.end_date ? `<span>Ends ${fmtDate(r.end_date)}</span>` : ''}
+                </div>
+                <div class="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden w-full max-w-xs">
+                    <div class="h-full bg-brand rounded-full" style="width:${pct}%"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                ${r.status === 'live' ? `<button onclick="openDrawModal(${r.id}, '${(r.title || '').replace(/'/g, "\\'")}', ${r.tickets_sold || 0})" class="admin-btn btn-gold text-xs py-2 px-3">Draw Winner</button>` : ''}
+                <button onclick="openRaffleModal(${JSON.stringify(r).replace(/"/g, '&quot;')})" class="admin-btn btn-ghost text-xs py-2 px-3">Edit</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openRaffleModal(raffle) {
+    const modal = document.getElementById('raffle-modal');
+    const isEdit = raffle && typeof raffle === 'object';
+
+    document.getElementById('raffle-modal-title').textContent = isEdit ? 'Edit Raffle' : 'New Raffle';
+    document.getElementById('raffle-submit-btn').textContent = isEdit ? 'Save Changes' : 'Create Raffle';
+    document.getElementById('raffle-id').value = isEdit ? raffle.id : '';
+    document.getElementById('raffle-title').value = isEdit ? (raffle.title || '') : '';
+    document.getElementById('raffle-description').value = isEdit ? (raffle.description || '') : '';
+    document.getElementById('raffle-price').value = isEdit ? (raffle.price_per_ticket || '') : '';
+    document.getElementById('raffle-max').value = isEdit ? (raffle.max_tickets || '') : '';
+    document.getElementById('raffle-status').value = isEdit ? (raffle.status || 'draft') : 'draft';
+    document.getElementById('raffle-image').value = isEdit ? (raffle.image_url || '') : '';
+    if (isEdit && raffle.end_date) {
+        const d = new Date(raffle.end_date);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        document.getElementById('raffle-end-date').value = d.toISOString().slice(0, 16);
+    } else {
+        document.getElementById('raffle-end-date').value = '';
+    }
+    document.getElementById('raffle-form-error').classList.add('hidden');
+    modal.classList.remove('hidden');
+}
+
+async function saveRaffle(e) {
+    e.preventDefault();
+    const id = document.getElementById('raffle-id').value;
+    const errEl = document.getElementById('raffle-form-error');
+    errEl.classList.add('hidden');
+
+    const endDateVal = document.getElementById('raffle-end-date').value;
+    const payload = {
+        title: document.getElementById('raffle-title').value.trim(),
+        description: document.getElementById('raffle-description').value.trim() || null,
+        price_per_ticket: parseFloat(document.getElementById('raffle-price').value),
+        max_tickets: parseInt(document.getElementById('raffle-max').value),
+        status: document.getElementById('raffle-status').value,
+        image_url: document.getElementById('raffle-image').value.trim() || null,
+        end_date: endDateVal ? new Date(endDateVal).toISOString() : null,
+    };
+
+    let error;
+    if (id) {
+        ({ error } = await window.supabaseClient.from('raffles').update(payload).eq('id', id));
+    } else {
+        payload.tickets_sold = 0;
+        ({ error } = await window.supabaseClient.from('raffles').insert([payload]));
+    }
+
+    if (error) {
+        errEl.textContent = error.message;
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    closeModal('raffle-modal');
+    showToast(id ? 'Raffle updated!' : 'Raffle created!');
+    loadRaffles();
+    loadStats();
+}
+
+// ── Draw winner ──
+function openDrawModal(raffleId, title, ticketCount) {
+    currentDrawRaffleId = raffleId;
+    document.getElementById('draw-raffle-title').textContent = title;
+    document.getElementById('draw-ticket-count').textContent = `${ticketCount.toLocaleString()} tickets entered`;
+    document.getElementById('draw-result').classList.add('hidden');
+    document.getElementById('draw-spinner').classList.add('hidden');
+    document.getElementById('draw-error').classList.add('hidden');
+    document.getElementById('draw-btn').disabled = false;
+    document.getElementById('draw-modal').classList.remove('hidden');
+}
+
+async function executeDraw() {
+    if (!currentDrawRaffleId) return;
+    const btn = document.getElementById('draw-btn');
+    btn.disabled = true;
+    document.getElementById('draw-spinner').classList.remove('hidden');
+    document.getElementById('draw-result').classList.add('hidden');
+    document.getElementById('draw-error').classList.add('hidden');
+
+    const { data, error } = await window.supabaseClient
+        .rpc('draw_raffle_winner', { p_raffle_id: currentDrawRaffleId });
+
+    document.getElementById('draw-spinner').classList.add('hidden');
+
+    if (error) {
+        document.getElementById('draw-error').textContent = error.message;
+        document.getElementById('draw-error').classList.remove('hidden');
+        btn.disabled = false;
+        return;
+    }
+
+    const winner = data?.[0];
+    document.getElementById('draw-winner-name').textContent = winner?.winner_username || 'Unknown';
+    document.getElementById('draw-winner-id').textContent = winner?.winner_user_id || '';
+    document.getElementById('draw-result').classList.remove('hidden');
+    showToast(`Winner drawn: ${winner?.winner_username || 'Unknown'}`, 'success');
+    loadRaffles();
+}
+
+// ── Transactions ──
+async function loadTransactions() {
+    adminLoaded = true;
+    const { data, error } = await window.supabaseClient
+        .from('user_tickets')
+        .select(`id, qty, purchase_price, promo_code_used, created_at, raffle_id, profiles(username), raffles(title)`)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+    if (error) {
+        document.getElementById('transactions-list').innerHTML = `<tr><td colspan="6" class="text-center text-red-400 text-sm py-8">${error.message}</td></tr>`;
+        return;
+    }
+
+    if (!data?.length) {
+        document.getElementById('transactions-list').innerHTML = `<tr><td colspan="6" class="text-center text-slate-500 text-sm py-8">No transactions yet.</td></tr>`;
+        return;
+    }
+
+    document.getElementById('transactions-list').innerHTML = data.map(t => `
+        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+            <td class="px-5 py-3.5 text-slate-300 font-medium">${t.profiles?.username || '—'}</td>
+            <td class="px-5 py-3.5 text-slate-400">${t.raffles?.title || `#${t.raffle_id}`}</td>
+            <td class="px-5 py-3.5 text-slate-300">${t.qty}</td>
+            <td class="px-5 py-3.5 text-success font-medium">${fmtCurrency(t.purchase_price)}</td>
+            <td class="px-5 py-3.5">${t.promo_code_used ? `<span class="px-2 py-0.5 bg-accent/10 text-accent text-xs rounded-full border border-accent/20 font-bold">${t.promo_code_used}</span>` : '<span class="text-slate-600">—</span>'}</td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs">${fmtDate(t.created_at)}</td>
+        </tr>`).join('');
+}
+
+// ── Users ──
+async function loadUsers() {
+    const { data, error } = await window.supabaseClient
+        .from('profiles')
+        .select('id, username, email, wallet_balance, referral_code, created_at, is_admin')
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+    if (error) {
+        document.getElementById('users-list').innerHTML = `<tr><td colspan="5" class="text-center text-red-400 text-sm py-8">${error.message}</td></tr>`;
+        return;
+    }
+
+    if (!data?.length) {
+        document.getElementById('users-list').innerHTML = `<tr><td colspan="5" class="text-center text-slate-500 text-sm py-8">No users yet.</td></tr>`;
+        return;
+    }
+
+    document.getElementById('users-list').innerHTML = data.map(u => `
+        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+            <td class="px-5 py-3.5">
+                <span class="text-white font-medium">${u.username || '—'}</span>
+                ${u.is_admin ? ' <span class="ml-2 px-1.5 py-0.5 bg-red-900/40 text-red-400 text-xs rounded font-bold uppercase">Admin</span>' : ''}
+            </td>
+            <td class="px-5 py-3.5 text-slate-400 text-xs">${u.email || '—'}</td>
+            <td class="px-5 py-3.5 text-success font-medium">${fmtCurrency(u.wallet_balance)}</td>
+            <td class="px-5 py-3.5 text-slate-500 font-mono text-xs">${u.referral_code || '—'}</td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs">${fmtDate(u.created_at)}</td>
+        </tr>`).join('');
+}
+
+// ── Promos ──
+async function loadPromos() {
+    const { data, error } = await window.supabaseClient
+        .from('promo_codes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        document.getElementById('promos-list').innerHTML = `<tr><td colspan="6" class="text-center text-red-400 text-sm py-8">${error.message}</td></tr>`;
+        return;
+    }
+
+    if (!data?.length) {
+        document.getElementById('promos-list').innerHTML = `<tr><td colspan="6" class="text-center text-slate-500 text-sm py-8">No promo codes.</td></tr>`;
+        return;
+    }
+
+    document.getElementById('promos-list').innerHTML = data.map(p => {
+        const expired = new Date(p.expires_at) < new Date();
+        const statusLabel = !p.active ? 'Disabled' : expired ? 'Expired' : 'Active';
+        const statusClass = (!p.active || expired) ? 'status-draft' : 'status-live';
+        return `
+        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+            <td class="px-5 py-3.5 font-mono text-accent font-bold">${p.code}</td>
+            <td class="px-5 py-3.5 text-slate-300">${p.discount_percent}%</td>
+            <td class="px-5 py-3.5 text-slate-300">${p.max_discount_base ? fmtCurrency(p.max_discount_base) : '—'}</td>
+            <td class="px-5 py-3.5 text-slate-300">${p.usage_remaining ?? '∞'} / ${p.usage_limit ?? '∞'}</td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs">${fmtDate(p.expires_at)}</td>
+            <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${statusClass}">${statusLabel}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+function openPromoModal() {
+    document.getElementById('promo-form').reset();
+    document.getElementById('promo-form-error').classList.add('hidden');
+    // Default expires 1 year from now
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    document.getElementById('promo-expires').value = d.toISOString().slice(0, 16);
+    document.getElementById('promo-modal').classList.remove('hidden');
+}
+
+async function savePromo(e) {
+    e.preventDefault();
+    const errEl = document.getElementById('promo-form-error');
+    errEl.classList.add('hidden');
+    const usageLimitVal = document.getElementById('promo-usage-limit').value;
+    const usageLimit = usageLimitVal ? parseInt(usageLimitVal) : null;
+    const maxDiscount = document.getElementById('promo-max-discount').value;
+
+    const payload = {
+        code: document.getElementById('promo-code').value.trim().toUpperCase(),
+        discount_percent: parseFloat(document.getElementById('promo-discount').value),
+        max_discount_base: maxDiscount ? parseFloat(maxDiscount) : null,
+        usage_limit: usageLimit,
+        usage_remaining: usageLimit,
+        active: true,
+        expires_at: new Date(document.getElementById('promo-expires').value).toISOString(),
+        created_by: currentUser.id,
+    };
+
+    const { error } = await window.supabaseClient.from('promo_codes').insert([payload]);
+    if (error) {
+        errEl.textContent = error.message;
+        errEl.classList.remove('hidden');
+        return;
+    }
+    closeModal('promo-modal');
+    showToast('Promo code created!');
+    loadPromos();
+}
+
+async function signOut() {
+    await window.supabaseClient.auth.signOut();
+    window.location.href = '/';
+}
+
+// ── Boot ──
+window.addEventListener('DOMContentLoaded', initAdmin);
+</script>
+</body>
+</html>
