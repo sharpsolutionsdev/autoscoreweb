@@ -1223,7 +1223,7 @@
                 .from('avatars')
                 .upload(filePath,file,{upsert:true,contentType:file.type});
 
-            if(uploadError){console.error('Avatar upload error:',uploadError);return;}
+            if(uploadError){return;}
 
             const{data:urlData}=window.supabaseClient.storage.from('avatars').getPublicUrl(filePath);
             const publicUrl=urlData?.publicUrl;
@@ -1240,7 +1240,7 @@
                     if(img) img.src=publicUrl;
                 });
             }
-        } catch(e){ console.error('Avatar error:',e); }
+        } catch(e){ /* Avatar error suppressed client-side */ }
     }
 
     // ── Toast ──────────────────────────────────────────────────────
@@ -1396,7 +1396,7 @@
             .eq('referrer_id',currentUser.id)
             .order('created_at',{ascending:false});
 
-        if(refErr) console.error('Referral fetch error:', refErr);
+        // Referral fetch error suppressed client-side
 
         // Fetch profiles for referred users who have signed up
         const referredUserIds=(refs||[]).filter(r=>r.referred_user_id).map(r=>r.referred_user_id);

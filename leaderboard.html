@@ -195,7 +195,7 @@
 
                 if (error) {
                     list.innerHTML = '<div class="text-center py-12 text-slate-500 text-sm">Failed to load leaderboard.</div>';
-                    console.error('Leaderboard error:', error);
+                    // Leaderboard error suppressed client-side
                     return;
                 }
 
@@ -272,7 +272,7 @@
                 list.innerHTML = html;
 
             } catch (err) {
-                console.error('Leaderboard error:', err);
+                // Leaderboard error suppressed client-side
                 list.innerHTML = '<div class="text-center py-12 text-slate-500 text-sm">Something went wrong.</div>';
             }
         }

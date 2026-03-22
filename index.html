@@ -3290,7 +3290,7 @@
                 // Server-side rate check before insert
                 const allowed = await checkServerRateLimit();
                 if (!allowed) {
-                    console.warn('Server rate limit hit');
+                    // Rate limit hit — suppressed client-side
                     return;
                 }
                 await window.supabaseClient.from('dart_scores').insert([{
@@ -3300,7 +3300,7 @@
                     dart1_label: d1.label, dart2_label: d2.label, dart3_label: d3.label
                 }]);
             } catch (err) {
-                console.error('Error saving dart score:', err);
+                // Dart score save error suppressed client-side
             }
         }
 

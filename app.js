@@ -84,7 +84,7 @@ window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
             }]);
         }
     } catch (e) {
-        console.error('Referral onAuthStateChange error:', e);
+        // Referral processing failed — details intentionally not logged client-side
     }
 });
 
@@ -206,7 +206,7 @@ window.loadGlobalVault = async function(passedUserId) {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("Error fetching vault:", error);
+        // Vault fetch failed — details suppressed client-side
     }
 
     if (error || !tickets || tickets.length === 0) {
@@ -247,18 +247,33 @@ window.loadGlobalVault = async function(passedUserId) {
     `).join('');
 };
 
-// --- GLOBAL FREE SPIN INJECTOR (Fixed Race Condition) ---
+// --- GLOBAL FREE SPIN INJECTOR ---
+// Maximum tickets any wheel segment can award — enforced here server-side too
+const FREE_SPIN_MAX = 3;
+
 window.injectFreeTickets = async function(wonAmount) {
+    // Clamp to the wheel's actual maximum regardless of what's passed in
+    const safeQty = Math.min(Math.max(1, parseInt(wonAmount) || 1), FREE_SPIN_MAX);
     try {
-        // Explicitly await the user to guarantee we have their ID
         const { data: { user } } = await window.supabaseClient.auth.getUser();
         if (!user) return false;
-        
-        // 1. Ensure Profile Exists (Email tracking)
+
+        // Server-side duplicate check — localStorage can be cleared by anyone,
+        // so we verify against the DB that no FREE-SPIN row already exists
+        const { data: existing } = await window.supabaseClient
+            .from('user_tickets')
+            .select('id')
+            .eq('user_id', user.id)
+            .ilike('paypal_transaction_id', 'FREE-SPIN-%')
+            .limit(1)
+            .maybeSingle();
+        if (existing) return false;
+
+        // 1. Ensure profile row exists
         await window.supabaseClient.from('profiles').upsert({ id: user.id, email: user.email });
-        
+
         // 2. Fetch a £2 raffle for free spin tickets only
-        const { data: raffles, error: raffleErr } = await window.supabaseClient
+        const { data: raffles } = await window.supabaseClient
             .from('raffles')
             .select('id')
             .eq('price_per_ticket', 2)
@@ -266,22 +281,18 @@ window.injectFreeTickets = async function(wonAmount) {
             .limit(1);
         const fallbackId = (raffles && raffles.length > 0) ? raffles[0].id : null;
 
-        // 3. Insert Tickets Safely
+        // 3. Insert with capped qty
         const { error } = await window.supabaseClient.from('user_tickets').insert([{
             user_id: user.id,
-            raffle_id: fallbackId, 
-            qty: wonAmount,
-            paypal_transaction_id: 'FREE-SPIN-' + Math.floor(Math.random()*1000000),
+            raffle_id: fallbackId,
+            qty: safeQty,
+            paypal_transaction_id: 'FREE-SPIN-' + Math.floor(Math.random() * 1000000),
             purchase_price: 0
         }]);
 
-        if (error) {
-            console.error("Critical DB Insert Error:", error);
-            return false;
-        }
+        if (error) return false;
         return true;
     } catch (err) {
-        console.error("Error injecting tickets:", err);
         return false;
     }
 };
@@ -315,13 +326,11 @@ window.processPayment = async function(paypalOrderId, raffleId, quantity, promoC
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('Payment processing error:', result);
             throw new Error(result.error || 'Payment processing failed');
         }
 
         return result;
     } catch (error) {
-        console.error('Payment error:', error);
         throw error;
     }
 };
@@ -335,3 +344,341 @@ window.refreshVaultAfterPurchase = async function(userId) {
         await window.loadGlobalVault(userId);
     }
 };
+
+// ============================================================
+// --- THEME SYSTEM ---
+// ============================================================
+
+const OV_THEMES = {
+    crimson: {
+        id: 'crimson',
+        name: 'Crimson Vault',
+        emoji: '🎯',
+        brand: '#dc2626', brandRgb: '220,38,38',
+        brandDark: '#991b1b', brandDarker: '#7f1d1d',
+        accent: '#f59e0b', accentRgb: '245,158,11',
+        bg: '#0c1220', bgRgb: '12,18,32',
+        card: '#141f35', cardRgb: '20,31,53',
+    },
+    neon: {
+        id: 'neon',
+        name: 'Neon Abyss',
+        emoji: '⚡',
+        brand: '#7c3aed', brandRgb: '124,58,237',
+        brandDark: '#6d28d9', brandDarker: '#5b21b6',
+        accent: '#22d3ee', accentRgb: '34,211,238',
+        bg: '#08091c', bgRgb: '8,9,28',
+        card: '#0e1133', cardRgb: '14,17,51',
+    },
+    arctic: {
+        id: 'arctic',
+        name: 'Arctic Steel',
+        emoji: '❄️',
+        brand: '#1d4ed8', brandRgb: '29,78,216',
+        brandDark: '#1e40af', brandDarker: '#1e3a8a',
+        accent: '#38bdf8', accentRgb: '56,189,248',
+        bg: '#040e1c', bgRgb: '4,14,28',
+        card: '#0a1829', cardRgb: '10,24,41',
+    },
+    emerald: {
+        id: 'emerald',
+        name: 'Emerald',
+        emoji: '💎',
+        brand: '#059669', brandRgb: '5,150,105',
+        brandDark: '#047857', brandDarker: '#065f46',
+        accent: '#fbbf24', accentRgb: '251,191,36',
+        bg: '#04100c', bgRgb: '4,16,12',
+        card: '#091a14', cardRgb: '9,26,20',
+    },
+    solar: {
+        id: 'solar',
+        name: 'Solar Flare',
+        emoji: '🔥',
+        brand: '#ea580c', brandRgb: '234,88,12',
+        brandDark: '#c2410c', brandDarker: '#9a3412',
+        accent: '#facc15', accentRgb: '250,204,21',
+        bg: '#100a04', bgRgb: '16,10,4',
+        card: '#1c1208', cardRgb: '28,18,8',
+    },
+};
+
+function _buildThemeCSS(t) {
+    return `
+/* OcheVault Theme: ${t.name} */
+:root {
+  --ov-brand: ${t.brand};
+  --ov-brand-rgb: ${t.brandRgb};
+  --ov-brand-dark: ${t.brandDark};
+  --ov-accent: ${t.accent};
+  --ov-accent-rgb: ${t.accentRgb};
+  --ov-bg: ${t.bg};
+  --ov-card: ${t.card};
+}
+
+/* ── Backgrounds ── */
+body                              { background-color: ${t.bg} !important; }
+nav                               { background-color: rgba(${t.bgRgb},0.9) !important; }
+.bg-dark                          { background-color: ${t.bg} !important; }
+.bg-card                          { background-color: ${t.card} !important; }
+.bg-brand                         { background-color: ${t.brand} !important; }
+.bg-accent                        { background-color: ${t.accent} !important; }
+
+/* ── Text ── */
+.text-brand                       { color: ${t.brand} !important; }
+.text-accent                      { color: ${t.accent} !important; }
+
+/* ── Borders ── */
+.border-brand                     { border-color: ${t.brand} !important; }
+nav.border-b, nav.border-b-slate-700\\/40
+                                  { border-bottom-color: rgba(${t.brandRgb},0.15) !important; }
+
+/* ── Buttons ── */
+.hover\\:bg-brand:hover,
+.auth-link,
+.tab-btn.active                   { background-color: ${t.brand} !important; }
+.auth-link:hover                  { background-color: ${t.brandDark} !important; }
+.tab-btn.active                   { box-shadow: 0 4px 14px rgba(${t.brandRgb},0.35) !important; }
+
+/* ── Inputs ── */
+.oche-input:focus,
+input[class*="oche-input"]:focus  { border-color: ${t.brand} !important; box-shadow: 0 0 0 3px rgba(${t.brandRgb},0.12) !important; }
+
+/* ── Cards with brand left-border ── */
+.vault-card                       { border-left-color: ${t.brand} !important; }
+.vault-card:hover                 { border-left-color: ${t.accent} !important; box-shadow: 0 12px 40px -10px rgba(0,0,0,0.6), -4px 0 0 0 ${t.accent} !important; }
+.admin-card                       { border-left-color: ${t.brand} !important; }
+
+/* ── Ticket badge conic ── */
+.ticket-badge                     { background: conic-gradient(from 0deg, ${t.brand} 0deg 120deg, ${t.card} 120deg 240deg, ${t.brandDark} 240deg 360deg) !important; }
+
+/* ── Dartboard background pattern ── */
+.oche-bg                          { background-image: repeating-conic-gradient(from 0deg, rgba(${t.brandRgb},0.03) 0deg 18deg, rgba(255,255,255,0.008) 18deg 36deg) !important; }
+
+/* ── Stat bars ── */
+.stat-bar-brand                   { box-shadow: 0 0 8px rgba(${t.brandRgb},0.4) !important; }
+.stat-bar-accent                  { box-shadow: 0 0 8px rgba(${t.accentRgb},0.4) !important; }
+
+/* ── Glass card border tints ── */
+.glass-card                       { border-color: rgba(${t.brandRgb},0.12) !important; }
+
+/* ── Glow blobs ── */
+.bg-brand\\/5, .bg-brand\\/6,
+.bg-brand\\/8, .bg-brand\\/10,
+.bg-brand\\/12, .bg-brand\\/15,
+.bg-brand\\/20, .bg-brand\\/25    { background-color: rgba(${t.brandRgb},0.08) !important; }
+
+/* ── Vault tab active ── */
+.vault-tab.active {
+  background: linear-gradient(135deg, rgba(${t.brandRgb},0.15), rgba(${t.brandRgb},0.06)) !important;
+  color: ${t.brand} !important;
+  border-color: rgba(${t.brandRgb},0.3) !important;
+}
+
+/* ── Admin btn brand ── */
+.btn-brand { background: ${t.brand} !important; }
+.btn-brand:hover { background: ${t.brandDark} !important; }
+
+/* ── Leaderboard you row ── */
+.lb-row.you {
+  background: rgba(${t.brandRgb},0.07) !important;
+  border-color: rgba(${t.brandRgb},0.22) !important;
+}
+
+/* ── Bg-card with opacity (nav backdrop, modal etc) ── */
+.bg-card\\/70, .bg-card\\/80,
+.bg-card\\/60, .bg-card\\/95      { background-color: rgba(${t.cardRgb},0.85) !important; }
+`;
+}
+
+function applyTheme(name, save) {
+    const t = OV_THEMES[name] || OV_THEMES.crimson;
+    if (save !== false) localStorage.setItem('ov_theme', name);
+
+    // Inject/update the theme stylesheet
+    let el = document.getElementById('ov-theme-css');
+    if (!el) {
+        el = document.createElement('style');
+        el.id = 'ov-theme-css';
+        document.head.appendChild(el);
+    }
+    el.textContent = _buildThemeCSS(t);
+
+    // Update SVG dartboard logos
+    document.querySelectorAll('svg circle').forEach(c => {
+        const f = c.getAttribute('fill');
+        if (f === '#dc2626' || f === OV_THEMES.neon.brand || f === OV_THEMES.arctic.brand ||
+            f === OV_THEMES.emerald.brand || f === OV_THEMES.solar.brand) {
+            c.setAttribute('fill', t.brand);
+        } else if (f === '#991b1b' || f === OV_THEMES.neon.brandDark || f === OV_THEMES.arctic.brandDark ||
+                   f === OV_THEMES.emerald.brandDark || f === OV_THEMES.solar.brandDark) {
+            c.setAttribute('fill', t.brandDark);
+        } else if (f === '#0c1220' || f === OV_THEMES.neon.bg || f === OV_THEMES.arctic.bg ||
+                   f === OV_THEMES.emerald.bg || f === OV_THEMES.solar.bg) {
+            c.setAttribute('fill', t.bg);
+        } else if (f === '#f59e0b' || f === OV_THEMES.neon.accent || f === OV_THEMES.arctic.accent ||
+                   f === OV_THEMES.emerald.accent || f === OV_THEMES.solar.accent) {
+            c.setAttribute('fill', t.accent);
+        }
+    });
+
+    // Update active state on picker swatches if open
+    document.querySelectorAll('.ov-theme-swatch').forEach(s => {
+        const isActive = s.dataset.theme === name;
+        s.style.transform = isActive ? 'scale(1.06)' : 'scale(1)';
+        s.style.outline = isActive ? `2px solid ${t.accent}` : '2px solid transparent';
+        s.style.outlineOffset = '3px';
+    });
+
+    document.documentElement.setAttribute('data-ov-theme', name);
+}
+
+function _renderThemePicker() {
+    if (document.getElementById('ov-theme-picker')) return;
+
+    const picker = document.createElement('div');
+    picker.id = 'ov-theme-picker';
+    picker.style.cssText = `
+        position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+        display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    `;
+
+    const panel = document.createElement('div');
+    panel.id = 'ov-theme-panel';
+    panel.style.cssText = `
+        background: rgba(14,17,51,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+        padding: 16px; display: flex; flex-direction: column; gap: 8px;
+        box-shadow: 0 24px 60px -12px rgba(0,0,0,0.7);
+        transform: translateY(12px) scale(0.96); opacity: 0;
+        transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), opacity 0.2s ease;
+        pointer-events: none; width: 220px;
+        transform-origin: bottom right;
+    `;
+
+    const label = document.createElement('p');
+    label.textContent = 'CHOOSE THEME';
+    label.style.cssText = `
+        font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.3); margin: 0 0 4px 4px;
+    `;
+    panel.appendChild(label);
+
+    Object.values(OV_THEMES).forEach(t => {
+        const swatch = document.createElement('button');
+        swatch.className = 'ov-theme-swatch';
+        swatch.dataset.theme = t.id;
+        swatch.style.cssText = `
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: 12px; cursor: pointer;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+            transition: background 0.15s, transform 0.2s cubic-bezier(0.22,1,0.36,1), outline 0.15s;
+            width: 100%; text-align: left; outline: 2px solid transparent; outline-offset: 3px;
+        `;
+        swatch.onmouseenter = () => { swatch.style.background = 'rgba(255,255,255,0.08)'; };
+        swatch.onmouseleave = () => { swatch.style.background = 'rgba(255,255,255,0.04)'; };
+
+        const dots = document.createElement('div');
+        dots.style.cssText = 'display:flex;gap:5px;flex-shrink:0;';
+        [t.brand, t.accent, t.card].forEach((col, i) => {
+            const dot = document.createElement('span');
+            dot.style.cssText = `
+                width: ${i === 0 ? 14 : 10}px; height: ${i === 0 ? 14 : 10}px;
+                border-radius: 50%; background: ${col};
+                box-shadow: 0 0 6px ${col}80;
+                flex-shrink: 0; align-self: center;
+            `;
+            dots.appendChild(dot);
+        });
+
+        const nameEl = document.createElement('span');
+        nameEl.style.cssText = `font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); flex:1;`;
+        nameEl.textContent = t.name;
+
+        const emoji = document.createElement('span');
+        emoji.style.cssText = 'font-size: 16px;';
+        emoji.textContent = t.emoji;
+
+        swatch.appendChild(dots);
+        swatch.appendChild(nameEl);
+        swatch.appendChild(emoji);
+
+        swatch.onclick = () => {
+            applyTheme(t.id);
+            // Update panel background to match new theme
+            panel.style.background = `rgba(${t.cardRgb},0.92)`;
+            toggleBtn.style.background = t.brand;
+        };
+        panel.appendChild(swatch);
+    });
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.id = 'ov-theme-toggle';
+    toggleBtn.title = 'Change theme';
+    toggleBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2C6.5 2 2 6.5 2 12"/></svg>`;
+    toggleBtn.style.cssText = `
+        width: 46px; height: 46px; border-radius: 50%; cursor: pointer;
+        background: #dc2626; color: white; border: none;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 0 rgba(220,38,38,0.4);
+        transition: transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s;
+    `;
+    toggleBtn.onmouseenter = () => { toggleBtn.style.transform = 'scale(1.1) rotate(30deg)'; };
+    toggleBtn.onmouseleave = () => { toggleBtn.style.transform = 'scale(1) rotate(0deg)'; };
+
+    let panelOpen = false;
+    toggleBtn.onclick = () => {
+        panelOpen = !panelOpen;
+        if (panelOpen) {
+            panel.style.pointerEvents = 'auto';
+            panel.style.transform = 'translateY(0) scale(1)';
+            panel.style.opacity = '1';
+        } else {
+            panel.style.pointerEvents = 'none';
+            panel.style.transform = 'translateY(12px) scale(0.96)';
+            panel.style.opacity = '0';
+        }
+    };
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+        if (panelOpen && !picker.contains(e.target)) {
+            panelOpen = false;
+            panel.style.pointerEvents = 'none';
+            panel.style.transform = 'translateY(12px) scale(0.96)';
+            panel.style.opacity = '0';
+        }
+    });
+
+    picker.appendChild(panel);
+    picker.appendChild(toggleBtn);
+    document.body.appendChild(picker);
+}
+
+// ── Boot: apply saved theme immediately, render picker after DOM ready ──
+(function () {
+    const saved = localStorage.getItem('ov_theme') || 'crimson';
+    // Apply theme CSS before paint to avoid flash
+    const el = document.createElement('style');
+    el.id = 'ov-theme-css';
+    document.head.appendChild(el);
+    el.textContent = _buildThemeCSS(OV_THEMES[saved] || OV_THEMES.crimson);
+    document.documentElement.setAttribute('data-ov-theme', saved);
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTheme(saved, false); // re-run to catch SVGs
+            _renderThemePicker();
+            // Sync toggle button color to active theme
+            const t = OV_THEMES[saved] || OV_THEMES.crimson;
+            const btn = document.getElementById('ov-theme-toggle');
+            if (btn) btn.style.background = t.brand;
+        });
+    } else {
+        applyTheme(saved, false);
+        _renderThemePicker();
+        const t = OV_THEMES[saved] || OV_THEMES.crimson;
+        const btn = document.getElementById('ov-theme-toggle');
+        if (btn) btn.style.background = t.brand;
+    }
+})();

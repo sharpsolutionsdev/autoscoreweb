@@ -973,7 +973,7 @@
             await afterEntryInserted(sc, itemId, type, item, btn, `You're in! Paid £${entryFee.toFixed(2)} from your wallet.`, '💙');
 
         } catch (err) {
-            console.error('Wallet pay error:', err);
+            // Wallet pay error suppressed client-side
             showToast('Something went wrong. Please try again.', '❌');
             if (btn) { btn.disabled = false; btn.innerHTML = `Join &mdash; &pound;${entryFee.toFixed(2)}`; }
         }
@@ -1041,7 +1041,7 @@
             await afterEntryInserted(sc, itemId, type, item, btn, 'You\'re in! Share to fill the remaining spots.', '✅');
 
         } catch (err) {
-            console.error('Join error:', err);
+            // Join error suppressed client-side
             showToast('Something went wrong. Please try again.', '❌');
             if (btn) { btn.disabled = false; btn.textContent = 'Join Free'; }
         }

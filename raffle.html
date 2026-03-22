@@ -714,7 +714,7 @@
             },500);
 
         } catch(err){
-            console.error('Stripe error:',err);
+            // Payment error suppressed client-side
             errEl.textContent=err.message||'Payment failed — please try again.';
             errEl.classList.remove('hidden');
             btn.disabled=false;
