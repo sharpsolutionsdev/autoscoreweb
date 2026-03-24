@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Secure Entry | OcheVault</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -355,11 +355,11 @@
     </main>
 
     <!-- SECURITY CHALLENGE MODAL -->
-    <div id="security-challenge" class="fixed inset-0 bg-dark/92 z-[95] hidden flex-col items-center justify-center p-4" style="backdrop-filter:blur(20px);">
+    <div id="security-challenge" class="fixed inset-0 bg-dark/92 z-[95] hidden flex-col items-center justify-start overflow-y-auto py-6 px-4" style="backdrop-filter:blur(20px);max-height:100dvh;">
         <div class="challenge-enter w-full max-w-md">
             <div class="glass-card rounded-3xl overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
                 <div class="h-1 shimmer-bar"></div>
-                <div class="p-8 text-center">
+                <div class="p-4 sm:p-8 text-center">
                     <!-- Header -->
                     <div class="flex items-center justify-center gap-2 mb-2">
                         <div class="w-8 h-8 rounded-full bg-brand/15 border border-brand/30 flex items-center justify-center">
@@ -370,8 +370,8 @@
                     <p class="text-slate-400 text-sm mb-6">3 darts are about to be thrown. <strong class="text-white">Calculate the total score</strong> to proceed.</p>
 
                     <!-- Dartboard -->
-                    <div class="relative mx-auto mb-5" style="width:220px;height:220px;">
-                        <svg id="challenge-board" viewBox="0 0 300 300" width="220" height="220" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 20px rgba(220,38,38,0.2));">
+                    <div class="relative mx-auto mb-5 w-full" style="max-width:220px;">
+                        <svg id="challenge-board" viewBox="0 0 300 300" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="display:block;filter:drop-shadow(0 0 20px rgba(220,38,38,0.2));">
                             <circle cx="150" cy="150" r="149" fill="#111"/>
                             <circle cx="150" cy="150" r="139" fill="none" stroke="#444" stroke-width="0.8"/>
                             <circle cx="150" cy="150" r="135" fill="#1a1612"/>
@@ -400,7 +400,7 @@
                     </div>
 
                     <!-- Dart score pills -->
-                    <div id="challenge-pills" class="flex items-center justify-center gap-3 mb-5">
+                    <div id="challenge-pills" class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-5">
                         <div id="ch-pill-1" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-dark/50 text-sm">
                             <span class="text-[9px] text-slate-600 font-black">D1</span>
                             <span id="ch-pill-1-score" class="font-bold text-slate-500">?</span>
@@ -424,6 +424,7 @@
                     <!-- Input -->
                     <div class="flex gap-2 mb-4 max-w-xs mx-auto">
                         <input type="number" id="challenge-input" placeholder="Total score"
+                            inputmode="numeric" pattern="[0-9]*"
                             class="oche-input flex-1 rounded-xl px-4 py-3 text-white text-center font-bold text-lg placeholder:text-slate-700"
                             onkeydown="if(event.key==='Enter')submitChallenge()">
                         <button onclick="submitChallenge()" class="bg-brand hover:bg-red-700 text-white font-black px-6 py-3 rounded-xl transition-all text-sm uppercase tracking-wider">
@@ -631,7 +632,7 @@
         showSecurityChallenge('stripe');
     }
 
-    async function payStripeActual(){
+    async function payStripeActual(preOpenedPopup=null){
         const btn=document.getElementById('stripe-pay-btn');
         const errEl=document.getElementById('stripe-error');
         errEl.classList.add('hidden');
@@ -665,13 +666,19 @@
                 return;
             }
 
-            // Open Stripe Checkout in a popup window
-            const w=520,h=700;
-            const left=Math.round((screen.width-w)/2);
-            const top=Math.round((screen.height-h)/2);
-            stripePopup=window.open(result.url,'stripe_checkout',`width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`);
+            // Use the pre-opened popup if available (preserves user gesture on mobile),
+            // otherwise try opening a new one (works on desktop from Checkout button path).
+            if(preOpenedPopup&&!preOpenedPopup.closed){
+                stripePopup=preOpenedPopup;
+                stripePopup.location.href=result.url;
+            } else {
+                const w=520,h=700;
+                const left=Math.round((screen.width-w)/2);
+                const top=Math.round((screen.height-h)/2);
+                stripePopup=window.open(result.url,'stripe_checkout',`width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`);
+            }
 
-            // If popup was blocked, fall back to redirect
+            // If popup was blocked or unavailable, fall back to same-tab redirect
             if(!stripePopup||stripePopup.closed){
                 window.location.href=result.url;
                 return;
@@ -798,7 +805,8 @@
 
         // Auto-throw 3 darts with staggered timing
         const colors=['#dc2626','#f59e0b','#3b82f6'];
-        const boardScale=220/300;
+        const boardEl=document.getElementById('challenge-board');
+        const boardScale=boardEl.getBoundingClientRect().width/300;
 
         function throwDart(i){
             const randAngle=Math.random()*2*Math.PI;
@@ -821,7 +829,11 @@
         setTimeout(()=>throwDart(0),400);
         setTimeout(()=>throwDart(1),900);
         setTimeout(()=>throwDart(2),1400);
-        setTimeout(()=>input.focus(),1600);
+        // Only auto-focus on desktop — on touch devices it triggers the keyboard
+        // which pushes the dartboard off-screen before the user can read it
+        if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+            setTimeout(()=>input.focus(),1600);
+        }
     }
 
     function revealHint(){
@@ -880,12 +892,19 @@
             document.getElementById(`ch-pill-${i+1}`).style.borderColor='rgba(16,185,129,0.4)';
         });
 
+        // Pre-open the Stripe window NOW while we still have the user gesture.
+        // After setTimeout or async awaits, mobile browsers block window.open().
+        const preOpenedPopup = (challengePaymentType==='stripe')
+            ? window.open('about:blank','stripe_checkout',
+                `width=520,height=700,left=${Math.round((screen.width-520)/2)},top=${Math.round((screen.height-700)/2)},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`)
+            : null;
+
         setTimeout(()=>{
             const modal=document.getElementById('security-challenge');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             // Proceed with actual payment
-            payStripeActual();
+            payStripeActual(preOpenedPopup);
         },1000);
     }
 
