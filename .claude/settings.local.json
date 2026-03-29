@@ -3,7 +3,8 @@
     "allow": [
       "mcp__claude_ai_Supabase__list_projects",
       "mcp__claude_ai_Supabase__list_edge_functions",
-      "WebSearch"
+      "WebSearch",
+      "Bash(grep -l \"Supabase\\\\|stripe\\\\|checkout\\\\|dashboard\" /c/Users/vrynw/Documents/GitHub/dartvoice/testomg/*.html)"
     ]
   }
 }

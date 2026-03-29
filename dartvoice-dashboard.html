@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Dashboard | DartVoice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Barlow Condensed"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#CC0B20',
+                        'brand-light': '#e60d24',
+                        dark: '#0a0a0a',
+                        'dark-2': '#0f0f0f',
+                        card: '#131313',
+                        'card-2': '#191919',
+                        muted: '#737373',
+                        'muted-2': '#525252',
+                        success: '#22c55e',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0a0a; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.02em; text-transform: uppercase; }
+
+        /* Hero glow behind dashboard */
+        .dash-glow {
+            background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(204,11,32,0.06) 0%, transparent 70%);
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up   { animation: fadeUp 0.5s ease-out forwards; }
+        .fade-up-2 { animation: fadeUp 0.5s 0.08s ease-out both; }
+        .fade-up-3 { animation: fadeUp 0.5s 0.16s ease-out both; }
+        .fade-up-4 { animation: fadeUp 0.5s 0.24s ease-out both; }
+        .fade-up-5 { animation: fadeUp 0.5s 0.32s ease-out both; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.08);
+            border-top-color: #CC0B20;
+            border-radius: 50%;
+            width: 36px; height: 36px;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+
+        /* Button styles */
+        .btn-brand {
+            background: #CC0B20;
+            transition: all 0.25s;
+        }
+        .btn-brand:hover {
+            background: #e60d24;
+            box-shadow: 0 0 28px rgba(204,11,32,0.35), 0 4px 12px rgba(204,11,32,0.2);
+            transform: translateY(-1px);
+        }
+        .btn-brand:active { transform: translateY(0); }
+
+        .btn-outline {
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .btn-outline:hover {
+            border-color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* Input focus */
+        .dv-input {
+            transition: all 0.2s;
+        }
+        .dv-input:focus {
+            border-color: #CC0B20;
+            box-shadow: 0 0 0 3px rgba(204,11,32,0.12), 0 0 16px rgba(204,11,32,0.06);
+            outline: none;
+        }
+
+        /* Card hover */
+        .dl-card {
+            transition: all 0.25s;
+        }
+        .dl-card:hover {
+            border-color: rgba(204,11,32,0.25);
+            box-shadow: 0 0 20px rgba(204,11,32,0.06);
+            transform: translateY(-2px);
+        }
+
+        /* Disabled state */
+        button:disabled, .btn-brand:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+<body class="dash-glow min-h-screen text-white antialiased">
+
+    <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <nav class="border-b border-white/5 bg-dark/80 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5 group">
+                <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                    </svg>
+                </div>
+                <span class="display text-lg group-hover:text-brand transition">DARTVOICE</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <span id="nav-email" class="hidden text-xs text-muted truncate max-w-[180px]"></span>
+                <button id="btn-signout" onclick="signOut()" class="hidden text-xs text-muted hover:text-white transition px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/[0.03]">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ━━━ LOADING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div id="view-loading" class="flex items-center justify-center" style="height:calc(100vh - 56px)">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- ━━━ AUTH VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div id="view-auth" class="hidden">
+        <div class="min-h-[calc(100vh-56px)] flex items-center justify-center px-6 py-16">
+            <div class="w-full max-w-sm">
+                <!-- Logo & heading -->
+                <div class="text-center mb-10 fade-up">
+                    <div class="w-16 h-16 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-5">
+                        <svg class="w-8 h-8 text-brand" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                        </svg>
+                    </div>
+                    <h1 class="display text-3xl mb-2">SIGN IN</h1>
+                    <p class="text-muted text-sm">Enter your email to receive a one-time code</p>
+                </div>
+
+                <!-- Step 1: Email -->
+                <div id="auth-step-email" class="fade-up-2">
+                    <div class="space-y-3">
+                        <label class="text-xs font-medium text-muted-2 block">Email address</label>
+                        <input id="input-email" type="email" placeholder="you@example.com"
+                               class="dv-input w-full px-4 py-3 bg-card border border-white/8 rounded-xl text-white placeholder-muted/50 text-sm">
+                        <button onclick="sendOtp()" id="btn-send-otp"
+                                class="btn-brand w-full py-3 rounded-xl text-white font-semibold text-sm">
+                            Continue
+                        </button>
+                    </div>
+                    <p id="auth-error" class="text-red-400 text-xs text-center mt-3 hidden"></p>
+                    <p class="text-muted-2 text-xs text-center mt-6">We'll send you a 6-digit code. No password needed.</p>
+                </div>
+
+                <!-- Step 2: OTP -->
+                <div id="auth-step-otp" class="hidden fade-up-2">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-medium text-muted-2">Verification code</label>
+                            <button onclick="resetAuth()" class="text-xs text-muted hover:text-brand transition">Change email</button>
+                        </div>
+                        <p class="text-muted text-sm">Sent to <span id="otp-email-display" class="text-white font-medium"></span></p>
+                        <input id="input-otp" type="text" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code"
+                               class="dv-input w-full px-4 py-4 bg-card border border-white/8 rounded-xl text-white text-center text-2xl tracking-[0.4em] placeholder-muted/30 font-mono">
+                        <button onclick="verifyOtp()" id="btn-verify-otp"
+                                class="btn-brand w-full py-3 rounded-xl text-white font-semibold text-sm">
+                            Verify Code
+                        </button>
+                    </div>
+                    <p id="otp-error" class="text-red-400 text-xs text-center mt-3 hidden"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ━━━ DASHBOARD VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div id="view-dashboard" class="hidden">
+        <div class="max-w-3xl mx-auto px-6 py-10">
+
+            <!-- Header -->
+            <div class="mb-8 fade-up">
+                <h1 class="display text-3xl sm:text-4xl mb-1">YOUR DASHBOARD</h1>
+                <p class="text-muted text-sm">Manage your subscription and download DartVoice.</p>
+            </div>
+
+            <!-- ── Subscription Card ──────────────────────────────── -->
+            <div id="card-status" class="bg-card rounded-2xl border border-white/5 overflow-hidden mb-5 fade-up-2">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-1">
+                        <h2 class="font-semibold">Subscription</h2>
+                        <span id="status-badge"></span>
+                    </div>
+                    <div id="status-details" class="text-muted text-sm mt-2"></div>
+                </div>
+                <div id="status-actions" class="border-t border-white/5 px-6 py-4 bg-dark-2/50 flex gap-3 flex-wrap"></div>
+            </div>
+
+            <!-- ── Downloads Card (gated) ─────────────────────────── -->
+            <div id="card-downloads" class="hidden fade-up-3">
+                <div class="bg-card rounded-2xl border border-white/5 overflow-hidden">
+                    <div class="p-6 pb-4">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h2 class="font-semibold">Downloads</h2>
+                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">UNLOCKED</span>
+                        </div>
+                        <p class="text-muted text-sm">Get DartVoice for your platform.</p>
+                    </div>
+                    <div class="px-6 pb-6 grid sm:grid-cols-2 gap-3">
+
+                        <!-- Windows -->
+                        <a href="https://dartvoice.com/downloads/DartVoice_Setup.exe" id="dl-windows"
+                           class="dl-card group flex items-center gap-4 p-4 bg-dark-2 rounded-xl border border-white/5">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/8 border border-blue-500/10 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-sm group-hover:text-brand transition truncate">Windows Installer</p>
+                                <p class="text-muted text-xs">DartVoice_Setup.exe</p>
+                            </div>
+                            <svg class="w-5 h-5 text-muted-2 ml-auto shrink-0 group-hover:text-brand transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                        </a>
+
+                        <!-- Android -->
+                        <a href="https://dartvoice.com/downloads/DartVoice.apk" id="dl-android"
+                           class="dl-card group flex items-center gap-4 p-4 bg-dark-2 rounded-xl border border-white/5">
+                            <div class="w-12 h-12 rounded-xl bg-green-500/8 border border-green-500/10 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.523 2.237a.6.6 0 00-.828.18l-1.46 2.32a7.337 7.337 0 00-6.47 0L7.305 2.418a.6.6 0 10-1.008.649l1.387 2.204A7.288 7.288 0 004 11.2h16a7.288 7.288 0 00-3.684-5.929l1.387-2.204a.6.6 0 00-.18-.83zM8.4 8.8a.8.8 0 110-1.6.8.8 0 010 1.6zm7.2 0a.8.8 0 110-1.6.8.8 0 010 1.6zM4 12v6.4a1.6 1.6 0 001.6 1.6H7v2.4a1.2 1.2 0 002.4 0V20h5.2v2.4a1.2 1.2 0 002.4 0V20h1.4a1.6 1.6 0 001.6-1.6V12H4zm-2.8 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6A1.2 1.2 0 001.2 12zm21.6 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6a1.2 1.2 0 00-1.2-1.2z"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-sm group-hover:text-brand transition truncate">Android App</p>
+                                <p class="text-muted text-xs">DartVoice.apk</p>
+                            </div>
+                            <svg class="w-5 h-5 text-muted-2 ml-auto shrink-0 group-hover:text-brand transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Quick Start (shown when subscribed) ────────────── -->
+            <div id="card-quickstart" class="hidden fade-up-4">
+                <div class="bg-card rounded-2xl border border-white/5 p-6 mt-5">
+                    <h2 class="font-semibold mb-4">Quick Start</h2>
+                    <div class="grid gap-4">
+                        <div class="flex gap-4">
+                            <div class="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0 text-xs font-bold display not-italic">1</div>
+                            <div>
+                                <p class="text-sm font-medium">Download &amp; Install</p>
+                                <p class="text-muted text-xs mt-0.5">Grab the installer above for your platform and run it.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0 text-xs font-bold display not-italic">2</div>
+                            <div>
+                                <p class="text-sm font-medium">Sign in with your email</p>
+                                <p class="text-muted text-xs mt-0.5">Use the same email you signed up with. You'll get a code just like this website.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0 text-xs font-bold display not-italic">3</div>
+                            <div>
+                                <p class="text-sm font-medium">Set up your game &amp; throw</p>
+                                <p class="text-muted text-xs mt-0.5">Choose your game mode, add players, and start calling your scores. DartVoice handles the rest.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Need Help ──────────────────────────────────────── -->
+            <div class="mt-8 text-center fade-up-5">
+                <p class="text-muted-2 text-xs">
+                    Need help? <a href="mailto:support@dartvoice.com" class="text-muted hover:text-brand transition underline underline-offset-2">support@dartvoice.com</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         JAVASCRIPT
+         ═══════════════════════════════════════════════════════════ -->
+    <script>
+    // ── Config ────────────────────────────────────────────────────
+    const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+    const BILLING_URL  = 'https://billing.dartvoice.com';
+
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let _userEmail = '';
+
+    // ── Helpers ───────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const show = id => $(id).classList.remove('hidden');
+    const hide = id => $(id).classList.add('hidden');
+
+    function showView(name) {
+        ['view-loading', 'view-auth', 'view-dashboard'].forEach(v => hide(v));
+        show('view-' + name);
+        if (name === 'dashboard') {
+            show('btn-signout');
+            show('nav-email');
+        } else {
+            hide('btn-signout');
+            hide('nav-email');
+        }
+    }
+
+    // ── Auth: Send OTP ────────────────────────────────────────────
+    async function sendOtp() {
+        const email = $('input-email').value.trim().toLowerCase();
+        if (!email) return;
+
+        const btn = $('btn-send-otp');
+        btn.disabled = true;
+        btn.textContent = 'Sending code...';
+        $('auth-error').classList.add('hidden');
+
+        const { error } = await sb.auth.signInWithOtp({ email });
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+
+        if (error) {
+            $('auth-error').textContent = error.message;
+            $('auth-error').classList.remove('hidden');
+            return;
+        }
+
+        _userEmail = email;
+        $('otp-email-display').textContent = email;
+        hide('auth-step-email');
+        show('auth-step-otp');
+        setTimeout(() => $('input-otp').focus(), 100);
+    }
+
+    // ── Auth: Verify OTP ──────────────────────────────────────────
+    async function verifyOtp() {
+        const token = $('input-otp').value.trim();
+        if (token.length !== 6) return;
+
+        const btn = $('btn-verify-otp');
+        btn.disabled = true;
+        btn.textContent = 'Verifying...';
+        $('otp-error').classList.add('hidden');
+
+        const { error } = await sb.auth.verifyOtp({
+            email: _userEmail,
+            token,
+            type: 'email',
+        });
+        btn.disabled = false;
+        btn.textContent = 'Verify Code';
+
+        if (error) {
+            $('otp-error').textContent = error.message;
+            $('otp-error').classList.remove('hidden');
+        }
+    }
+
+    function resetAuth() {
+        hide('auth-step-otp');
+        show('auth-step-email');
+        $('input-otp').value = '';
+        $('input-email').focus();
+    }
+
+    async function signOut() {
+        await sb.auth.signOut();
+        showView('auth');
+        resetAuth();
+    }
+
+    // ── Dashboard ─────────────────────────────────────────────────
+    async function loadDashboard(user) {
+        $('user-email') && ($('user-email').textContent = user.email);
+        $('nav-email').textContent = user.email;
+        showView('dashboard');
+
+        const { data: sub } = await sb.from('dartvoice_subscriptions')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        renderSubscription(sub, user.id);
+    }
+
+    function renderSubscription(sub, userId) {
+        const badge   = $('status-badge');
+        const details = $('status-details');
+        const actions = $('status-actions');
+        const dlCard  = $('card-downloads');
+        const qsCard  = $('card-quickstart');
+
+        const isActive = sub && ['active', 'trialing'].includes(sub.status);
+
+        // ── No subscription / cancelled ──
+        if (!sub || sub.status === 'none' || sub.status === 'canceled') {
+            const label = sub?.status === 'canceled' ? 'CANCELLED' : 'INACTIVE';
+            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/5 text-muted">${label}</span>`;
+            details.innerHTML = `<p class="text-muted">You don't have an active subscription. Start your free trial to download and use DartVoice.</p>`;
+            actions.innerHTML = `
+                <a href="${BILLING_URL}/checkout?user_id=${userId}"
+                   class="btn-brand px-6 py-2.5 rounded-xl text-white font-semibold text-sm inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Start 7-Day Free Trial &mdash; &pound;6.99/mo
+                </a>`;
+            dlCard.classList.add('hidden');
+            qsCard.classList.add('hidden');
+
+        // ── Trialing ──
+        } else if (sub.status === 'trialing') {
+            const end = new Date(sub.current_period_end);
+            const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
+            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-brand/10 text-brand border border-brand/15 inline-flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand pulse-dot"></span>FREE TRIAL</span>`;
+            details.innerHTML = `
+                <p><span class="text-white font-medium">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</span> remaining on your trial</p>
+                <p class="text-muted-2 text-xs mt-1">Converts to &pound;6.99/mo on ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
+            actions.innerHTML = `
+                <a href="${BILLING_URL}/portal?user_id=${userId}"
+                   class="btn-outline px-5 py-2 rounded-xl text-sm font-medium text-white inline-block">
+                    Manage Subscription
+                </a>`;
+            dlCard.classList.remove('hidden');
+            qsCard.classList.remove('hidden');
+
+        // ── Active ──
+        } else if (sub.status === 'active') {
+            const end = new Date(sub.current_period_end);
+            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 inline-flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-success pulse-dot"></span>ACTIVE</span>`;
+            details.innerHTML = `
+                <p>Your subscription is active.</p>
+                <p class="text-muted-2 text-xs mt-1">Next billing: ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
+            actions.innerHTML = `
+                <a href="${BILLING_URL}/portal?user_id=${userId}"
+                   class="btn-outline px-5 py-2 rounded-xl text-sm font-medium text-white inline-block">
+                    Manage Subscription
+                </a>`;
+            dlCard.classList.remove('hidden');
+            qsCard.classList.remove('hidden');
+
+        // ── Past due ──
+        } else if (sub.status === 'past_due') {
+            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/15">PAST DUE</span>`;
+            details.innerHTML = `<p class="text-yellow-400/80">Your last payment failed. Please update your payment method to keep access.</p>`;
+            actions.innerHTML = `
+                <a href="${BILLING_URL}/portal?user_id=${userId}"
+                   class="btn-brand px-6 py-2.5 rounded-xl text-white font-semibold text-sm inline-block">
+                    Update Payment Method
+                </a>`;
+            dlCard.classList.add('hidden');
+            qsCard.classList.add('hidden');
+
+        // ── Other ──
+        } else {
+            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/5 text-muted">${sub.status.toUpperCase()}</span>`;
+            details.innerHTML = '';
+            dlCard.classList.add('hidden');
+            qsCard.classList.add('hidden');
+        }
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    (async function init() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.user) {
+            loadDashboard(session.user);
+        } else {
+            showView('auth');
+        }
+
+        sb.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+                loadDashboard(session.user);
+            } else if (event === 'SIGNED_OUT') {
+                showView('auth');
+            }
+        });
+    })();
+
+    // Submit on Enter
+    $('input-email').addEventListener('keydown', e => { if (e.key === 'Enter') sendOtp(); });
+    $('input-otp').addEventListener('keydown', e => { if (e.key === 'Enter') verifyOtp(); });
+    </script>
+</body>
+</html>

@@ -22,15 +22,17 @@ Environment variables  (see .env.example):
 import os, time
 import stripe
 from flask import Flask, request, jsonify, redirect, abort
+from flask_cors import CORS
 from supabase import create_client
 
 app = Flask(__name__)
+CORS(app)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 stripe.api_key      = os.environ['STRIPE_SECRET_KEY']
 _WEBHOOK_SECRET     = os.environ['STRIPE_WEBHOOK_SECRET']
 _PRICE_ID           = os.environ['STRIPE_PRICE_ID']
-TRIAL_DAYS          = 49
+TRIAL_DAYS          = 7
 SUCCESS_URL         = os.environ.get('SUCCESS_URL', 'https://dartvoice.com/thanks')
 CANCEL_URL          = os.environ.get('CANCEL_URL',  'https://dartvoice.com/pricing')
 
@@ -226,7 +228,8 @@ def webhook():
                         stripe_sub_id=sub_id,
                         install_id=install_id,
                         email=email,
-                        status='trialing')
+                        status='trialing',
+                        trial_start=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
 
     # ── Subscription updated / created ────────────────────────────────────────
     elif etype in ('customer.subscription.created',

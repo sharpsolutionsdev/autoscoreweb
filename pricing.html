@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Pricing | DartVoice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { brand: '#CC0B20', dark: '#0a0a0a' } } } }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0a0a; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; }
+    </style>
+</head>
+<body class="text-white min-h-screen flex items-center justify-center p-6">
+    <div class="text-center max-w-sm">
+        <h1 class="display text-3xl mb-3">CHECKOUT CANCELLED</h1>
+        <p class="text-neutral-400 text-sm mb-8">No worries — nothing was charged. Ready to try again whenever you are.</p>
+        <div class="flex flex-col gap-3">
+            <a href="dartvoice-dashboard.html" class="inline-block bg-brand hover:bg-brand/90 transition px-8 py-3 rounded-xl font-semibold text-sm">
+                Back to Dashboard
+            </a>
+            <a href="/" class="text-neutral-500 hover:text-white transition text-sm">
+                Return Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>

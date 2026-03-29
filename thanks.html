@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Welcome to DartVoice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { brand: '#CC0B20', dark: '#0a0a0a', success: '#22c55e' } } } }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0a0a; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; }
+        @keyframes checkPop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.15); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .check-pop { animation: checkPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.6s 0.5s ease-out both; }
+    </style>
+</head>
+<body class="text-white min-h-screen flex items-center justify-center p-6">
+    <div class="text-center max-w-sm">
+        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-success/10 border-2 border-success/20 flex items-center justify-center check-pop">
+            <svg class="w-10 h-10 text-success" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+        <div class="fade-up">
+            <h1 class="display text-3xl mb-3">YOU'RE IN!</h1>
+            <p class="text-neutral-400 text-sm mb-2">Your 7-day free trial has started.</p>
+            <p class="text-neutral-500 text-sm mb-8">Head to your dashboard to download DartVoice for Windows or Android.</p>
+            <a href="dartvoice-dashboard.html" class="inline-block bg-brand hover:bg-brand/90 transition px-8 py-3 rounded-xl font-semibold text-sm">
+                Go to Dashboard
+            </a>
+        </div>
+    </div>
+</body>
+</html>
