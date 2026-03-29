@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+.buildozer/
+bin/
+*.log
+dartvoice_config.json
+billing_server/.env
+billing_server/subscriptions.db
+.env

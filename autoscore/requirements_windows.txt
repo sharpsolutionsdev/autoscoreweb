@@ -1,0 +1,21 @@
+# DartVoice — Windows dependencies
+# Install with:  pip install -r requirements_windows.txt
+
+# Core
+vosk
+supabase        # auth (email OTP) + subscription status lookup
+httpx           # required by supabase-py
+pyaudio
+customtkinter
+pyttsx3
+
+# UI automation (score entry into darts software)
+pyautogui
+
+# System tray (background mode)
+pystray
+Pillow
+
+# Video scoring (optional — only needed if using the camera/screen scoring feature)
+# numpy
+# Pillow is already listed above
