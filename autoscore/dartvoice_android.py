@@ -447,19 +447,53 @@ def _card_bg(widget, color=CARD, radius=12):
     widget.bind(pos=lambda *_: setattr(widget._bg_rect, 'pos', widget.pos),
                 size=lambda *_: setattr(widget._bg_rect, 'size', widget.size))
 
+def _sep_line(widget):
+    """Draw a 1dp horizontal separator line via canvas.before."""
+    with widget.canvas.before:
+        Color(*SEP)
+        widget._sep_rect = RoundedRectangle(pos=widget.pos, size=(widget.width, dp(1)), radius=[0])
+    widget.bind(pos=lambda *_: setattr(widget._sep_rect, 'pos', widget.pos),
+                size=lambda *a: setattr(widget._sep_rect, 'size', (a[1][0], dp(1))))
+
 def _accent_btn(text, on_press):
     btn = Button(
-        text=text, font_size=sp(14), bold=True,
+        text=text, font_size=sp(13), bold=True,
         background_normal='', background_color=(0, 0, 0, 0),
-        color=FG, size_hint_y=None, height=dp(48),
+        color=FG, size_hint_y=None, height=dp(52),
     )
     with btn.canvas.before:
         Color(*ACCENT)
-        btn._bg = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(10)])
+        btn._bg = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(12)])
     btn.bind(
         pos=lambda *_: setattr(btn._bg, 'pos', btn.pos),
         size=lambda *_: setattr(btn._bg, 'size', btn.size),
     )
+    btn.bind(on_press=lambda *_: on_press())
+    return btn
+
+def _ghost_btn(text, on_press):
+    """Secondary button with a border and dark background."""
+    btn = Button(
+        text=text, font_size=sp(12), bold=False,
+        background_normal='', background_color=(0, 0, 0, 0),
+        color=FG2, size_hint_y=None, height=dp(44),
+    )
+    with btn.canvas.before:
+        Color(*SEP)
+        btn._border = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(10)])
+        Color(0.067, 0.067, 0.078, 1)  # CARD
+        pad = dp(1)
+        btn._fill = RoundedRectangle(
+            pos=(btn.x + pad, btn.y + pad),
+            size=(btn.width - pad * 2, btn.height - pad * 2),
+            radius=[dp(9)],
+        )
+    def _upd(*a):
+        btn._border.pos  = btn.pos
+        btn._border.size = btn.size
+        btn._fill.pos    = (btn.x + dp(1), btn.y + dp(1))
+        btn._fill.size   = (btn.width - dp(2), btn.height - dp(2))
+    btn.bind(pos=_upd, size=_upd)
     btn.bind(on_press=lambda *_: on_press())
     return btn
 
@@ -469,30 +503,44 @@ def _accent_btn(text, on_press):
 class CricketGrid(GridLayout):
     LABELS = ['20', '19', '18', '17', '16', '15', 'B']
 
+    # Mark display: open = dimmed, 1-2 hits = partial, closed = accent + checkmark
+    _MARKS  = ['·', '/', 'X', '\u2713']
+    _COLORS = [
+        (0.3, 0.3, 0.38, 1),   # 0 hits — very dim
+        (0.75, 0.75, 0.82, 1), # 1 hit
+        (0.94, 0.94, 0.96, 1), # 2 hits
+        None,                   # 3+ hits — uses ACCENT
+    ]
+
     def __init__(self, state, **kwargs):
-        super().__init__(cols=2, spacing=dp(4), padding=dp(8), **kwargs)
+        super().__init__(cols=2, spacing=dp(6), padding=dp(10), **kwargs)
         self.state      = state
         self._mark_lbls = {}
         for tgt, label in zip(CRICKET_TARGETS, self.LABELS):
             name_lbl = Label(
-                text=label, font_size=sp(18), bold=True, color=FG,
-                size_hint_x=0.3,
+                text=label, font_size=sp(17), bold=True,
+                color=(0.6, 0.6, 0.7, 1),
+                size_hint_x=0.35,
             )
             mark_lbl = Label(
                 text=self._mark_text(tgt), font_size=sp(22), bold=True,
-                color=ACCENT, size_hint_x=0.7,
+                color=self._mark_color(tgt), size_hint_x=0.65,
             )
             self._mark_lbls[tgt] = mark_lbl
             self.add_widget(name_lbl)
             self.add_widget(mark_lbl)
 
     def _mark_text(self, tgt):
-        n = self.state.marks.get(tgt, 0)
-        return ['·', '/', 'X', '✓'][min(n, 3)]
+        return self._MARKS[min(self.state.marks.get(tgt, 0), 3)]
+
+    def _mark_color(self, tgt):
+        n = min(self.state.marks.get(tgt, 0), 3)
+        return self._COLORS[n] if self._COLORS[n] is not None else ACCENT
 
     def refresh(self):
         for tgt, lbl in self._mark_lbls.items():
-            lbl.text = self._mark_text(tgt)
+            lbl.text  = self._mark_text(tgt)
+            lbl.color = self._mark_color(tgt)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Paywall overlay
@@ -512,7 +560,7 @@ class PaywallOverlay(FloatLayout):
         self._build()
 
     def _build(self):
-        # Dark dim background
+        # Dark dim background with faint radial glow from card centre
         with self.canvas.before:
             Color(0, 0, 0, 0.92)
             self._bg = RoundedRectangle(pos=self.pos, size=self.size, radius=[0])
@@ -522,53 +570,86 @@ class PaywallOverlay(FloatLayout):
         card = BoxLayout(
             orientation='vertical',
             size_hint=(0.88, None),
-            height=dp(400),
+            height=dp(420),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
-            padding=dp(24), spacing=dp(12),
+            padding=[dp(24), dp(20), dp(24), dp(20)], spacing=dp(10),
         )
-        _card_bg(card, color=CARD, radius=16)
+
+        # Card bg + accent border + radial glow overlay
+        with card.canvas.before:
+            # Card fill
+            Color(*CARD)
+            card._bg_rect = RoundedRectangle(pos=card.pos, size=card.size, radius=[dp(20)])
+            # Accent border
+            ar, ag, ab = ACCENT[0], ACCENT[1], ACCENT[2]
+            Color(ar, ag, ab, 0.45)
+            card._border = RoundedRectangle(pos=card.pos, size=card.size, radius=[dp(20)])
+            # Radial glow (faint, at top-centre)
+            Color(ar * 0.28, ag * 0.02, ab * 0.06, 1)
+            card._glow = Ellipse(size=(dp(260), dp(200)), pos=(0, 0))  # positioned on bind
+        def _upd_card(*_):
+            card._bg_rect.pos  = card.pos
+            card._bg_rect.size = card.size
+            card._border.pos   = (card.x - dp(0.5), card.y - dp(0.5))
+            card._border.size  = (card.width + dp(1), card.height + dp(1))
+            card._glow.pos     = (card.center_x - dp(130), card.top - dp(60))
+        card.bind(pos=_upd_card, size=_upd_card)
+
+        # Mic ring icon (bullseye-style)
+        icon_wrap = Widget(size_hint_y=None, height=dp(56))
+        with icon_wrap.canvas:
+            # Outer ring
+            Color(ar * 0.15, ag * 0.01, ab * 0.03, 1)
+            icon_wrap._ring2 = Ellipse(size=(dp(52), dp(52)), pos=(0, 0))
+            # Inner ring
+            Color(*ACCENT)
+            icon_wrap._ring1 = Ellipse(size=(dp(36), dp(36)), pos=(0, 0))
+            # Centre
+            Color(*CARD)
+            icon_wrap._dot = Ellipse(size=(dp(18), dp(18)), pos=(0, 0))
+        def _upd_icon(*_):
+            cx, cy = icon_wrap.center_x, icon_wrap.center_y
+            for el, d in [(icon_wrap._ring2, 52), (icon_wrap._ring1, 36), (icon_wrap._dot, 18)]:
+                r = dp(d) / 2
+                el.pos = (cx - r, cy - r)
+        icon_wrap.bind(pos=_upd_icon, size=_upd_icon)
+        card.add_widget(icon_wrap)
 
         # Title
         card.add_widget(Label(
-            text='FREE TRIAL ENDED',
-            font_size=sp(18), bold=True, color=ACCENT,
-            size_hint_y=None, height=dp(30),
+            text='DARTVOICE PRO',
+            font_size=sp(20), bold=True, color=FG,
+            size_hint_y=None, height=dp(28),
+            halign='center', valign='middle',
         ))
 
         # Description
         card.add_widget(Label(
             text=(
-                'Continue with DartVoice by starting\n'
-                'your monthly subscription.\n\n'
-                '7 weeks free, then $4.99/month.\n'
-                'Cancel any time.'
+                'Experience completely unrestricted\nvoice scoring.\n\n'
+                'Start your 7-day free trial today.\n'
+                'Auto-bills \u00a36.99/month. Cancel any time.'
             ),
-            font_size=sp(13), color=FG2,
+            font_size=sp(12), color=FG2,
             halign='center', valign='middle',
-            size_hint_y=None, height=dp(120),
+            size_hint_y=None, height=dp(110),
         ))
 
         # Subscribe button
         self._sub_btn = _accent_btn(
-            'START FREE TRIAL  →  $4.99/mo', self._open_checkout
+            'START 7-DAY FREE TRIAL  \u2192  \u00a36.99/mo', self._open_checkout
         )
         card.add_widget(self._sub_btn)
 
         # Status label
         self._status_lbl = Label(
             text='', font_size=sp(11), color=FG2,
-            size_hint_y=None, height=dp(24),
+            size_hint_y=None, height=dp(20),
         )
         card.add_widget(self._status_lbl)
 
-        # "Already paid" button
-        already_btn = Button(
-            text="I've already paid — check now",
-            font_size=sp(12), bold=False,
-            background_normal='', background_color=CARD,
-            color=FG2, size_hint_y=None, height=dp(40),
-        )
-        already_btn.bind(on_press=lambda *_: self._check_now())
+        # "Already paid" ghost button
+        already_btn = _ghost_btn("I've already paid — check now", self._check_now)
         card.add_widget(already_btn)
 
         self.add_widget(card)
@@ -617,7 +698,7 @@ class PaywallOverlay(FloatLayout):
                     'Not activated yet — retry or check your email.'
                 ))
                 Clock.schedule_once(lambda dt: setattr(
-                    self._sub_btn, 'text', 'START FREE TRIAL  →  $4.99/mo'
+                    self._sub_btn, 'text', 'START 7-DAY FREE TRIAL  \u2192  \u00a36.99/mo'
                 ))
 
         from billing import get_install_id
@@ -708,84 +789,248 @@ class DartVoiceLayout(BoxLayout):
         self.status_lbl.text = 'Subscription active — welcome!'
 
     def _build(self):
-        # ── Header ────────────────────────────────────────────────────────
-        hdr = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(50))
-        hdr.add_widget(Label(text='DARTVOICE', font_size=sp(20), bold=True,
-                             color=FG, halign='left', valign='middle'))
+        # ── Dartboard wire background ─────────────────────────────────────
+        from kivy.graphics import Line
+        with self.canvas.before:
+            Color(*BG)
+            self._bg_fill = RoundedRectangle(pos=self.pos, size=self.size, radius=[0])
+        self.bind(pos=lambda *_: setattr(self._bg_fill, 'pos', self.pos),
+                  size=lambda *_: setattr(self._bg_fill, 'size', self.size))
+        self._wire_canvas = None  # drawn on first layout
+
+        def _draw_wire(*_):
+            if not self.width or not self.height:
+                return
+            cw, ch = self.width, self.height
+            cx = cw / 2
+            cy = ch + dp(40)  # origin above screen centre — radiates down
+            # Redraw on the widget's canvas (after) as a subtle overlay
+            self.canvas.after.clear()
+            with self.canvas.after:
+                import math
+                wire_col = (0.075, 0.075, 0.09, 1)
+                for r in (dp(80), dp(140), dp(200), dp(270), dp(360), dp(460), dp(570)):
+                    Color(*wire_col)
+                    points = []
+                    steps = 64
+                    for i in range(steps + 1):
+                        a = math.radians(i * 360 / steps)
+                        points += [cx + r * math.cos(a), cy + r * math.sin(a)]
+                    Line(points=points, width=dp(0.6))
+                for i in range(20):
+                    ang = math.radians(i * 18)
+                    ex = cx + dp(570) * math.cos(ang)
+                    ey = cy + dp(570) * math.sin(ang)
+                    Line(points=[cx, cy, ex, ey], width=dp(0.5))
+
+        self.bind(size=_draw_wire, pos=_draw_wire)
+
+        # ── Top accent bar ────────────────────────────────────────────────
+        accent_bar = Widget(size_hint_y=None, height=dp(3))
+        with accent_bar.canvas:
+            Color(*ACCENT)
+            accent_bar._rect = RoundedRectangle(pos=accent_bar.pos, size=accent_bar.size, radius=[0])
+        accent_bar.bind(pos=lambda *_: setattr(accent_bar._rect, 'pos', accent_bar.pos),
+                        size=lambda *_: setattr(accent_bar._rect, 'size', accent_bar.size))
+        self.add_widget(accent_bar)
+
+        # ── Header nav bar ────────────────────────────────────────────────
+        hdr = BoxLayout(
+            orientation='horizontal', size_hint_y=None, height=dp(52),
+            padding=[dp(14), dp(8), dp(14), dp(8)], spacing=dp(10),
+        )
+        _card_bg(hdr, color=CARD, radius=0)
+
+        # Bullseye logo (drawn on a Widget canvas)
+        from kivy.graphics import Ellipse as KvEllipse
+        logo = Widget(size_hint=(None, None), size=(dp(28), dp(28)))
+        with logo.canvas:
+            for r, col in [
+                (dp(14), (0.2, 0.2, 0.24, 1)),
+                (dp(9),  ACCENT),
+                (dp(6),  (0.2, 0.2, 0.24, 1)),
+                (dp(3),  ACCENT),
+                (dp(1.2),(0.94, 0.94, 0.96, 1)),
+            ]:
+                Color(*col)
+                KvEllipse(pos=(logo.center_x - r, logo.center_y - r), size=(r*2, r*2))
+        logo.bind(
+            pos=lambda w, *_: logo.canvas.clear() or _redraw_logo(w),
+        )
+
+        def _redraw_logo(w):
+            with w.canvas:
+                for r, col in [
+                    (dp(14), (0.2, 0.2, 0.24, 1)),
+                    (dp(9),  ACCENT),
+                    (dp(6),  (0.2, 0.2, 0.24, 1)),
+                    (dp(3),  ACCENT),
+                    (dp(1.2),(0.94, 0.94, 0.96, 1)),
+                ]:
+                    Color(*col)
+                    KvEllipse(pos=(w.center_x - r, w.center_y - r), size=(r*2, r*2))
+
+        hdr.add_widget(logo)
+
+        title_lbl = Label(
+            text='DARTVOICE', font_size=sp(18), bold=True,
+            color=FG, halign='left', valign='middle',
+            size_hint_x=1,
+        )
+        hdr.add_widget(title_lbl)
+
         self.mode_spinner = Spinner(
             text=self.cfg.get('game_mode', 'X01'),
             values=['X01', 'Cricket'],
-            size_hint=(None, None), size=(dp(100), dp(36)),
-            font_size=sp(13),
+            size_hint=(None, None), size=(dp(90), dp(34)),
+            font_size=sp(12), bold=True,
+            background_normal='', background_color=(0, 0, 0, 0),
+            color=FG2,
+        )
+        with self.mode_spinner.canvas.before:
+            Color(*SEP)
+            self.mode_spinner._bg = RoundedRectangle(
+                pos=self.mode_spinner.pos, size=self.mode_spinner.size, radius=[dp(8)])
+        self.mode_spinner.bind(
+            pos=lambda *_: setattr(self.mode_spinner._bg, 'pos', self.mode_spinner.pos),
+            size=lambda *_: setattr(self.mode_spinner._bg, 'size', self.mode_spinner.size),
         )
         self.mode_spinner.bind(text=self._on_mode_change)
         hdr.add_widget(self.mode_spinner)
         self.add_widget(hdr)
 
-        # ── Score card ────────────────────────────────────────────────────
-        score_card = BoxLayout(
-            orientation='vertical', size_hint_y=None, height=dp(150),
-            padding=dp(12), spacing=dp(4),
+        # Thin separator
+        sep = Widget(size_hint_y=None, height=dp(1))
+        with sep.canvas:
+            Color(*SEP)
+            sep._rect = RoundedRectangle(pos=sep.pos, size=sep.size, radius=[0])
+        sep.bind(pos=lambda *_: setattr(sep._rect, 'pos', sep.pos),
+                 size=lambda *_: setattr(sep._rect, 'size', sep.size))
+        self.add_widget(sep)
+
+        # ── Score canvas (corner brackets + radial glow) ─────────────────
+        score_wrap = BoxLayout(orientation='vertical', size_hint_y=None, height=dp(168))
+
+        def _draw_score_canvas(w, *_):
+            w.canvas.before.clear()
+            cw, ch = w.width, w.height
+            if not cw or not ch:
+                return
+            with w.canvas.before:
+                # Card background
+                Color(*CARD)
+                RoundedRectangle(pos=w.pos, size=w.size, radius=[dp(14)])
+
+                # Radial glow behind score (active state only)
+                if self._active:
+                    ar, ag, ab = ACCENT[0], ACCENT[1], ACCENT[2]
+                    cr, cg, cb = CARD[0], CARD[1], CARD[2]
+                    cx, cy = w.x + cw / 2, w.y + ch / 2
+                    for gw_f, gh_f, alpha in ((0.9, 1.5, 0.06), (0.6, 1.0, 0.11), (0.35, 0.65, 0.16)):
+                        gw2, gh2 = cw * gw_f, ch * gh_f
+                        Color(
+                            ar * alpha + cr * (1 - alpha),
+                            ag * alpha + cg * (1 - alpha),
+                            ab * alpha + cb * (1 - alpha),
+                            1,
+                        )
+                        Ellipse(pos=(cx - gw2 / 2, cy - gh2 / 2), size=(gw2, gh2))
+
+                # Corner bracket accent lines
+                L = dp(18)
+                T = dp(2)
+                br_col = ACCENT if self._active else SEP
+                Color(*br_col)
+                x0, y0 = w.x, w.y
+                x1, y1 = w.x + cw, w.y + ch
+                Line(points=[x0, y0 + L, x0, y0, x0 + L, y0], width=T, cap='round')
+                Line(points=[x1 - L, y0, x1, y0, x1, y0 + L], width=T, cap='round')
+                Line(points=[x0, y1 - L, x0, y1, x0 + L, y1], width=T, cap='round')
+                Line(points=[x1 - L, y1, x1, y1, x1, y1 - L], width=T, cap='round')
+
+        score_wrap.bind(pos=_draw_score_canvas, size=_draw_score_canvas)
+        self._score_wrap = score_wrap
+        self._draw_score_canvas = _draw_score_canvas
+
+        # "MAXIMUM" label — shown only on 180
+        self.maximum_lbl = Label(
+            text='', font_size=sp(9), bold=True,
+            color=ACCENT, halign='center', valign='middle',
+            size_hint=(1, None), height=dp(16),
         )
-        _card_bg(score_card)
+        score_wrap.add_widget(self.maximum_lbl)
 
         self.score_lbl = Label(
-            text=str(self.state.remaining), font_size=sp(72), bold=True,
-            color=FG, size_hint_y=0.75,
+            text=str(self.state.remaining), font_size=sp(76), bold=True,
+            color=FG, halign='center', valign='middle',
+            size_hint=(1, 1),
         )
-        score_card.add_widget(self.score_lbl)
+        score_wrap.add_widget(self.score_lbl)
 
-        stats = BoxLayout(orientation='horizontal', size_hint_y=0.25)
-        self.avg_lbl   = Label(text='Avg —',   font_size=sp(13), color=FG2)
-        self.darts_lbl = Label(text='Darts 0', font_size=sp(13), color=FG2)
-        stats.add_widget(self.avg_lbl)
-        stats.add_widget(self.darts_lbl)
-        score_card.add_widget(stats)
-        self.add_widget(score_card)
+        # Stat labels anchored at the bottom of the score card
+        stats_row = BoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None), height=dp(28),
+        )
+        self.avg_lbl   = Label(text='Avg —',   font_size=sp(12), color=FG2,
+                                halign='center', valign='middle')
+        self.darts_lbl = Label(text='Darts 0', font_size=sp(12), color=FG2,
+                                halign='center', valign='middle')
+        stats_row.add_widget(self.avg_lbl)
+        stats_row.add_widget(self.darts_lbl)
+        score_wrap.add_widget(stats_row)
+
+        self.add_widget(score_wrap)
 
         # ── Cricket grid (hidden by default) ─────────────────────────────
         self.cricket_card = BoxLayout(
             orientation='vertical', size_hint_y=None, height=dp(260),
-            padding=dp(8),
+            padding=dp(10), spacing=dp(4),
         )
         _card_bg(self.cricket_card)
         self.cricket_grid = CricketGrid(self.state)
         self.cricket_card.add_widget(self.cricket_grid)
         self.add_widget(self.cricket_card)
 
-        # ── Status label ──────────────────────────────────────────────────
-        self.status_lbl = Label(
-            text='Ready', font_size=sp(12), color=FG2,
-            size_hint_y=None, height=dp(28),
+        # ── Status pill ───────────────────────────────────────────────────
+        status_wrap = BoxLayout(
+            orientation='horizontal', size_hint_y=None, height=dp(32),
+            padding=[0, dp(4), 0, dp(4)],
         )
-        self.add_widget(self.status_lbl)
+        self.status_lbl = Label(
+            text='Ready', font_size=sp(11), color=FG2,
+            halign='center', valign='middle',
+        )
+        _card_bg(status_wrap, color=(0.11, 0.11, 0.14, 1), radius=20)
+        status_wrap.add_widget(self.status_lbl)
+        self.add_widget(status_wrap)
 
         # ── Toggle button ─────────────────────────────────────────────────
         self.toggle_btn = _accent_btn('START LISTENING', self._toggle)
         self.add_widget(self.toggle_btn)
 
-        # ── History ───────────────────────────────────────────────────────
-        hist_lbl = Label(
-            text='HISTORY', font_size=sp(10), bold=True, color=FG2,
-            size_hint_y=None, height=dp(20), halign='left', valign='middle',
+        # ── History header ────────────────────────────────────────────────
+        hist_hdr = BoxLayout(
+            orientation='horizontal', size_hint_y=None, height=dp(28),
+            padding=[dp(14), dp(6), dp(14), dp(0)],
         )
-        self.add_widget(hist_lbl)
+        hist_hdr.add_widget(Label(
+            text='HISTORY', font_size=sp(9), bold=True,
+            color=FG2, halign='left', valign='middle',
+        ))
+        self.add_widget(hist_hdr)
 
+        # ── Scrollable history ────────────────────────────────────────────
         scroll = ScrollView(size_hint=(1, 1))
         self.history_box = BoxLayout(
-            orientation='vertical', size_hint_y=None, spacing=dp(2), padding=dp(4),
+            orientation='vertical', size_hint_y=None, spacing=0, padding=dp(4),
         )
         self.history_box.bind(minimum_height=self.history_box.setter('height'))
         scroll.add_widget(self.history_box)
         self.add_widget(scroll)
 
-        # ── Reset button ──────────────────────────────────────────────────
-        reset_btn = Button(
-            text='RESET', font_size=sp(12), bold=True,
-            background_normal='', background_color=(0.18, 0.18, 0.22, 1),
-            color=FG2, size_hint_y=None, height=dp(36),
-        )
-        reset_btn.bind(on_press=lambda *_: self._reset())
+        # ── Reset button (ghost style) ────────────────────────────────────
+        reset_btn = _ghost_btn('NEW GAME', self._reset)
         self.add_widget(reset_btn)
 
         self._refresh_mode_ui()
@@ -804,10 +1049,12 @@ class DartVoiceLayout(BoxLayout):
             self.cricket_card.height  = dp(260)
             self.cricket_card.opacity = 1
             self.score_lbl.text = 'CRICKET'
+            self.score_lbl.font_size = sp(48)
         else:
             self.cricket_card.height  = 0
             self.cricket_card.opacity = 0
             self.score_lbl.text = str(self.state.remaining)
+            self.score_lbl.font_size = sp(76)
 
     # ── Listening toggle ──────────────────────────────────────────────────────
     def _toggle(self):
@@ -819,17 +1066,47 @@ class DartVoiceLayout(BoxLayout):
     def _set_toggle_style(self, active):
         """Repaint the toggle button background without stacking canvas instructions."""
         btn = self.toggle_btn
-        bg_color = (0.10, 0.05, 0.07, 1) if active else ACCENT
-        fg_color = ACCENT[:3] + (1,)      if active else FG
+        # Active: dark tinted stop-bg with accent text + border; Inactive: full accent fill
+        if active:
+            r, g, b = ACCENT[0], ACCENT[1], ACCENT[2]
+            bg_color = (r * 0.08, g * 0.06, b * 0.08, 1)
+            fg_color = ACCENT
+        else:
+            bg_color = ACCENT
+            fg_color = FG
         btn.color = fg_color
         btn.canvas.before.clear()
         with btn.canvas.before:
-            Color(*bg_color)
-            btn._bg = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(10)])
-        btn.bind(
-            pos=lambda *_: setattr(btn._bg, 'pos', btn.pos),
-            size=lambda *_: setattr(btn._bg, 'size', btn.size),
-        )
+            if active:
+                # Subtle border
+                Color(*ACCENT)
+                btn._border = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(12)])
+                Color(*bg_color)
+                pad = dp(1.5)
+                btn._bg = RoundedRectangle(
+                    pos=(btn.x + pad, btn.y + pad),
+                    size=(btn.width - pad * 2, btn.height - pad * 2),
+                    radius=[dp(11)],
+                )
+            else:
+                Color(*bg_color)
+                btn._bg = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(12)])
+        if active:
+            def _upd(*_):
+                p = dp(1.5)
+                btn._border.pos  = btn.pos
+                btn._border.size = btn.size
+                btn._bg.pos  = (btn.x + p, btn.y + p)
+                btn._bg.size = (btn.width - p*2, btn.height - p*2)
+            btn.bind(pos=_upd, size=_upd)
+        else:
+            btn.bind(
+                pos=lambda *_: setattr(btn._bg, 'pos', btn.pos),
+                size=lambda *_: setattr(btn._bg, 'size', btn.size),
+            )
+        # Trigger score wrap redraw (updates bracket colour + glow)
+        if hasattr(self, '_draw_score_canvas') and hasattr(self, '_score_wrap'):
+            self._draw_score_canvas(self._score_wrap)
 
     def _start_listening(self):
         if ANDROID:
@@ -922,6 +1199,13 @@ class DartVoiceLayout(BoxLayout):
     def _apply_x01(self, score):
         result = self.state.apply_x01(score)
         self.score_lbl.text = str(self.state.remaining)
+        # MAXIMUM treatment for 180
+        if score == 180:
+            self.maximum_lbl.text  = 'M A X I M U M'
+            self.score_lbl.color   = ACCENT
+        else:
+            self.maximum_lbl.text  = ''
+            self.score_lbl.color   = FG
         if self.state.scores:
             avg   = sum(self.state.scores) / len(self.state.scores)
             darts = len(self.state.scores) * 3
@@ -951,14 +1235,44 @@ class DartVoiceLayout(BoxLayout):
 
     # ── History ───────────────────────────────────────────────────────────────
     def _add_history(self, text):
+        # Try to split "label  →  remaining" or just show full text
         row = BoxLayout(
-            orientation='horizontal', size_hint_y=None, height=dp(32), padding=dp(4),
+            orientation='horizontal', size_hint_y=None, height=dp(38),
+            padding=[dp(12), 0, dp(12), 0], spacing=dp(8),
         )
+        _card_bg(row, color=(0.09, 0.09, 0.11, 1), radius=8)
+
+        # Parse optional "score  →  remaining" format
+        parts = text.split('→') if '→' in text else [text, '']
+        left_text  = parts[0].strip()
+        right_text = parts[1].strip() if len(parts) > 1 else ''
+
+        # Determine if score was 180 for special accent colour
+        score_col = ACCENT if left_text == '180' else FG
+        right_col = FG2
+
         row.add_widget(Label(
-            text=text, font_size=sp(12), color=FG,
-            halign='left', valign='middle',
+            text=left_text, font_size=sp(13), bold=True,
+            color=score_col, halign='left', valign='middle',
+            size_hint_x=0.55,
         ))
-        self.history_box.add_widget(row, index=0)  # newest at top
+        if right_text:
+            row.add_widget(Label(
+                text=right_text, font_size=sp(11),
+                color=right_col, halign='right', valign='middle',
+                size_hint_x=0.45,
+            ))
+
+        # Separator line under the row
+        sep = Widget(size_hint_y=None, height=dp(1))
+        with sep.canvas:
+            Color(*SEP)
+            sep._r = RoundedRectangle(pos=sep.pos, size=sep.size, radius=[0])
+        sep.bind(pos=lambda *_: setattr(sep._r, 'pos', sep.pos),
+                 size=lambda *_: setattr(sep._r, 'size', sep.size))
+
+        self.history_box.add_widget(sep,  index=0)
+        self.history_box.add_widget(row,  index=0)  # newest at top
 
     # ── Status ────────────────────────────────────────────────────────────────
     def _set_status(self, msg):
@@ -967,7 +1281,15 @@ class DartVoiceLayout(BoxLayout):
     # ── Reset ─────────────────────────────────────────────────────────────────
     def _reset(self):
         self.state.reset()
-        self.score_lbl.text  = str(self.state.remaining) if self.state.mode == 'X01' else '🎯'
+        if self.state.mode == 'X01':
+            self.score_lbl.text      = str(self.state.remaining)
+            self.score_lbl.font_size = sp(76)
+        else:
+            self.score_lbl.text      = 'CRICKET'
+            self.score_lbl.font_size = sp(48)
+        self.score_lbl.color = FG
+        if hasattr(self, 'maximum_lbl'):
+            self.maximum_lbl.text = ''
         self.avg_lbl.text    = 'Avg —'
         self.darts_lbl.text  = 'Darts 0'
         self.history_box.clear_widgets()

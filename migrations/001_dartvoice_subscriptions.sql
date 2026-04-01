@@ -2,7 +2,7 @@
 -- DartVoice Subscriptions — Isolated Migration
 -- ============================================================================
 -- IMPORTANT: This does NOT touch any existing Oche Vault tables, triggers,
--- or functions.  Everything is prefixed with "dartvoice_".
+30
 -- Run via Supabase SQL Editor (Dashboard → SQL → New Query → paste & Run).
 -- ============================================================================
 

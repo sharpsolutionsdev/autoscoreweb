@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DartVoice Brand & Marketing Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Rubik', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            bg: '#08080A',
+                            card: '#111114',
+                            cardHov: '#18181C',
+                            wire: '#252530',
+                            red: '#CC0B20',
+                            text: '#F0F0F5',
+                            muted: '#6E6E82'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #08080A; color: #F0F0F5; }
+        .grid-bg {
+            background-image: 
+                linear-gradient(to right, #252530 1px, transparent 1px),
+                linear-gradient(to bottom, #252530 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center center;
+        }
+        /* Custom scrollbar for text blocks */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #08080A; }
+        ::-webkit-scrollbar-thumb { background: #252530; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6E6E82; }
+        
+        .neon-text { text-shadow: 0 0 10px rgba(204,11,32,0.8), 0 0 20px rgba(204,11,32,0.4); }
+    </style>
+</head>
+<body class="antialiased p-4 md:p-12">
+
+    <!-- Sticky Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-brand-bg/90 backdrop-blur-md border-b border-brand-wire z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-brand-red flex items-center justify-center">
+                    <span class="font-extrabold text-xs">DV</span>
+                </div>
+                <span class="font-bold tracking-widest text-sm">BRAND HUB</span>
+            </div>
+            <div class="hidden lg:flex gap-6 text-sm font-semibold text-brand-muted overflow-x-auto">
+                <a href="#assets" class="hover:text-white transition">Colors</a>
+                <a href="#dart-assets" class="hover:text-white transition">Assets</a>
+                <a href="#ui-icons" class="hover:text-white transition">Icons</a>
+                <a href="#app-store" class="hover:text-white transition">App Store</a>
+                <a href="#pricing-tier" class="hover:text-white transition">Pricing</a>
+                <a href="#outreach" class="hover:text-white transition">Marketing</a>
+                <a href="#layouts" class="hover:text-white transition">App Layouts</a>
+                <a href="#production-ui" class="hover:text-white transition">Production UI</a>
+                <a href="#sub-flow" class="hover:text-white transition">Business</a>
+                <a href="#auth-designs" class="hover:text-white transition">Auth</a>
+                <a href="#prompting" class="hover:text-white transition">Prompts</a>
+                <a href="#social-templates" class="hover:text-brand-red text-white transition">Social Posts</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto space-y-24 mt-20">
+        
+        <!-- Header -->
+        <header class="border-b border-brand-wire pb-8 pt-8">
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">DartVoice Central</h1>
+            <p class="text-brand-muted text-xl max-w-2xl">Your complete toolkit. Official brand assets, SVGs, color palettes, and high-converting marketing copy ready to be deployed.</p>
+        </header>
+
+        <!-- PART 1: CORE VISUAL ASSETS -->
+        <div id="assets" class="space-y-16">
+            
+            <!-- Color Palette -->
+            <section>
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <i data-lucide="palette" class="text-brand-red w-6 h-6"></i> Color Palette
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                    <div class="space-y-3"><div class="h-24 rounded-2xl bg-[#CC0B20] shadow-[0_0_20px_rgba(204,11,32,0.4)] border border-[#FF2040]"></div><div><p class="font-bold">Sharp Red</p><p class="text-brand-muted text-sm font-mono">#CC0B20</p></div></div>
+                    <div class="space-y-3"><div class="h-24 rounded-2xl bg-[#08080A] border border-brand-wire"></div><div><p class="font-bold">Oche Black</p><p class="text-brand-muted text-sm font-mono">#08080A</p></div></div>
+                    <div class="space-y-3"><div class="h-24 rounded-2xl bg-[#111114] border border-brand-wire"></div><div><p class="font-bold">Card Grey</p><p class="text-brand-muted text-sm font-mono">#111114</p></div></div>
+                    <div class="space-y-3"><div class="h-24 rounded-2xl bg-[#F0F0F5] border border-brand-wire"></div><div><p class="font-bold text-brand-bg">Chalk White</p><p class="text-brand-muted text-sm font-mono">#F0F0F5</p></div></div>
+                    <div class="space-y-3"><div class="h-24 rounded-2xl bg-[#252530] border border-brand-muted"></div><div><p class="font-bold">Wireframe</p><p class="text-brand-muted text-sm font-mono">#252530</p></div></div>
+                </div>
+            </section>
+
+            <!-- Alternate Colorways (Themes) -->
+            <section id="colorways">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3 text-brand-red">
+                    <i data-lucide="swatch-book" class="w-6 h-6"></i> Alternate Theme Colorways
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#0074D9] shadow-[0_0_15px_rgba(0,116,217,0.5)]"></div>
+                        <div><p class="font-bold text-sm">Flying Blue</p><p class="text-xs text-brand-muted font-mono">#0074D9</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#00B140] shadow-[0_0_15px_rgba(0,177,64,0.5)]"></div>
+                        <div><p class="font-bold text-sm">MVG Green</p><p class="text-xs text-brand-muted font-mono">#00B140</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#9B30FF] shadow-[0_0_15px_rgba(155,48,255,0.5)]"></div>
+                        <div><p class="font-bold text-sm">Snakebite Purple</p><p class="text-xs text-brand-muted font-mono">#9B30FF</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#FF6200] shadow-[0_0_15px_rgba(255,98,0,0.5)]"></div>
+                        <div><p class="font-bold text-sm">Barney Orange</p><p class="text-xs text-brand-muted font-mono">#FF6200</p></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#D4A017] shadow-[0_0_15px_rgba(212,160,23,0.5)]"></div>
+                        <div><p class="font-bold text-sm">Championship Gold</p><p class="text-xs text-brand-muted font-mono">#D4A017</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#00f0ff] to-[#ff003c] shadow-[0_0_15px_rgba(0,240,255,0.4)]"></div>
+                        <div><p class="font-bold text-sm">Neon Cyber</p><p class="text-xs text-brand-muted font-mono">Mixed</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#CC0B20] to-[#00B140] shadow-[0_0_15px_rgba(204,11,32,0.4)]"></div>
+                        <div><p class="font-bold text-sm">Classic Oche</p><p class="text-xs text-brand-muted font-mono">Red/Green</p></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#181820] border-2 border-[#303040] shadow-[0_0_15px_rgba(24,24,32,0.8)]"></div>
+                        <div><p class="font-bold text-sm">DC Dark Mode</p><p class="text-xs text-brand-muted font-mono">#181820</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#39FF14] shadow-[0_0_15px_rgba(57,255,20,0.4)]"></div>
+                        <div><p class="font-bold text-sm">Toxic Green</p><p class="text-xs text-brand-muted font-mono">#39FF14</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#7B2CBF] shadow-[0_0_15px_rgba(123,44,191,0.4)]"></div>
+                        <div><p class="font-bold text-sm">Majestic Purple</p><p class="text-xs text-brand-muted font-mono">#7B2CBF</p></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#FF007F] to-[#00E5FF] shadow-[0_0_15px_rgba(255,0,127,0.4)]"></div>
+                        <div><p class="font-bold text-sm">Miami Vice</p><p class="text-xs text-brand-muted font-mono">Pink/Cyan</p></div>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[#2A2A35] border border-[#404050] shadow-[0_0_15px_rgba(42,42,53,0.5)]"></div>
+                        <div><p class="font-bold text-sm">Stealth Mode</p><p class="text-xs text-brand-muted font-mono">#2A2A35</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INTERACTIVE COLOR PICKER TOOL -->
+            <section id="color-picker-tool" class="mb-16 mt-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3 text-brand-red">
+                    <i data-lucide="pipette" class="w-6 h-6"></i> Interactive Theme Tester
+                </h2>
+                <p class="text-gray-400 mb-6 text-sm">Click the color box below to test custom hex codes and instantly see how the UI elements react to your brand color.</p>
+                
+                <div class="flex flex-col md:flex-row gap-8 items-center bg-brand-card border border-brand-wire p-8 rounded-2xl shadow-xl">
+                    <div class="flex flex-col gap-4 bg-brand-bg p-6 rounded-xl border border-brand-wire w-full md:w-auto">
+                        <label class="text-xs font-bold tracking-widest text-brand-muted">CHOOSE ACCENT</label>
+                        <div class="flex items-center gap-4">
+                            <input type="color" id="live-color-picker" value="#CC0B20" class="w-20 h-20 rounded-xl cursor-pointer bg-brand-card border-2 border-brand-wire p-1">
+                            <span id="live-color-hex" class="font-mono text-xl font-black text-white">#CC0B20</span>
+                        </div>
+                        <p class="text-[10px] text-brand-muted mt-2 max-w-[200px]">Notice how the button shadow and the background radial glow automatically adapt to your chosen color.</p>
+                    </div>
+                    
+                    <div class="flex-1 w-full max-w-md mx-auto">
+                        <div class="border border-brand-wire rounded-xl p-8 shadow-2xl relative overflow-hidden bg-brand-bg transition-all duration-300" id="live-color-card">
+                            <div class="absolute inset-0 opacity-20 transition-all duration-300" id="live-color-glow" style="background: radial-gradient(circle at top right, #CC0B20, transparent 70%);"></div>
+                            
+                            <div class="relative z-10 flex flex-col items-center text-center">
+                                <div class="w-16 h-16 rounded-full border-[3px] border-white/20 flex items-center justify-center mb-4 transition-all duration-300" id="live-color-icon-ring" style="border-color: #CC0B20;">
+                                    <i data-lucide="mic" class="w-8 h-8 text-white"></i>
+                                </div>
+                                <h3 class="text-white font-black text-3xl mb-2">DartVoice Pro</h3>
+                                <p class="text-sm text-gray-400 mb-8 px-4">Experience completely unrestricted voice scoring. Start your 7-Day Trial today.</p>
+                                
+                                <button id="live-color-btn" class="w-full py-4 rounded-xl text-white font-black tracking-wide shadow-lg transition-all duration-300 hover:scale-[1.02]" style="background-color: #CC0B20; box-shadow: 0 0 20px rgba(204,11,32,0.4);">
+                                    Start 7-Day Free Trial
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logos & App Icons -->
+            <section>
+                <div class="flex justify-between items-end mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-3">
+                        <i data-lucide="hexagon" class="text-brand-red w-6 h-6"></i> Logos & Icons
+                    </h2>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Horizontal Logo -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                        <button onclick="copyHTML('svg-logo-1', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">
+                            Copy SVG
+                        </button>
+                        <div class="absolute inset-0 grid-bg opacity-10"></div>
+                        <div class="relative z-10 flex items-center gap-3" id="svg-logo-1">
+                            <svg viewBox="0 0 100 100" class="w-12 h-12">
+                                <circle cx="50" cy="50" r="45" stroke="#252530" stroke-width="4" fill="none" />
+                                <circle cx="50" cy="50" r="30" stroke="#6E6E82" stroke-width="4" fill="none" />
+                                <circle cx="50" cy="50" r="12" fill="#CC0B20" />
+                                <path d="M 65 20 Q 85 50 65 80" stroke="#F0F0F5" stroke-width="6" stroke-linecap="round" fill="none" />
+                                <path d="M 80 35 Q 95 50 80 65" stroke="#CC0B20" stroke-width="6" stroke-linecap="round" fill="none" />
+                            </svg>
+                            <span class="text-3xl font-extrabold tracking-tight text-white">DARTVOICE</span>
+                        </div>
+                        <p class="text-brand-muted text-xs mt-6 font-mono">Horizontal Lockup</p>
+                    </div>
+
+                    <!-- Android App Icon -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                        <button onclick="copyHTML('svg-logo-2', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">
+                            Copy SVG
+                        </button>
+                        <div class="absolute inset-0 grid-bg opacity-10"></div>
+                        <div class="relative z-10 w-24 h-24 bg-brand-bg border-2 border-brand-wire rounded-[2rem] shadow-2xl flex items-center justify-center p-3" id="svg-logo-2">
+                            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_10px_rgba(204,11,32,0.5)]">
+                                <circle cx="50" cy="50" r="40" stroke="#252530" stroke-width="6" fill="none" />
+                                <circle cx="50" cy="50" r="22" stroke="#6E6E82" stroke-width="6" fill="none" />
+                                <circle cx="50" cy="50" r="10" fill="#CC0B20" />
+                                <path d="M 65 25 Q 85 50 65 75" stroke="#F0F0F5" stroke-width="5" stroke-linecap="round" fill="none" />
+                            </svg>
+                        </div>
+                        <p class="text-brand-muted text-xs mt-6 font-mono">App Icon (Android/Windows)</p>
+                    </div>
+
+                    <!-- Minimal Icon -->
+                    <div class="bg-brand-red rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-[0_0_30px_rgba(204,11,32,0.2)]">
+                        <button onclick="copyHTML('svg-logo-3', this)" class="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">
+                            Copy HTML
+                        </button>
+                        <div class="relative z-10 flex items-center justify-center" id="svg-logo-3">
+                            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner">
+                                <span class="text-4xl font-black tracking-tighter text-brand-red">DV</span>
+                            </div>
+                        </div>
+                        <p class="text-white/70 text-xs mt-6 font-mono">Avatar / Monogram</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- PART 1.5: EXTENDED GRAPHICS & ICONS -->
+        <div class="pt-8 border-t-4 border-brand-wire space-y-16">
+            
+            <!-- Checkout Visuals -->
+            <section id="checkouts">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3 text-brand-red">
+                    <i data-lucide="monitor-play" class="w-6 h-6"></i> Checkout & Score Visuals (Social Ready)
+                </h2>
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- 180 Maximum -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('card-180', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy HTML</button>
+                        <div id="card-180" class="aspect-square bg-gradient-to-b from-[#1A0608] to-brand-card border-2 border-brand-red rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-[0_0_40px_rgba(204,11,32,0.2)] overflow-hidden relative">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(204,11,32,0.3)_0%,transparent_70%)]"></div>
+                            <div class="relative z-10">
+                                <p class="text-brand-red font-bold tracking-[0.3em] text-sm mb-2">MAXIMUM</p>
+                                <h3 class="text-8xl font-black text-white neon-text tracking-tighter leading-none mb-4">180</h3>
+                                <div class="flex gap-3 justify-center">
+                                    <span class="bg-brand-red text-white font-black px-4 py-1 rounded shadow text-lg">T20</span>
+                                    <span class="bg-brand-red text-white font-black px-4 py-1 rounded shadow text-lg">T20</span>
+                                    <span class="bg-brand-red text-white font-black px-4 py-1 rounded shadow text-lg">T20</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 170 Big Fish -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('card-170', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy HTML</button>
+                        <div id="card-170" class="aspect-square bg-brand-card border border-brand-wire rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-xl overflow-hidden relative">
+                            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-brand-red to-blue-500"></div>
+                            <div class="relative z-10 w-full">
+                                <p class="text-brand-muted font-bold tracking-[0.3em] text-sm mb-2">THE BIG FISH</p>
+                                <h3 class="text-8xl font-black text-white tracking-tighter leading-none mb-6 drop-shadow-lg">170</h3>
+                                <div class="flex gap-2 justify-center w-full">
+                                    <span class="bg-brand-bg border border-brand-wire text-white font-bold px-3 py-2 rounded flex-1">T20</span>
+                                    <span class="bg-brand-bg border border-brand-wire text-white font-bold px-3 py-2 rounded flex-1">T20</span>
+                                    <span class="bg-brand-red text-white font-black px-3 py-2 rounded flex-1 shadow-[0_0_10px_rgba(204,11,32,0.5)]">BULL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 171 Nine Darter -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('card-171', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy HTML</button>
+                        <div id="card-171" class="aspect-square bg-brand-bg grid-bg border border-brand-wire rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-xl overflow-hidden relative">
+                            <div class="relative z-10 w-full">
+                                <p class="text-green-500 font-bold tracking-[0.2em] text-xs mb-2 border border-green-500/30 bg-green-500/10 py-1 px-3 rounded-full inline-block">NINE-DART ROUTE</p>
+                                <h3 class="text-7xl font-black text-white tracking-tighter leading-none my-6 drop-shadow-lg">171</h3>
+                                <div class="flex gap-2 justify-center w-full">
+                                    <span class="bg-brand-card text-gray-300 font-bold px-3 py-2 rounded flex-1 border-b-2 border-brand-red">T19</span>
+                                    <span class="bg-brand-card text-gray-300 font-bold px-3 py-2 rounded flex-1 border-b-2 border-brand-red">T19</span>
+                                    <span class="bg-brand-card text-gray-300 font-bold px-3 py-2 rounded flex-1 border-b-2 border-brand-red">T19</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dart & Board SVGs -->
+            <section id="dart-assets">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3 text-brand-red">
+                    <i data-lucide="target" class="w-6 h-6"></i> Dart & Board SVGs
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Minimal Dartboard SVG -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative">
+                        <button onclick="copyHTML('svg-board', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center">Copy SVG</button>
+                        <div class="flex justify-center bg-brand-bg rounded-xl p-8 border border-brand-wire mt-8" id="svg-board">
+                            <!-- Pure SVG Dartboard -->
+                            <svg viewBox="0 0 200 200" class="w-48 h-48 text-brand-wire">
+                                <circle cx="100" cy="100" r="95" stroke="currentColor" stroke-width="2" fill="none" />
+                                <circle cx="100" cy="100" r="85" stroke="currentColor" stroke-width="2" fill="none" />
+                                <circle cx="100" cy="100" r="55" stroke="currentColor" stroke-width="2" fill="none" />
+                                <circle cx="100" cy="100" r="47" stroke="currentColor" stroke-width="2" fill="none" />
+                                <circle cx="100" cy="100" r="9" stroke="currentColor" stroke-width="2" fill="#CC0B20" />
+                                <circle cx="100" cy="100" r="4" fill="#08080A" />
+                                <g stroke="currentColor" stroke-width="1.5">
+                                    <line x1="100" y1="5" x2="100" y2="195" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(18 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(36 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(54 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(72 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(90 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(108 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(126 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(144 100 100)" />
+                                    <line x1="100" y1="5" x2="100" y2="195" transform="rotate(162 100 100)" />
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Sleek Dart SVG -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative flex flex-col">
+                        <button onclick="copyHTML('svg-dart', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center">Copy SVG</button>
+                        <div class="flex-1 flex items-center justify-center bg-brand-bg rounded-xl p-8 border border-brand-wire mt-8" id="svg-dart">
+                            <svg viewBox="0 0 200 40" class="w-full max-w-[250px]">
+                                <path d="M 160 20 L 195 20" stroke="#F0F0F5" stroke-width="2" stroke-linecap="round"/>
+                                <rect x="90" y="16" width="70" height="8" rx="2" fill="#6E6E82" />
+                                <line x1="100" y1="16" x2="100" y2="24" stroke="#08080A" stroke-width="2"/>
+                                <line x1="110" y1="16" x2="110" y2="24" stroke="#08080A" stroke-width="2"/>
+                                <line x1="120" y1="16" x2="120" y2="24" stroke="#08080A" stroke-width="2"/>
+                                <line x1="130" y1="16" x2="130" y2="24" stroke="#08080A" stroke-width="2"/>
+                                <line x1="140" y1="16" x2="140" y2="24" stroke="#08080A" stroke-width="2"/>
+                                <line x1="150" y1="16" x2="150" y2="24" stroke="#08080A" stroke-width="2"/>
+                                <rect x="40" y="18" width="50" height="4" fill="#252530" />
+                                <path d="M 10 20 L 40 10 L 40 30 Z" fill="#CC0B20" />
+                                <path d="M 25 5 L 40 20 L 25 35" stroke="#08080A" stroke-width="2" fill="none" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- App UI & Navigation Icons -->
+            <section id="ui-icons">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3 text-brand-red">
+                    <i data-lucide="layout-grid" class="w-6 h-6"></i> Custom App UI Icons
+                </h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- Icon: Microphone (Voice Scoring) -->
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-brand-red transition group" onclick="copyHTML('icon-mic', this, true)">
+                        <div id="icon-mic" class="mb-3 text-brand-text group-hover:text-brand-red transition">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="22"></line>
+                                <line x1="8" y1="22" x2="16" y2="22"></line>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-brand-muted group-hover:text-white">Mic</span>
+                    </div>
+
+                    <!-- Icon: History / Stats -->
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-brand-red transition group" onclick="copyHTML('icon-history', this, true)">
+                        <div id="icon-history" class="mb-3 text-brand-text group-hover:text-brand-red transition">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 3v18h18"></path>
+                                <path d="m19 9-5 5-4-4-3 3"></path>
+                                <path d="M19 9h-4"></path>
+                                <path d="M19 9v4"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-brand-muted group-hover:text-white">Stats</span>
+                    </div>
+
+                    <!-- Icon: Theme Palette -->
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-brand-red transition group" onclick="copyHTML('icon-theme', this, true)">
+                        <div id="icon-theme" class="mb-3 text-brand-text group-hover:text-brand-red transition">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                                <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                                <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                                <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-brand-muted group-hover:text-white">Themes</span>
+                    </div>
+
+                    <!-- Icon: Target -->
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-brand-red transition group" onclick="copyHTML('icon-target', this, true)">
+                        <div id="icon-target" class="mb-3 text-brand-text group-hover:text-brand-red transition">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="6"></circle>
+                                <circle cx="12" cy="12" r="2"></circle>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-brand-muted group-hover:text-white">Target</span>
+                    </div>
+
+                    <!-- Icon: Download (APK/EXE) -->
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-brand-red transition group" onclick="copyHTML('icon-download', this, true)">
+                        <div id="icon-download" class="mb-3 text-brand-text group-hover:text-brand-red transition">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-brand-muted group-hover:text-white">Download</span>
+                    </div>
+
+                    <!-- Icon: Credit Card (Billing) -->
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-brand-red transition group" onclick="copyHTML('icon-card', this, true)">
+                        <div id="icon-card" class="mb-3 text-brand-text group-hover:text-brand-red transition">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-brand-muted group-hover:text-white">Billing</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- PART 9: SOCIAL MEDIA TEMPLATES (EDITABLE) -->
+        <div id="social-templates" class="pt-8 border-t-4 border-brand-wire pb-24">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Editable Social Graphics</h1>
+            <p class="text-brand-muted text-xl mb-12">HTML/Tailwind components designed perfectly for 1:1 (Instagram/Facebook) and 9:16 (Stories/TikTok). Click into the code to change colors, text, or prices, then screenshot or render them to PNG for your campaigns.</p>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                
+                <!-- Social 1: Price Comparison (Square 1:1) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyHTML('sm-post-1', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                    <h3 class="font-bold text-xl text-white mb-2">1. The Price Comparison (1:1)</h3>
+                    <p class="text-sm text-brand-muted mb-4">Perfect for Instagram/Facebook feeds. Attacks the competitor price directly.</p>
+                    
+                    <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                        <!-- 1:1 Container -->
+                        <div id="sm-post-1" class="w-[400px] h-[400px] bg-[#050508] relative overflow-hidden flex flex-col items-center justify-center p-8 font-sans">
+                            <!-- Background elements -->
+                            <div class="absolute inset-0 grid-bg opacity-30"></div>
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-brand-red rounded-full blur-[120px] opacity-30"></div>
+                            
+                            <h2 class="text-3xl font-black text-white text-center leading-tight mb-8 z-10">Why pay hundreds for<br><span class="text-brand-red">auto-scoring?</span></h2>
+                            
+                            <div class="flex gap-4 w-full z-10">
+                                <!-- Target Omni -->
+                                <div class="flex-1 bg-brand-card border border-brand-wire rounded-2xl p-4 flex flex-col items-center justify-center opacity-60 relative">
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <svg viewBox="0 0 24 24" width="64" height="64" stroke="currentColor" stroke-width="2" fill="none" class="text-red-500/50"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-brand-muted tracking-widest mb-2">TARGET OMNI</span>
+                                    <span class="text-3xl font-black text-gray-500 line-through">£500</span>
+                                </div>
+                                
+                                <!-- DartVoice -->
+                                <div class="flex-1 bg-brand-card border-2 border-brand-red rounded-2xl p-4 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(204,11,32,0.3)]">
+                                    <span class="text-[10px] font-bold text-brand-red tracking-widest mb-2">DARTVOICE</span>
+                                    <span class="text-3xl font-black text-white">£6.99<span class="text-sm text-brand-muted font-bold">/mo</span></span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 z-10 bg-white text-black font-black px-6 py-2 rounded-full text-sm uppercase tracking-wide">
+                                Uses your phone mic
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social 2: "Sick of Math?" (Story 9:16) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyHTML('sm-post-2', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                    <h3 class="font-bold text-xl text-white mb-2">2. "Sick of Math?" Action Story (9:16)</h3>
+                    <p class="text-sm text-brand-muted mb-4">Vertical format for TikTok, Reels, or IG Stories. High-contrast typography.</p>
+                    
+                    <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                        <!-- 9:16 Container -->
+                        <div id="sm-post-2" class="w-[280px] h-[498px] bg-brand-red relative overflow-hidden flex flex-col items-center justify-center p-6 text-center font-sans">
+                            <!-- Background texture -->
+                            <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #08080A 25%, #08080A 75%, #000 75%, #000); background-size: 20px 20px;"></div>
+                            
+                            <div class="relative z-10 bg-black text-white px-4 py-2 rounded-lg transform -rotate-3 mb-8 border-2 border-white">
+                                <h2 class="text-2xl font-black uppercase tracking-tighter">Sick of typing</h2>
+                                <h2 class="text-2xl font-black uppercase tracking-tighter text-brand-red">every score?</h2>
+                            </div>
+                            
+                            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl relative z-10 mb-8 border-4 border-black">
+                                <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="2" fill="none" class="text-brand-red"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+                            </div>
+                            
+                            <h3 class="text-3xl font-black text-white uppercase tracking-tight leading-none mb-4 relative z-10 drop-shadow-md">Score with<br>your voice.</h3>
+                            
+                            <div class="mt-auto relative z-10 w-full bg-black/50 backdrop-blur border border-white/20 rounded-xl p-4">
+                                <span class="block text-white font-bold text-sm mb-1">Available for</span>
+                                <span class="block text-white/70 text-xs">Windows 10/11 & Android</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social 3: The Pros List (Square 1:1) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyHTML('sm-post-3', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                    <h3 class="font-bold text-xl text-white mb-2">3. The Features Checklist (1:1)</h3>
+                    <p class="text-sm text-brand-muted mb-4">Focuses on feature density to build value before mentioning the low price.</p>
+                    
+                    <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                        <div id="sm-post-3" class="w-[400px] h-[400px] bg-brand-card border-4 border-brand-wire relative overflow-hidden flex flex-col p-8 font-sans">
+                            <h2 class="text-3xl font-black text-white leading-tight mb-6">The Ultimate<br><span class="text-brand-red">Darts Setup.</span></h2>
+                            
+                            <ul class="space-y-4 mb-8 flex-1">
+                                <li class="flex items-center gap-3"><div class="w-6 h-6 bg-brand-red/20 rounded flex items-center justify-center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" class="text-brand-red"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span class="text-lg font-bold text-white">Unlimited Voice Scoring</span></li>
+                                <li class="flex items-center gap-3"><div class="w-6 h-6 bg-brand-red/20 rounded flex items-center justify-center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" class="text-brand-red"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span class="text-lg font-bold text-white">Live Checkout Routes</span></li>
+                                <li class="flex items-center gap-3"><div class="w-6 h-6 bg-brand-red/20 rounded flex items-center justify-center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" class="text-brand-red"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span class="text-lg font-bold text-white">No £500 Hardware Ring</span></li>
+                                <li class="flex items-center gap-3"><div class="w-6 h-6 bg-brand-red/20 rounded flex items-center justify-center"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" class="text-brand-red"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span class="text-lg font-bold text-white">£6.99/mo (Cancel anytime)</span></li>
+                            </ul>
+                            
+                            <div class="w-full bg-brand-red text-white text-center py-3 rounded-lg font-black tracking-widest text-sm uppercase shadow-[0_0_15px_rgba(204,11,32,0.5)]">
+                                Link in Bio
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social 4: The 7-Day Trial (Square 1:1) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyHTML('sm-post-4', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                    <h3 class="font-bold text-xl text-white mb-2">4. 7-Day Trial Activation (1:1)</h3>
+                    <p class="text-sm text-brand-muted mb-4">Direct call-to-action utilizing the "170 Checkout" visual for immediate recognition.</p>
+                    
+                    <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                        <div id="sm-post-4" class="w-[400px] h-[400px] bg-brand-bg relative overflow-hidden flex flex-col items-center justify-between p-8 font-sans border-2 border-brand-wire">
+                            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(204,11,32,0.2),transparent_70%)] pointer-events-none"></div>
+                            
+                            <h2 class="text-2xl font-black text-white uppercase tracking-widest z-10 text-center">Instant Voice Scoring.</h2>
+                            
+                            <!-- Mini UI Element inside graphic -->
+                            <div class="w-full bg-brand-card border border-brand-wire rounded-2xl p-4 flex flex-col items-center shadow-2xl relative z-10 my-4 transform scale-110">
+                                <span class="text-[8px] text-brand-muted font-bold tracking-widest mb-1">REMAINING</span>
+                                <span class="text-6xl font-black text-white leading-none mb-2">170</span>
+                                <div class="flex gap-2">
+                                    <span class="bg-brand-bg border border-brand-wire px-2 py-1 rounded text-xs font-bold text-white">T20</span>
+                                    <span class="bg-brand-bg border border-brand-wire px-2 py-1 rounded text-xs font-bold text-white">T20</span>
+                                    <span class="bg-brand-red px-2 py-1 rounded text-xs font-bold text-white shadow-[0_0_10px_rgba(204,11,32,0.5)]">BULL</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white text-black font-black px-6 py-3 rounded-full text-sm uppercase tracking-wide z-10 mt-auto shadow-lg w-full text-center">
+                                Start 7-Day Free Trial
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PART 3: APP LAYOUT CONCEPTS -->
+        <div id="layouts" class="pt-8 border-t-4 border-brand-wire pb-24">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">App & Software Layout Concepts</h1>
+            <p class="text-brand-muted text-xl mb-12">10 creative UI/UX directions to consider for the Android APK and Windows standalone versions. Each includes a breakdown of the Main Page, Settings, and In-Game overlay.</p>
+
+            <!-- ANDROID CONCEPTS -->
+            <h2 class="text-3xl font-bold mb-8 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                <i data-lucide="smartphone" class="w-8 h-8"></i> Android APK Layouts
+            </h2>
+            
+            <div class="grid lg:grid-cols-2 gap-8 mb-16">
+                
+                <!-- Android 1 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">1. The "Pro HUD" (Circular Focus)</h3>
+                    <p class="text-sm text-brand-muted mb-6">Dark, swipe-heavy, performance-focused. Relies on a massive glowing ring for the score.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire p-2 flex flex-col items-center justify-center relative">
+                                <div class="w-12 h-12 rounded-full border-[3px] border-brand-red flex items-center justify-center shadow-[0_0_10px_rgba(204,11,32,0.4)]">
+                                    <span class="text-[10px] font-black text-white">501</span>
+                                </div>
+                                <div class="w-10 h-2 bg-brand-card rounded mt-4"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Giant score ring. Swipe left/right to reveal history.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire p-2 flex flex-col justify-end relative overflow-hidden">
+                                <div class="w-full h-1/2 bg-brand-card rounded-t-xl border-t border-brand-wire flex flex-col gap-1 p-2">
+                                    <div class="w-full h-1 bg-brand-wire rounded-full mb-1"></div>
+                                    <div class="w-full h-2 bg-brand-bg rounded"></div>
+                                    <div class="w-full h-2 bg-brand-bg rounded"></div>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Bottom-sheet slider. Pulls up over the main game.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire p-2 relative">
+                                <div class="w-16 h-4 bg-brand-card rounded-full border border-brand-red mx-auto mt-2 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-brand-red rounded-full animate-pulse"></div>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Floating dynamic pill at top. Tap to expand stats.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Android 2 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">2. The "Thumb Zone" (Ergonomic)</h3>
+                    <p class="text-sm text-brand-muted mb-6">Designed for one-handed use at the pub. Everything sits in the bottom third of the screen.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire p-2 flex flex-col justify-between">
+                                <div class="text-[14px] font-black text-white text-center mt-2">170</div>
+                                <div class="w-full h-10 bg-brand-card rounded-lg flex items-center justify-center">
+                                    <div class="w-6 h-6 bg-brand-red rounded-full"></div>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Massive top score. Mic & undo buttons at the thumb.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire p-2 flex flex-col justify-end gap-1">
+                                <div class="w-full h-3 bg-brand-card rounded flex justify-between p-0.5"><div class="w-4 h-full bg-brand-wire"></div><div class="w-2 h-full bg-brand-red rounded-full"></div></div>
+                                <div class="w-full h-3 bg-brand-card rounded flex justify-between p-0.5"><div class="w-4 h-full bg-brand-wire"></div><div class="w-2 h-full bg-brand-wire rounded-full"></div></div>
+                                <div class="w-full h-3 bg-brand-card rounded flex justify-between p-0.5"><div class="w-4 h-full bg-brand-wire"></div><div class="w-2 h-full bg-brand-wire rounded-full"></div></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Thumb-reachable accordion toggles stacked at bottom.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire p-2 relative flex items-end justify-end">
+                                <div class="w-6 h-6 bg-brand-red rounded-full border-2 border-brand-bg mb-2 mr-2 shadow-lg flex items-center justify-center"><span class="text-[6px] font-bold text-white">170</span></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Floating action button (FAB) in the bottom right corner.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Android 3 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">3. The "Minimal Glass"</h3>
+                    <p class="text-sm text-brand-muted mb-6">Frosted glass over blurred gradients. Looks like a native iOS/Pixel app. Extremely clean.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-[#0a0a14] rounded-lg border border-brand-wire p-2 relative overflow-hidden flex flex-col items-center justify-center">
+                                <div class="absolute w-16 h-16 bg-brand-red blur-xl opacity-30 rounded-full"></div>
+                                <div class="z-10 w-14 h-14 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center text-[10px] text-white">501</div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">No solid cards. Just floating text over blurred neon.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-[#0a0a14] rounded-lg border border-brand-wire relative overflow-hidden flex items-center justify-center">
+                                <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+                                <div class="w-12 h-16 bg-white/10 border border-white/20 rounded-lg z-10 flex flex-col gap-1 p-1"><div class="w-full h-2 bg-white/20 rounded"></div></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Full-screen translucent frosted glass overlay.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-[#0a0a14] rounded-lg border border-brand-wire relative flex justify-center items-end pb-2">
+                                <div class="w-14 h-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center gap-1"><div class="w-1 h-1 bg-green-400 rounded-full"></div></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Minimal glassy bar docked at the bottom center.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Android 4 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">4. The "Broadcast TV"</h3>
+                    <p class="text-sm text-brand-muted mb-6">Inspired by Sky Sports. Slanted banners, italic bold fonts, split-screen data.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire p-2 flex flex-col gap-1">
+                                <div class="w-full h-8 bg-brand-red -skew-x-6 flex items-center justify-center shadow"><span class="text-[10px] font-black italic text-white">501</span></div>
+                                <div class="w-full h-4 bg-brand-card -skew-x-6 mt-1"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Aggressive slanted panels. Looks like a live TV feed.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire flex">
+                                <div class="w-2/3 h-full bg-brand-card border-r border-brand-wire p-1 flex flex-col gap-1">
+                                    <div class="w-full h-2 bg-brand-red rounded-sm"></div>
+                                    <div class="w-full h-2 bg-brand-wire rounded-sm"></div>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Side navigation drawer that slides in from the left.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg rounded-lg border border-brand-wire relative flex items-end">
+                                <div class="w-full h-4 bg-brand-card flex border-t border-brand-red"><div class="w-1/3 bg-brand-red h-full"></div></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Lower-third ticker tape graphic across the bottom edge.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Android 5 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 lg:col-span-2">
+                    <h3 class="font-bold text-xl text-white mb-1">5. The "Arcade Retro"</h3>
+                    <p class="text-sm text-brand-muted mb-6">Chunky elements, pixel fonts, high contrast. Makes playing feel like an arcade game.</p>
+                    <div class="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg border-4 border-brand-wire p-2 flex flex-col items-center justify-center">
+                                <div class="w-14 h-8 bg-black border-2 border-[#00ff00] flex items-center justify-center"><span class="text-[10px] font-mono text-[#00ff00]">501</span></div>
+                                <div class="w-10 h-4 bg-brand-red mt-2 border-b-2 border-red-900"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Scanline scoreboards and chunky tactile buttons.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg border-4 border-brand-wire p-2 grid grid-cols-2 gap-1 content-start">
+                                <div class="w-full aspect-square bg-brand-card border border-brand-wire shadow-[2px_2px_0_#252530]"></div>
+                                <div class="w-full aspect-square bg-brand-red border border-red-900 shadow-[2px_2px_0_#880714]"></div>
+                                <div class="w-full aspect-square bg-brand-card border border-brand-wire shadow-[2px_2px_0_#252530]"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Grid of chunky toggle switches instead of lists.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-[9/16] bg-brand-bg border-4 border-brand-wire relative p-1">
+                                <div class="w-full h-4 bg-[#ffff00] border border-black flex items-center px-1"><div class="w-2 h-2 bg-black"></div></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Retro 8-bit banner notification at the top.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- WINDOWS CONCEPTS -->
+            <h2 class="text-3xl font-bold mb-8 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                <i data-lucide="monitor" class="w-8 h-8"></i> Windows / Desktop Layouts
+            </h2>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                
+                <!-- Windows 6 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">6. The "Streamer Widget"</h3>
+                    <p class="text-sm text-brand-muted mb-6">A tall, ultra-thin, borderless widget designed to sit on the side of the screen next to OBS.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-gradient-to-br from-brand-bg to-black border border-brand-wire p-2 flex justify-end">
+                                <div class="w-6 h-full bg-brand-card border border-brand-wire rounded p-0.5 flex flex-col gap-1 items-center">
+                                    <div class="text-[6px] text-white">501</div>
+                                    <div class="w-3 h-3 rounded-full bg-brand-red"></div>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Very narrow vertical column stacked tightly.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-gradient-to-br from-brand-bg to-black border border-brand-wire p-2 flex justify-end items-center">
+                                <div class="w-10 h-8 bg-brand-card border border-brand-wire rounded mr-1"></div>
+                                <div class="w-6 h-full bg-brand-card border border-brand-wire rounded"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Pops out as an attached panel to the left/right.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMzMzMiLz48L3N2Zz4=')] border border-brand-wire p-2 flex items-center justify-center">
+                                <span class="text-[14px] font-black text-brand-red neon-text shadow-black drop-shadow-md">T20</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Fully transparent background. Text floats over apps.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Windows 7 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">7. The "Command Center"</h3>
+                    <p class="text-sm text-brand-muted mb-6">A wide landscape dashboard maximizing screen real estate for stats, history, and checkouts.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-brand-bg border border-brand-wire p-1 flex gap-1">
+                                <div class="w-1/3 bg-brand-card rounded h-full"></div>
+                                <div class="w-1/3 bg-brand-card rounded h-full flex items-center justify-center"><div class="w-6 h-6 bg-brand-red rounded-full"></div></div>
+                                <div class="w-1/3 bg-brand-card rounded h-full"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">3-pane layout: History (L), Score (Center), Checkout (R).</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-brand-bg border border-brand-wire p-1 relative flex items-center justify-center">
+                                <div class="absolute inset-0 bg-black/50"></div>
+                                <div class="w-12 h-8 bg-brand-card border border-brand-wire rounded z-10"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Large centered modal dialog dimming the dashboard.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-gradient-to-br from-brand-bg to-black border border-brand-wire p-1 relative">
+                                <div class="w-6 h-4 bg-brand-card border border-brand-wire rounded absolute bottom-1 right-1"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Picture-in-picture mini window pinned to screen corner.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Windows 8 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">8. The "Holographic Console"</h3>
+                    <p class="text-sm text-brand-muted mb-6">Cyberpunk aesthetic. Glowing dark blue/red grids, angled perspective panels.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-[#050510] grid-bg border border-brand-wire p-2 flex items-center justify-center">
+                                <div class="w-10 h-8 border border-[#00f0ff] bg-[#00f0ff]/10 -skew-x-12 flex items-center justify-center shadow-[0_0_10px_rgba(0,240,255,0.3)]"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Angled UI boxes, glowing neon borders.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-[#050510] grid-bg border border-brand-wire p-2">
+                                <div class="text-[4px] text-[#00f0ff] font-mono">> configure_audio<br>> load_theme</div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Terminal-style monospaced text and config lines.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-[#050510] border border-brand-wire flex items-center justify-center">
+                                <div class="w-8 h-8 border border-brand-red rotate-45 flex items-center justify-center"><div class="w-6 h-6 border border-brand-red -rotate-45"></div></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Glowing hexagonal overlay for alerts.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Windows 9 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                    <h3 class="font-bold text-xl text-white mb-1">9. The "Focus Fullscreen"</h3>
+                    <p class="text-sm text-brand-muted mb-6">Distraction-free. The entire monitor becomes a massive scoreboard readable from 20 feet away.</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-black border border-brand-wire flex items-center justify-center">
+                                <span class="text-3xl font-black text-white">170</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">One massive number. No borders, no background cards.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-black border border-brand-wire flex flex-col justify-between">
+                                <div class="w-full h-2 bg-brand-wire"></div>
+                                <div class="w-full h-2 bg-brand-wire"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Hidden menus that only fade in on mouse movement.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-brand-red border border-brand-red flex items-center justify-center transition-all duration-1000">
+                                <span class="text-xs font-bold text-white">BUST</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Entire screen flashes color (red=bust, green=win).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Windows 10 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 lg:col-span-2">
+                    <h3 class="font-bold text-xl text-white mb-1">10. The "Utility Dock"</h3>
+                    <p class="text-sm text-brand-muted mb-6">Docks to the very top edge of your monitor like a toolbar, leaving the rest of your screen free for other apps.</p>
+                    <div class="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-gradient-to-br from-brand-bg to-black border border-brand-wire relative">
+                                <div class="w-full h-3 bg-brand-card border-b border-brand-wire flex gap-1 px-1 items-center justify-between">
+                                    <div class="w-2 h-2 rounded-full bg-brand-red"></div>
+                                    <span class="text-[6px] text-white">501</span>
+                                    <div class="w-4 h-1 bg-brand-wire rounded"></div>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Main Page</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Horizontal ribbon. Mic toggle, score, and checkout side-by-side.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-gradient-to-br from-brand-bg to-black border border-brand-wire relative">
+                                <div class="w-full h-3 bg-brand-card border-b border-brand-wire"></div>
+                                <div class="w-8 h-8 bg-brand-card border border-brand-wire absolute top-3 left-1 rounded-b shadow-lg"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">Settings</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Standard dropdown menus descending from the toolbar.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="aspect-video bg-gradient-to-br from-brand-bg to-black border border-brand-wire relative overflow-hidden">
+                                <div class="absolute bottom-1 right-1 w-6 h-3 bg-brand-card border-l-2 border-brand-red rounded shadow-lg"></div>
+                            </div>
+                            <h4 class="text-xs font-bold text-brand-red text-center uppercase tracking-widest">In-Game</h4>
+                            <p class="text-[10px] text-gray-400 text-center leading-tight">Windows Native Toast Notifications sliding in.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- PART 4: PRODUCTION-READY UI TEMPLATES -->
+        <div id="production-ui" class="pt-8 border-t-4 border-brand-wire pb-24">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Production-Ready UI Templates</h1>
+            <p class="text-brand-muted text-xl mb-12">Fully coded, exact-scale HTML/Tailwind templates for the chosen concepts. Copy these directly into your web/electron wrappers or use as pixel-perfect references for Kivy/Tkinter.</p>
+
+            <!-- ANDROID PRODUCTION TEMPLATE -->
+            <div class="mb-16">
+                <h2 class="text-3xl font-bold mb-6 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                    <i data-lucide="smartphone" class="w-8 h-8"></i> Android UI: "The Thumb Zone"
+                </h2>
+                <p class="text-gray-400 mb-8">Optimized for one-handed operation. Controls stay at the bottom, score remains unobstructed at the top.</p>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    
+                    <!-- Android: Main Page -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('prod-and-main', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                            <!-- Mobile Frame -->
+                            <div id="prod-and-main" class="w-[320px] h-[650px] bg-brand-bg rounded-[2rem] border-4 border-brand-wire shadow-2xl relative overflow-hidden flex flex-col font-sans">
+                                <!-- Top: Score Display -->
+                                <div class="flex-1 flex flex-col items-center justify-center p-6 relative">
+                                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(204,11,32,0.15),transparent_50%)]"></div>
+                                    <span class="text-brand-muted font-bold tracking-widest text-[10px] mb-2 z-10">REMAINING</span>
+                                    <span class="text-white font-black text-8xl tracking-tighter leading-none z-10 drop-shadow-lg">116</span>
+                                    <div class="mt-6 flex gap-2 z-10">
+                                        <span class="bg-brand-card border border-brand-wire text-white text-xs font-bold px-3 py-1.5 rounded">T20</span>
+                                        <span class="bg-brand-card border border-brand-wire text-white text-xs font-bold px-3 py-1.5 rounded">16</span>
+                                        <span class="bg-brand-red text-white text-xs font-bold px-3 py-1.5 rounded shadow-[0_0_10px_rgba(204,11,32,0.5)]">D20</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Bottom: Control Deck -->
+                                <div class="bg-brand-card border-t border-brand-wire rounded-t-3xl p-6 pb-8 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+                                    <div class="flex justify-between items-center mb-6 px-2 text-brand-muted text-xs font-semibold">
+                                        <div class="flex flex-col items-center"><span>Avg</span><span class="text-white text-sm">68.4</span></div>
+                                        <div class="flex flex-col items-center"><span>Darts</span><span class="text-white text-sm">12</span></div>
+                                        <div class="flex flex-col items-center"><span>Last</span><span class="text-white text-sm">100</span></div>
+                                    </div>
+                                    
+                                    <!-- Primary Actions -->
+                                    <div class="flex items-center justify-between gap-4">
+                                        <button class="w-14 h-14 rounded-full bg-brand-bg border border-brand-wire flex items-center justify-center text-brand-muted hover:text-white transition">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                                        </button>
+                                        
+                                        <button class="flex-1 h-16 rounded-full bg-brand-red flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(204,11,32,0.4)] hover:bg-red-600 transition">
+                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+                                            <span class="font-extrabold tracking-wide">LISTENING</span>
+                                        </button>
+
+                                        <button class="w-14 h-14 rounded-full bg-brand-bg border border-brand-wire flex items-center justify-center text-brand-muted hover:text-white transition">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Android: Settings Bottom Sheet -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('prod-and-settings', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                            <div id="prod-and-settings" class="w-[320px] h-[650px] bg-brand-bg rounded-[2rem] border-4 border-brand-wire shadow-2xl relative overflow-hidden flex flex-col justify-end font-sans">
+                                <!-- Blurred background content -->
+                                <div class="absolute inset-0 p-6 flex flex-col items-center justify-center opacity-30 blur-sm pointer-events-none">
+                                    <span class="text-white font-black text-8xl tracking-tighter">116</span>
+                                </div>
+                                
+                                <!-- Bottom Sheet Overlay -->
+                                <div class="w-full bg-brand-card border-t border-brand-wire rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.8)] flex flex-col h-[80%]">
+                                    <div class="w-12 h-1.5 bg-brand-wire rounded-full mx-auto mt-4 mb-6"></div>
+                                    <div class="px-6 flex-1 overflow-y-auto pb-6 space-y-6">
+                                        <div>
+                                            <h3 class="text-brand-muted text-xs font-bold tracking-widest mb-3">GAME PLAY</h3>
+                                            <div class="space-y-1">
+                                                <div class="bg-brand-bg border border-brand-wire rounded-xl p-4 flex justify-between items-center">
+                                                    <span class="text-sm font-semibold text-white">Live Checkout Routes</span>
+                                                    <div class="w-10 h-5 bg-brand-red rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+                                                </div>
+                                                <div class="bg-brand-bg border border-brand-wire rounded-xl p-4 flex justify-between items-center">
+                                                    <span class="text-sm font-semibold text-white">Per-Dart Scoring</span>
+                                                    <div class="w-10 h-5 bg-brand-wire rounded-full relative"><div class="w-4 h-4 bg-brand-muted rounded-full absolute left-0.5 top-0.5"></div></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-brand-muted text-xs font-bold tracking-widest mb-3">VOICE SETTINGS</h3>
+                                            <div class="bg-brand-bg border border-brand-wire rounded-xl p-4 flex justify-between items-center">
+                                                <div class="flex items-center gap-3">
+                                                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" class="text-brand-muted"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                                                    <span class="text-sm font-semibold text-white">Read back scores</span>
+                                                </div>
+                                                <div class="w-10 h-5 bg-brand-red rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Android: In-Game Mini Overlay -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('prod-and-game', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                            <div id="prod-and-game" class="w-[320px] h-[650px] bg-brand-bg rounded-[2rem] border-4 border-brand-wire shadow-2xl relative overflow-hidden font-sans bg-[url('https://images.unsplash.com/photo-1544605928-1002237eb423?auto=format&fit=crop&w=320&q=80')] bg-cover bg-center">
+                                <!-- Simulated camera feed background -->
+                                <div class="absolute inset-0 bg-black/40"></div>
+                                
+                                <!-- Floating Pill Dashboard -->
+                                <div class="absolute bottom-8 left-4 right-4 bg-brand-card/90 backdrop-blur-md border border-brand-wire rounded-2xl p-4 shadow-2xl flex items-center justify-between">
+                                    <div class="flex flex-col">
+                                        <span class="text-brand-muted text-[10px] font-bold tracking-widest">REMAINING</span>
+                                        <span class="text-white font-black text-3xl leading-none">116</span>
+                                    </div>
+                                    
+                                    <div class="flex flex-col items-center justify-center">
+                                        <span class="bg-brand-red text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider mb-1">T20 16 D20</span>
+                                        <span class="text-brand-muted text-xs">Avg 68.4</span>
+                                    </div>
+
+                                    <button class="w-12 h-12 rounded-full bg-brand-red flex items-center justify-center text-white shadow-[0_0_15px_rgba(204,11,32,0.5)]">
+                                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" class="animate-pulse"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- WINDOWS PRODUCTION TEMPLATE -->
+            <div>
+                <h2 class="text-3xl font-bold mb-6 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                    <i data-lucide="monitor" class="w-8 h-8"></i> Windows UI: "The Command Center"
+                </h2>
+                <p class="text-gray-400 mb-8">A landscape layout maximizing horizontal screen real estate. Perfect for desktop monitors or wide tablets.</p>
+
+                <div class="space-y-8">
+                    
+                    <!-- Windows: Main Dashboard -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('prod-win-main', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <div id="prod-win-main" class="w-full aspect-video bg-brand-bg border-4 border-brand-wire rounded-2xl shadow-2xl overflow-hidden font-sans flex text-white">
+                            
+                            <!-- Left: History Sidebar -->
+                            <div class="w-1/4 bg-brand-card border-r border-brand-wire flex flex-col">
+                                <div class="p-4 border-b border-brand-wire flex items-center gap-2">
+                                    <div class="w-3 h-3 bg-brand-red rounded-full"></div>
+                                    <span class="font-bold text-sm tracking-widest text-brand-muted">HISTORY</span>
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                    <div class="flex justify-between items-center text-sm border-b border-brand-wire/50 pb-2"><span class="text-brand-muted">Visit 4</span><span class="font-bold">60</span></div>
+                                    <div class="flex justify-between items-center text-sm border-b border-brand-wire/50 pb-2"><span class="text-brand-muted">Visit 3</span><span class="font-bold">100</span></div>
+                                    <div class="flex justify-between items-center text-sm border-b border-brand-wire/50 pb-2"><span class="text-brand-muted">Visit 2</span><span class="font-bold">45</span></div>
+                                    <div class="flex justify-between items-center text-sm border-b border-brand-wire/50 pb-2"><span class="text-brand-muted">Visit 1</span><span class="font-bold">180</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Center: Main Score Area -->
+                            <div class="w-1/2 bg-brand-bg flex flex-col items-center justify-center p-8 relative">
+                                <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none"></div>
+                                <div class="absolute top-4 flex gap-4 w-full px-8 justify-center">
+                                    <span class="bg-brand-card border border-brand-wire px-4 py-1 rounded-full text-xs font-bold text-brand-muted">X01 MODE</span>
+                                    <span class="bg-brand-card border border-brand-wire px-4 py-1 rounded-full text-xs font-bold text-brand-muted">START: 501</span>
+                                </div>
+                                
+                                <span class="text-brand-muted font-bold tracking-[0.3em] text-sm mb-2 z-10">REMAINING</span>
+                                <h2 class="text-9xl font-black tracking-tighter leading-none mb-8 z-10 drop-shadow-2xl">116</h2>
+                                
+                                <div class="flex items-center gap-4 z-10 w-full max-w-sm">
+                                    <input type="text" placeholder="Type score..." class="flex-1 bg-brand-card border border-brand-wire rounded-xl h-14 px-4 text-center font-bold text-lg focus:outline-none focus:border-brand-red">
+                                    <button class="h-14 px-8 rounded-xl bg-brand-red flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(204,11,32,0.4)] hover:bg-red-600 transition">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path></svg>
+                                        <span class="font-extrabold tracking-wide">LISTEN</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Right: Stats & Checkout Sidebar -->
+                            <div class="w-1/4 bg-brand-card border-l border-brand-wire flex flex-col">
+                                <div class="p-6 border-b border-brand-wire">
+                                    <span class="text-brand-muted font-bold tracking-widest text-[10px] block mb-2">CHECKOUT ROUTE</span>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-brand-bg border border-brand-wire text-white text-sm font-bold px-3 py-1.5 rounded">T20</span>
+                                        <span class="bg-brand-bg border border-brand-wire text-white text-sm font-bold px-3 py-1.5 rounded">16</span>
+                                        <span class="bg-brand-red text-white text-sm font-bold px-3 py-1.5 rounded shadow-[0_0_10px_rgba(204,11,32,0.5)]">D20</span>
+                                    </div>
+                                </div>
+                                <div class="p-6 space-y-6 flex-1">
+                                    <div>
+                                        <span class="text-brand-muted font-bold tracking-widest text-[10px] block mb-1">SESSION AVG</span>
+                                        <span class="text-4xl font-black">68.4</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-brand-muted font-bold tracking-widest text-[10px] block mb-1">DARTS THROWN</span>
+                                        <span class="text-4xl font-black">12</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 border-t border-brand-wire flex justify-end gap-2">
+                                    <button class="w-10 h-10 rounded-lg bg-brand-bg border border-brand-wire flex items-center justify-center hover:text-brand-red transition"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg></button>
+                                    <button class="w-10 h-10 rounded-lg bg-brand-bg border border-brand-wire flex items-center justify-center hover:text-brand-red transition"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Windows: Settings Modal -->
+                    <div class="relative group">
+                        <button onclick="copyHTML('prod-win-settings', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <div id="prod-win-settings" class="w-full aspect-video bg-brand-bg border-4 border-brand-wire rounded-2xl shadow-2xl relative overflow-hidden font-sans flex items-center justify-center">
+                            <!-- Background (Dimmed Main App) -->
+                            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                            
+                            <!-- Modal -->
+                            <div class="w-[500px] bg-brand-card border border-brand-wire rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col z-10">
+                                <div class="p-6 border-b border-brand-wire flex justify-between items-center">
+                                    <h3 class="font-extrabold text-xl text-white">Settings</h3>
+                                    <button class="text-brand-muted hover:text-white transition"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                                </div>
+                                <div class="p-6 space-y-6">
+                                    <!-- Setting Group -->
+                                    <div>
+                                        <label class="text-brand-muted text-xs font-bold tracking-widest block mb-2">MICROPHONE DEVICE</label>
+                                        <select class="w-full bg-brand-bg border border-brand-wire rounded-lg h-10 px-3 text-sm text-white focus:outline-none focus:border-brand-red">
+                                            <option>Default System Microphone</option>
+                                            <option>Logitech USB Headset</option>
+                                            <option>Webcam Mic</option>
+                                        </select>
+                                    </div>
+                                    <!-- Setting Group -->
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="text-brand-muted text-xs font-bold tracking-widest block mb-2">THEME COLOR</label>
+                                            <div class="flex gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-brand-red border-2 border-white cursor-pointer shadow-[0_0_10px_rgba(204,11,32,0.5)]"></div>
+                                                <div class="w-8 h-8 rounded-full bg-blue-500 border-2 border-transparent cursor-pointer hover:border-brand-muted transition"></div>
+                                                <div class="w-8 h-8 rounded-full bg-purple-500 border-2 border-transparent cursor-pointer hover:border-brand-muted transition"></div>
+                                                <div class="w-8 h-8 rounded-full bg-green-500 border-2 border-transparent cursor-pointer hover:border-brand-muted transition"></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="text-brand-muted text-xs font-bold tracking-widest block mb-2">VOICE FEEDBACK</label>
+                                            <div class="w-12 h-6 bg-brand-red rounded-full relative cursor-pointer"><div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 shadow"></div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-6 border-t border-brand-wire bg-brand-bg/50 rounded-b-2xl flex justify-end">
+                                    <button class="px-6 py-2 bg-brand-red text-white font-bold rounded-lg hover:bg-red-600 transition">Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Windows: In-Game Mini Widget -->
+                <div class="relative group">
+                        <button onclick="copyHTML('prod-win-game', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4">
+                            <!-- Simulated Desktop Background -->
+                            <div id="prod-win-game" class="w-full aspect-video bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80')] bg-cover bg-center rounded-[1rem] shadow-2xl relative overflow-hidden font-sans">
+                                
+                                <!-- Compact Floating Widget (PiP) -->
+                                <div class="absolute bottom-6 right-6 w-64 bg-brand-card/90 backdrop-blur-xl border border-brand-wire rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden cursor-move">
+                                    <!-- Drag Handle / Header -->
+                                    <div class="bg-brand-bg/50 h-6 flex items-center justify-center border-b border-brand-wire">
+                                        <div class="w-8 h-1 bg-brand-wire rounded-full"></div>
+                                    </div>
+                                    <!-- Content -->
+                                    <div class="p-4 flex items-center justify-between">
+                                        <div>
+                                            <span class="text-brand-muted text-[8px] font-bold tracking-widest block mb-1">REMAINING</span>
+                                            <span class="text-white font-black text-4xl leading-none block mb-1">116</span>
+                                            <span class="text-brand-red text-xs font-bold tracking-wider">T20 16 D20</span>
+                                        </div>
+                                        <button class="w-12 h-12 rounded-full bg-brand-red flex items-center justify-center text-white shadow-[0_0_15px_rgba(204,11,32,0.4)] hover:bg-red-600 transition">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" class="animate-pulse"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PART 5: BUSINESS & REVENUE OPERATIONS -->
+        <div class="pt-8 border-t-4 border-brand-wire pb-24">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Business & Web Operations</h1>
+            <p class="text-brand-muted text-xl mb-12">The subscription flow logic, income projections, and web layout designs.</p>
+
+            <!-- Subscription Flow Diagram -->
+            <section id="sub-flow" class="mb-16">
+                <h2 class="text-3xl font-bold mb-6 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                    <i data-lucide="refresh-cw" class="w-8 h-8"></i> The "Netflix-Style" Subscription Flow
+                </h2>
+                <p class="text-gray-400 mb-8 text-lg">A highly optimized, low-friction funnel. Let them play for free immediately, lock them out exactly when they are hooked, and require a card to continue via recurring billing.</p>
+
+                <div class="flex flex-col md:flex-row gap-4 items-stretch justify-between relative">
+                    <!-- Step 1 -->
+                    <div class="flex-1 bg-brand-card border border-brand-wire rounded-2xl p-6 relative z-10">
+                        <div class="w-12 h-12 bg-blue-500/20 text-blue-500 rounded-full flex items-center justify-center font-black text-xl mb-4 border border-blue-500/50">1</div>
+                        <h3 class="text-xl font-bold text-white mb-2">10-Minute Free Play</h3>
+                        <p class="text-sm text-brand-muted leading-relaxed">User downloads the app and opens it. No account required yet. They get exactly 10 minutes of unrestricted voice-scoring gameplay to experience the "Aha!" moment.</p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="hidden md:flex items-center justify-center text-brand-wire z-0">
+                        <i data-lucide="arrow-right" class="w-8 h-8"></i>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex-1 bg-brand-card border border-brand-wire rounded-2xl p-6 relative z-10">
+                        <div class="w-12 h-12 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center font-black text-xl mb-4 border border-yellow-500/50">2</div>
+                        <h3 class="text-xl font-bold text-white mb-2">The Paywall Drops</h3>
+                        <p class="text-sm text-brand-muted leading-relaxed">At exactly 10 minutes, the screen locks. A popup appears: <em>"Preview Ended. Start your 7-Day Free Trial to continue playing."</em> They are sent to Stripe Checkout.</p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="hidden md:flex items-center justify-center text-brand-wire z-0">
+                        <i data-lucide="arrow-right" class="w-8 h-8"></i>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex-1 bg-brand-card border-2 border-brand-red rounded-2xl p-6 relative z-10 shadow-[0_0_30px_rgba(204,11,32,0.15)]">
+                        <div class="w-12 h-12 bg-brand-red text-white rounded-full flex items-center justify-center font-black text-xl mb-4 shadow-[0_0_15px_rgba(204,11,32,0.5)]">3</div>
+                        <h3 class="text-xl font-bold text-white mb-2">Recurring Billing</h3>
+                        <p class="text-sm text-brand-muted leading-relaxed">User enters card info. Stripe grants 7 free days. On Day 7, Stripe automatically charges <strong class="text-white">£6.99</strong>, and continues monthly until they cancel (just like Spotify or Netflix). If they don't cancel, you get paid automatically.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Income Projections & DartCounter Funnel -->
+            <section id="projections" class="mb-16">
+                <h2 class="text-3xl font-bold mb-6 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                    <i data-lucide="trending-up" class="w-8 h-8"></i> DartCounter Outreach Projections
+                </h2>
+                
+                <p class="text-gray-400 mb-8 text-lg">Based on sending 2,500 "Warm DMs" per day to mutual followers on DartCounter. Because these are mutual connections, spam filters are bypassed and trust is high.</p>
+
+                <!-- Funnel Breakdown -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-6 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-blue-500/10 rounded-bl-full flex items-center justify-center"><i data-lucide="send" class="w-6 h-6 text-blue-500 mb-4 ml-4"></i></div>
+                        <p class="text-brand-muted font-bold text-xs tracking-widest mb-1">WARM DMS SENT</p>
+                        <p class="text-3xl font-black text-white">2,500</p>
+                        <p class="text-xs text-brand-muted mt-2">Daily Volume</p>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-6 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-purple-500/10 rounded-bl-full flex items-center justify-center"><i data-lucide="mouse-pointer-click" class="w-6 h-6 text-purple-500 mb-4 ml-4"></i></div>
+                        <p class="text-brand-muted font-bold text-xs tracking-widest mb-1">CLICKS (15%)</p>
+                        <p class="text-3xl font-black text-white">375</p>
+                        <p class="text-xs text-brand-muted mt-2">Site Visitors / App Opens</p>
+                    </div>
+                    <div class="bg-brand-card border border-brand-wire rounded-xl p-6 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-yellow-500/10 rounded-bl-full flex items-center justify-center"><i data-lucide="clock" class="w-6 h-6 text-yellow-500 mb-4 ml-4"></i></div>
+                        <p class="text-brand-muted font-bold text-xs tracking-widest mb-1">START TRIAL (10%)</p>
+                        <p class="text-3xl font-black text-white">37</p>
+                        <p class="text-xs text-brand-muted mt-2">Cards entered daily</p>
+                    </div>
+                    <div class="bg-brand-card border border-brand-red rounded-xl p-6 relative overflow-hidden shadow-[0_0_20px_rgba(204,11,32,0.15)]">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-brand-red/10 rounded-bl-full flex items-center justify-center"><i data-lucide="credit-card" class="w-6 h-6 text-brand-red mb-4 ml-4"></i></div>
+                        <p class="text-brand-muted font-bold text-xs tracking-widest mb-1">BILLED USERS (70%)</p>
+                        <p class="text-3xl font-black text-green-400">26</p>
+                        <p class="text-xs text-brand-red font-bold mt-2">+£181 MRR added daily</p>
+                    </div>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-3xl p-8 md:p-12 shadow-2xl">
+                    <div class="flex flex-col lg:flex-row gap-12 items-center">
+                        
+                        <!-- Slider Area -->
+                        <div class="flex-1 w-full">
+                            <label class="text-white font-bold text-xl mb-2 block">Monthly Subscription Calculator</label>
+                            <p class="text-brand-muted text-sm mb-8">If you retain just <span class="text-white font-bold">26 new users a day</span> from your automated outreach, you will hit 780 users in your first month.</p>
+                            
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-brand-muted font-bold text-xs tracking-widest">ACTIVE SUBSCRIBERS</span>
+                                <span id="user-count" class="text-3xl font-black text-white">780</span>
+                            </div>
+                            
+                            <input type="range" id="user-slider" min="10" max="5000" step="10" value="780" class="w-full h-3 bg-brand-wire rounded-lg appearance-none cursor-pointer accent-brand-red">
+                            
+                            <div class="flex justify-between text-brand-muted text-xs font-bold mt-3 mb-8">
+                                <span>10</span>
+                                <span>2,500</span>
+                                <span>5,000+</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-brand-bg border border-brand-wire rounded-xl p-4">
+                                    <span class="text-brand-muted font-bold tracking-widest text-[10px] block mb-1">MONTHLY REVENUE (MRR)</span>
+                                    <span id="mrr-val" class="text-2xl font-black text-green-400">£5,452.20</span>
+                                </div>
+                                <div class="bg-brand-bg border border-brand-wire rounded-xl p-4">
+                                    <span class="text-brand-muted font-bold tracking-widest text-[10px] block mb-1">YEARLY REVENUE (ARR)</span>
+                                    <span id="arr-val" class="text-xl font-bold text-white">£65,426.40</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Growth Graph Area -->
+                        <div class="flex-1 w-full relative">
+                            <h4 class="text-white font-bold text-sm mb-4 text-center">Projected 6-Month MRR Growth (@ 26 users/day)</h4>
+                            <div class="w-full h-64 bg-brand-bg border border-brand-wire rounded-xl p-4 relative flex items-end">
+                                <!-- Grid Lines -->
+                                <div class="absolute inset-0 flex flex-col justify-between p-4 pointer-events-none">
+                                    <div class="border-t border-brand-wire w-full h-0"></div>
+                                    <div class="border-t border-brand-wire w-full h-0"></div>
+                                    <div class="border-t border-brand-wire w-full h-0"></div>
+                                    <div class="border-t border-brand-wire w-full h-0"></div>
+                                </div>
+                                <!-- SVG Line Chart -->
+                                <svg viewBox="0 0 100 50" class="w-full h-full overflow-visible z-10" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#CC0B20" stop-opacity="0.5"/>
+                                            <stop offset="100%" stop-color="#CC0B20" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- Area Fill -->
+                                    <path d="M 0 50 L 0 45 Q 20 40 40 30 T 80 15 L 100 5 L 100 50 Z" fill="url(#chartGrad)" />
+                                    <!-- Line -->
+                                    <path d="M 0 45 Q 20 40 40 30 T 80 15 L 100 5" fill="none" stroke="#CC0B20" stroke-width="1.5" stroke-linecap="round" class="drop-shadow-[0_0_5px_rgba(204,11,32,1)]" />
+                                    <!-- Data Points -->
+                                    <circle cx="0" cy="45" r="1.5" fill="#fff" stroke="#CC0B20" stroke-width="0.5" />
+                                    <circle cx="20" cy="38" r="1.5" fill="#fff" stroke="#CC0B20" stroke-width="0.5" />
+                                    <circle cx="40" cy="30" r="1.5" fill="#fff" stroke="#CC0B20" stroke-width="0.5" />
+                                    <circle cx="60" cy="22" r="1.5" fill="#fff" stroke="#CC0B20" stroke-width="0.5" />
+                                    <circle cx="80" cy="15" r="1.5" fill="#fff" stroke="#CC0B20" stroke-width="0.5" />
+                                    <circle cx="100" cy="5" r="2" fill="#fff" stroke="#CC0B20" stroke-width="1" class="animate-pulse" />
+                                </svg>
+                                <!-- Labels -->
+                                <div class="absolute bottom-1 left-4 text-[8px] text-brand-muted font-bold">M1</div>
+                                <div class="absolute bottom-1 right-4 text-[8px] text-brand-muted font-bold">M6 (£32k/mo)</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Web Page Designs -->
+            <section id="web-designs">
+                <h2 class="text-3xl font-bold mb-6 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                    <i data-lucide="layout-template" class="w-8 h-8"></i> Web Dashboard & Landing Page Concepts
+                </h2>
+                <p class="text-gray-400 mb-8 text-lg">Detailed, high-fidelity wireframes for your website (dartvoice.app). Shows the exact Netflix-style funnel and account management portals.</p>
+
+                <div class="space-y-12">
+                    
+                    <!-- Web Concept 3: The "Netflix" Funnel (Landing Page) -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                        <button onclick="copyHTML('web-netflix-funnel', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <h3 class="font-bold text-xl text-white mb-1">1. The "Netflix-Style" Landing Page</h3>
+                        <p class="text-sm text-brand-muted mb-4">Clearly explains the "10 mins free → 7 day trial → £6.99/mo" flow so users know exactly what to expect.</p>
+                        
+                        <div id="web-netflix-funnel" class="w-full aspect-[16/10] bg-brand-bg border border-brand-wire rounded-xl shadow-2xl flex flex-col overflow-hidden font-sans">
+                            <!-- Nav -->
+                            <div class="h-12 border-b border-brand-wire flex items-center justify-between px-8 bg-black/50">
+                                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-brand-red rounded-full"></div><span class="font-black text-white text-xs tracking-widest">DARTVOICE</span></div>
+                                <div class="px-4 py-1.5 bg-white text-black text-[10px] font-bold rounded hover:bg-gray-200 cursor-pointer">Sign In</div>
+                            </div>
+                            
+                            <!-- Hero Area -->
+                            <div class="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+                                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(204,11,32,0.15),transparent_60%)]"></div>
+                                
+                                <h1 class="text-3xl md:text-5xl font-black text-white leading-tight mb-4 relative z-10">Throw. Speak. <span class="text-brand-red">Score.</span></h1>
+                                <p class="text-brand-muted text-sm md:text-base max-w-lg mb-8 relative z-10">The £500 auto-scorer, now in your pocket. Download now and get your first 10 minutes of gameplay completely free.</p>
+                                
+                                <!-- CTA -->
+                                <button class="px-8 py-3 bg-brand-red text-white text-sm font-black rounded-lg shadow-[0_0_20px_rgba(204,11,32,0.4)] hover:bg-red-600 transition mb-4 relative z-10">
+                                    Start 10-Minute Free Preview
+                                </button>
+                                <p class="text-[10px] text-gray-500 relative z-10">Available for Windows 10/11 & Android</p>
+                                
+                                <!-- The Netflix Flow Explainer -->
+                                <div class="w-full max-w-3xl mt-12 grid grid-cols-3 gap-4 relative z-10 border-t border-brand-wire pt-8">
+                                    <div class="text-center flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full border-2 border-brand-wire flex items-center justify-center mb-3 bg-brand-card">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="text-white"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        </div>
+                                        <h4 class="text-white font-bold text-xs mb-1">1. Try it Free</h4>
+                                        <p class="text-[9px] text-brand-muted">Play for 10 minutes instantly. No account required.</p>
+                                    </div>
+                                    <div class="text-center flex flex-col items-center relative">
+                                        <div class="hidden md:block absolute top-5 -left-[20%] w-[40%] h-[2px] bg-brand-wire"></div>
+                                        <div class="w-10 h-10 rounded-full border-2 border-brand-red flex items-center justify-center mb-3 bg-brand-red/10">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="text-brand-red"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                        </div>
+                                        <h4 class="text-brand-red font-bold text-xs mb-1">2. 7-Day Trial</h4>
+                                        <p class="text-[9px] text-brand-muted">Love it? Create an account and get a full 7 days free.</p>
+                                    </div>
+                                    <div class="text-center flex flex-col items-center relative">
+                                        <div class="hidden md:block absolute top-5 -left-[20%] w-[40%] h-[2px] bg-brand-wire"></div>
+                                        <div class="w-10 h-10 rounded-full border-2 border-brand-wire flex items-center justify-center mb-3 bg-brand-card">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="text-white"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                                        </div>
+                                        <h4 class="text-white font-bold text-xs mb-1">3. £6.99 / Month</h4>
+                                        <p class="text-[9px] text-brand-muted">Auto-bills monthly after 7 days. Cancel anytime.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Web Concept 4: Account & Billing Portal -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                        <button onclick="copyHTML('web-account-portal', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <h3 class="font-bold text-xl text-white mb-1">2. The Account & Billing Portal</h3>
+                        <p class="text-sm text-brand-muted mb-4">Detailed view of what the user sees when they log in to manage their £6.99/mo subscription via Stripe.</p>
+                        
+                        <div id="web-account-portal" class="w-full aspect-[16/10] bg-brand-bg border border-brand-wire rounded-xl shadow-2xl flex font-sans overflow-hidden">
+                            
+                            <!-- Sidebar -->
+                            <div class="w-48 bg-brand-card border-r border-brand-wire flex flex-col">
+                                <div class="h-14 flex items-center px-4 border-b border-brand-wire">
+                                    <span class="font-black text-white text-xs tracking-widest">DARTVOICE</span>
+                                </div>
+                                <div class="flex-1 py-4 flex flex-col gap-1">
+                                    <a href="#" class="px-4 py-2 mx-2 rounded-lg bg-brand-wire text-white text-[10px] font-bold flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Overview</a>
+                                    <a href="#" class="px-4 py-2 mx-2 rounded-lg text-brand-muted hover:bg-brand-cardHov hover:text-white text-[10px] font-bold flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg> Billing</a>
+                                    <a href="#" class="px-4 py-2 mx-2 rounded-lg text-brand-muted hover:bg-brand-cardHov hover:text-white text-[10px] font-bold flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Downloads</a>
+                                    <a href="#" class="px-4 py-2 mx-2 rounded-lg text-brand-muted hover:bg-brand-cardHov hover:text-white text-[10px] font-bold flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Referrals</a>
+                                </div>
+                                <div class="p-4 border-t border-brand-wire">
+                                    <div class="text-[9px] text-brand-muted flex items-center gap-2 cursor-pointer hover:text-white"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Sign Out</div>
+                                </div>
+                            </div>
+
+                            <!-- Main Content -->
+                            <div class="flex-1 bg-brand-bg p-8 overflow-y-auto">
+                                <h2 class="text-xl font-bold text-white mb-1">Account Overview</h2>
+                                <p class="text-xs text-brand-muted mb-6">Manage your subscription, billing details, and download the apps.</p>
+
+                                <div class="grid grid-cols-1 gap-6 max-w-xl">
+                                    
+                                    <!-- Subscription Panel -->
+                                    <div class="bg-brand-card border border-brand-wire rounded-xl p-5 shadow-lg relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h4 class="text-white font-bold text-sm flex items-center gap-2">DartVoice Pro <span class="bg-green-500/20 text-green-400 text-[8px] px-2 py-0.5 rounded-full uppercase tracking-widest border border-green-500/30">Active</span></h4>
+                                                <p class="text-[10px] text-brand-muted mt-1">£6.99 / month</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="block text-[10px] text-brand-muted mb-0.5">Next billing date</span>
+                                                <span class="block text-xs font-bold text-white">Oct 12, 2024</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2 pt-4 border-t border-brand-wire/50">
+                                            <button class="px-3 py-1.5 bg-brand-bg border border-brand-wire text-white text-[9px] font-bold rounded hover:bg-brand-cardHov transition">Update Payment Method</button>
+                                            <button class="px-3 py-1.5 bg-transparent text-brand-muted hover:text-white text-[9px] font-bold rounded transition">Cancel Subscription</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Downloads Panel -->
+                                    <div class="bg-brand-card border border-brand-wire rounded-xl p-5 shadow-lg">
+                                        <h4 class="text-white font-bold text-sm mb-4 flex items-center gap-2"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Your Downloads</h4>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center justify-between p-3 bg-brand-bg border border-brand-wire rounded-lg">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-8 h-8 bg-blue-500/10 text-blue-500 rounded flex items-center justify-center"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                                                    <div>
+                                                        <span class="block text-[10px] font-bold text-white">Windows 10/11</span>
+                                                        <span class="block text-[8px] text-brand-muted">DartVoice_Setup.exe (v2.1.0)</span>
+                                                    </div>
+                                                </div>
+                                                <button class="px-3 py-1.5 bg-brand-red text-white text-[9px] font-bold rounded shadow hover:bg-red-600 transition">Download</button>
+                                            </div>
+                                            <div class="flex items-center justify-between p-3 bg-brand-bg border border-brand-wire rounded-lg">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-8 h-8 bg-green-500/10 text-green-500 rounded flex items-center justify-center"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></div>
+                                                    <div>
+                                                        <span class="block text-[10px] font-bold text-white">Android Mobile/Tablet</span>
+                                                        <span class="block text-[8px] text-brand-muted">DartVoice.apk (v2.1.0)</span>
+                                                    </div>
+                                                </div>
+                                                <button class="px-3 py-1.5 bg-brand-red text-white text-[9px] font-bold rounded shadow hover:bg-red-600 transition">Download</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Web Concept 5: Mobile Web Dashboard -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group lg:col-span-2">
+                        <button onclick="copyHTML('web-mobile-dashboard', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                        <h3 class="font-bold text-xl text-white mb-1">3. The Mobile Web Dashboard</h3>
+                        <p class="text-sm text-brand-muted mb-4">When users click your link from a DartCounter DM, they open the website on their phone. This is exactly what the logged-in dashboard looks like on a mobile browser.</p>
+                        
+                        <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4 overflow-hidden h-full">
+                            <div id="web-mobile-dashboard" class="w-[320px] h-[650px] bg-brand-bg rounded-[2rem] border-4 border-brand-wire shadow-2xl relative overflow-hidden flex flex-col font-sans">
+                                
+                                <!-- Mobile Web Header -->
+                                <div class="h-16 flex items-center justify-between px-6 border-b border-brand-wire bg-brand-card">
+                                    <div class="flex items-center gap-2"><div class="w-6 h-6 bg-brand-red rounded-full flex items-center justify-center"><span class="text-[8px] font-black text-white">DV</span></div></div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-brand-bg border border-brand-wire flex items-center justify-center"><i data-lucide="bell" class="w-4 h-4 text-brand-muted"></i></div>
+                                        <div class="w-8 h-8 rounded-full bg-brand-wire flex items-center justify-center"><i data-lucide="user" class="w-4 h-4 text-white"></i></div>
+                                    </div>
+                                </div>
+
+                                <!-- Content -->
+                                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                                    
+                                    <!-- Active Sub Status -->
+                                    <div class="bg-gradient-to-br from-green-900/40 to-brand-card border border-green-500/30 rounded-xl p-5">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-white font-bold text-sm">Pro Subscription</span>
+                                            <span class="bg-green-500 text-black text-[10px] font-bold px-2 py-1 rounded">ACTIVE</span>
+                                        </div>
+                                        <p class="text-[10px] text-gray-400 mb-4">Next billing: Oct 12 • £6.99</p>
+                                        <button class="w-full py-2 bg-brand-bg border border-brand-wire rounded-lg text-xs font-bold text-white">Manage Billing in Stripe</button>
+                                    </div>
+
+                                    <!-- Action: Get the App -->
+                                    <div>
+                                        <h4 class="text-brand-muted text-[10px] font-bold tracking-widest mb-3">INSTALL APP</h4>
+                                        <div class="space-y-3">
+                                            <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex justify-between items-center shadow-lg">
+                                                <div class="flex items-center gap-3">
+                                                    <i data-lucide="smartphone" class="w-6 h-6 text-brand-red"></i>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xs font-bold text-white">Android APK</span>
+                                                        <span class="text-[8px] text-brand-muted">Direct Download (v2.1)</span>
+                                                    </div>
+                                                </div>
+                                                <button class="w-8 h-8 bg-brand-red rounded-lg flex items-center justify-center text-white"><i data-lucide="download" class="w-4 h-4"></i></button>
+                                            </div>
+                                            
+                                            <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex justify-between items-center shadow-lg">
+                                                <div class="flex items-center gap-3">
+                                                    <i data-lucide="monitor" class="w-6 h-6 text-blue-500"></i>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xs font-bold text-white">Windows Desktop</span>
+                                                        <span class="text-[8px] text-brand-muted">Email link to PC</span>
+                                                    </div>
+                                                </div>
+                                                <button class="w-8 h-8 bg-brand-bg border border-brand-wire rounded-lg flex items-center justify-center text-white"><i data-lucide="mail" class="w-4 h-4"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action: Referrals -->
+                                    <div class="bg-brand-card border border-brand-wire rounded-xl p-5 text-center">
+                                        <i data-lucide="gift" class="w-8 h-8 text-yellow-500 mx-auto mb-2"></i>
+                                        <h4 class="text-white font-bold text-sm mb-1">Get £5 Cash</h4>
+                                        <p class="text-[10px] text-brand-muted mb-4">Invite mates to DartVoice and get paid.</p>
+                                        <button class="w-full py-2 bg-yellow-500 text-black text-xs font-bold rounded-lg">Copy Invite Link</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Viral Referral Engine -->
+            <section id="referrals" class="mb-16 mt-20">
+                <h2 class="text-3xl font-bold mb-6 text-brand-red border-b border-brand-wire pb-4 flex items-center gap-3">
+                    <i data-lucide="share-2" class="w-8 h-8"></i> Viral Referral Engine Designs
+                </h2>
+                <p class="text-gray-400 mb-8 text-lg">The easiest way to drop your Customer Acquisition Cost (CAC) to £0 is to let your users do the marketing. <strong>Strategy: "Give a Free Month, Get Cash."</strong> Users share their custom link on Facebook groups; their friends get a 30-day free trial (instead of 7), and the referrer gets £5 deposited to their PayPal when the friend pays their first bill.</p>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    
+                    <!-- Referral Concept 1: Web Affiliate Dashboard -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-6">
+                        <h3 class="font-bold text-xl text-white mb-1">1. The Web Ambassador Hub</h3>
+                        <p class="text-sm text-brand-muted mb-4">A dedicated tab in the web dashboard where power users track their earnings and clicks.</p>
+                        <div class="aspect-[16/9] bg-brand-bg border-4 border-brand-wire rounded-xl flex flex-col overflow-hidden">
+                            <div class="w-full h-8 bg-brand-card border-b border-brand-wire px-4 flex items-center justify-between">
+                                <span class="text-[8px] font-bold text-white">Ambassador Program</span>
+                                <span class="text-[6px] font-bold text-green-400 bg-green-400/10 px-2 py-1 rounded-full">Available Balance: £45.00</span>
+                            </div>
+                            <div class="flex-1 p-4 flex flex-col gap-4">
+                                <!-- Link Box -->
+                                <div class="bg-brand-card border border-brand-red rounded-lg p-3 flex flex-col items-center justify-center gap-2">
+                                    <span class="text-[6px] text-brand-red font-bold uppercase tracking-widest">YOUR REFERRAL LINK</span>
+                                    <div class="w-3/4 bg-brand-bg border border-brand-wire rounded p-2 flex justify-between items-center">
+                                        <span class="text-[8px] text-gray-300 font-mono">dartvoice.app/ref/lukedarts99</span>
+                                        <div class="px-2 py-1 bg-white text-black text-[6px] font-bold rounded">Copy</div>
+                                    </div>
+                                </div>
+                                <!-- Stats Row -->
+                                <div class="flex gap-2 h-full">
+                                    <div class="flex-1 bg-brand-card border border-brand-wire rounded-lg flex flex-col items-center justify-center">
+                                        <span class="text-white font-black text-xl">124</span>
+                                        <span class="text-[6px] text-brand-muted uppercase">Link Clicks</span>
+                                    </div>
+                                    <div class="flex-1 bg-brand-card border border-brand-wire rounded-lg flex flex-col items-center justify-center">
+                                        <span class="text-white font-black text-xl">9</span>
+                                        <span class="text-[6px] text-brand-muted uppercase">Paid Signups</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Referral Concept 2: In-App Mobile Invite Screen -->
+                    <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col items-center">
+                        <h3 class="font-bold text-xl text-white mb-1 w-full">2. In-App Mobile "Share" Screen</h3>
+                        <p class="text-sm text-brand-muted mb-4 w-full">A native-feeling mobile pop-up that encourages sharing to WhatsApp and SMS directly from the app.</p>
+                        
+                        <div class="w-[200px] h-[380px] bg-brand-bg rounded-[2rem] border-4 border-brand-wire shadow-2xl relative overflow-hidden flex flex-col font-sans p-4">
+                            <!-- Header graphic -->
+                            <div class="w-full h-24 bg-gradient-to-br from-brand-red to-black rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
+                                <i data-lucide="gift" class="w-10 h-10 text-white z-10"></i>
+                                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMzMzMiLz48L3N2Zz4=')] opacity-30"></div>
+                            </div>
+                            
+                            <h4 class="text-white font-black text-lg leading-tight text-center mb-1">Give a Month.<br>Get £5 Cash.</h4>
+                            <p class="text-[8px] text-brand-muted text-center mb-4 leading-relaxed">Send your mates a free 30-day pass to DartVoice. When they subscribe, we drop £5 into your account.</p>
+                            
+                            <div class="mt-auto space-y-2">
+                                <button class="w-full bg-[#25D366] text-white rounded-full py-2 text-[10px] font-bold flex items-center justify-center gap-1 shadow-lg"><i data-lucide="message-circle" class="w-3 h-3"></i> Send via WhatsApp</button>
+                                <button class="w-full bg-brand-card border border-brand-wire text-white rounded-full py-2 text-[10px] font-bold flex items-center justify-center gap-1"><i data-lucide="copy" class="w-3 h-3"></i> Copy Link</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <!-- PART 6: APP SIGN-IN & AUTHENTICATION UI -->
+        <div id="auth-designs" class="pt-8 border-t-4 border-brand-wire pb-24">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Authentication UI Designs</h1>
+            <p class="text-brand-muted text-xl mb-12">How to securely log users into DartVoice. These templates bridge the gap between the website (Stripe) and the apps, ensuring the user has full access verified by Supabase.</p>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                
+                <!-- Auth Concept 1: Mobile App OTP (Magic Code) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyHTML('auth-mobile', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                    <h3 class="font-bold text-xl text-white mb-1">1. The Mobile OTP Login</h3>
+                    <p class="text-sm text-brand-muted mb-4">The classic flow. User enters email, gets 6-digit code. Reinforces the £6.99/mo trial messaging.</p>
+                    
+                    <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4 overflow-hidden">
+                        <div id="auth-mobile" class="w-[320px] h-[580px] bg-brand-bg rounded-[2rem] border-4 border-brand-wire shadow-2xl relative overflow-hidden flex flex-col font-sans p-6">
+                            
+                            <div class="w-full flex justify-center mt-8 mb-6">
+                                <div class="w-16 h-16 rounded-full bg-brand-card border border-brand-wire flex items-center justify-center shadow-lg">
+                                    <i data-lucide="key" class="w-8 h-8 text-brand-red"></i>
+                                </div>
+                            </div>
+
+                            <h4 class="text-white font-black text-2xl text-center mb-2">Welcome Back.</h4>
+                            <p class="text-brand-muted text-xs text-center mb-8">Sign in to sync your profile and activate your 7-Day Free Trial (£6.99/mo).</p>
+
+                            <div class="space-y-4 w-full">
+                                <div>
+                                    <label class="text-[10px] font-bold text-brand-muted tracking-widest mb-1 block">EMAIL ADDRESS</label>
+                                    <div class="relative">
+                                        <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-muted"></i>
+                                        <input type="email" placeholder="luke@darts.com" class="w-full bg-brand-card border border-brand-wire rounded-xl h-12 pl-10 pr-4 text-white text-sm focus:border-brand-red focus:outline-none transition">
+                                    </div>
+                                </div>
+                                <button class="w-full h-12 bg-brand-red text-white font-bold rounded-xl shadow-[0_0_15px_rgba(204,11,32,0.4)] hover:bg-red-600 transition">
+                                    Send Magic Code
+                                </button>
+                            </div>
+
+                            <div class="mt-auto text-center border-t border-brand-wire pt-4">
+                                <p class="text-[10px] text-brand-muted">Don't have an account?</p>
+                                <a href="#" class="text-brand-red font-bold text-xs hover:underline">Start 10-Minute Free Preview</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auth Concept 2: Windows "Scan to Play" -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyHTML('auth-desktop', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                    <h3 class="font-bold text-xl text-white mb-1">2. Windows "Scan to Play" (QR)</h3>
+                    <p class="text-sm text-brand-muted mb-4">TV/Pub style login. The Windows app generates a QR code. User scans it with their phone, logs in via mobile browser, and the desktop app unlocks instantly via Supabase Realtime.</p>
+                    
+                    <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4 overflow-hidden h-full">
+                        <div id="auth-desktop" class="w-full bg-brand-bg rounded-2xl border-2 border-brand-wire shadow-2xl relative overflow-hidden flex font-sans">
+                            
+                            <!-- Left Info Side -->
+                            <div class="w-1/2 p-8 flex flex-col justify-center relative overflow-hidden">
+                                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(204,11,32,0.1),transparent_70%)]"></div>
+                                <div class="relative z-10">
+                                    <div class="w-10 h-10 bg-brand-red rounded-lg flex items-center justify-center mb-6 shadow-lg">
+                                        <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <h4 class="text-white font-black text-3xl mb-3">Scan to Play.</h4>
+                                    <p class="text-brand-muted text-sm mb-6">Open your phone's camera and scan the QR code to instantly link your DartVoice account to this screen.</p>
+                                    <button class="px-4 py-2 border border-brand-wire bg-brand-card rounded-lg text-xs font-bold text-white hover:bg-brand-wire transition">Sign in with Email instead</button>
+                                </div>
+                            </div>
+
+                            <!-- Right QR Side -->
+                            <div class="w-1/2 bg-brand-card border-l border-brand-wire p-8 flex flex-col items-center justify-center">
+                                <div class="bg-white p-4 rounded-2xl shadow-xl mb-4">
+                                    <!-- Placeholder for QR Code (Generated by app) -->
+                                    <svg viewBox="0 0 100 100" class="w-32 h-32 text-black">
+                                        <rect x="0" y="0" width="100" height="100" fill="white"/>
+                                        <path d="M10 10h25v25H10zm5 5v15h15V15zM65 10h25v25H65zm5 5v15h15V15zM10 65h25v25H10zm5 5v15h15V15zM45 10h10v10H45zM45 25h10v10H45zM10 45h10v10H10zM25 45h25v10H25zM65 45h10v25H65zM80 45h10v10H80zM45 65h10v25H45zM80 65h10v10H80zM80 80h10v10H80zM25 65h10v10H25z" fill="black"/>
+                                    </svg>
+                                </div>
+                                <p class="text-[10px] text-brand-muted font-bold tracking-widest uppercase animate-pulse">Awaiting Connection...</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auth Concept 3: The 10-Minute Timeout "Hard Lock" -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group lg:col-span-2 mt-4">
+                    <button onclick="copyHTML('auth-lock', this)" class="absolute top-4 right-4 bg-brand-red hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20 shadow-lg">Copy Code</button>
+                    <h3 class="font-bold text-xl text-white mb-1">3. The 10-Minute Lock Screen (The "Netflix" Gate)</h3>
+                    <p class="text-sm text-brand-muted mb-4">This is the critical screen. <strong>Verification Flow:</strong> The app constantly checks a local timer. At 10m 00s, this screen slides up over the game. To unlock it, the user taps "Start Trial", completing the Stripe checkout on their browser. The app polls Supabase (`dartvoice_subscriptions`), sees the `status: active`, and instantly drops the lock screen.</p>
+                    
+                    <div class="flex justify-center bg-brand-bg border border-brand-wire rounded-3xl p-4 overflow-hidden h-full">
+                        <div id="auth-lock" class="w-full bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80')] bg-cover bg-center rounded-2xl shadow-2xl relative overflow-hidden flex items-center justify-center font-sans py-16">
+                            
+                            <!-- Massive Blur Overlay -->
+                            <div class="absolute inset-0 bg-black/80 backdrop-blur-md z-0"></div>
+                            
+                            <!-- The Lock Modal -->
+                            <div class="relative z-10 w-full max-w-md bg-brand-card border-2 border-brand-red rounded-[2rem] p-8 text-center shadow-[0_0_50px_rgba(204,11,32,0.3)]">
+                                
+                                <div class="w-20 h-20 mx-auto bg-brand-red rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(204,11,32,0.5)]">
+                                    <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" class="text-white"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                
+                                <h3 class="text-3xl font-black text-white mb-2 tracking-tight">Free Preview Ended.</h3>
+                                <p class="text-gray-400 mb-8 leading-relaxed">Hope you enjoyed the warm-up. To continue scoring this match, start your 7-Day Free Trial. Auto-bills £6.99/mo after trial ends. Cancel anytime.</p>
+                                
+                                <div class="space-y-4">
+                                    <button class="w-full py-4 bg-brand-red text-white font-black text-lg rounded-xl hover:bg-red-600 transition shadow-lg">
+                                        Start 7-Day Free Trial
+                                    </button>
+                                    <button class="w-full py-4 bg-brand-bg border border-brand-wire text-white font-bold rounded-xl hover:bg-brand-wire transition">
+                                        I've already subscribed — Sign In
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-8 flex items-center justify-center gap-2 text-[10px] text-brand-muted">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                                    <span>Secured via Stripe & Supabase</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PART 7: MONETIZATION & SCALING CONCEPTS -->
+        <div id="monetization" class="pt-8 border-t-4 border-brand-wire pb-24">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Scaling & Monetization</h1>
+            <p class="text-brand-muted text-xl mb-12">How to increase your Lifetime Value (LTV) and generate more revenue beyond the basic £6.99/mo subscription.</p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Concept 1: B2B Pub Licenses -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 hover:border-brand-red transition">
+                    <div class="w-12 h-12 bg-purple-500/20 text-purple-500 rounded-lg flex items-center justify-center mb-4 border border-purple-500/50">
+                        <i data-lucide="store" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-xl text-white mb-2">B2B "Pub & Club" Licenses</h3>
+                    <p class="text-sm text-brand-muted leading-relaxed"><strong>The Play:</strong> Sell a "Commercial Hardware Kit" (a cheap £100 Android tablet pre-loaded with DartVoice + a Bluetooth directional mic) to local pubs.<br><br><strong>Pricing:</strong> £30/month per dartboard. Pubs pay this eagerly because automatic scoring keeps players drinking instead of doing math.</p>
+                </div>
+
+                <!-- Concept 2: Voice Packs -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 hover:border-brand-red transition">
+                    <div class="w-12 h-12 bg-blue-500/20 text-blue-500 rounded-lg flex items-center justify-center mb-4 border border-blue-500/50">
+                        <i data-lucide="mic-2" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-xl text-white mb-2">Celebrity Voice Packs (DLC)</h3>
+                    <p class="text-sm text-brand-muted leading-relaxed"><strong>The Play:</strong> Instead of standard text-to-speech, partner with actual darts callers (like Russ Bray) or players.<br><br><strong>Pricing:</strong> Sell the "Russ Bray Voice Pack" as a one-time £4.99 In-App Purchase. Pure profit impulse buy for existing subscribers.</p>
+                </div>
+
+                <!-- Concept 3: Ad-Supported Free Tier -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 hover:border-brand-red transition">
+                    <div class="w-12 h-12 bg-yellow-500/20 text-yellow-500 rounded-lg flex items-center justify-center mb-4 border border-yellow-500/50">
+                        <i data-lucide="badge-dollar-sign" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-xl text-white mb-2">The "Watch an Ad to Play" Model</h3>
+                    <p class="text-sm text-brand-muted leading-relaxed"><strong>The Play:</strong> Some users will <em>never</em> put a credit card in. Don't lose them. After their 10 mins expire, give them an option: "Watch a 30-second video ad to unlock 10 more minutes."<br><br><strong>Revenue:</strong> You get paid by Google AdMob, and they eventually get annoyed by the ads and upgrade to the £6.99/mo plan anyway.</p>
+                </div>
+
+                <!-- Concept 4: Global Tournaments -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 hover:border-brand-red transition">
+                    <div class="w-12 h-12 bg-green-500/20 text-green-500 rounded-lg flex items-center justify-center mb-4 border border-green-500/50">
+                        <i data-lucide="trophy" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-xl text-white mb-2">Paid Online Tournaments</h3>
+                    <p class="text-sm text-brand-muted leading-relaxed"><strong>The Play:</strong> Host a monthly "DartVoice Global Open" directly in the app. <br><br><strong>Pricing:</strong> £2.99 entry fee. If 500 people enter, that's £1,500. Give £500 to the winner, and you keep £1,000 profit for just setting up a Supabase leaderboard.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PART 8: THE AI PROMPTING GUIDE -->
+        <div id="prompting" class="pt-8 border-t-4 border-brand-wire pb-24">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">The AI Prompting Guide</h1>
+            <p class="text-brand-muted text-xl mb-12">How to instruct Claude, ChatGPT, and Claude Code to build, expand, and market this product flawlessly without breaking your existing setup.</p>
+
+            <div class="space-y-8">
+                
+                <!-- Prompt 1: UI to App Code -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-brand-red">1. Implementing UI Mockups (For Claude / ChatGPT)</h3>
+                            <p class="text-sm text-brand-muted">Use this when you want to turn one of the Tailwind HTML mockups from this Hub into actual Python/Kivy/Tkinter code.</p>
+                        </div>
+                        <button onclick="copyText('prompt-1', this)" class="bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow">
+                            <i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy Prompt
+                        </button>
+                    </div>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+<pre id="prompt-1" class="font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+I want to update the UI of my DartVoice app.
+
+Attached are two files:
+1. `dartvoice_android.py` (My current working app logic).
+2. A snippet of HTML/Tailwind code that represents the new visual design I want (The "Thumb Zone" layout).
+
+Task: Rewrite the UI layout classes (like `DartVoiceLayout` or `PaywallOverlay`) in `dartvoice_android.py` using Kivy's layout system (BoxLayout, FloatLayout, Canvas instructions) to visually match the provided HTML mockup as closely as possible. 
+
+CRITICAL: Do NOT change any of the backend logic, scoring parsers, or TTS engine code. Only alter the UI presentation layer. Ensure colors match my existing hex codes.
+</pre>
+                    </div>
+                </div>
+
+                <!-- Prompt 2: Claude Code Backend -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-brand-red">2. Editing the Shared Backend (For Claude Code CLI)</h3>
+                            <p class="text-sm text-brand-muted">Use this in VS Code when you need Claude Code to add new routes or tables to your Supabase/Flask setup, protecting "Oche Vault".</p>
+                        </div>
+                        <button onclick="copyText('prompt-2', this)" class="bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow">
+                            <i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy Prompt
+                        </button>
+                    </div>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+<pre id="prompt-2" class="font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+I need to add a new feature to the backend for DartVoice.
+
+CRITICAL RULE: This repository is shared with another production app called "Oche Vault". You MUST NOT modify, drop, or alter any database tables, migrations, or logic that belongs to Oche Vault. 
+
+Task: We need to build a new [Describe feature, e.g., Referral Tracking System].
+1. Create a new Supabase SQL migration for a table named `dartvoice_referrals`.
+2. Add a new route to `billing_server/app.py` called `/api/referral` that handles [describe logic].
+3. Ensure all new environment variables required are documented in `.env.example`.
+
+Please plan the changes and ask for my approval before executing the file writes.
+</pre>
+                    </div>
+                </div>
+
+                <!-- Prompt 3: Marketing & Copywriting -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-brand-red">3. Generating New Marketing Angles (For ChatGPT/Gemini)</h3>
+                            <p class="text-sm text-brand-muted">Use this when you run out of DMs or need new TikTok script ideas.</p>
+                        </div>
+                        <button onclick="copyText('prompt-3', this)" class="bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow">
+                            <i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy Prompt
+                        </button>
+                    </div>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+<pre id="prompt-3" class="font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+Act as an expert copywriter for a sports-tech startup.
+
+Product: "DartVoice" - An Android/Windows app that uses phone microphones to automatically score darts games and shout checkout routes.
+Price: £6.99/month (with a 7-Day Free Trial).
+Competitor: Target Omni (£500 hardware ring).
+
+Task: Write 3 short, punchy Facebook Ad copy variations and 2 casual Instagram DM templates. The target audience is amateur UK pub darts players who play in local leagues. 
+
+Tone: Friendly, matey, slightly competitive. Focus heavily on the price anchor (why pay £500 when you have a phone?) and the magic of not having to do darts math in your head. Include emojis, but don't overdo it.
+</pre>
+                    </div>
+                </div>
+
+                <!-- Prompt 4: Context Limit Continuation -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full lg:col-span-3">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-brand-red">4. Context/Token Limit Continuation (For AI Code Generation)</h3>
+                            <p class="text-sm text-brand-muted">Use this prompt if Claude or Gemini ever stops writing mid-code due to token limits. It instructs the AI exactly how to resume flawlessly.</p>
+                        </div>
+                        <button onclick="copyText('prompt-4', this)" class="bg-brand-bg hover:bg-brand-wire text-brand-text px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow">
+                            <i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy Prompt
+                        </button>
+                    </div>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+<pre id="prompt-4" class="font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+It looks like you ran out of output tokens and stopped generating mid-way through the code block.
+
+Please CONTINUE generating the EXACT code block from exactly where you left off. Do not repeat the code you have already written above, do not write a new introduction, and do not apologize. Just open a new code block and resume printing the code starting from the exact line where it cut off, until completion.
+</pre>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Income Calculator Logic
+        const slider = document.getElementById('user-slider');
+        const countDisplay = document.getElementById('user-count');
+        const mrrDisplay = document.getElementById('mrr-val');
+        const arrDisplay = document.getElementById('arr-val');
+
+        function updateCalculator() {
+            const users = parseInt(slider.value, 10);
+            const price = 6.99;
+            const mrr = users * price;
+            const arr = mrr * 12;
+
+            countDisplay.innerText = users.toLocaleString();
+            mrrDisplay.innerText = '£' + mrr.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            arrDisplay.innerText = '£' + arr.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        if(slider) {
+            slider.addEventListener('input', updateCalculator);
+            updateCalculator(); // Initialize on load
+        }
+
+        // Live Color Picker Logic
+        const colorPicker = document.getElementById('live-color-picker');
+        const colorHex = document.getElementById('live-color-hex');
+        const colorBtn = document.getElementById('live-color-btn');
+        const colorGlow = document.getElementById('live-color-glow');
+        const colorRing = document.getElementById('live-color-icon-ring');
+
+        if(colorPicker) {
+            colorPicker.addEventListener('input', (e) => {
+                const val = e.target.value;
+                colorHex.innerText = val.toUpperCase();
+                colorBtn.style.backgroundColor = val;
+                colorBtn.style.boxShadow = `0 0 20px ${val}66`; // 40% opacity shadow
+                colorGlow.style.background = `radial-gradient(circle at top right, ${val}, transparent 70%)`;
+                colorRing.style.borderColor = val;
+            });
+        }
+
+        // Copy plain text block
+        function copyText(elementId, btnElement) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            _executeCopy(textToCopy, btnElement);
+        }
+
+        // Copy HTML/SVG source code
+        function copyHTML(elementId, btnElement, isIcon=false) {
+            let htmlToCopy = document.getElementById(elementId).innerHTML.trim();
+            // Remove any trailing/leading spaces or formatting issues from raw innerHTML
+            htmlToCopy = htmlToCopy.replace(/\s+class="/g, ' class="');
+            
+            // If it's an icon, trigger the feedback animation directly on the parent icon if needed, 
+            // but here we just use an alert or swap button text.
+            _executeCopy(htmlToCopy, btnElement, isIcon);
+        }
+
+        // Shared copy execution
+        function _executeCopy(text, btnElement, isIcon=false) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const originalHtml = btnElement.innerHTML;
+                
+                if(isIcon) {
+                    // For tiny icon buttons, just show a temporary tooltip or swap color
+                    const originalColor = btnElement.style.borderColor;
+                    btnElement.style.borderColor = '#10B981'; // Green
+                    setTimeout(() => {
+                        btnElement.style.borderColor = originalColor;
+                    }, 1000);
+                } else {
+                    btnElement.innerHTML = '<i data-lucide="check" class="w-4 h-4 mr-1.5 text-green-400"></i> <span class="text-green-400">Copied!</span>';
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        btnElement.innerHTML = originalHtml;
+                        lucide.createIcons();
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>

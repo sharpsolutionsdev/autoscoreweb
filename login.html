@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Sign In | DartVoice</title>
+    <meta name="description" content="Sign in or create your DartVoice account. No password needed — we'll send you a 6-digit code.">
+    <meta name="theme-color" content="#CC0B20">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Barlow Condensed"', 'sans-serif'],
+                        sans:    ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand:      '#CC0B20',
+                        'brand-light': '#e60d24',
+                        dark:       '#08080A',
+                        card:       '#111114',
+                        'card-2':   '#18181C',
+                        wire:       '#252530',
+                        muted:      '#6E6E82',
+                        'muted-2':  '#4A4A5A',
+                        chalk:      '#F0F0F5',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.02em; text-transform: uppercase; }
+
+        /* Glow */
+        .hero-glow {
+            background:
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(204,11,32,0.13) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 35% at 50% 10%,  rgba(204,11,32,0.06) 0%, transparent 60%);
+        }
+
+        /* Subtle grid */
+        .grid-bg-soft {
+            background-color: #08080A;
+            background-image:
+                linear-gradient(rgba(37,37,48,0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37,37,48,0.4) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Noise */
+        .noise::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.018;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up   { animation: fadeUp 0.5s ease-out forwards; }
+        .fade-up-2 { animation: fadeUp 0.5s 0.07s ease-out both; }
+        .fade-up-3 { animation: fadeUp 0.5s 0.14s ease-out both; }
+        .fade-up-4 { animation: fadeUp 0.5s 0.21s ease-out both; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            border: 2px solid rgba(255,255,255,0.08);
+            border-top-color: #CC0B20;
+            border-radius: 50%;
+            width: 18px; height: 18px;
+            display: inline-block;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.8); }
+        }
+        .pulse-dot { animation: pulseDot 1.6s ease-in-out infinite; }
+
+        /* Buttons */
+        .btn-brand {
+            background: #CC0B20;
+            transition: all 0.25s;
+            position: relative; overflow: hidden;
+        }
+        .btn-brand::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.25s;
+        }
+        .btn-brand:hover::after { opacity: 1; }
+        .btn-brand:hover {
+            background: #e60d24;
+            box-shadow: 0 0 32px rgba(204,11,32,0.35), 0 4px 16px rgba(204,11,32,0.2);
+            transform: translateY(-1px);
+        }
+        .btn-brand:active { transform: translateY(0); }
+
+        .btn-outline {
+            border: 1px solid rgba(240,240,245,0.12);
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover {
+            border-color: rgba(240,240,245,0.22);
+            background: rgba(240,240,245,0.04);
+        }
+
+        /* Input */
+        .dv-input {
+            background: #111114;
+            border: 1px solid rgba(255,255,255,0.07);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: #F0F0F5;
+            width: 100%;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 14px;
+            outline: none;
+        }
+        .dv-input::placeholder { color: rgba(255,255,255,0.22); }
+        .dv-input:focus {
+            border-color: #CC0B20;
+            box-shadow: 0 0 0 3px rgba(204,11,32,0.1), 0 0 20px rgba(204,11,32,0.05);
+        }
+        .dv-input.otp {
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 0.5em;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 16px;
+            font-weight: 700;
+        }
+        .dv-input.otp::placeholder {
+            font-size: 18px;
+            letter-spacing: 0.3em;
+            color: rgba(255,255,255,0.15);
+        }
+
+        /* Mobile nav */
+        .mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+        .mobile-menu.open { max-height: 360px; }
+
+        /* Nav link underline */
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+            height: 1px; background: #CC0B20;
+            transform: scaleX(0); transition: transform 0.2s;
+        }
+        .nav-link:hover::after { transform: scaleX(1); }
+
+        button:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+        /* OTP code character boxes */
+        .otp-field {
+            display: flex; gap: 10px; justify-content: center;
+        }
+        .otp-char {
+            width: 48px; height: 60px;
+            background: #111114;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            font-size: 28px; font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            color: #F0F0F5;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .otp-char:focus {
+            border-color: #CC0B20;
+            box-shadow: 0 0 0 3px rgba(204,11,32,0.12);
+        }
+        .otp-char.filled {
+            border-color: rgba(204,11,32,0.35);
+        }
+
+        /* Divider with text */
+        .divider-or {
+            display: flex; align-items: center; gap: 14px;
+            color: #4A4A5A; font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .divider-or::before,
+        .divider-or::after {
+            content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06);
+        }
+    </style>
+</head>
+<body class="antialiased noise grid-bg-soft hero-glow min-h-screen">
+
+    <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <nav class="fixed top-0 w-full z-50 bg-dark/80 backdrop-blur-xl border-b border-wire/60">
+        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+
+            <a href="/" class="flex items-center gap-2.5 group">
+                <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="3" fill="white"/>
+                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="display text-lg tracking-wide group-hover:text-brand transition-colors">DARTVOICE</span>
+            </a>
+
+            <div class="hidden sm:flex items-center gap-1">
+                <a href="index.html"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Home</a>
+                <a href="index.html#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
+                <a href="guide.html"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
+                <a href="referral.html" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block pulse-dot"></span>Ambassador
+                </a>
+            </div>
+
+            <div class="hidden sm:flex items-center gap-3">
+                <a href="login.html?intent=subscribe" class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
+            </div>
+
+            <button onclick="document.getElementById('mob-nav').classList.toggle('open')"
+                    class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-wire/40 transition">
+                <svg class="w-5 h-5 text-chalk" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+        <div id="mob-nav" class="mobile-menu sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
+            <div class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-1">
+                <a href="index.html"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Home</a>
+                <a href="index.html#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
+                <a href="guide.html"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
+                <a href="referral.html" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
+                </a>
+                <div class="border-t border-wire/50 mt-1 pt-3">
+                    <a href="login.html?intent=subscribe" class="btn-brand block px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Start Free Trial</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ━━━ MAIN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <main class="pt-16 min-h-screen flex items-center justify-center px-5 py-16">
+        <div class="w-full max-w-[420px]">
+
+            <!-- Auth card -->
+            <div id="auth-card" class="bg-card rounded-2xl overflow-hidden fade-up" style="border: 1px solid #252530; box-shadow: 0 0 0 1px rgba(204,11,32,0.08), 0 24px 64px rgba(0,0,0,0.5);">
+                <!-- Red accent bar — solid, visible -->
+                <div style="height:3px; background: linear-gradient(90deg, #CC0B20 0%, rgba(204,11,32,0.25) 100%);"></div>
+
+                <!-- ── Step 1: Email ── -->
+                <div id="step-email" class="p-7 sm:p-9">
+
+                    <!-- Logo + heading -->
+                    <div class="text-center mb-7">
+                        <div class="inline-flex items-center gap-2.5 mb-5">
+                            <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                                <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                                <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                                <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                                <circle cx="18" cy="18" r="3" fill="white"/>
+                                <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                            </svg>
+                            <span class="display text-xl tracking-wide text-chalk">DARTVOICE</span>
+                        </div>
+                        <h1 id="auth-heading" class="display text-5xl mb-2">SIGN IN</h1>
+                        <p id="auth-subtext" class="text-muted text-sm">We'll send a 6-digit code to your email — no password needed.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">Email address</label>
+                            <input id="input-email" type="email" placeholder="you@example.com"
+                                   autocomplete="email" inputmode="email"
+                                   class="dv-input"
+                                   onkeydown="if(event.key==='Enter') sendOtp()">
+                        </div>
+
+                        <button id="btn-send" onclick="sendOtp()"
+                                class="btn-brand w-full py-3.5 rounded-xl text-white font-semibold text-sm">
+                            Continue →
+                        </button>
+
+                        <p id="email-error" class="text-red-400 text-xs text-center hidden"></p>
+                        <p class="text-muted-2 text-xs text-center">No password. No spam. Code expires in 10 minutes.</p>
+                    </div>
+                </div>
+
+                <!-- ── Step 2: OTP ── -->
+                <div id="step-otp" class="hidden p-7 sm:p-9">
+
+                    <div class="text-center mb-6">
+                        <!-- Back button -->
+                        <button onclick="goBack()" class="flex items-center gap-1.5 text-xs text-muted hover:text-brand transition mx-auto mb-6">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            Change email
+                        </button>
+
+                        <!-- Email icon with checkmark -->
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl mb-5">
+                            <svg class="w-7 h-7 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h1 class="display text-4xl sm:text-5xl mb-2">CHECK EMAIL</h1>
+                        <p class="text-muted text-sm">Code sent to</p>
+                        <p id="otp-email-display" class="text-chalk font-semibold text-sm mt-0.5"></p>
+                    </div>
+
+                    <!-- 6 character boxes -->
+                    <div class="otp-field mb-5" id="otp-boxes">
+                        <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="0" autocomplete="one-time-code">
+                        <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="1">
+                        <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="2">
+                        <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="3">
+                        <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="4">
+                        <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="5">
+                    </div>
+
+                    <button id="btn-verify" onclick="verifyOtp()" disabled
+                            class="btn-brand w-full py-3.5 rounded-xl text-white font-semibold text-sm mb-3">
+                        Verify Code →
+                    </button>
+
+                    <p id="otp-error" class="text-red-400 text-xs text-center hidden mb-3"></p>
+
+                    <div class="flex items-center justify-between text-xs">
+                        <button id="btn-resend" onclick="resendOtp()"
+                                class="text-muted hover:text-brand transition disabled:opacity-40"
+                                disabled>
+                            Resend code
+                        </button>
+                        <span id="resend-timer" class="text-muted-2"></span>
+                    </div>
+                </div>
+
+                <!-- ── Step 3: Redirecting ── -->
+                <div id="step-success" class="hidden p-7 sm:p-9">
+                    <div class="text-center py-4">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-2xl mb-5">
+                            <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h2 id="success-heading" class="display text-3xl mb-2">SIGNED IN</h2>
+                        <p id="success-subtext" class="text-muted text-sm">Taking you to your dashboard…</p>
+                        <div class="mt-6 flex justify-center">
+                            <div class="w-6 h-6 border-2 border-brand/30 border-t-brand rounded-full" style="animation: spin 0.7s linear infinite"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trial nudge / sign-in nudge (swapped by intent) -->
+            <div id="bottom-nudge" class="mt-5 fade-up-2 flex items-center justify-between gap-3 px-4 py-3 rounded-xl" style="border: 1px solid #252530; background: rgba(17,17,20,0.6);">
+                <div>
+                    <p class="text-[11px] text-muted">New to DartVoice?</p>
+                    <p class="text-[12px] text-chalk font-semibold mt-0.5">7-day free trial — then £6.99/mo</p>
+                </div>
+                <a href="login.html?intent=subscribe"
+                   class="shrink-0 px-3.5 py-1.5 rounded-lg bg-brand text-white text-xs font-bold hover:bg-brand-light transition">
+                    Try Free →
+                </a>
+            </div>
+
+            <!-- Security note -->
+            <p class="text-center text-[11px] text-muted-2 mt-4 fade-up-3">
+                <svg class="inline w-3 h-3 mr-1 opacity-50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                Secured with Supabase Auth &amp; Stripe
+            </p>
+
+        </div>
+    </main>
+
+    <!-- ━━━ FOOTER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <footer class="border-t border-wire/40 py-7">
+        <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <a href="/" class="flex items-center gap-2 opacity-60 hover:opacity-100 transition">
+                <svg viewBox="0 0 36 36" class="w-5 h-5" fill="none">
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <circle cx="18" cy="18" r="3" fill="white"/>
+                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="display text-sm tracking-wide text-muted">DARTVOICE</span>
+            </a>
+            <p class="text-[11px] text-muted-2">&copy; 2026 DartVoice</p>
+            <div class="flex items-center gap-4 text-[11px] text-muted-2">
+                <a href="terms.html" class="hover:text-muted transition">Terms</a>
+                <a href="index.html#pricing" class="hover:text-muted transition">Pricing</a>
+                <a href="mailto:support@dartvoice.com" class="hover:text-muted transition">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ━━━ JAVASCRIPT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <script>
+    const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let _email = '';
+    let _resendTimer = null;
+
+    // Detect intent from URL: ?intent=subscribe → sign-up mode, else sign-in mode
+    const _intent = new URLSearchParams(window.location.search).get('intent');
+    const _isSignUp = _intent === 'subscribe';
+
+    // Adapt UI for sign-up vs sign-in
+    if (_isSignUp) {
+        // Swap nav CTA to "Sign In" — user is already on the sign-up page
+        document.querySelectorAll('a[href="login.html?intent=subscribe"]').forEach(el => {
+            el.textContent = 'Sign In';
+            el.href = 'login.html';
+            el.classList.remove('btn-brand');
+            el.classList.add('btn-outline');
+        });
+        document.getElementById('auth-heading').textContent = 'START FREE TRIAL';
+        document.getElementById('auth-subtext').textContent = 'Create your account to start your 7-day free trial — no card needed.';
+        document.getElementById('success-heading').textContent = 'ACCOUNT READY';
+        document.getElementById('success-subtext').textContent = 'Setting up your trial…';
+        // Replace bottom nudge with sign-in prompt
+        document.getElementById('bottom-nudge').innerHTML = `
+            <div>
+                <p class="text-[11px] text-muted">Already have an account?</p>
+                <p class="text-[12px] text-chalk font-semibold mt-0.5">Sign in to your existing account</p>
+            </div>
+            <a href="login.html" class="shrink-0 px-3.5 py-1.5 rounded-lg border border-wire/80 text-chalk text-xs font-bold hover:border-muted transition">
+                Sign In →
+            </a>`;
+    }
+
+    // Destination after auth
+    function _authDest() {
+        return _isSignUp ? 'dartvoice-dashboard.html?subscribe=1' : 'dartvoice-dashboard.html';
+    }
+
+    // Check if already signed in → skip to dashboard (respecting intent)
+    sb.auth.getSession().then(({ data }) => {
+        if (data?.session?.user) {
+            window.location.replace(_authDest());
+        }
+    });
+
+    // ── OTP char boxes ─────────────────────────────────────────────────────────
+    function initOtpBoxes() {
+        const boxes = document.querySelectorAll('.otp-char');
+        boxes.forEach((box, i) => {
+            box.addEventListener('input', e => {
+                const val = e.target.value.replace(/\D/g, '');
+                e.target.value = val;
+                if (val && i < 5) boxes[i + 1].focus();
+                box.classList.toggle('filled', !!val);
+                checkOtpComplete();
+            });
+            box.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !box.value && i > 0) {
+                    boxes[i - 1].focus();
+                    boxes[i - 1].value = '';
+                    boxes[i - 1].classList.remove('filled');
+                    checkOtpComplete();
+                }
+                if (e.key === 'Enter') verifyOtp();
+            });
+            box.addEventListener('paste', e => {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                [...paste].forEach((ch, idx) => {
+                    if (boxes[idx]) {
+                        boxes[idx].value = ch;
+                        boxes[idx].classList.add('filled');
+                    }
+                });
+                if (paste.length === 6) {
+                    boxes[5].focus();
+                    checkOtpComplete();
+                    setTimeout(verifyOtp, 100);
+                }
+            });
+        });
+    }
+
+    function checkOtpComplete() {
+        const code = getOtpCode();
+        document.getElementById('btn-verify').disabled = code.length !== 6;
+        if (code.length === 6) document.getElementById('otp-error').classList.add('hidden');
+    }
+
+    function getOtpCode() {
+        return [...document.querySelectorAll('.otp-char')].map(b => b.value).join('');
+    }
+
+    function clearOtpBoxes() {
+        document.querySelectorAll('.otp-char').forEach(b => {
+            b.value = '';
+            b.classList.remove('filled');
+        });
+        document.getElementById('btn-verify').disabled = true;
+    }
+
+    // ── Send OTP ───────────────────────────────────────────────────────────────
+    async function sendOtp() {
+        const email = document.getElementById('input-email').value.trim().toLowerCase();
+        const errEl = document.getElementById('email-error');
+        const btn   = document.getElementById('btn-send');
+
+        errEl.classList.add('hidden');
+
+        if (!email || !email.includes('@')) {
+            errEl.textContent = 'Please enter a valid email address.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Sending…';
+
+        const { error } = await sb.auth.signInWithOtp({ email });
+
+        btn.disabled = false;
+        btn.innerHTML = 'Continue →';
+
+        if (error) {
+            errEl.textContent = error.message;
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        _email = email;
+        document.getElementById('otp-email-display').textContent = email;
+        document.getElementById('step-email').classList.add('hidden');
+        document.getElementById('step-otp').classList.remove('hidden');
+        initOtpBoxes();
+        document.querySelector('.otp-char').focus();
+        startResendTimer(60);
+    }
+
+    // ── Verify OTP ────────────────────────────────────────────────────────────
+    async function verifyOtp() {
+        const token = getOtpCode();
+        if (token.length !== 6) return;
+
+        const btn    = document.getElementById('btn-verify');
+        const errEl  = document.getElementById('otp-error');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Verifying…';
+        errEl.classList.add('hidden');
+
+        const { error } = await sb.auth.verifyOtp({ email: _email, token, type: 'email' });
+
+        btn.disabled = false;
+        btn.innerHTML = 'Verify Code →';
+
+        if (error) {
+            errEl.textContent = error.message || 'Invalid code — please try again.';
+            errEl.classList.remove('hidden');
+            clearOtpBoxes();
+            document.querySelector('.otp-char').focus();
+            return;
+        }
+
+        // Success
+        document.getElementById('step-otp').classList.add('hidden');
+        document.getElementById('step-success').classList.remove('hidden');
+        if (_resendTimer) clearInterval(_resendTimer);
+
+        // Preserve referral code across the redirect (referrer gets £5 on conversion; referred user gets standard 7-day trial only)
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode   = urlParams.get('ref');
+        if (refCode) sessionStorage.setItem('dv_ref_code', refCode);
+
+        setTimeout(() => window.location.replace(_authDest()), 1200);
+    }
+
+    // ── Resend / back ─────────────────────────────────────────────────────────
+    async function resendOtp() {
+        const btn = document.getElementById('btn-resend');
+        btn.disabled = true;
+        clearOtpBoxes();
+        document.getElementById('otp-error').classList.add('hidden');
+
+        const { error } = await sb.auth.signInWithOtp({ email: _email });
+        if (!error) startResendTimer(60);
+    }
+
+    function startResendTimer(secs) {
+        const timerEl = document.getElementById('resend-timer');
+        const btn     = document.getElementById('btn-resend');
+        let remaining = secs;
+        btn.disabled = true;
+        timerEl.textContent = `Resend in ${remaining}s`;
+        _resendTimer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(_resendTimer);
+                timerEl.textContent = '';
+                btn.disabled = false;
+            } else {
+                timerEl.textContent = `Resend in ${remaining}s`;
+            }
+        }, 1000);
+    }
+
+    function goBack() {
+        document.getElementById('step-otp').classList.add('hidden');
+        document.getElementById('step-email').classList.remove('hidden');
+        document.getElementById('email-error').classList.add('hidden');
+        document.getElementById('otp-error').classList.add('hidden');
+        if (_resendTimer) clearInterval(_resendTimer);
+        clearOtpBoxes();
+        document.getElementById('input-email').focus();
+    }
+    </script>
+</body>
+</html>

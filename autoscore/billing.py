@@ -42,9 +42,13 @@ SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA'
 )
 BILLING_SERVER   = os.environ.get('DV_BILLING_URL', 'https://billing.dartvoice.com')
-TRIAL_DAYS       = 49
+DEMO_MINUTES     = 10   # free demo window before subscription required
 _SALT            = 'dartvoice-billing-v1-8f3a'
 _ACTIVE_STATUSES = {'active', 'trialing'}
+
+# ── Admin bypass (dev/testing only) ──────────────────────────────────────────
+# sha256("DV-ADMIN-2026") — change the raw passcode to rotate it
+_ADMIN_HASH = '252772e3ca1a02b2dc9718fc087849969d1b0bb5721fd9e878d21e8d6fccdd5a'
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Storage
@@ -256,20 +260,43 @@ def _cache_status(status: str):
 def _cached_status() -> str:
     return _load().get('sub_status', 'none')
 
+def admin_unlock(passcode: str) -> bool:
+    """
+    Unlock admin mode with the master passcode.
+    Returns True if correct and stores the bypass flag locally.
+    """
+    if hashlib.sha256(passcode.encode()).hexdigest() == _ADMIN_HASH:
+        d = _load()
+        d['admin_unlocked'] = True
+        _save(d)
+        return True
+    return False
+
+def admin_lock():
+    """Remove admin bypass."""
+    d = _load()
+    d.pop('admin_unlocked', None)
+    _save(d)
+
+def is_admin_unlocked() -> bool:
+    return bool(_load().get('admin_unlocked'))
+
 def is_subscribed() -> bool:
+    if is_admin_unlocked():
+        return True
     return _cached_status() in _ACTIVE_STATUSES
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Trial
+# Demo window (10 minutes, device-local, before subscription required)
 # ─────────────────────────────────────────────────────────────────────────────
-def trial_days_remaining() -> int:
+def demo_seconds_remaining() -> float:
     d     = _load()
     start = d.get('trial_start', time.time())
-    left  = TRIAL_DAYS - (time.time() - start) / 86400
-    return max(0, int(left))
+    left  = DEMO_MINUTES * 60 - (time.time() - start)
+    return max(0.0, left)
 
-def trial_active() -> bool:
-    return trial_days_remaining() > 0
+def demo_active() -> bool:
+    return demo_seconds_remaining() > 0
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Async subscription check
@@ -307,17 +334,22 @@ def get_checkout_url() -> str:
 # Convenience summary
 # ─────────────────────────────────────────────────────────────────────────────
 def billing_status() -> dict:
+    admin      = is_admin_unlocked()
     account    = get_account()
-    subscribed = is_subscribed()
-    days_left  = trial_days_remaining()
+    subscribed = is_subscribed()       # already returns True if admin
+    secs_left  = demo_seconds_remaining()
     logged_in  = account is not None
     return {
         'install_id':   get_install_id(),
         'account':      account,
         'logged_in':    logged_in,
+        'admin':        admin,
         'subscribed':   subscribed,
-        'trial_active': days_left > 0,
-        'days_left':    days_left,
-        # Locked only if: trial expired AND not subscribed
-        'locked':       not subscribed and days_left <= 0,
+        'demo_active':  secs_left > 0,
+        'demo_secs':    secs_left,
+        # Locked only if: demo expired AND not subscribed
+        'locked':       not subscribed and secs_left <= 0,
+        # Human-readable access tier
+        'tier':         'admin' if admin else ('member' if subscribed else
+                        ('demo' if secs_left > 0 else 'inactive')),
     }

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Setup Guide | DartVoice</title>
+    <meta name="description" content="Step-by-step guide to calibrating DartVoice for X01 and Cricket scoring.">
+    <meta name="theme-color" content="#CC0B20">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Barlow Condensed"', 'sans-serif'],
+                        sans:    ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono:    ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand:  '#CC0B20',
+                        dark:   '#08080A',
+                        card:   '#111114',
+                        card2:  '#18181C',
+                        wire:   '#252530',
+                        muted:  '#6E6E82',
+                        muted2: '#4A4A5A',
+                        chalk:  '#F0F0F5',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.02em; text-transform: uppercase; }
+
+        /* Scroll reveal */
+        .reveal {
+            opacity: 0; transform: translateY(28px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* Step badge */
+        .step-badge {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900; font-style: italic;
+        }
+
+        /* Voice command code */
+        .voice-cmd {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(204,11,32,0.08);
+            border: 1px solid rgba(204,11,32,0.15);
+            color: #F0F0F5;
+        }
+
+        /* Mockup window chrome */
+        .mockup-chrome {
+            background: #0d0d10;
+            border: 1px solid #252530;
+        }
+
+        /* Callouts */
+        .callout {
+            background: rgba(204,11,32,0.05);
+            border-left: 3px solid #CC0B20;
+        }
+        .callout-info {
+            background: rgba(59,130,246,0.05);
+            border-left: 3px solid #3b82f6;
+        }
+
+        /* TOC links */
+        .toc-link { transition: all 0.2s; }
+        .toc-link:hover { color: #CC0B20; padding-left: 4px; }
+
+        /* Anchor offset for fixed nav */
+        [id] { scroll-margin-top: 72px; }
+
+        /* Noise */
+        .noise::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.018; pointer-events: none; z-index: 100;
+        }
+
+        /* Section h2 red bar */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-title::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 1.5em;
+            background: #CC0B20;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Grid bg on mockup header */
+        .grid-bg {
+            background-image: linear-gradient(to right, #252530 1px, transparent 1px), linear-gradient(to bottom, #252530 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="antialiased noise">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full z-50 bg-dark/85 backdrop-blur-xl border-b border-wire/60">
+        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5 group">
+                <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="3" fill="white"/>
+                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
+            </a>
+            <div class="hidden sm:flex items-center gap-1">
+                <a href="/index.html#features"     class="text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
+                <a href="/index.html#pricing"      class="text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
+                <a href="guide.html"               class="text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
+                <a href="referral.html"            class="text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ambassador
+                </a>
+            </div>
+            <div class="hidden sm:flex items-center gap-3">
+                <a href="login.html" class="text-sm font-semibold text-muted hover:text-chalk transition">Sign In</a>
+                <a href="dartvoice-dashboard.html" class="bg-brand hover:bg-red-600 transition px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
+            </div>
+            <button id="mob-btn-nav"
+                    class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/5 transition">
+                <svg class="w-5 h-5 text-chalk" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+        <div id="mob-nav"
+             style="max-height:0;overflow:hidden;transition:max-height .35s ease"
+             class="sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
+            <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
+                <a href="/index.html#features"  class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Features</a>
+                <a href="/index.html#pricing"   class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Pricing</a>
+                <a href="guide.html"            class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Setup Guide</a>
+                <a href="referral.html"         class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
+                </a>
+                <div class="border-t border-wire/50 mt-1 pt-3 grid grid-cols-2 gap-2">
+                    <a href="login.html" class="border border-wire rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-chalk hover:bg-white/5 transition">Sign In</a>
+                    <a href="dartvoice-dashboard.html" class="bg-brand rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-white hover:bg-red-600 transition">Free Trial</a>
+                </div>
+            </div>
+        </div>
+        <script>
+        document.getElementById('mob-btn-nav').addEventListener('click', function() {
+            var m = document.getElementById('mob-nav');
+            m.style.maxHeight = m.style.maxHeight === '0px' || !m.style.maxHeight ? '320px' : '0px';
+        });
+        </script>
+    </nav>
+
+    <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <header class="pt-28 pb-14 border-b border-wire/60"
+            style="background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(204,11,32,0.08) 0%, transparent 70%)">
+        <div class="max-w-3xl mx-auto px-6">
+            <p class="text-brand text-xs font-semibold tracking-widest uppercase mb-3">Setup Guide</p>
+            <h1 class="display text-4xl sm:text-5xl mb-3">CALIBRATION &amp; VOICE COMMANDS</h1>
+            <p class="text-muted max-w-xl">Everything you need to get DartVoice working with your dartboard scoring software. Follow the steps below for X01 or Cricket.</p>
+        </div>
+    </header>
+
+    <div class="max-w-3xl mx-auto px-6 py-12">
+
+        <!-- ── TABLE OF CONTENTS ── -->
+        <div class="bg-card border border-wire rounded-2xl overflow-hidden mb-12 reveal">
+            <div class="h-0.5 w-full bg-brand"></div>
+            <div class="p-6">
+                <h2 class="font-semibold mb-4 text-xs uppercase tracking-widest text-muted">Contents</h2>
+                <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
+                    <a href="#first-launch"      class="toc-link text-sm text-muted hover:text-brand">1. First Launch</a>
+                    <a href="#voice-commands"    class="toc-link text-sm text-muted hover:text-brand">5. Voice Commands</a>
+                    <a href="#x01-calibration"   class="toc-link text-sm text-muted hover:text-brand">2. X01 Calibration</a>
+                    <a href="#cricket-commands"  class="toc-link text-sm text-muted hover:text-brand">6. Cricket Voice Commands</a>
+                    <a href="#cricket-calibration" class="toc-link text-sm text-muted hover:text-brand">3. Cricket Calibration</a>
+                    <a href="#cricket-settings"  class="toc-link text-sm text-muted hover:text-brand">7. Cricket Settings</a>
+                    <a href="#mic-setup"         class="toc-link text-sm text-muted hover:text-brand">4. Microphone Setup</a>
+                    <a href="#troubleshooting"   class="toc-link text-sm text-muted hover:text-brand">8. Troubleshooting</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ━━━ 1. FIRST LAUNCH ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="first-launch" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">1. FIRST LAUNCH</h2>
+            <div class="space-y-4 text-sm text-muted leading-relaxed">
+                <p>After installing DartVoice, launch the app. You'll see the main Command Center window with a large <strong class="text-chalk">Start Listening</strong> button.</p>
+                <p>Before you can start scoring, you need to do two things:</p>
+                <ol class="list-decimal list-inside space-y-2 pl-2 text-chalk/80">
+                    <li>Select your <strong>microphone</strong></li>
+                    <li><strong>Calibrate</strong> DartVoice to your scoring software (X01 or Cricket)</li>
+                </ol>
+                <p>Open <strong class="text-chalk">Settings</strong> (gear icon, top right) to access both. Calibration only needs to be done once — your settings are saved automatically.</p>
+                <div class="callout rounded-lg px-4 py-3 mt-4">
+                    <p class="text-brand text-xs font-semibold uppercase tracking-wider mb-1">Important</p>
+                    <p class="text-sm text-muted">Make sure your dartboard scoring software (e.g. Target Dart Counter, Nakka, Pro Darter, DartConnect) is open and visible on screen <em>before</em> you calibrate. DartVoice needs to know where to click.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ━━━ 2. X01 CALIBRATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="x01-calibration" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">2. X01 CALIBRATION</h2>
+            <p class="text-sm text-muted mb-6 leading-relaxed">X01 calibration is a single click. You're telling DartVoice where the score input box is on your scoring software.</p>
+
+            <div class="space-y-5">
+                <div class="flex gap-4">
+                    <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">1</div>
+                    <div>
+                        <p class="text-sm font-medium text-chalk mb-1">Open your scoring software</p>
+                        <p class="text-sm text-muted">Have your X01 game running (Target Dart Counter, Nakka, Pro Darter, etc.) with the score input field visible on screen.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">2</div>
+                    <div>
+                        <p class="text-sm font-medium text-chalk mb-1">Go to Settings &rarr; Calibration &rarr; "Calibrate X01 Box"</p>
+                        <p class="text-sm text-muted">The screen will dim with a crosshair cursor.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">3</div>
+                    <div>
+                        <p class="text-sm font-medium text-chalk mb-1">Click the score input box</p>
+                        <p class="text-sm text-muted">Click directly on the text field where you normally type your score. DartVoice saves the position and will click there automatically when you call a score.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual mockup -->
+            <div class="mockup-chrome rounded-xl overflow-hidden mt-8">
+                <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-wire">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/30"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/30"></div>
+                    <span class="text-[10px] text-muted ml-2">Your Scoring Software</span>
+                </div>
+                <div class="p-6 bg-[#0d0d10]">
+                    <div class="flex items-center justify-center gap-8">
+                        <div class="text-center">
+                            <p class="text-muted text-xs mb-1">Player 1</p>
+                            <p class="display text-3xl not-italic text-chalk/50">501</p>
+                        </div>
+                        <div class="relative">
+                            <div class="border-2 border-dashed border-brand rounded-lg px-6 py-2.5 bg-brand/5">
+                                <span class="text-muted text-sm">Score input</span>
+                            </div>
+                            <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-brand flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </div>
+                            <p class="text-brand text-[10px] mt-2 text-center font-semibold tracking-wider">CLICK HERE</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-muted text-xs mb-1">Player 2</p>
+                            <p class="display text-3xl not-italic text-chalk/50">501</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted2 text-xs mt-3">That's it for X01. One click and you're done.</p>
+        </section>
+
+        <!-- ━━━ 3. CRICKET CALIBRATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="cricket-calibration" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">3. CRICKET CALIBRATION</h2>
+            <p class="text-sm text-muted mb-6 leading-relaxed">Cricket requires 3 clicks to map out the scoring grid. DartVoice calculates all 21 cell positions from just two reference points plus the submit button.</p>
+
+            <div class="space-y-5">
+                <div class="flex gap-4">
+                    <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">1</div>
+                    <div>
+                        <p class="text-sm font-medium text-chalk mb-1">Click <strong>Single 20</strong> &mdash; top-left of the grid</p>
+                        <p class="text-sm text-muted">This is the first cell in the cricket grid. It defines the top-left corner.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">2</div>
+                    <div>
+                        <p class="text-sm font-medium text-chalk mb-1">Click <strong>Treble 15</strong> &mdash; bottom-right of the numbers area</p>
+                        <p class="text-sm text-muted">This defines the grid spacing. DartVoice uses the distance between this and Single 20 to calculate where every other cell is.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">3</div>
+                    <div>
+                        <p class="text-sm font-medium text-chalk mb-1">Click the <strong>Submit</strong> button</p>
+                        <p class="text-sm text-muted">The button your scoring app uses to confirm darts. DartVoice will auto-click this after entering your darts.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cricket grid mockup -->
+            <div class="mockup-chrome rounded-xl overflow-hidden mt-8">
+                <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-wire">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/30"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/30"></div>
+                    <span class="text-[10px] text-muted ml-2">Cricket Scoring Grid</span>
+                </div>
+                <div class="p-5 bg-[#0d0d10]">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-xs">
+                            <thead>
+                                <tr class="text-muted2">
+                                    <th class="py-2 px-3 font-medium"></th>
+                                    <th class="py-2 px-4 font-medium">Single</th>
+                                    <th class="py-2 px-4 font-medium">Double</th>
+                                    <th class="py-2 px-4 font-medium">Treble</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-chalk/50">
+                                <tr class="border-t border-wire/50">
+                                    <td class="py-2.5 px-3 text-muted font-medium text-right">20</td>
+                                    <td class="py-2.5 px-4 relative">
+                                        <div class="w-7 h-7 rounded border-2 border-dashed border-brand bg-brand/10 mx-auto flex items-center justify-center">
+                                            <span class="text-brand text-[9px] font-bold">1</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td>
+                                    <td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td>
+                                </tr>
+                                <tr class="border-t border-wire/50"><td class="py-2.5 px-3 text-muted font-medium text-right">19</td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td></tr>
+                                <tr class="border-t border-wire/50"><td class="py-2.5 px-3 text-muted font-medium text-right">18</td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td></tr>
+                                <tr class="border-t border-wire/50"><td class="py-2.5 px-3 text-muted font-medium text-right">17</td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td></tr>
+                                <tr class="border-t border-wire/50"><td class="py-2.5 px-3 text-muted font-medium text-right">16</td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td></tr>
+                                <tr class="border-t border-wire/50">
+                                    <td class="py-2.5 px-3 text-muted font-medium text-right">15</td>
+                                    <td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td>
+                                    <td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td>
+                                    <td class="py-2.5 px-4 relative">
+                                        <div class="w-7 h-7 rounded border-2 border-dashed border-brand bg-brand/10 mx-auto flex items-center justify-center">
+                                            <span class="text-brand text-[9px] font-bold">2</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-t border-wire/50"><td class="py-2.5 px-3 text-muted font-medium text-right">Bull</td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td><td class="py-2.5 px-4"><div class="w-7 h-7 rounded border border-wire mx-auto"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <div class="border-2 border-dashed border-brand rounded-lg px-5 py-1.5 bg-brand/5 text-xs flex items-center gap-2">
+                            <span class="text-brand font-bold">3</span>
+                            <span class="text-muted">Submit</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout rounded-lg px-4 py-3 mt-6">
+                <p class="text-brand text-xs font-semibold uppercase tracking-wider mb-1">Tip</p>
+                <p class="text-sm text-muted">If clicks are landing slightly off, use the <strong class="text-chalk">Grid Offset</strong> sliders in Settings &rarr; Cricket Settings to fine-tune the X and Y offset without recalibrating.</p>
+            </div>
+        </section>
+
+        <!-- ━━━ 4. MICROPHONE SETUP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="mic-setup" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">4. MICROPHONE SETUP</h2>
+            <div class="space-y-4 text-sm text-muted leading-relaxed">
+                <p>Go to <strong class="text-chalk">Settings &rarr; Microphone &rarr; Select Microphone</strong>. DartVoice will list all available input devices on your system.</p>
+                <p>Pick the mic you want to use. A good quality headset mic or a lapel mic works best — it reduces background noise and lets you speak at a normal volume.</p>
+                <div class="callout-info rounded-lg px-4 py-3">
+                    <p class="text-blue-400 text-xs font-semibold uppercase tracking-wider mb-1">Tip</p>
+                    <p class="text-sm text-muted">If you're in a noisy environment (pub, league night), enable <strong class="text-chalk">Require trigger word</strong> in settings. This means DartVoice will only process speech that starts with your trigger word (default: <code class="voice-cmd px-1.5 py-0.5 rounded text-xs">"score"</code>).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ━━━ 5. X01 VOICE COMMANDS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="voice-commands" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">5. X01 VOICE COMMANDS</h2>
+            <p class="text-sm text-muted mb-6 leading-relaxed">With the trigger word <code class="voice-cmd px-1.5 py-0.5 rounded text-xs">"score"</code>, just say your total. DartVoice accepts natural speech.</p>
+
+            <div class="bg-card border border-wire rounded-2xl overflow-hidden">
+                <div class="grid grid-cols-2 text-xs font-semibold text-muted uppercase tracking-widest border-b border-wire">
+                    <div class="px-5 py-3">You say</div>
+                    <div class="px-5 py-3">DartVoice enters</div>
+                </div>
+                <div class="divide-y divide-wire/50 text-sm">
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score sixty"</code></div><div class="px-5 py-3 text-chalk/80">60</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score one hundred"</code></div><div class="px-5 py-3 text-chalk/80">100</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score one forty"</code></div><div class="px-5 py-3 text-chalk/80">140</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score one oh five"</code></div><div class="px-5 py-3 text-chalk/80">105</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score miss"</code></div><div class="px-5 py-3 text-chalk/80">0</div></div>
+                </div>
+            </div>
+
+            <h3 class="font-semibold text-chalk mt-8 mb-4">Per-Dart Mode</h3>
+            <p class="text-sm text-muted mb-4 leading-relaxed">Enable <strong class="text-chalk">per-dart scoring</strong> in Settings to say each dart individually instead of the total:</p>
+            <div class="bg-card border border-wire rounded-2xl overflow-hidden">
+                <div class="divide-y divide-wire/50 text-sm">
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score treble twenty"</code></div><div class="px-5 py-3 text-chalk/80">T20 (60 pts)</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score double sixteen"</code></div><div class="px-5 py-3 text-chalk/80">D16 (32 pts)</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score single five"</code></div><div class="px-5 py-3 text-chalk/80">5 (5 pts)</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score bull"</code></div><div class="px-5 py-3 text-chalk/80">Bull (50 pts)</div></div>
+                </div>
+            </div>
+
+            <h3 class="font-semibold text-chalk mt-8 mb-4">Universal Commands</h3>
+            <p class="text-sm text-muted mb-4">These work in any game mode, no trigger word needed:</p>
+            <div class="bg-card border border-wire rounded-2xl overflow-hidden">
+                <div class="divide-y divide-wire/50 text-sm">
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"wait"</code></div><div class="px-5 py-3 text-muted">Undo last dart/score</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"new leg"</code></div><div class="px-5 py-3 text-muted">Reset for new leg</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"enter"</code></div><div class="px-5 py-3 text-muted">Press submit/enter</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ━━━ 6. CRICKET VOICE COMMANDS ━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="cricket-commands" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">6. CRICKET VOICE COMMANDS</h2>
+            <p class="text-sm text-muted mb-6 leading-relaxed">In Cricket mode, say the modifier (single/double/treble) followed by the target number. You can call 1 to 3 darts at once.</p>
+
+            <div class="bg-card border border-wire rounded-2xl overflow-hidden">
+                <div class="divide-y divide-wire/50 text-sm">
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score twenty"</code></div><div class="px-5 py-3 text-chalk/80">Single 20</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score treble nineteen"</code></div><div class="px-5 py-3 text-chalk/80">Treble 19</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score double bull"</code></div><div class="px-5 py-3 text-chalk/80">Double Bullseye</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score miss"</code></div><div class="px-5 py-3 text-chalk/80">Miss (skipped)</div></div>
+                    <div class="grid grid-cols-2"><div class="px-5 py-3"><code class="voice-cmd px-2 py-0.5 rounded text-xs">"score t20 d19 s15"</code></div><div class="px-5 py-3 text-chalk/80">3 darts (shorthand)</div></div>
+                </div>
+            </div>
+
+            <div class="callout-info rounded-lg px-4 py-3 mt-6">
+                <p class="text-blue-400 text-xs font-semibold uppercase tracking-wider mb-1">Note</p>
+                <p class="text-sm text-muted">If you don't say a modifier, DartVoice assumes <strong class="text-chalk">single</strong>. Saying <code class="voice-cmd px-1.5 py-0.5 rounded text-xs">"score twenty"</code> is the same as <code class="voice-cmd px-1.5 py-0.5 rounded text-xs">"score single twenty"</code>.</p>
+            </div>
+        </section>
+
+        <!-- ━━━ 7. CRICKET SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="cricket-settings" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">7. CRICKET SETTINGS</h2>
+            <p class="text-sm text-muted mb-6 leading-relaxed">These settings are found in <strong class="text-chalk">Settings &rarr; Cricket Settings</strong> and let you fine-tune how Cricket mode works.</p>
+
+            <div class="space-y-3">
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 shrink-0"></div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Grid Offset X / Y</p>
+                            <p class="text-xs text-muted leading-relaxed">Adjust the horizontal and vertical offset (in pixels) if clicks are landing slightly off target. Use this to fine-tune without recalibrating from scratch. Range: &minus;50 to +50 pixels.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 shrink-0"></div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Click Delay</p>
+                            <p class="text-xs text-muted leading-relaxed">Extra delay (in milliseconds) between each cell click. Increase this if your scoring software needs more time to register clicks. Default: 0ms.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 shrink-0"></div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Auto-Submit</p>
+                            <p class="text-xs text-muted leading-relaxed">When enabled, DartVoice automatically clicks the Submit button after entering your darts. Disable if you want to review before submitting.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-2 h-2 rounded-full bg-brand mt-1.5 shrink-0"></div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Include Bull Row</p>
+                            <p class="text-xs text-muted leading-relaxed">Some scoring apps have 6 rows (20&ndash;15) instead of 7 (20&ndash;15 + Bull). Disable this if your cricket grid doesn't include a Bull row — DartVoice will calculate the grid with 6 rows instead of 7.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ━━━ 8. TROUBLESHOOTING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="troubleshooting" class="mb-8 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">8. TROUBLESHOOTING</h2>
+
+            <div class="space-y-3">
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <p class="text-sm font-medium text-chalk mb-2">DartVoice isn't hearing me</p>
+                    <ul class="text-xs text-muted space-y-1.5 leading-relaxed">
+                        <li>&bull; Check that the correct microphone is selected in Settings</li>
+                        <li>&bull; Make sure no other app is using the mic exclusively</li>
+                        <li>&bull; Speak clearly and at a normal volume — you don't need to shout</li>
+                        <li>&bull; Try disabling "Require trigger word" temporarily to test</li>
+                    </ul>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <p class="text-sm font-medium text-chalk mb-2">Clicks are landing in the wrong place</p>
+                    <ul class="text-xs text-muted space-y-1.5 leading-relaxed">
+                        <li>&bull; Re-run the calibration wizard — your window may have moved</li>
+                        <li>&bull; For Cricket, use the <strong class="text-chalk">Grid Offset</strong> sliders to fine-tune</li>
+                        <li>&bull; Make sure your display scaling is at 100% (Windows Settings &rarr; Display &rarr; Scale)</li>
+                        <li>&bull; Don't move or resize your scoring software after calibrating</li>
+                    </ul>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <p class="text-sm font-medium text-chalk mb-2">Voice recognition is inaccurate</p>
+                    <ul class="text-xs text-muted space-y-1.5 leading-relaxed">
+                        <li>&bull; Use a headset or close-range mic to reduce ambient noise</li>
+                        <li>&bull; Try the <strong class="text-chalk">shorthand</strong> format: "t20" instead of "treble twenty"</li>
+                        <li>&bull; Adjust the <strong class="text-chalk">Typing Speed</strong> — "Slow" gives more time between actions</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-wire/60 pt-14 pb-8">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-10 mb-12">
+                <div class="col-span-2 sm:col-span-4 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-2.5 group mb-4">
+                        <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                            <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                            <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                            <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                            <circle cx="18" cy="18" r="3" fill="white"/>
+                            <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                        </svg>
+                        <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
+                    </a>
+                    <p class="text-muted text-sm leading-relaxed mb-5 max-w-xs">Voice-controlled auto-scoring for darts. Say your score &mdash; DartVoice handles the rest.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <div class="flex items-center gap-1.5 bg-card border border-wire rounded-lg px-3 py-1.5">
+                            <svg class="w-3.5 h-3.5 text-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                            <span class="text-xs text-muted">Windows</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-card border border-wire rounded-lg px-3 py-1.5">
+                            <svg class="w-3.5 h-3.5 text-muted" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 1.5a6.5 6.5 0 110 13 6.5 6.5 0 010-13z"/></svg>
+                            <span class="text-xs text-muted">Android</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Product</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="/index.html#features"     class="text-sm text-muted hover:text-chalk transition">Features</a></li>
+                        <li><a href="/index.html#how-it-works" class="text-sm text-muted hover:text-chalk transition">How It Works</a></li>
+                        <li><a href="/index.html#pricing"      class="text-sm text-muted hover:text-chalk transition">Pricing</a></li>
+                        <li><a href="guide.html"               class="text-sm text-muted hover:text-chalk transition">Setup Guide</a></li>
+                        <li><a href="dartvoice-dashboard.html" class="text-sm text-muted hover:text-chalk transition">Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Earn</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="referral.html" class="text-sm text-muted hover:text-chalk transition flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-brand inline-block shrink-0"></span>Ambassador Program</a></li>
+                        <li><a href="referral.html#how-it-works" class="text-sm text-muted hover:text-chalk transition">How It Works</a></li>
+                        <li><a href="dartvoice-dashboard.html#ambassador" class="text-sm text-muted hover:text-chalk transition">Get My Link</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Legal &amp; Support</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="terms.html"               class="text-sm text-muted hover:text-chalk transition">Terms of Service</a></li>
+                        <li><a href="mailto:support@dartvoice.com" class="text-sm text-muted hover:text-chalk transition">support@dartvoice.com</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Payment methods -->
+            <div class="border-t border-wire/60 pt-8 mb-6">
+                <p class="footer-col-head mb-4">Accepted Payment Methods</p>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Stripe">
+                        <svg class="h-3.5" viewBox="0 0 60 22" fill="none"><text x="0" y="17" font-family="Arial" font-weight="700" font-size="17" fill="#6772E5">stripe</text></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Visa">
+                        <svg viewBox="0 0 750 471" class="h-4 w-auto"><rect width="750" height="471" rx="40" fill="#1A1F71"/><path d="M278 334l33-195h53l-33 195h-53zm243-190c-10-4-27-8-47-8-52 0-89 26-89 64 0 28 26 44 46 53 20 10 27 16 27 25 0 13-16 19-31 19-20 0-32-3-49-10l-7-3-7 41c12 5 34 10 57 10 55 0 90-26 90-66 0-22-14-39-44-53-18-9-29-15-29-24 0-8 9-17 29-17 16 0 28 3 37 7l5 2 8-40zm140-5h-40c-13 0-22 4-28 17l-80 178h57s9-24 11-29h69c2 7 6 29 6 29h50l-44-195zm-67 118c4-11 20-53 20-53s4-11 7-17l3 15s9 42 11 55h-41zm-340-118l-52 133-6-27c-10-29-42-60-77-76l47 169h58l87-199h-57z" fill="white"/><path d="M155 139H73l-1 5c56 14 94 47 109 87l-16-77c-3-12-11-15-20-15z" fill="#F9A533"/></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Mastercard">
+                        <svg viewBox="0 0 131 86" class="h-4 w-auto"><circle cx="47" cy="43" r="43" fill="#EB001B"/><circle cx="84" cy="43" r="43" fill="#F79E1B"/><path d="M65.5 13.5a43 43 0 010 59A43 43 0 0165.5 13.5z" fill="#FF5F00"/></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="American Express">
+                        <svg viewBox="0 0 48 16" class="h-3.5 w-auto"><rect width="48" height="16" rx="3" fill="#2E77BC"/><text x="4" y="12" font-family="Arial" font-weight="900" font-size="11" fill="white">AMEX</text></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="PayPal">
+                        <svg viewBox="0 0 56 16" class="h-3.5 w-auto"><text x="0" y="12" font-family="Arial" font-weight="700" font-size="13" fill="#003087">Pay</text><text x="22" y="12" font-family="Arial" font-weight="700" font-size="13" fill="#009CDE">Pal</text></svg>
+                    </div>
+                    <div class="inline-flex items-center gap-1 h-7 px-2.5 bg-black border border-white/10 rounded-md" title="Apple Pay">
+                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 814 1000"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.3-155.5-127.4C46.7 790.5 0 663 0 541.8c0-207.8 133.2-317.9 260.6-317.9 69.9 0 127.9 46.4 172.4 46.4 42.7 0 109.5-49.1 189.8-49.1 30.8.1 110.6 5.6 173.5 63.6z"/><path d="M536.2 162.5C576.9 116 603.3 53.2 603.3 0c0-4.4-.3-8.8-.7-13.2-52.4 2.1-114.5 35.8-152.7 84.1-37.6 44.6-68.9 108.7-68.9 172.5 0 5 .7 10 1.1 11.8 3.8.6 10 1.5 16.2 1.5 46.9 0 104.8-31.5 137.9-94.2z"/></svg>
+                        <span class="text-white text-xs font-medium">Pay</span>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Google Pay">
+                        <svg viewBox="0 0 58 14" class="h-3.5 w-auto"><text x="0" y="11" font-family="Arial" font-size="10" font-weight="500"><tspan fill="#4285F4">G</tspan><tspan fill="#EA4335">o</tspan><tspan fill="#FBBC05">o</tspan><tspan fill="#4285F4">g</tspan><tspan fill="#34A853">l</tspan><tspan fill="#EA4335">e</tspan><tspan fill="#F0F0F5"> Pay</tspan></text></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 rounded-md" style="background:#FFB3C7" title="Klarna">
+                        <svg viewBox="0 0 52 14" class="h-3.5 w-auto"><text x="0" y="11" font-family="Arial" font-weight="700" font-size="11" fill="#17120E">klarna</text></svg>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Debit Card / Bank Transfer">
+                        <svg class="w-3.5 h-3.5 text-muted" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                        <span class="text-muted text-xs">Card / Bank</span>
+                    </div>
+                    <div class="ml-auto hidden sm:flex items-center gap-1.5 text-xs" style="color:#4A4A5A">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                        Secured by Stripe
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="border-t border-wire/40 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style="color:#4A4A5A">
+                <span>&copy; 2026 DartVoice. All rights reserved.</span>
+                <div class="flex items-center gap-5">
+                    <a href="terms.html"                   class="hover:text-muted transition">Terms</a>
+                    <a href="mailto:support@dartvoice.com" class="hover:text-muted transition">Contact</a>
+                    <a href="referral.html"                class="hover:text-brand transition flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-brand"></span>Ambassador</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    </script>
+</body>
+</html>

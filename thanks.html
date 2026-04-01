@@ -5,44 +5,299 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Welcome to DartVoice</title>
+    <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { brand: '#CC0B20', dark: '#0a0a0a', success: '#22c55e' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand:  '#CC0B20',
+                        dark:   '#08080A',
+                        card:   '#111114',
+                        wire:   '#252530',
+                        muted:  '#6E6E82',
+                        chalk:  '#F0F0F5',
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0a0a; }
-        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; text-transform: uppercase; }
+
         @keyframes checkPop {
-            0%   { transform: scale(0); opacity: 0; }
-            60%  { transform: scale(1.15); }
-            100% { transform: scale(1); opacity: 1; }
+            0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+            60%  { transform: scale(1.15) rotate(2deg); }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
         }
-        .check-pop { animation: checkPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both; }
+        .check-pop { animation: checkPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s both; }
+
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
+            from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        .fade-up { animation: fadeUp 0.6s 0.5s ease-out both; }
+        .fade-up   { animation: fadeUp 0.6s 0.55s ease-out both; }
+        .fade-up-2 { animation: fadeUp 0.6s 0.7s ease-out both; }
+
+        @keyframes confettiDot {
+            0%   { opacity: 0; transform: translateY(0) scale(0); }
+            50%  { opacity: 1; transform: translateY(-22px) scale(1); }
+            100% { opacity: 0; transform: translateY(-44px) scale(0.5); }
+        }
+
+        .btn-brand {
+            background: #CC0B20;
+            transition: all 0.25s;
+            position: relative; overflow: hidden;
+        }
+        .btn-brand::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.25s;
+        }
+        .btn-brand:hover::after { opacity: 1; }
+        .btn-brand:hover {
+            background: #e60d24;
+            box-shadow: 0 0 36px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
+            transform: translateY(-2px);
+        }
+
+        .noise::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.018; pointer-events: none; z-index: 100;
+        }
+
+        .footer-col-head {
+            font-size: 10px; font-weight: 700; letter-spacing: .15em;
+            text-transform: uppercase; color: #4A4A5A; margin-bottom: 14px;
+        }
     </style>
 </head>
-<body class="text-white min-h-screen flex items-center justify-center p-6">
-    <div class="text-center max-w-sm">
-        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-success/10 border-2 border-success/20 flex items-center justify-center check-pop">
-            <svg class="w-10 h-10 text-success" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-        </div>
-        <div class="fade-up">
-            <h1 class="display text-3xl mb-3">YOU'RE IN!</h1>
-            <p class="text-neutral-400 text-sm mb-2">Your 7-day free trial has started.</p>
-            <p class="text-neutral-500 text-sm mb-8">Head to your dashboard to download DartVoice for Windows or Android.</p>
-            <a href="dartvoice-dashboard.html" class="inline-block bg-brand hover:bg-brand/90 transition px-8 py-3 rounded-xl font-semibold text-sm">
-                Go to Dashboard
+<body class="min-h-screen flex flex-col noise">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full z-50 bg-dark/85 backdrop-blur-xl border-b border-wire/60">
+        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5 group">
+                <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="3" fill="white"/>
+                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
             </a>
+            <div class="hidden sm:flex items-center gap-1">
+                <a href="/index.html#features"     class="text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
+                <a href="/index.html#pricing"      class="text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
+                <a href="guide.html"               class="text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
+                <a href="referral.html"            class="text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ambassador
+                </a>
+            </div>
+            <div class="hidden sm:flex items-center gap-3">
+                <a href="login.html" class="text-sm font-semibold text-muted hover:text-chalk transition">Sign In</a>
+                <a href="dartvoice-dashboard.html" class="bg-brand hover:bg-red-600 transition px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
+            </div>
+            <button id="mob-btn-nav"
+                    class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/5 transition">
+                <svg class="w-5 h-5 text-chalk" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
         </div>
-    </div>
+        <div id="mob-nav"
+             style="max-height:0;overflow:hidden;transition:max-height .35s ease"
+             class="sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
+            <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
+                <a href="/index.html#features"  class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Features</a>
+                <a href="/index.html#pricing"   class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Pricing</a>
+                <a href="guide.html"            class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Setup Guide</a>
+                <a href="referral.html"         class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
+                </a>
+                <div class="border-t border-wire/50 mt-1 pt-3 grid grid-cols-2 gap-2">
+                    <a href="login.html" class="border border-wire rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-chalk hover:bg-white/5 transition">Sign In</a>
+                    <a href="dartvoice-dashboard.html" class="bg-brand rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-white hover:bg-red-600 transition">Free Trial</a>
+                </div>
+            </div>
+        </div>
+        <script>
+        document.getElementById('mob-btn-nav').addEventListener('click', function() {
+            var m = document.getElementById('mob-nav');
+            m.style.maxHeight = m.style.maxHeight === '0px' || !m.style.maxHeight ? '320px' : '0px';
+        });
+        </script>
+    </nav>
+
+    <!-- Main -->
+    <main class="flex-1 flex items-center justify-center p-6 pt-24"
+          style="background: radial-gradient(ellipse 60% 50% at 50% 20%, rgba(204,11,32,0.06) 0%, transparent 70%)">
+        <div class="text-center max-w-sm w-full">
+
+            <!-- Success icon -->
+            <div class="relative w-24 h-24 mx-auto mb-8">
+                <div class="w-24 h-24 rounded-full bg-card border border-wire flex items-center justify-center check-pop"
+                     style="box-shadow: 0 0 40px rgba(34,197,94,0.1), 0 0 0 1px rgba(34,197,94,0.12) inset;">
+                    <svg class="w-11 h-11 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <!-- Decorative dots -->
+                <div class="absolute -top-2 -left-2 w-2 h-2 rounded-full bg-green-400/40"
+                     style="animation: confettiDot 1.5s 0.3s ease-out both"></div>
+                <div class="absolute -top-1 -right-3 w-1.5 h-1.5 rounded-full bg-brand/50"
+                     style="animation: confettiDot 1.5s 0.5s ease-out both"></div>
+                <div class="absolute -bottom-1 -left-4 w-1.5 h-1.5 rounded-full bg-brand/40"
+                     style="animation: confettiDot 1.5s 0.7s ease-out both"></div>
+                <div class="absolute top-0 right-0 w-1 h-1 rounded-full bg-green-400/60"
+                     style="animation: confettiDot 1.5s 0.9s ease-out both"></div>
+            </div>
+
+            <!-- Card -->
+            <div class="bg-card border border-wire rounded-2xl overflow-hidden">
+                <!-- Red accent bar -->
+                <div class="h-0.5 w-full bg-brand"></div>
+
+                <div class="p-8">
+                    <div class="fade-up">
+                        <h1 class="display text-4xl mb-3">YOU'RE IN!</h1>
+                        <p class="text-chalk/80 text-sm mb-1.5">Your 7-day free trial has started.</p>
+                        <p class="text-muted text-sm mb-8">Head to your dashboard to download DartVoice<br>for Windows or Android.</p>
+                    </div>
+                    <div class="fade-up-2 space-y-3">
+                        <a href="dartvoice-dashboard.html"
+                           class="btn-brand flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-sm text-white">
+                            Go to Dashboard
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </a>
+                        <p class="text-muted text-xs">You can manage your subscription anytime from the dashboard</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-wire/60 pt-14 pb-8">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-10 mb-12">
+                <div class="col-span-2 sm:col-span-4 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-2.5 group mb-4">
+                        <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                            <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                            <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                            <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                            <circle cx="18" cy="18" r="3" fill="white"/>
+                            <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                        </svg>
+                        <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
+                    </a>
+                    <p class="text-muted text-sm leading-relaxed mb-5 max-w-xs">Voice-controlled auto-scoring for darts. Say your score &mdash; DartVoice handles the rest.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <div class="flex items-center gap-1.5 bg-card border border-wire rounded-lg px-3 py-1.5">
+                            <svg class="w-3.5 h-3.5 text-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                            <span class="text-xs text-muted">Windows</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-card border border-wire rounded-lg px-3 py-1.5">
+                            <svg class="w-3.5 h-3.5 text-muted" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 1.5a6.5 6.5 0 110 13 6.5 6.5 0 010-13z"/></svg>
+                            <span class="text-xs text-muted">Android</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Product</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="/index.html#features"     class="text-sm text-muted hover:text-chalk transition">Features</a></li>
+                        <li><a href="/index.html#how-it-works" class="text-sm text-muted hover:text-chalk transition">How It Works</a></li>
+                        <li><a href="/index.html#pricing"      class="text-sm text-muted hover:text-chalk transition">Pricing</a></li>
+                        <li><a href="guide.html"               class="text-sm text-muted hover:text-chalk transition">Setup Guide</a></li>
+                        <li><a href="dartvoice-dashboard.html" class="text-sm text-muted hover:text-chalk transition">Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Earn</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="referral.html" class="text-sm text-muted hover:text-chalk transition flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-brand inline-block shrink-0"></span>Ambassador Program</a></li>
+                        <li><a href="referral.html#how-it-works" class="text-sm text-muted hover:text-chalk transition">How It Works</a></li>
+                        <li><a href="dartvoice-dashboard.html#ambassador" class="text-sm text-muted hover:text-chalk transition">Get My Link</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Legal &amp; Support</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="terms.html"               class="text-sm text-muted hover:text-chalk transition">Terms of Service</a></li>
+                        <li><a href="mailto:support@dartvoice.com" class="text-sm text-muted hover:text-chalk transition">support@dartvoice.com</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Payment methods -->
+            <div class="border-t border-wire/60 pt-8 mb-6">
+                <p class="footer-col-head mb-4">Accepted Payment Methods</p>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Stripe">
+                        <svg class="h-3.5" viewBox="0 0 60 22" fill="none"><text x="0" y="17" font-family="Arial" font-weight="700" font-size="17" fill="#6772E5">stripe</text></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Visa">
+                        <svg viewBox="0 0 750 471" class="h-4 w-auto"><rect width="750" height="471" rx="40" fill="#1A1F71"/><path d="M278 334l33-195h53l-33 195h-53zm243-190c-10-4-27-8-47-8-52 0-89 26-89 64 0 28 26 44 46 53 20 10 27 16 27 25 0 13-16 19-31 19-20 0-32-3-49-10l-7-3-7 41c12 5 34 10 57 10 55 0 90-26 90-66 0-22-14-39-44-53-18-9-29-15-29-24 0-8 9-17 29-17 16 0 28 3 37 7l5 2 8-40zm140-5h-40c-13 0-22 4-28 17l-80 178h57s9-24 11-29h69c2 7 6 29 6 29h50l-44-195zm-67 118c4-11 20-53 20-53s4-11 7-17l3 15s9 42 11 55h-41zm-340-118l-52 133-6-27c-10-29-42-60-77-76l47 169h58l87-199h-57z" fill="white"/><path d="M155 139H73l-1 5c56 14 94 47 109 87l-16-77c-3-12-11-15-20-15z" fill="#F9A533"/></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Mastercard">
+                        <svg viewBox="0 0 131 86" class="h-4 w-auto"><circle cx="47" cy="43" r="43" fill="#EB001B"/><circle cx="84" cy="43" r="43" fill="#F79E1B"/><path d="M65.5 13.5a43 43 0 010 59A43 43 0 0165.5 13.5z" fill="#FF5F00"/></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="American Express">
+                        <svg viewBox="0 0 48 16" class="h-3.5 w-auto"><rect width="48" height="16" rx="3" fill="#2E77BC"/><text x="4" y="12" font-family="Arial" font-weight="900" font-size="11" fill="white">AMEX</text></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="PayPal">
+                        <svg viewBox="0 0 56 16" class="h-3.5 w-auto"><text x="0" y="12" font-family="Arial" font-weight="700" font-size="13" fill="#003087">Pay</text><text x="22" y="12" font-family="Arial" font-weight="700" font-size="13" fill="#009CDE">Pal</text></svg>
+                    </div>
+                    <div class="inline-flex items-center gap-1 h-7 px-2.5 bg-black border border-white/10 rounded-md" title="Apple Pay">
+                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 814 1000"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.3-155.5-127.4C46.7 790.5 0 663 0 541.8c0-207.8 133.2-317.9 260.6-317.9 69.9 0 127.9 46.4 172.4 46.4 42.7 0 109.5-49.1 189.8-49.1 30.8.1 110.6 5.6 173.5 63.6z"/><path d="M536.2 162.5C576.9 116 603.3 53.2 603.3 0c0-4.4-.3-8.8-.7-13.2-52.4 2.1-114.5 35.8-152.7 84.1-37.6 44.6-68.9 108.7-68.9 172.5 0 5 .7 10 1.1 11.8 3.8.6 10 1.5 16.2 1.5 46.9 0 104.8-31.5 137.9-94.2z"/></svg>
+                        <span class="text-white text-xs font-medium">Pay</span>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Google Pay">
+                        <svg viewBox="0 0 58 14" class="h-3.5 w-auto"><text x="0" y="11" font-family="Arial" font-size="10" font-weight="500"><tspan fill="#4285F4">G</tspan><tspan fill="#EA4335">o</tspan><tspan fill="#FBBC05">o</tspan><tspan fill="#4285F4">g</tspan><tspan fill="#34A853">l</tspan><tspan fill="#EA4335">e</tspan><tspan fill="#F0F0F5"> Pay</tspan></text></svg>
+                    </div>
+                    <div class="inline-flex items-center h-7 px-2.5 rounded-md" style="background:#FFB3C7" title="Klarna">
+                        <svg viewBox="0 0 52 14" class="h-3.5 w-auto"><text x="0" y="11" font-family="Arial" font-weight="700" font-size="11" fill="#17120E">klarna</text></svg>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 h-7 px-2.5 bg-white/[0.04] border border-white/[0.08] rounded-md" title="Debit Card / Bank Transfer">
+                        <svg class="w-3.5 h-3.5 text-muted" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                        <span class="text-muted text-xs">Card / Bank</span>
+                    </div>
+                    <div class="ml-auto hidden sm:flex items-center gap-1.5 text-xs" style="color:#4A4A5A">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                        Secured by Stripe
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="border-t border-wire/40 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style="color:#4A4A5A">
+                <span>&copy; 2026 DartVoice. All rights reserved.</span>
+                <div class="flex items-center gap-5">
+                    <a href="terms.html"                   class="hover:text-muted transition">Terms</a>
+                    <a href="mailto:support@dartvoice.com" class="hover:text-muted transition">Contact</a>
+                    <a href="referral.html"                class="hover:text-brand transition flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-brand"></span>Ambassador</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>

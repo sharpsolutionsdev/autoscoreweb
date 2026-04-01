@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Dashboard | DartVoice</title>
+    <meta name="description" content="Manage your DartVoice subscription and download the app.">
+    <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,12 +22,14 @@
                     colors: {
                         brand: '#CC0B20',
                         'brand-light': '#e60d24',
-                        dark: '#0a0a0a',
+                        dark: '#08080A',
                         'dark-2': '#0f0f0f',
-                        card: '#131313',
-                        'card-2': '#191919',
-                        muted: '#737373',
-                        'muted-2': '#525252',
+                        card: '#111114',
+                        'card-2': '#18181C',
+                        wire: '#252530',
+                        muted: '#6E6E82',
+                        'muted-2': '#4A4A5A',
+                        chalk: '#F0F0F5',
                         success: '#22c55e',
                     }
                 }
@@ -34,275 +38,609 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0a0a; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
         .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.02em; text-transform: uppercase; }
 
-        /* Hero glow behind dashboard */
-        .dash-glow {
-            background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(204,11,32,0.06) 0%, transparent 70%);
+        /* ── Glow ── */
+        .hero-glow {
+            background:
+                radial-gradient(ellipse 70% 50% at 50% -10%, rgba(204,11,32,0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 30% at 50% 5%, rgba(204,11,32,0.06) 0%, transparent 60%);
         }
 
-        /* Animations */
+        /* ── Noise ── */
+        .noise::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.018;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* ── Animations ── */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
         .fade-up   { animation: fadeUp 0.5s ease-out forwards; }
-        .fade-up-2 { animation: fadeUp 0.5s 0.08s ease-out both; }
-        .fade-up-3 { animation: fadeUp 0.5s 0.16s ease-out both; }
-        .fade-up-4 { animation: fadeUp 0.5s 0.24s ease-out both; }
-        .fade-up-5 { animation: fadeUp 0.5s 0.32s ease-out both; }
+        .fade-up-2 { animation: fadeUp 0.5s 0.07s ease-out both; }
+        .fade-up-3 { animation: fadeUp 0.5s 0.14s ease-out both; }
+        .fade-up-4 { animation: fadeUp 0.5s 0.21s ease-out both; }
+        .fade-up-5 { animation: fadeUp 0.5s 0.28s ease-out both; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner {
-            border: 3px solid rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.06);
             border-top-color: #CC0B20;
             border-radius: 50%;
-            width: 36px; height: 36px;
-            animation: spin 0.7s linear infinite;
+            width: 32px; height: 32px;
+            animation: spin 0.75s linear infinite;
         }
 
         @keyframes pulseDot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
         }
         .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
 
-        /* Button styles */
+        @keyframes shimmer {
+            0% { background-position: -600px 0; }
+            100% { background-position: 600px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.055) 40%, rgba(255,255,255,0.025) 80%);
+            background-size: 600px 100%;
+            animation: shimmer 1.8s infinite linear;
+            border-radius: 8px;
+        }
+
+        /* ── Buttons ── */
         .btn-brand {
             background: #CC0B20;
             transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
         }
+        .btn-brand::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .btn-brand:hover::after { opacity: 1; }
         .btn-brand:hover {
             background: #e60d24;
-            box-shadow: 0 0 28px rgba(204,11,32,0.35), 0 4px 12px rgba(204,11,32,0.2);
+            box-shadow: 0 0 32px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
             transform: translateY(-1px);
         }
         .btn-brand:active { transform: translateY(0); }
 
-        .btn-outline {
-            border: 1px solid rgba(255,255,255,0.1);
+        .btn-ghost {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: transparent;
             transition: all 0.2s;
         }
-        .btn-outline:hover {
-            border-color: rgba(255,255,255,0.2);
+        .btn-ghost:hover {
+            border-color: rgba(255,255,255,0.16);
             background: rgba(255,255,255,0.03);
         }
 
-        /* Input focus */
+        /* ── Input ── */
         .dv-input {
+            background: #111111;
+            border: 1px solid rgba(255,255,255,0.07);
             transition: all 0.2s;
+            color: white;
         }
+        .dv-input::placeholder { color: rgba(255,255,255,0.25); }
         .dv-input:focus {
             border-color: #CC0B20;
-            box-shadow: 0 0 0 3px rgba(204,11,32,0.12), 0 0 16px rgba(204,11,32,0.06);
+            box-shadow: 0 0 0 3px rgba(204,11,32,0.1), 0 0 20px rgba(204,11,32,0.05);
             outline: none;
         }
 
-        /* Card hover */
-        .dl-card {
-            transition: all 0.25s;
-        }
-        .dl-card:hover {
-            border-color: rgba(204,11,32,0.25);
-            box-shadow: 0 0 20px rgba(204,11,32,0.06);
-            transform: translateY(-2px);
+        /* ── Cards ── */
+        .card-panel {
+            background: #111111;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
         }
 
-        /* Disabled state */
-        button:disabled, .btn-brand:disabled {
-            opacity: 0.5;
+        .dl-card {
+            background: #0f0f0f;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            transition: all 0.25s;
+            cursor: pointer;
+        }
+        .dl-card:hover {
+            border-color: rgba(204,11,32,0.2);
+            background: #131313;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(204,11,32,0.04);
+        }
+
+        /* ── Step connector ── */
+        .step-line {
+            position: absolute;
+            left: 13px;
+            top: 28px;
+            bottom: -12px;
+            width: 1px;
+            background: linear-gradient(to bottom, rgba(204,11,32,0.3), transparent);
+        }
+
+        /* ── Subscription accent bar ── */
+        .sub-accent {
+            background: linear-gradient(90deg, #CC0B20 0%, rgba(204,11,32,0.3) 100%);
+            height: 2px;
+        }
+
+        /* ── Trial countdown bar ── */
+        .trial-bar-track {
+            background: rgba(255,255,255,0.06);
+            border-radius: 999px;
+            height: 4px;
+            overflow: hidden;
+        }
+        .trial-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #CC0B20, #e60d24);
+            transition: width 0.5s ease;
+        }
+
+        /* ── Disabled ── */
+        button:disabled {
+            opacity: 0.45;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
         }
+
+        /* ── Scoreboard pip ── */
+        .score-pip {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        /* ── Tabs ── */
+        .tab-btn {
+            color: #6E6E82;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            padding-bottom: 10px;
+        }
+        .tab-btn:hover { color: #F0F0F5; }
+        .tab-btn.active {
+            color: #F0F0F5;
+            border-bottom-color: #CC0B20;
+        }
     </style>
 </head>
-<body class="dash-glow min-h-screen text-white antialiased">
+<body class="hero-glow min-h-screen text-white antialiased noise">
 
     <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <nav class="border-b border-white/5 bg-dark/80 backdrop-blur-xl sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+    <nav class="border-b border-white/[0.04] bg-dark/70 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
+
+            <!-- Logo -->
             <a href="/" class="flex items-center gap-2.5 group">
-                <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                    </svg>
-                </div>
-                <span class="display text-lg group-hover:text-brand transition">DARTVOICE</span>
+                <svg viewBox="0 0 36 36" class="w-7 h-7 shrink-0" fill="none">
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="3" fill="white"/>
+                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="display text-base group-hover:text-brand transition-colors">DARTVOICE</span>
             </a>
-            <div class="flex items-center gap-4">
-                <span id="nav-email" class="hidden text-xs text-muted truncate max-w-[180px]"></span>
-                <button id="btn-signout" onclick="signOut()" class="hidden text-xs text-muted hover:text-white transition px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/[0.03]">
-                    Sign Out
+
+            <!-- Right side -->
+            <div class="flex items-center gap-3">
+                <a href="/" class="text-xs text-muted hover:text-white transition hidden sm:block">Home</a>
+                <a href="guide.html" class="text-xs text-muted hover:text-white transition hidden sm:block">Guide</a>
+                <div class="w-px h-4 bg-white/10 hidden sm:block"></div>
+                <span id="nav-email" class="hidden text-xs text-muted truncate max-w-[160px]"></span>
+                <button id="btn-signout" onclick="signOut()"
+                        class="hidden btn-ghost text-xs text-muted hover:text-white px-3 py-1.5 rounded-lg">
+                    Sign out
                 </button>
             </div>
         </div>
     </nav>
 
     <!-- ━━━ LOADING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <div id="view-loading" class="flex items-center justify-center" style="height:calc(100vh - 56px)">
+    <div id="view-loading" class="flex flex-col items-center justify-center gap-4" style="height:calc(100vh - 56px)">
         <div class="spinner"></div>
+        <p class="text-muted text-xs tracking-widest uppercase">Loading</p>
     </div>
 
-    <!-- ━━━ AUTH VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- ━━━ AUTH VIEW (redirect only) ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div id="view-auth" class="hidden">
-        <div class="min-h-[calc(100vh-56px)] flex items-center justify-center px-6 py-16">
-            <div class="w-full max-w-sm">
-                <!-- Logo & heading -->
-                <div class="text-center mb-10 fade-up">
-                    <div class="w-16 h-16 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-5">
-                        <svg class="w-8 h-8 text-brand" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                        </svg>
-                    </div>
-                    <h1 class="display text-3xl mb-2">SIGN IN</h1>
-                    <p class="text-muted text-sm">Enter your email to receive a one-time code</p>
-                </div>
-
-                <!-- Step 1: Email -->
-                <div id="auth-step-email" class="fade-up-2">
-                    <div class="space-y-3">
-                        <label class="text-xs font-medium text-muted-2 block">Email address</label>
-                        <input id="input-email" type="email" placeholder="you@example.com"
-                               class="dv-input w-full px-4 py-3 bg-card border border-white/8 rounded-xl text-white placeholder-muted/50 text-sm">
-                        <button onclick="sendOtp()" id="btn-send-otp"
-                                class="btn-brand w-full py-3 rounded-xl text-white font-semibold text-sm">
-                            Continue
-                        </button>
-                    </div>
-                    <p id="auth-error" class="text-red-400 text-xs text-center mt-3 hidden"></p>
-                    <p class="text-muted-2 text-xs text-center mt-6">We'll send you a 6-digit code. No password needed.</p>
-                </div>
-
-                <!-- Step 2: OTP -->
-                <div id="auth-step-otp" class="hidden fade-up-2">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <label class="text-xs font-medium text-muted-2">Verification code</label>
-                            <button onclick="resetAuth()" class="text-xs text-muted hover:text-brand transition">Change email</button>
-                        </div>
-                        <p class="text-muted text-sm">Sent to <span id="otp-email-display" class="text-white font-medium"></span></p>
-                        <input id="input-otp" type="text" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code"
-                               class="dv-input w-full px-4 py-4 bg-card border border-white/8 rounded-xl text-white text-center text-2xl tracking-[0.4em] placeholder-muted/30 font-mono">
-                        <button onclick="verifyOtp()" id="btn-verify-otp"
-                                class="btn-brand w-full py-3 rounded-xl text-white font-semibold text-sm">
-                            Verify Code
-                        </button>
-                    </div>
-                    <p id="otp-error" class="text-red-400 text-xs text-center mt-3 hidden"></p>
-                </div>
-            </div>
+        <div class="min-h-[calc(100vh-56px)] flex items-center justify-center px-5">
+            <p class="text-muted text-sm">Redirecting to sign in…</p>
         </div>
     </div>
 
     <!-- ━━━ DASHBOARD VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div id="view-dashboard" class="hidden">
-        <div class="max-w-3xl mx-auto px-6 py-10">
+        <div class="max-w-5xl mx-auto px-5 sm:px-8 py-10 pb-20">
 
-            <!-- Header -->
-            <div class="mb-8 fade-up">
-                <h1 class="display text-3xl sm:text-4xl mb-1">YOUR DASHBOARD</h1>
-                <p class="text-muted text-sm">Manage your subscription and download DartVoice.</p>
-            </div>
-
-            <!-- ── Subscription Card ──────────────────────────────── -->
-            <div id="card-status" class="bg-card rounded-2xl border border-white/5 overflow-hidden mb-5 fade-up-2">
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-1">
-                        <h2 class="font-semibold">Subscription</h2>
-                        <span id="status-badge"></span>
+            <!-- ── First-time welcome banner ────────────────────── -->
+            <div id="welcome-banner" class="hidden mb-6 fade-up">
+                <div class="flex items-start gap-4 p-5 rounded-2xl" style="background: linear-gradient(135deg, rgba(204,11,32,0.12) 0%, rgba(204,11,32,0.04) 100%); border: 1px solid rgba(204,11,32,0.2);">
+                    <div class="w-10 h-10 rounded-xl bg-brand/15 border border-brand/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
                     </div>
-                    <div id="status-details" class="text-muted text-sm mt-2"></div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-chalk text-sm">You're in — welcome to DartVoice!</p>
+                        <p class="text-muted text-xs mt-0.5 leading-relaxed">Start your 7-day free trial below to download the app and get scoring. No credit card charge until day 7 — cancel any time.</p>
+                    </div>
+                    <button onclick="this.closest('#welcome-banner').classList.add('hidden')" class="text-muted hover:text-chalk transition shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <div id="status-actions" class="border-t border-white/5 px-6 py-4 bg-dark-2/50 flex gap-3 flex-wrap"></div>
             </div>
 
-            <!-- ── Downloads Card (gated) ─────────────────────────── -->
-            <div id="card-downloads" class="hidden fade-up-3">
-                <div class="bg-card rounded-2xl border border-white/5 overflow-hidden">
-                    <div class="p-6 pb-4">
-                        <div class="flex items-center gap-2 mb-1">
-                            <h2 class="font-semibold">Downloads</h2>
-                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">UNLOCKED</span>
-                        </div>
-                        <p class="text-muted text-sm">Get DartVoice for your platform.</p>
-                    </div>
-                    <div class="px-6 pb-6 grid sm:grid-cols-2 gap-3">
+            <!-- ── Page header ───────────────────────────────────── -->
+            <div class="mb-6 fade-up flex items-end justify-between gap-4">
+                <div>
+                    <p id="dash-greeting" class="text-[11px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Dashboard</p>
+                    <h1 class="display text-4xl sm:text-5xl">DARTVOICE</h1>
+                </div>
+            </div>
 
-                        <!-- Windows -->
-                        <a href="https://dartvoice.com/downloads/DartVoice_Setup.exe" id="dl-windows"
-                           class="dl-card group flex items-center gap-4 p-4 bg-dark-2 rounded-xl border border-white/5">
-                            <div class="w-12 h-12 rounded-xl bg-blue-500/8 border border-blue-500/10 flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+            <!-- ── Tab nav ──────────────────────────────────────── -->
+            <div class="mb-6 fade-up flex gap-1 border-b border-white/[0.06]">
+                <button onclick="switchTab('overview')" id="tab-btn-overview"
+                        class="tab-btn active px-4 py-2.5 text-sm font-semibold relative transition">
+                    Overview
+                </button>
+                <button onclick="switchTab('ambassador')" id="tab-btn-ambassador"
+                        class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition flex items-center gap-2">
+                    Ambassador
+                    <span id="amb-earned-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20"></span>
+                </button>
+            </div>
+
+            <!-- ── TAB: Overview ─────────────────────────────────── -->
+            <div id="tab-overview">
+            <!-- ── Main grid ─────────────────────────────────────── -->
+            <div class="grid lg:grid-cols-[1fr_340px] gap-5">
+
+                <!-- Left column -->
+                <div class="space-y-5">
+
+                    <!-- Subscription Card -->
+                    <div class="card-panel fade-up-2">
+                        <div class="sub-accent"></div>
+                        <div class="p-6">
+                            <div class="flex items-start justify-between gap-4 mb-4">
+                                <div>
+                                    <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Subscription</p>
+                                    <div id="status-details" class="text-sm text-muted">
+                                        <div class="skeleton w-56 h-4 mb-2"></div>
+                                        <div class="skeleton w-36 h-3"></div>
+                                    </div>
+                                </div>
+                                <div id="status-badge" class="shrink-0">
+                                    <div class="skeleton w-20 h-6 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="status-actions" class="border-t border-white/[0.04] px-6 py-4 bg-dark-2/40 flex gap-3 flex-wrap">
+                            <div class="skeleton w-44 h-10 rounded-xl"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Start -->
+                    <div id="card-quickstart" class="hidden card-panel fade-up-3">
+                        <div class="p-6">
+                            <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Get started</p>
+                            <h2 class="display text-2xl mb-5">QUICK START</h2>
+                            <div class="space-y-5">
+
+                                <div class="flex gap-4 relative">
+                                    <div class="step-line"></div>
+                                    <div class="w-7 h-7 rounded-lg bg-brand/15 border border-brand/20 text-brand flex items-center justify-center shrink-0 score-pip text-lg z-10">1</div>
+                                    <div class="pt-0.5">
+                                        <p class="text-sm font-semibold">Download &amp; install</p>
+                                        <p class="text-muted text-xs mt-0.5 leading-relaxed">Grab the installer for your platform below and run it. Windows admin rights may be needed.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-4 relative">
+                                    <div class="step-line"></div>
+                                    <div class="w-7 h-7 rounded-lg bg-brand/15 border border-brand/20 text-brand flex items-center justify-center shrink-0 score-pip text-lg z-10">2</div>
+                                    <div class="pt-0.5">
+                                        <p class="text-sm font-semibold">Sign in with your email</p>
+                                        <p class="text-muted text-xs mt-0.5 leading-relaxed">Use the same email you signed up with. You'll receive a 6-digit code just like on this site.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-4">
+                                    <div class="w-7 h-7 rounded-lg bg-brand/15 border border-brand/20 text-brand flex items-center justify-center shrink-0 score-pip text-lg">3</div>
+                                    <div class="pt-0.5">
+                                        <p class="text-sm font-semibold">Calibrate &amp; throw</p>
+                                        <p class="text-muted text-xs mt-0.5 leading-relaxed">Run the calibration wizard once, pick your game mode, and start calling your scores aloud.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-t border-white/[0.04] px-6 py-3 bg-dark-2/40">
+                            <a href="guide.html" class="text-xs text-muted hover:text-brand transition inline-flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                                 </svg>
+                                Read the full setup &amp; calibration guide →
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right column -->
+                <div class="space-y-5">
+
+                    <!-- Downloads Card -->
+                    <div id="card-downloads" class="hidden card-panel fade-up-2">
+                        <div class="p-5 pb-4">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest">Downloads</p>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/15 tracking-wide">UNLOCKED</span>
                             </div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-sm group-hover:text-brand transition truncate">Windows Installer</p>
-                                <p class="text-muted text-xs">DartVoice_Setup.exe</p>
+                            <h2 class="display text-2xl">GET THE APP</h2>
+                        </div>
+                        <div class="px-5 pb-5 space-y-3">
+
+                            <!-- Windows -->
+                            <a href="https://dartvoice.com/downloads/DartVoice_Setup.exe" id="dl-windows"
+                               class="dl-card group flex items-center gap-3 p-4">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/8 border border-blue-500/10 flex items-center justify-center shrink-0">
+                                    <svg class="w-4.5 h-4.5 text-blue-400" fill="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                                        <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-sm group-hover:text-brand transition">Windows</p>
+                                    <p class="text-muted-2 text-xs">DartVoice_Setup.exe</p>
+                                </div>
+                                <svg class="w-4 h-4 text-muted-2 group-hover:text-brand transition shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                            </a>
+
+                            <!-- Android -->
+                            <a href="https://dartvoice.com/downloads/DartVoice.apk" id="dl-android"
+                               class="dl-card group flex items-center gap-3 p-4">
+                                <div class="w-10 h-10 rounded-xl bg-green-500/8 border border-green-500/10 flex items-center justify-center shrink-0">
+                                    <svg class="w-4.5 h-4.5 text-green-400" fill="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                                        <path d="M17.523 2.237a.6.6 0 00-.828.18l-1.46 2.32a7.337 7.337 0 00-6.47 0L7.305 2.418a.6.6 0 10-1.008.649l1.387 2.204A7.288 7.288 0 004 11.2h16a7.288 7.288 0 00-3.684-5.929l1.387-2.204a.6.6 0 00-.18-.83zM8.4 8.8a.8.8 0 110-1.6.8.8 0 010 1.6zm7.2 0a.8.8 0 110-1.6.8.8 0 010 1.6zM4 12v6.4a1.6 1.6 0 001.6 1.6H7v2.4a1.2 1.2 0 002.4 0V20h5.2v2.4a1.2 1.2 0 002.4 0V20h1.4a1.6 1.6 0 001.6-1.6V12H4zm-2.8 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6A1.2 1.2 0 001.2 12zm21.6 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6a1.2 1.2 0 00-1.2-1.2z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-sm group-hover:text-brand transition">Android</p>
+                                    <p class="text-muted-2 text-xs">DartVoice.apk</p>
+                                </div>
+                                <svg class="w-4 h-4 text-muted-2 group-hover:text-brand transition shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Locked downloads (shown when not subscribed) -->
+                    <div id="card-downloads-locked" class="card-panel fade-up-2">
+                        <div class="p-5 pb-4">
+                            <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-0.5">Downloads</p>
+                            <h2 class="display text-2xl text-muted">GET THE APP</h2>
+                        </div>
+                        <div class="px-5 pb-5 space-y-3">
+                            <div class="flex items-center gap-3 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] opacity-50 pointer-events-none select-none">
+                                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-muted-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-sm text-muted">Windows</p>
+                                    <p class="text-muted-2 text-xs">Requires subscription</p>
+                                </div>
                             </div>
-                            <svg class="w-5 h-5 text-muted-2 ml-auto shrink-0 group-hover:text-brand transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            <div class="flex items-center gap-3 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] opacity-50 pointer-events-none select-none">
+                                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-muted-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-sm text-muted">Android</p>
+                                    <p class="text-muted-2 text-xs">Requires subscription</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help links -->
+                    <div class="fade-up-4 space-y-2 px-1">
+                        <a href="guide.html" class="flex items-center gap-3 py-2 text-muted hover:text-white transition group">
+                            <svg class="w-4 h-4 text-muted-2 group-hover:text-brand transition shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                            <span class="text-sm">Setup &amp; calibration guide</span>
+                            <svg class="w-3.5 h-3.5 ml-auto text-muted-2 group-hover:text-brand transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                             </svg>
                         </a>
-
-                        <!-- Android -->
-                        <a href="https://dartvoice.com/downloads/DartVoice.apk" id="dl-android"
-                           class="dl-card group flex items-center gap-4 p-4 bg-dark-2 rounded-xl border border-white/5">
-                            <div class="w-12 h-12 rounded-xl bg-green-500/8 border border-green-500/10 flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M17.523 2.237a.6.6 0 00-.828.18l-1.46 2.32a7.337 7.337 0 00-6.47 0L7.305 2.418a.6.6 0 10-1.008.649l1.387 2.204A7.288 7.288 0 004 11.2h16a7.288 7.288 0 00-3.684-5.929l1.387-2.204a.6.6 0 00-.18-.83zM8.4 8.8a.8.8 0 110-1.6.8.8 0 010 1.6zm7.2 0a.8.8 0 110-1.6.8.8 0 010 1.6zM4 12v6.4a1.6 1.6 0 001.6 1.6H7v2.4a1.2 1.2 0 002.4 0V20h5.2v2.4a1.2 1.2 0 002.4 0V20h1.4a1.6 1.6 0 001.6-1.6V12H4zm-2.8 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6A1.2 1.2 0 001.2 12zm21.6 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6a1.2 1.2 0 00-1.2-1.2z"/>
-                                </svg>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-sm group-hover:text-brand transition truncate">Android App</p>
-                                <p class="text-muted text-xs">DartVoice.apk</p>
-                            </div>
-                            <svg class="w-5 h-5 text-muted-2 ml-auto shrink-0 group-hover:text-brand transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        <div class="w-full h-px bg-white/[0.04]"></div>
+                        <a href="mailto:support@dartvoice.com" class="flex items-center gap-3 py-2 text-muted hover:text-white transition group">
+                            <svg class="w-4 h-4 text-muted-2 group-hover:text-brand transition shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="text-sm">support@dartvoice.com</span>
+                            <svg class="w-3.5 h-3.5 ml-auto text-muted-2 group-hover:text-brand transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                             </svg>
                         </a>
                     </div>
+
                 </div>
             </div>
+            </div><!-- /tab-overview -->
 
-            <!-- ── Quick Start (shown when subscribed) ────────────── -->
-            <div id="card-quickstart" class="hidden fade-up-4">
-                <div class="bg-card rounded-2xl border border-white/5 p-6 mt-5">
-                    <h2 class="font-semibold mb-4">Quick Start</h2>
-                    <div class="grid gap-4">
-                        <div class="flex gap-4">
-                            <div class="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0 text-xs font-bold display not-italic">1</div>
+            <!-- ── TAB: Ambassador ───────────────────────────────── -->
+            <div id="tab-ambassador" class="hidden space-y-5">
+
+                <!-- Referral link card -->
+                <div class="card-panel fade-up-2">
+                    <div class="sub-accent"></div>
+                    <div class="p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <p class="text-sm font-medium">Download &amp; Install</p>
-                                <p class="text-muted text-xs mt-0.5">Grab the installer above for your platform and run it.</p>
+                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Ambassador Program</p>
+                                <h2 class="display text-2xl">YOUR REFERRAL LINK</h2>
+                            </div>
+                            <span id="amb-status-badge" class="shrink-0">
+                                <div class="skeleton w-20 h-6 rounded-full"></div>
+                            </span>
+                        </div>
+
+                        <!-- Link copy row -->
+                        <div class="flex gap-2 mb-5">
+                            <div class="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-dark border border-white/[0.06] font-mono text-sm text-muted overflow-hidden">
+                                <svg class="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                </svg>
+                                <span id="ref-link-text" class="truncate text-chalk/80">Loading…</span>
+                            </div>
+                            <button id="btn-copy-link" onclick="copyRefLink()"
+                                    class="shrink-0 px-4 py-3 rounded-xl bg-brand hover:bg-brand-light text-white text-xs font-bold transition">
+                                Copy
+                            </button>
+                        </div>
+
+                        <!-- Stats row -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="p-4 rounded-xl bg-dark border border-white/[0.04] text-center">
+                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1.5">Referrals</p>
+                                <p id="amb-total-referrals" class="display text-3xl text-chalk">—</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-dark border border-white/[0.04] text-center">
+                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1.5">Converted</p>
+                                <p id="amb-converted" class="display text-3xl text-chalk">—</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-dark border border-white/[0.04] text-center">
+                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1.5">Balance</p>
+                                <p id="amb-balance" class="display text-3xl text-success">£—</p>
                             </div>
                         </div>
-                        <div class="flex gap-4">
-                            <div class="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0 text-xs font-bold display not-italic">2</div>
-                            <div>
-                                <p class="text-sm font-medium">Sign in with your email</p>
-                                <p class="text-muted text-xs mt-0.5">Use the same email you signed up with. You'll get a code just like this website.</p>
+                    </div>
+
+                    <!-- Share buttons + earn hint -->
+                    <div class="border-t border-white/[0.04] px-6 py-4 bg-dark-2/40 flex flex-wrap gap-3 items-center justify-between">
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="shareWhatsApp()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:border-white/15 text-sm font-medium transition">
+                                <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                WhatsApp
+                            </button>
+                            <button onclick="shareNative()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:border-white/15 text-sm font-medium transition">
+                                <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                Share Link
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-muted-2">£5 per paying referral &middot; no limit</p>
+                    </div>
+                </div>
+
+                <!-- Payout card -->
+                <div id="card-payout" class="card-panel fade-up-3">
+                    <div class="p-6">
+                        <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Cash Out</p>
+                        <h2 class="display text-2xl mb-4">REQUEST PAYOUT</h2>
+
+                        <div id="payout-locked" class="hidden">
+                            <div class="p-4 rounded-xl bg-dark/60 border border-white/[0.04] text-center">
+                                <p class="text-muted text-sm">Minimum £5 balance to cash out</p>
+                                <p class="text-muted-2 text-xs mt-1">Keep referring — each paid signup adds £5 to your balance.</p>
                             </div>
                         </div>
-                        <div class="flex gap-4">
-                            <div class="w-7 h-7 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0 text-xs font-bold display not-italic">3</div>
+
+                        <div id="payout-form" class="hidden space-y-3">
+                            <p class="text-muted text-sm">We'll send your balance to your PayPal within 3 business days.</p>
                             <div>
-                                <p class="text-sm font-medium">Set up your game &amp; throw</p>
-                                <p class="text-muted text-xs mt-0.5">Choose your game mode, add players, and start calling your scores. DartVoice handles the rest.</p>
+                                <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">PayPal email</label>
+                                <input id="input-paypal" type="email" placeholder="your@paypal.com"
+                                       class="w-full px-4 py-3 rounded-xl bg-dark border border-white/[0.07] text-sm text-chalk placeholder:text-muted-2 outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(204,11,32,0.1)] transition">
+                            </div>
+                            <button onclick="requestPayout()" id="btn-payout"
+                                    class="btn-brand px-5 py-3 rounded-xl text-white font-semibold text-sm w-full">
+                                Request Payout
+                            </button>
+                            <p id="payout-msg" class="text-xs text-center hidden"></p>
+                        </div>
+
+                        <div id="payout-loading" class="p-4 text-center">
+                            <div class="skeleton w-48 h-4 mx-auto mb-2"></div>
+                            <div class="skeleton w-32 h-3 mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent referrals -->
+                <div class="card-panel fade-up-4">
+                    <div class="p-5 pb-4">
+                        <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-0.5">Activity</p>
+                        <h2 class="display text-2xl">RECENT REFERRALS</h2>
+                    </div>
+                    <div id="referrals-list" class="px-5 pb-5">
+                        <div class="space-y-2">
+                            <div class="skeleton h-10 rounded-xl"></div>
+                            <div class="skeleton h-10 rounded-xl"></div>
+                            <div class="skeleton h-10 rounded-xl"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How it works strip -->
+                <div class="card-panel fade-up-5">
+                    <div class="p-6">
+                        <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-4">How It Works</p>
+                        <div class="grid sm:grid-cols-3 gap-4">
+                            <div class="flex gap-3">
+                                <div class="w-7 h-7 rounded-lg bg-brand/15 border border-brand/20 text-brand flex items-center justify-center shrink-0 score-pip text-lg">1</div>
+                                <div>
+                                    <p class="text-sm font-semibold">Share your link</p>
+                                    <p class="text-muted text-xs mt-0.5 leading-relaxed">Post in darts groups, WhatsApp chats, or forums.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="w-7 h-7 rounded-lg bg-brand/15 border border-brand/20 text-brand flex items-center justify-center shrink-0 score-pip text-lg">2</div>
+                                <div>
+                                    <p class="text-sm font-semibold">They get 7 days free</p>
+                                    <p class="text-muted text-xs mt-0.5 leading-relaxed">Your friend gets the standard free trial — no card needed.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="w-7 h-7 rounded-lg bg-brand/15 border border-brand/20 text-brand flex items-center justify-center shrink-0 score-pip text-lg">3</div>
+                                <div>
+                                    <p class="text-sm font-semibold">You earn £5 cash</p>
+                                    <p class="text-muted text-xs mt-0.5 leading-relaxed">Once they pay their first month, £5 goes to your balance.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- ── Need Help ──────────────────────────────────────── -->
-            <div class="mt-8 text-center fade-up-5">
-                <p class="text-muted-2 text-xs">
-                    Need help? <a href="mailto:support@dartvoice.com" class="text-muted hover:text-brand transition underline underline-offset-2">support@dartvoice.com</a>
-                </p>
-            </div>
+            </div><!-- /tab-ambassador -->
+
         </div>
     </div>
 
@@ -310,15 +648,11 @@
          JAVASCRIPT
          ═══════════════════════════════════════════════════════════ -->
     <script>
-    // ── Config ────────────────────────────────────────────────────
     const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
     const BILLING_URL  = 'https://billing.dartvoice.com';
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let _userEmail = '';
-
-    // ── Helpers ───────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
     const show = id => $(id).classList.remove('hidden');
     const hide = id => $(id).classList.add('hidden');
@@ -329,81 +663,35 @@
         if (name === 'dashboard') {
             show('btn-signout');
             show('nav-email');
+        } else if (name === 'auth') {
+            // Redirect to dedicated login page rather than show inline auth
+            window.location.replace('login.html');
         } else {
             hide('btn-signout');
             hide('nav-email');
         }
     }
 
-    // ── Auth: Send OTP ────────────────────────────────────────────
-    async function sendOtp() {
-        const email = $('input-email').value.trim().toLowerCase();
-        if (!email) return;
-
-        const btn = $('btn-send-otp');
-        btn.disabled = true;
-        btn.textContent = 'Sending code...';
-        $('auth-error').classList.add('hidden');
-
-        const { error } = await sb.auth.signInWithOtp({ email });
-        btn.disabled = false;
-        btn.textContent = 'Continue';
-
-        if (error) {
-            $('auth-error').textContent = error.message;
-            $('auth-error').classList.remove('hidden');
-            return;
-        }
-
-        _userEmail = email;
-        $('otp-email-display').textContent = email;
-        hide('auth-step-email');
-        show('auth-step-otp');
-        setTimeout(() => $('input-otp').focus(), 100);
-    }
-
-    // ── Auth: Verify OTP ──────────────────────────────────────────
-    async function verifyOtp() {
-        const token = $('input-otp').value.trim();
-        if (token.length !== 6) return;
-
-        const btn = $('btn-verify-otp');
-        btn.disabled = true;
-        btn.textContent = 'Verifying...';
-        $('otp-error').classList.add('hidden');
-
-        const { error } = await sb.auth.verifyOtp({
-            email: _userEmail,
-            token,
-            type: 'email',
-        });
-        btn.disabled = false;
-        btn.textContent = 'Verify Code';
-
-        if (error) {
-            $('otp-error').textContent = error.message;
-            $('otp-error').classList.remove('hidden');
-        }
-    }
-
-    function resetAuth() {
-        hide('auth-step-otp');
-        show('auth-step-email');
-        $('input-otp').value = '';
-        $('input-email').focus();
-    }
-
     async function signOut() {
         await sb.auth.signOut();
-        showView('auth');
-        resetAuth();
+        window.location.replace('login.html');
     }
 
     // ── Dashboard ─────────────────────────────────────────────────
     async function loadDashboard(user) {
-        $('user-email') && ($('user-email').textContent = user.email);
         $('nav-email').textContent = user.email;
         showView('dashboard');
+
+        // Greeting: use part before @ as first name fallback
+        const name = (user.user_metadata?.full_name || user.email.split('@')[0]).replace(/[._+]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        $('dash-greeting').textContent = `Welcome back, ${name}`;
+
+        // First-time welcome banner: show if account < 10 minutes old
+        const createdAt = new Date(user.created_at);
+        const ageMs = Date.now() - createdAt.getTime();
+        if (ageMs < 10 * 60 * 1000) {
+            $('welcome-banner').classList.remove('hidden');
+        }
 
         const { data: sub } = await sb.from('dartvoice_subscriptions')
             .select('*')
@@ -418,99 +706,364 @@
         const details = $('status-details');
         const actions = $('status-actions');
         const dlCard  = $('card-downloads');
+        const dlLocked = $('card-downloads-locked');
         const qsCard  = $('card-quickstart');
 
         const isActive = sub && ['active', 'trialing'].includes(sub.status);
 
+        function showDownloads(unlocked) {
+            if (unlocked) {
+                dlCard.classList.remove('hidden');
+                dlLocked.classList.add('hidden');
+                qsCard.classList.remove('hidden');
+            } else {
+                dlCard.classList.add('hidden');
+                dlLocked.classList.remove('hidden');
+                qsCard.classList.add('hidden');
+            }
+        }
+
         // ── No subscription / cancelled ──
         if (!sub || sub.status === 'none' || sub.status === 'canceled') {
-            const label = sub?.status === 'canceled' ? 'CANCELLED' : 'INACTIVE';
-            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/5 text-muted">${label}</span>`;
-            details.innerHTML = `<p class="text-muted">You don't have an active subscription. Start your free trial to download and use DartVoice.</p>`;
+            const isCanceled = sub?.status === 'canceled';
+            badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-white/5 text-muted-2 tracking-wide">${isCanceled ? 'CANCELLED' : 'NOT STARTED'}</span>`;
+            details.innerHTML = `
+                <div class="space-y-3">
+                    <p class="text-chalk font-semibold">${isCanceled ? 'Your subscription has ended.' : 'Start your free trial to get the app.'}</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex items-center gap-2 text-xs text-muted">
+                            <svg class="w-3.5 h-3.5 text-brand shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            Windows &amp; Android
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-muted">
+                            <svg class="w-3.5 h-3.5 text-brand shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            X01 &amp; Cricket
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-muted">
+                            <svg class="w-3.5 h-3.5 text-brand shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            Offline voice scoring
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-muted">
+                            <svg class="w-3.5 h-3.5 text-brand shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            Cancel any time
+                        </div>
+                    </div>
+                </div>`;
             actions.innerHTML = `
-                <a href="${BILLING_URL}/checkout?user_id=${userId}"
-                   class="btn-brand px-6 py-2.5 rounded-xl text-white font-semibold text-sm inline-flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    Start 7-Day Free Trial &mdash; &pound;6.99/mo
-                </a>`;
-            dlCard.classList.add('hidden');
-            qsCard.classList.add('hidden');
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="${BILLING_URL}/checkout?user_id=${userId}"
+                       class="btn-brand inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Start 7-Day Free Trial &mdash; &pound;6.99/mo
+                    </a>
+                    <p class="text-[11px] text-muted-2">Cancel before day 7 &mdash; pay nothing.</p>
+                </div>`;
+            showDownloads(false);
 
         // ── Trialing ──
         } else if (sub.status === 'trialing') {
             const end = new Date(sub.current_period_end);
-            const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
-            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-brand/10 text-brand border border-brand/15 inline-flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-brand pulse-dot"></span>FREE TRIAL</span>`;
+            const msLeft = end - Date.now();
+            const daysLeft = Math.max(0, Math.ceil(msLeft / 86400000));
+            const trialDays = 7;
+            const pct = Math.max(4, Math.min(100, (daysLeft / trialDays) * 100));
+            badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-brand/10 text-brand border border-brand/15 inline-flex items-center gap-1.5 tracking-wide">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand pulse-dot inline-block"></span>FREE TRIAL</span>`;
             details.innerHTML = `
-                <p><span class="text-white font-medium">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</span> remaining on your trial</p>
-                <p class="text-muted-2 text-xs mt-1">Converts to &pound;6.99/mo on ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
+                <p class="text-sm"><span class="text-white font-semibold">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</span> <span class="text-muted">remaining on your ${trialDays}-day trial</span></p>
+                <div class="trial-bar-track mt-3 mb-2">
+                    <div class="trial-bar-fill" style="width:${pct}%"></div>
+                </div>
+                <p class="text-muted-2 text-xs">Converts to &pound;6.99/mo on ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
             actions.innerHTML = `
                 <a href="${BILLING_URL}/portal?user_id=${userId}"
-                   class="btn-outline px-5 py-2 rounded-xl text-sm font-medium text-white inline-block">
+                   class="btn-ghost inline-block px-5 py-2 rounded-xl text-sm font-medium text-white">
                     Manage Subscription
                 </a>`;
-            dlCard.classList.remove('hidden');
-            qsCard.classList.remove('hidden');
+            showDownloads(true);
 
         // ── Active ──
         } else if (sub.status === 'active') {
             const end = new Date(sub.current_period_end);
-            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 inline-flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-success pulse-dot"></span>ACTIVE</span>`;
+            badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 inline-flex items-center gap-1.5 tracking-wide">
+                <span class="w-1.5 h-1.5 rounded-full bg-success pulse-dot inline-block"></span>ACTIVE</span>`;
             details.innerHTML = `
-                <p>Your subscription is active.</p>
-                <p class="text-muted-2 text-xs mt-1">Next billing: ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
+                <p class="text-sm text-muted">Your subscription is active.</p>
+                <p class="text-muted-2 text-xs mt-1.5">Next billing: <span class="text-white">${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span></p>`;
             actions.innerHTML = `
                 <a href="${BILLING_URL}/portal?user_id=${userId}"
-                   class="btn-outline px-5 py-2 rounded-xl text-sm font-medium text-white inline-block">
+                   class="btn-ghost inline-block px-5 py-2 rounded-xl text-sm font-medium text-white">
                     Manage Subscription
                 </a>`;
-            dlCard.classList.remove('hidden');
-            qsCard.classList.remove('hidden');
+            showDownloads(true);
 
         // ── Past due ──
         } else if (sub.status === 'past_due') {
-            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/15">PAST DUE</span>`;
-            details.innerHTML = `<p class="text-yellow-400/80">Your last payment failed. Please update your payment method to keep access.</p>`;
+            badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/15 tracking-wide">PAST DUE</span>`;
+            details.innerHTML = `<p class="text-yellow-400/80 text-sm">Your last payment failed. Update your payment method to restore access.</p>`;
             actions.innerHTML = `
                 <a href="${BILLING_URL}/portal?user_id=${userId}"
-                   class="btn-brand px-6 py-2.5 rounded-xl text-white font-semibold text-sm inline-block">
+                   class="btn-brand inline-block px-5 py-2.5 rounded-xl text-white font-semibold text-sm">
                     Update Payment Method
                 </a>`;
-            dlCard.classList.add('hidden');
-            qsCard.classList.add('hidden');
+            showDownloads(false);
 
         // ── Other ──
         } else {
-            badge.innerHTML = `<span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/5 text-muted">${sub.status.toUpperCase()}</span>`;
+            badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-white/5 text-muted tracking-wide">${sub.status.toUpperCase()}</span>`;
             details.innerHTML = '';
-            dlCard.classList.add('hidden');
-            qsCard.classList.add('hidden');
+            showDownloads(false);
         }
+    }
+
+    // ── Tab switching ─────────────────────────────────────────────
+    function switchTab(name) {
+        ['overview', 'ambassador'].forEach(t => {
+            const panel = $('tab-' + t);
+            const btn   = $('tab-btn-' + t);
+            if (t === name) {
+                panel.classList.remove('hidden');
+                btn.classList.add('active');
+            } else {
+                panel.classList.add('hidden');
+                btn.classList.remove('active');
+            }
+        });
+        if (name === 'ambassador' && _ambUserId) loadAmbassador(_ambUserId);
+    }
+
+    // ── Ambassador ────────────────────────────────────────────────
+    let _ambUserId = null;
+    let _ambRefCode = null;
+    let _ambBalance = 0;
+
+    async function loadAmbassador(userId) {
+        // Fetch referral code from profiles (upsert if missing for pre-migration users)
+        let { data: profile } = await sb.from('dartvoice_profiles')
+            .select('referral_code, paypal_email')
+            .eq('id', userId)
+            .maybeSingle();
+
+        if (!profile?.referral_code) {
+            // Profile missing — trigger creation via upsert
+            const code = Math.random().toString(36).slice(2, 10).toUpperCase();
+            await sb.from('dartvoice_profiles')
+                .upsert({ id: userId, referral_code: code }, { onConflict: 'id', ignoreDuplicates: true });
+            const { data: fresh } = await sb.from('dartvoice_profiles')
+                .select('referral_code, paypal_email')
+                .eq('id', userId)
+                .maybeSingle();
+            profile = fresh;
+        }
+
+        const code = profile?.referral_code || '';
+        _ambRefCode = code;
+        const url = code ? `https://dartvoice.com/login?ref=${code}` : '—';
+        $('ref-link-text').textContent = url;
+
+        // Fetch stats from ambassador_stats view
+        const { data: stats } = await sb.from('dartvoice_ambassador_stats')
+            .select('*')
+            .eq('referrer_user_id', userId)
+            .maybeSingle();
+
+        const total      = stats?.total_referrals ?? 0;
+        const converted  = stats?.converted ?? 0;
+        const balance    = parseFloat(stats?.total_earnings ?? 0);
+        _ambBalance      = balance;
+
+        $('amb-total-referrals').textContent = total;
+        $('amb-converted').textContent       = converted;
+        $('amb-balance').textContent         = `£${balance.toFixed(2)}`;
+
+        // Badge in tab button
+        if (balance > 0) {
+            const badge = $('amb-earned-badge');
+            badge.textContent = `£${balance.toFixed(0)}`;
+            badge.classList.remove('hidden');
+        }
+
+        // Status badge
+        $('amb-status-badge').innerHTML = total > 0
+            ? `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 tracking-wide">ACTIVE AMBASSADOR</span>`
+            : `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-white/5 text-muted-2 tracking-wide">NOT YET STARTED</span>`;
+
+        // Payout section
+        hide('payout-loading');
+        if (balance >= 5) {
+            show('payout-form');
+            hide('payout-locked');
+            if (profile?.paypal_email) $('input-paypal').value = profile.paypal_email;
+        } else {
+            show('payout-locked');
+            hide('payout-form');
+        }
+
+        // Referrals list
+        const { data: refs } = await sb.from('dartvoice_referrals')
+            .select('referred_email, status, reward_amount, created_at')
+            .eq('referrer_user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        renderReferralsList(refs || []);
+    }
+
+    function renderReferralsList(refs) {
+        const el = $('referrals-list');
+        if (!refs.length) {
+            el.innerHTML = `<div class="py-6 text-center">
+                <p class="text-muted text-sm">No referrals yet.</p>
+                <p class="text-muted-2 text-xs mt-1">Share your link to get started.</p>
+            </div>`;
+            return;
+        }
+        const statusColor = {
+            invited:      'text-muted-2',
+            signed_up:    'text-blue-400',
+            trial_active: 'text-brand',
+            converted:    'text-green-400',
+            rewarded:     'text-green-400',
+        };
+        el.innerHTML = `<div class="divide-y divide-white/[0.04]">
+            ${refs.map(r => `
+            <div class="flex items-center justify-between py-3">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium truncate">${r.referred_email}</p>
+                    <p class="text-[10px] text-muted-2 uppercase tracking-wider mt-0.5">${new Date(r.created_at).toLocaleDateString('en-GB')}</p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0 ml-3">
+                    ${r.status === 'rewarded' || r.status === 'converted'
+                        ? `<span class="text-xs font-bold text-green-400">+£${parseFloat(r.reward_amount).toFixed(2)}</span>`
+                        : ''}
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-white/[0.04] ${statusColor[r.status] || 'text-muted'}">${r.status.replace('_', ' ')}</span>
+                </div>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function copyRefLink() {
+        const link = $('ref-link-text').textContent;
+        if (!link || link === '—') return;
+        navigator.clipboard.writeText(link).then(() => {
+            const btn = $('btn-copy-link');
+            btn.textContent = 'Copied!';
+            btn.classList.add('bg-green-600');
+            btn.classList.remove('bg-brand', 'hover:bg-brand-light');
+            setTimeout(() => {
+                btn.textContent = 'Copy';
+                btn.classList.remove('bg-green-600');
+                btn.classList.add('bg-brand', 'hover:bg-brand-light');
+            }, 2000);
+        });
+    }
+
+    function shareWhatsApp() {
+        const link = $('ref-link-text').textContent;
+        const msg  = encodeURIComponent(`Hey! I've been using DartVoice to score my darts games with voice — it's brilliant. Use my link to try it free: ${link}`);
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+    }
+
+    function shareNative() {
+        const link = $('ref-link-text').textContent;
+        if (navigator.share) {
+            navigator.share({ title: 'DartVoice — Free Trial', text: 'Try DartVoice free for 7 days:', url: link });
+        } else {
+            copyRefLink();
+        }
+    }
+
+    async function requestPayout() {
+        const paypal = $('input-paypal').value.trim();
+        const msgEl  = $('payout-msg');
+        const btn    = $('btn-payout');
+
+        if (!paypal || !paypal.includes('@')) {
+            msgEl.textContent = 'Enter a valid PayPal email address.';
+            msgEl.className = 'text-xs text-center text-red-400';
+            msgEl.classList.remove('hidden');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Requesting…';
+        msgEl.classList.add('hidden');
+
+        // Save PayPal email to profile
+        await sb.from('dartvoice_profiles').update({ paypal_email: paypal }).eq('id', _ambUserId);
+
+        // Insert payout request
+        const { error } = await sb.from('dartvoice_ambassador_payouts').insert({
+            user_id: _ambUserId,
+            amount: _ambBalance,
+            paypal_email: paypal,
+            status: 'requested',
+        });
+
+        btn.disabled = false;
+        btn.textContent = 'Request Payout';
+
+        if (error) {
+            msgEl.textContent = 'Error: ' + error.message;
+            msgEl.className = 'text-xs text-center text-red-400';
+        } else {
+            msgEl.textContent = `✓ Payout of £${_ambBalance.toFixed(2)} requested. You'll hear from us within 3 business days.`;
+            msgEl.className = 'text-xs text-center text-green-400';
+        }
+        msgEl.classList.remove('hidden');
     }
 
     // ── Init ──────────────────────────────────────────────────────
     (async function init() {
         const { data: { session } } = await sb.auth.getSession();
         if (session?.user) {
+            // Auto-redirect to Stripe checkout after sign-up flow
+            const _params = new URLSearchParams(window.location.search);
+            if (_params.get('subscribe') === '1') {
+                window.location.replace(`${BILLING_URL}/checkout?user_id=${session.user.id}`);
+                return;
+            }
+
+            _ambUserId = session.user.id;
             loadDashboard(session.user);
+            // If URL hash is #ambassador, switch tab after load
+            if (window.location.hash === '#ambassador') {
+                setTimeout(() => switchTab('ambassador'), 300);
+            }
         } else {
             showView('auth');
         }
 
-        sb.auth.onAuthStateChange((event, session) => {
+        sb.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session?.user) {
+                _ambUserId = session.user.id;
                 loadDashboard(session.user);
+
+                // Apply referral code if user arrived via a referral link
+                const refCode = sessionStorage.getItem('dv_ref_code');
+                if (refCode) {
+                    sessionStorage.removeItem('dv_ref_code');
+                    // Look up the referrer by their referral code
+                    const { data: referrer } = await sb.from('dartvoice_profiles')
+                        .select('id')
+                        .eq('referral_code', refCode)
+                        .maybeSingle();
+                    if (referrer && referrer.id !== session.user.id) {
+                        await sb.from('dartvoice_referrals').insert({
+                            referrer_user_id: referrer.id,
+                            referred_user_id: session.user.id,
+                            referred_email:   session.user.email,
+                            ref_code:         refCode,
+                            status:           'signed_up',
+                        }).select(); // ignore duplicate key error silently
+                    }
+                }
             } else if (event === 'SIGNED_OUT') {
-                showView('auth');
+                window.location.replace('login.html');
             }
         });
     })();
 
-    // Submit on Enter
-    $('input-email').addEventListener('keydown', e => { if (e.key === 'Enter') sendOtp(); });
-    $('input-otp').addEventListener('keydown', e => { if (e.key === 'Enter') verifyOtp(); });
     </script>
 </body>
 </html>
