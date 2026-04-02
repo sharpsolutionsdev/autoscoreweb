@@ -64,22 +64,13 @@ jobs:
           echo "--- Last 50 lines of build log ---"
           tail -50 build.log
 
-      # ── 6. Find the APK ──────────────────────────────────────────────────────
-      - name: Locate APK
-        id: find_apk
-        working-directory: autoscore
-        run: |
-          APK=$(find bin -name "*.apk" | head -1)
-          echo "apk_path=$APK" >> $GITHUB_OUTPUT
-          echo "Found APK: $APK"
-          ls -lh bin/ || true
-
-      # ── 7. Upload as artifact (downloadable from Actions tab) ────────────────
+# ── 7. Upload as artifact (downloadable from Actions tab) ────────────────
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: DartVoice-debug-apk
-          path: autoscore/${{ steps.find_apk.outputs.apk_path }}
+          # Directly target any .apk file inside the autoscore/bin/ folder
+          path: autoscore/bin/*.apk 
           retention-days: 30
 
       # ── 8. Print download instructions ───────────────────────────────────────
