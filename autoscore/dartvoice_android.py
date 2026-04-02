@@ -547,16 +547,17 @@ class CricketGrid(GridLayout):
 # ─────────────────────────────────────────────────────────────────────────────
 class PaywallOverlay(FloatLayout):
     """
-    Full-screen overlay shown when the trial has expired and the user has
-    no active subscription.  Uses webbrowser.open to send the user to Stripe
-    Checkout, then polls the billing server until payment is confirmed.
+    Full-screen overlay shown when the demo has expired and the user has
+    no active subscription.  Two modes:
+      - Subscribe: opens Stripe Checkout, polls for confirmation.
+      - Sign In: email OTP flow, signs in and re-checks subscription.
     """
 
-    def __init__(self, install_id: str, on_unlocked, **kwargs):
+    def __init__(self, on_unlocked, **kwargs):
         super().__init__(**kwargs)
-        self._install_id  = install_id
         self._on_unlocked = on_unlocked
         self._poll_event  = None
+        self._card        = None
         self._build()
 
     def _build(self):
@@ -652,13 +653,18 @@ class PaywallOverlay(FloatLayout):
         already_btn = _ghost_btn("I've already paid — check now", self._check_now)
         card.add_widget(already_btn)
 
+        # Sign-in link
+        signin_btn = _ghost_btn("Already have an account? Sign In", self._show_signin)
+        card.add_widget(signin_btn)
+
+        self._card = card
         self.add_widget(card)
 
     def _open_checkout(self):
         import webbrowser
         try:
             from billing import get_checkout_url
-            url = get_checkout_url(self._install_id)
+            url = get_checkout_url()
         except ImportError:
             return
         webbrowser.open(url)
@@ -701,8 +707,166 @@ class PaywallOverlay(FloatLayout):
                     self._sub_btn, 'text', 'START 7-DAY FREE TRIAL  \u2192  \u00a36.99/mo'
                 ))
 
-        from billing import get_install_id
-        check_subscription_async(self._install_id, _got)
+        check_subscription_async(_got)
+
+    # ── Sign-in flow ──────────────────────────────────────────────────────────
+
+    def _show_signin(self):
+        """Replace the subscribe card with an email-OTP sign-in card."""
+        from kivy.uix.textinput import TextInput
+
+        if self._card:
+            self.remove_widget(self._card)
+
+        ar, ag, ab = ACCENT[0], ACCENT[1], ACCENT[2]
+
+        panel = BoxLayout(
+            orientation='vertical',
+            size_hint=(0.88, None),
+            height=dp(380),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            padding=[dp(24), dp(20), dp(24), dp(20)], spacing=dp(10),
+        )
+        with panel.canvas.before:
+            Color(*CARD)
+            panel._bg = RoundedRectangle(pos=panel.pos, size=panel.size, radius=[dp(20)])
+            Color(ar, ag, ab, 0.45)
+            panel._border = RoundedRectangle(pos=panel.pos, size=panel.size, radius=[dp(20)])
+        def _upd_panel(*_):
+            panel._bg.pos = panel.pos; panel._bg.size = panel.size
+            panel._border.pos = (panel.x - dp(0.5), panel.y - dp(0.5))
+            panel._border.size = (panel.width + dp(1), panel.height + dp(1))
+        panel.bind(pos=_upd_panel, size=_upd_panel)
+        self._signin_panel = panel
+
+        panel.add_widget(Label(
+            text='SIGN IN', font_size=sp(20), bold=True, color=FG,
+            size_hint_y=None, height=dp(30), halign='center', valign='middle',
+        ))
+        panel.add_widget(Label(
+            text="Enter your email — we'll send a 6-digit code.",
+            font_size=sp(11), color=FG2,
+            size_hint_y=None, height=dp(24),
+            halign='center', valign='middle',
+        ))
+
+        self._si_email = TextInput(
+            hint_text='your@email.com',
+            font_size=sp(14), multiline=False,
+            background_color=(0.1, 0.1, 0.12, 1),
+            foreground_color=FG,
+            cursor_color=ACCENT,
+            size_hint_y=None, height=dp(46),
+        )
+        panel.add_widget(self._si_email)
+
+        self._si_send_btn = _accent_btn('CONTINUE  →', self._si_send)
+        panel.add_widget(self._si_send_btn)
+
+        # OTP step (hidden initially)
+        self._si_code = TextInput(
+            hint_text='6-digit code',
+            font_size=sp(22), multiline=False,
+            halign='center',
+            background_color=(0.1, 0.1, 0.12, 1),
+            foreground_color=FG,
+            cursor_color=ACCENT,
+            input_filter='int',
+            size_hint_y=None, height=dp(54),
+            opacity=0, disabled=True,
+        )
+        panel.add_widget(self._si_code)
+
+        self._si_verify_btn = _accent_btn('VERIFY CODE  →', self._si_verify)
+        self._si_verify_btn.opacity  = 0
+        self._si_verify_btn.disabled = True
+        panel.add_widget(self._si_verify_btn)
+
+        self._si_msg = Label(
+            text='', font_size=sp(11), color=(0.87, 0.33, 0.33, 1),
+            size_hint_y=None, height=dp(20),
+            halign='center', valign='middle',
+        )
+        panel.add_widget(self._si_msg)
+
+        back_btn = _ghost_btn('← Back', self._show_subscribe)
+        panel.add_widget(back_btn)
+
+        self.add_widget(panel)
+
+    def _si_send(self):
+        try:
+            from billing import send_otp
+        except ImportError:
+            self._si_msg.text = 'Billing module not available.'
+            return
+        email = self._si_email.text.strip()
+        if not email or '@' not in email:
+            self._si_msg.text = 'Enter a valid email address.'
+            return
+        self._si_send_btn.text = 'Sending…'
+        self._si_msg.text = ''
+
+        def _do():
+            ok, err = send_otp(email)
+            def _ui(dt):
+                self._si_send_btn.text = 'Resend code'
+                if ok:
+                    self._si_msg.text = f'Code sent to {email}'
+                    self._si_email.disabled  = True
+                    self._si_code.opacity    = 1
+                    self._si_code.disabled   = False
+                    self._si_verify_btn.opacity  = 1
+                    self._si_verify_btn.disabled = False
+                    Clock.schedule_once(lambda dt2: self._si_code.focus_next, 0.1)
+                else:
+                    self._si_msg.text = f'Error: {err}'
+            Clock.schedule_once(_ui)
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _si_verify(self):
+        try:
+            from billing import verify_otp, check_subscription_async
+        except ImportError:
+            self._si_msg.text = 'Billing module not available.'
+            return
+        email = self._si_email.text.strip()
+        code  = self._si_code.text.strip()
+        if len(code) < 6:
+            self._si_msg.text = 'Enter the full 6-digit code.'
+            return
+        self._si_verify_btn.text = 'Verifying…'
+        self._si_msg.text = ''
+
+        def _do():
+            ok, err = verify_otp(email, code)
+            def _ui(dt):
+                self._si_verify_btn.text = 'VERIFY CODE  →'
+                if ok:
+                    self._si_msg.text = 'Signed in — checking subscription…'
+                    check_subscription_async(self._on_signin_checked)
+                else:
+                    self._si_msg.text = 'Invalid code — try again.'
+                    self._si_code.text = ''
+            Clock.schedule_once(_ui)
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _on_signin_checked(self, subscribed: bool, account=None):
+        if subscribed:
+            Clock.schedule_once(lambda dt: self._on_unlocked())
+        else:
+            Clock.schedule_once(lambda dt: self._show_subscribe(
+                msg='Signed in — no active subscription found.\nStart a trial to continue.'
+            ))
+
+    def _show_subscribe(self, msg=''):
+        """Return to the subscribe card (from sign-in)."""
+        if hasattr(self, '_signin_panel') and self._signin_panel.parent:
+            self.remove_widget(self._signin_panel)
+        if self._card and not self._card.parent:
+            self.add_widget(self._card)
+        if msg and hasattr(self, '_status_lbl'):
+            self._status_lbl.text = msg
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -734,20 +898,20 @@ class DartVoiceLayout(BoxLayout):
 
         bs = billing_status()
         # Background server verification regardless of local state
-        check_subscription_async(bs['install_id'], self._on_billing_checked)
+        check_subscription_async(self._on_billing_checked)
 
         if bs['subscribed']:
             return
 
-        if bs['trial_active']:
-            days = bs['days_left']
+        if bs['demo_active']:
+            mins = int(bs['demo_secs'] // 60)
             self.status_lbl.text = (
-                f"Trial — {days} day{'s' if days != 1 else ''} remaining"
+                f"Demo — {mins} min{'s' if mins != 1 else ''} remaining"
             )
             return
 
-        # Trial expired — show blocking paywall
-        self._show_paywall(bs['install_id'])
+        # Demo expired — show blocking paywall
+        self._show_paywall()
 
     def _on_billing_checked(self, subscribed: bool):
         if subscribed:
@@ -767,15 +931,12 @@ class DartVoiceLayout(BoxLayout):
             return
         bs = billing_status()
         if bs['locked']:
-            Clock.schedule_once(
-                lambda dt: self._show_paywall(bs['install_id'])
-            )
+            Clock.schedule_once(lambda dt: self._show_paywall())
 
-    def _show_paywall(self, install_id: str):
+    def _show_paywall(self):
         if hasattr(self, '_paywall_overlay') and self._paywall_overlay.parent:
             return
         overlay = PaywallOverlay(
-            install_id=install_id,
             on_unlocked=self._remove_paywall,
             size_hint=(1, 1),
             pos_hint={'x': 0, 'y': 0},

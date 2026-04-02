@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DartVoice | App UI Prototypes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Rubik', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            bg: '#08080A',
+                            card: '#111114',
+                            cardHov: '#18181C',
+                            wire: '#252530',
+                            red: '#CC0B20',
+                            text: '#F0F0F5',
+                            muted: '#6E6E82'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #08080A; color: #F0F0F5; }
+        .glass-panel {
+            background: rgba(17, 17, 20, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Custom scrollbar to mimic native app feel */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #252530; border-radius: 4px; }
+        
+        .mockup-container { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .mockup-container.active { display: flex; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased h-screen flex flex-col overflow-hidden">
+
+    <!-- Header & Navigation -->
+    <header class="bg-brand-card border-b border-brand-wire px-6 py-4 flex items-center justify-between z-50 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-brand-red flex items-center justify-center shadow-[0_0_15px_rgba(204,11,32,0.4)]">
+                <span class="font-extrabold text-xs text-white">DV</span>
+            </div>
+            <span class="font-bold tracking-widest text-sm uppercase hidden lg:inline">Live UI Prototypes</span>
+        </div>
+        
+        <div class="flex gap-2 bg-brand-bg p-1 rounded-xl border border-brand-wire overflow-x-auto">
+            <!-- Original 4 -->
+            <button onclick="switchView('android-thumb')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-brand-wire text-white shadow whitespace-nowrap" id="btn-android-thumb">
+                <i data-lucide="smartphone" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Android: Thumb
+            </button>
+            <button onclick="switchView('android-lock')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-android-lock">
+                <i data-lucide="lock" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Android: Lock
+            </button>
+            <button onclick="switchView('win-cmd')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-win-cmd">
+                <i data-lucide="monitor" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Windows: Cmd Center
+            </button>
+            <button onclick="switchView('win-pip')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-win-pip">
+                <i data-lucide="layers" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Windows: PiP
+            </button>
+            
+            <div class="w-px h-6 bg-brand-wire self-center mx-1"></div>
+            
+            <!-- Second 4 -->
+            <button onclick="switchView('android-hud')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-android-hud">
+                <i data-lucide="target" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Android: Pro HUD
+            </button>
+            <button onclick="switchView('android-glass')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-android-glass">
+                <i data-lucide="droplet" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Android: Glass
+            </button>
+            <button onclick="switchView('win-focus')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-win-focus">
+                <i data-lucide="maximize" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Windows: Focus
+            </button>
+            <button onclick="switchView('win-dock')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-win-dock">
+                <i data-lucide="layout-topbar" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Windows: Dock
+            </button>
+            
+            <div class="w-px h-6 bg-brand-wire self-center mx-1"></div>
+
+            <!-- NEW 6: App Flows -->
+            <button onclick="switchView('android-auth')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-android-auth">
+                <i data-lucide="log-in" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Android: Login
+            </button>
+            <button onclick="switchView('android-settings')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-android-settings">
+                <i data-lucide="settings" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Android: Settings
+            </button>
+            <button onclick="switchView('android-alert')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-android-alert">
+                <i data-lucide="zap" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Android: 180 Alert
+            </button>
+            <button onclick="switchView('win-auth')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-win-auth">
+                <i data-lucide="scan-line" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Win: Scan to Play
+            </button>
+            <button onclick="switchView('win-settings')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-win-settings">
+                <i data-lucide="sliders" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Win: Settings
+            </button>
+            <button onclick="switchView('win-profile')" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-brand-muted hover:text-white transition-all whitespace-nowrap" id="btn-win-profile">
+                <i data-lucide="user" class="w-4 h-4 inline-block mr-1 mb-0.5"></i> Win: Profile
+            </button>
+
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-auto bg-[#050508] relative p-4 md:p-8 flex items-center justify-center" style="background-image: radial-gradient(circle at center, #111114 0%, #050508 100%);">
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 1: ANDROID THUMB ZONE            -->
+        <!-- ========================================== -->
+        <div id="android-thumb" class="mockup-container active w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">The "Thumb Zone" Layout</h2>
+                <p class="text-brand-muted text-sm max-w-md">Ergonomic design for pub players holding a pint. Massive top score, all controls docked to the bottom 40%.</p>
+            </div>
+            
+            <div class="w-[360px] h-[740px] bg-brand-bg rounded-[2.5rem] border-[8px] border-[#1f1f25] shadow-2xl relative overflow-hidden flex flex-col">
+                <div class="h-6 flex justify-between items-center px-6 pt-2 shrink-0">
+                    <span class="text-[10px] font-bold text-white">19:42</span>
+                    <div class="flex gap-1 items-center">
+                        <i data-lucide="wifi" class="w-3 h-3 text-white"></i>
+                        <i data-lucide="battery-full" class="w-4 h-4 text-white"></i>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 flex justify-between items-center shrink-0">
+                    <span class="font-black text-sm tracking-widest text-white">DARTVOICE</span>
+                    <div class="bg-brand-card border border-brand-wire px-3 py-1 rounded text-xs font-bold text-brand-muted flex items-center gap-1">
+                        X01 <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center justify-center p-6 relative">
+                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(204,11,32,0.1),transparent_70%)] pointer-events-none"></div>
+                    <span class="text-brand-muted font-bold tracking-[0.2em] text-[10px] mb-2 z-10">REMAINING</span>
+                    <span class="text-white font-black text-8xl tracking-tighter leading-none z-10 drop-shadow-lg">116</span>
+                    
+                    <div class="mt-8 flex gap-2 z-10">
+                        <span class="bg-brand-card border border-brand-wire text-white text-xs font-bold px-4 py-2 rounded shadow">T20</span>
+                        <span class="bg-brand-card border border-brand-wire text-white text-xs font-bold px-4 py-2 rounded shadow">16</span>
+                        <span class="bg-brand-red text-white text-xs font-bold px-4 py-2 rounded shadow-[0_0_15px_rgba(204,11,32,0.4)]">D20</span>
+                    </div>
+                </div>
+
+                <div class="h-[40%] bg-brand-card rounded-t-3xl border-t border-brand-wire p-6 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20">
+                    <div class="grid grid-cols-3 gap-2 mb-auto">
+                        <div class="bg-brand-bg border border-brand-wire rounded-xl p-3 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">Avg</span>
+                            <span class="text-lg font-black text-white">68.4</span>
+                        </div>
+                        <div class="bg-brand-bg border border-brand-wire rounded-xl p-3 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">Darts</span>
+                            <span class="text-lg font-black text-white">12</span>
+                        </div>
+                        <div class="bg-brand-bg border border-brand-wire rounded-xl p-3 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">Last</span>
+                            <span class="text-lg font-black text-brand-red">100</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 mt-4">
+                        <button class="w-14 h-14 rounded-2xl bg-brand-bg border border-brand-wire flex items-center justify-center text-brand-muted hover:text-white transition shadow-sm">
+                            <i data-lucide="settings" class="w-5 h-5"></i>
+                        </button>
+                        <button class="flex-1 h-14 rounded-2xl bg-brand-red flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(204,11,32,0.4)] hover:bg-red-600 transition active:scale-95">
+                            <i data-lucide="mic" class="w-5 h-5 animate-pulse"></i>
+                            <span class="font-black tracking-widest text-sm uppercase">Listening</span>
+                        </button>
+                        <button class="w-14 h-14 rounded-2xl bg-brand-bg border border-brand-wire flex items-center justify-center text-brand-muted hover:text-white transition shadow-sm">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 2: ANDROID HARD LOCK             -->
+        <!-- ========================================== -->
+        <div id="android-lock" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">The "Netflix" Hard Lock</h2>
+                <p class="text-brand-muted text-sm max-w-md">Triggered at exactly 10 minutes. Semi-transparent black overlay catches all touch events to secure the paywall.</p>
+            </div>
+            
+            <div class="w-[360px] h-[740px] bg-brand-bg rounded-[2.5rem] border-[8px] border-[#1f1f25] shadow-2xl relative overflow-hidden flex flex-col bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&q=80')] bg-cover bg-center">
+                <div class="absolute inset-0 bg-black/80 backdrop-blur-md z-0 flex flex-col">
+                    <div class="flex-1 flex items-center justify-center"><span class="text-white/20 font-black text-8xl">116</span></div>
+                </div>
+                
+                <div class="relative z-10 w-full h-full flex items-center justify-center p-6">
+                    <div class="w-full bg-brand-card border-2 border-brand-red rounded-3xl p-6 flex flex-col items-center text-center shadow-[0_0_50px_rgba(204,11,32,0.4)]">
+                        <div class="w-16 h-16 bg-brand-red/20 rounded-full flex items-center justify-center mb-4">
+                            <i data-lucide="lock" class="w-8 h-8 text-brand-red"></i>
+                        </div>
+                        
+                        <h3 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">Free Preview<br>Ended</h3>
+                        <p class="text-sm text-gray-400 mb-8 leading-relaxed">To continue scoring this match, start your 7-Day Free Trial. Auto-bills £6.99/mo after trial ends. Cancel anytime.</p>
+                        
+                        <button class="w-full h-14 bg-brand-red text-white font-black rounded-xl shadow-[0_0_20px_rgba(204,11,32,0.4)] flex items-center justify-center gap-2 mb-4 hover:bg-red-600 active:scale-95 transition">
+                            Start 7-Day Free Trial <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <button class="text-xs font-bold text-brand-muted hover:text-white underline transition">
+                            I've already paid — Check Now
+                        </button>
+                        
+                        <div class="w-full mt-6 pt-4 border-t border-brand-wire flex items-center justify-center gap-1 text-brand-muted text-[9px] uppercase tracking-widest font-bold">
+                            <i data-lucide="shield-check" class="w-3 h-3"></i> Secured by Stripe
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 3: WINDOWS COMMAND CENTER        -->
+        <!-- ========================================== -->
+        <div id="win-cmd" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Windows: Command Center</h2>
+                <p class="text-brand-muted text-sm max-w-lg">1024x600 Grid Layout. Column 0 (History), Column 1 (Main Stage), Column 2 (Stats).</p>
+            </div>
+            
+            <div class="w-full max-w-[1024px] h-[600px] bg-brand-bg rounded-xl border border-brand-wire shadow-2xl flex flex-col overflow-hidden">
+                <div class="h-10 bg-brand-card border-b border-brand-wire flex items-center justify-between px-4 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-brand-red flex items-center justify-center"><span class="text-[6px] font-black text-white">DV</span></div>
+                        <span class="text-xs font-bold text-brand-muted tracking-widest uppercase">DartVoice v2.1</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="w-3 h-3 rounded-full bg-brand-wire hover:bg-gray-500 cursor-pointer"></div>
+                        <div class="w-3 h-3 rounded-full bg-brand-wire hover:bg-gray-500 cursor-pointer"></div>
+                        <div class="w-3 h-3 rounded-full bg-brand-wire hover:bg-brand-red cursor-pointer"></div>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex bg-[#0a0a0e] relative">
+                    <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none"></div>
+
+                    <!-- Column 0 -->
+                    <div class="w-1/4 max-w-[280px] bg-brand-card/80 border-r border-brand-wire backdrop-blur-sm flex flex-col z-10">
+                        <div class="p-5 border-b border-brand-wire flex items-center justify-between">
+                            <span class="text-xs font-bold text-brand-muted tracking-widest uppercase">Session History</span>
+                            <i data-lucide="rotate-ccw" class="w-4 h-4 text-brand-muted hover:text-white cursor-pointer"></i>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-2">
+                            <div class="p-3 border-b border-brand-wire/50 flex justify-between items-center hover:bg-brand-wire/20 cursor-default rounded"><span class="text-sm text-brand-muted font-semibold">Visit 4</span><span class="text-lg font-black text-white">60</span></div>
+                            <div class="p-3 border-b border-brand-wire/50 flex justify-between items-center hover:bg-brand-wire/20 cursor-default rounded"><span class="text-sm text-brand-muted font-semibold">Visit 3</span><span class="text-lg font-black text-white">100</span></div>
+                            <div class="p-3 border-b border-brand-wire/50 flex justify-between items-center hover:bg-brand-wire/20 cursor-default rounded"><span class="text-sm text-brand-muted font-semibold">Visit 2</span><span class="text-lg font-black text-white">45</span></div>
+                            <div class="p-3 border-b border-brand-wire/50 flex justify-between items-center hover:bg-brand-wire/20 cursor-default rounded"><span class="text-sm text-brand-muted font-semibold">Visit 1</span><span class="text-lg font-black text-brand-red">180</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Column 1 -->
+                    <div class="flex-1 flex flex-col items-center justify-center relative z-10">
+                        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-red blur-[150px] opacity-20 rounded-full pointer-events-none"></div>
+                        
+                        <div class="text-center mb-12">
+                            <span class="inline-block px-3 py-1 bg-brand-card border border-brand-wire rounded-full text-[10px] font-bold text-brand-muted tracking-widest uppercase mb-6">X01 • First to 501</span>
+                            <h2 class="text-brand-muted font-bold tracking-[0.4em] text-sm mb-4">REMAINING</h2>
+                            <div class="text-[10rem] font-black text-white leading-none tracking-tighter drop-shadow-2xl">116</div>
+                        </div>
+
+                        <div class="w-full max-w-sm space-y-4">
+                            <div class="relative group">
+                                <input type="text" placeholder="Type score manually..." class="w-full h-14 bg-brand-card border border-brand-wire rounded-xl pl-6 pr-12 text-white font-bold focus:outline-none focus:border-brand-red text-lg shadow-inner">
+                                <button class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-bg rounded-lg flex items-center justify-center hover:bg-brand-wire transition">
+                                    <i data-lucide="corner-down-left" class="w-4 h-4 text-brand-muted"></i>
+                                </button>
+                            </div>
+                            <button class="w-full h-16 bg-brand-red rounded-xl flex items-center justify-center gap-3 text-white shadow-[0_0_30px_rgba(204,11,32,0.3)] hover:bg-red-600 transition active:scale-95 group">
+                                <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                                <span class="font-black text-lg tracking-widest uppercase">Stop Listening</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div class="w-1/4 max-w-[280px] bg-brand-card/80 border-l border-brand-wire backdrop-blur-sm flex flex-col z-10">
+                        <div class="p-6 border-b border-brand-wire bg-brand-bg/50">
+                            <span class="text-xs font-bold text-brand-muted tracking-widest uppercase block mb-3">Live Checkout</span>
+                            <div class="flex gap-2">
+                                <span class="bg-brand-card border border-brand-wire px-3 py-2 rounded text-white font-bold text-sm shadow">T20</span>
+                                <span class="bg-brand-card border border-brand-wire px-3 py-2 rounded text-white font-bold text-sm shadow">16</span>
+                                <span class="bg-brand-red px-3 py-2 rounded text-white font-bold text-sm shadow-[0_0_10px_rgba(204,11,32,0.4)]">D20</span>
+                            </div>
+                        </div>
+
+                        <div class="p-6 space-y-6 flex-1">
+                            <div>
+                                <span class="text-[10px] font-bold text-brand-muted tracking-widest uppercase block mb-1">Session Avg</span>
+                                <span class="text-4xl font-black text-white">68.4</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-brand-muted tracking-widest uppercase block mb-1">Darts Thrown</span>
+                                <span class="text-4xl font-black text-white">12</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 border-t border-brand-wire grid grid-cols-2 gap-2">
+                            <button class="bg-brand-bg border border-brand-wire h-12 rounded-lg flex flex-col items-center justify-center text-brand-muted hover:text-white transition">
+                                <i data-lucide="settings" class="w-4 h-4 mb-1"></i>
+                                <span class="text-[8px] font-bold uppercase tracking-wider">Settings</span>
+                            </button>
+                            <button class="bg-brand-bg border border-brand-wire h-12 rounded-lg flex flex-col items-center justify-center text-brand-muted hover:text-white transition">
+                                <i data-lucide="user" class="w-4 h-4 mb-1"></i>
+                                <span class="text-[8px] font-bold uppercase tracking-wider">Account</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 4: WINDOWS STREAMER WIDGET       -->
+        <!-- ========================================== -->
+        <div id="win-pip" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Windows: Streamer PiP Widget</h2>
+                <p class="text-brand-muted text-sm max-w-lg">Borderless, transparent window overlay. Floats directly over DartCounter Web or OBS.</p>
+            </div>
+            
+            <div class="w-full max-w-[1024px] h-[600px] rounded-xl border border-brand-wire shadow-2xl flex flex-col overflow-hidden relative bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1024&q=80')] bg-cover bg-center">
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                <div class="absolute inset-8 border-2 border-white/10 rounded-xl bg-black/40 flex items-center justify-center pointer-events-none">
+                    <span class="text-white/20 font-black text-4xl">DartCounter Web / Other Software</span>
+                </div>
+
+                <div class="absolute bottom-12 right-12 w-auto bg-[#111114]/90 backdrop-blur-xl border border-brand-wire rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex items-center p-3 cursor-move hover:border-brand-muted transition group">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-brand-muted rounded-full opacity-0 group-hover:opacity-100 transition"></div>
+
+                    <div class="flex items-center gap-6 px-3">
+                        <div class="flex flex-col">
+                            <span class="text-[8px] font-bold text-brand-muted tracking-[0.2em] uppercase">Remaining</span>
+                            <span class="text-white font-black text-4xl leading-none">116</span>
+                        </div>
+                        <div class="w-px h-10 bg-brand-wire"></div>
+                        <div class="flex gap-1.5">
+                            <span class="bg-brand-bg border border-brand-wire px-2 py-1 rounded text-white font-bold text-xs">T20</span>
+                            <span class="bg-brand-bg border border-brand-wire px-2 py-1 rounded text-white font-bold text-xs">16</span>
+                            <span class="bg-brand-red px-2 py-1 rounded text-white font-bold text-xs shadow-[0_0_10px_rgba(204,11,32,0.4)]">D20</span>
+                        </div>
+                        <div class="w-px h-10 bg-brand-wire"></div>
+                        <div class="w-12 h-12 bg-brand-red rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(204,11,32,0.3)]">
+                            <i data-lucide="mic" class="w-5 h-5 text-white animate-pulse"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 5: ANDROID PRO HUD               -->
+        <!-- ========================================== -->
+        <div id="android-hud" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Android: The "Pro HUD"</h2>
+                <p class="text-brand-muted text-sm max-w-md">Circular focus, dark interface. Features a massive glowing score ring.</p>
+            </div>
+            
+            <div class="w-[360px] h-[740px] bg-brand-bg rounded-[2.5rem] border-[8px] border-[#1f1f25] shadow-2xl relative overflow-hidden flex flex-col font-sans">
+                <div class="h-6 flex justify-between items-center px-6 pt-2 shrink-0">
+                    <span class="text-[10px] font-bold text-white">19:42</span>
+                    <div class="flex gap-1 items-center">
+                        <i data-lucide="wifi" class="w-3 h-3 text-white"></i>
+                        <i data-lucide="battery-full" class="w-4 h-4 text-white"></i>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 flex justify-between items-center shrink-0">
+                    <i data-lucide="menu" class="w-5 h-5 text-white"></i>
+                    <span class="font-black text-sm tracking-widest text-white">X01 • 501</span>
+                    <i data-lucide="more-vertical" class="w-5 h-5 text-white"></i>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center justify-center p-6 relative">
+                    <div class="relative w-64 h-64 flex items-center justify-center mb-8">
+                        <div class="absolute inset-0 rounded-full border-[6px] border-brand-wire"></div>
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="47" fill="none" stroke="var(--live-accent)" stroke-width="6" stroke-dasharray="295" stroke-dashoffset="60" class="drop-shadow-[0_0_15px_rgba(204,11,32,0.6)]" />
+                        </svg>
+                        
+                        <div class="flex flex-col items-center text-center">
+                            <span class="text-[10px] font-bold text-brand-muted tracking-[0.2em]">REMAINING</span>
+                            <span class="text-7xl font-black text-white leading-none my-1 tracking-tighter">170</span>
+                            <span class="text-[10px] font-bold text-brand-red bg-brand-red/10 px-2 py-1 rounded">T20 T20 Bull</span>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full flex justify-between px-8 border-t border-brand-wire pt-6 mt-4">
+                        <div class="text-center">
+                            <span class="block text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-1">Average</span>
+                            <span class="block text-2xl font-bold text-white">72.1</span>
+                        </div>
+                        <div class="w-px h-8 bg-brand-wire self-center"></div>
+                        <div class="text-center">
+                            <span class="block text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-1">Last Visit</span>
+                            <span class="block text-2xl font-bold text-brand-red">140</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-24 flex items-center justify-center bg-gradient-to-t from-black to-transparent px-6 shrink-0 relative z-20">
+                    <button class="w-full h-14 bg-white text-black font-black rounded-full flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:bg-gray-200 transition">
+                        <i data-lucide="mic" class="w-5 h-5 text-brand-red animate-pulse"></i>
+                        <span class="tracking-wide uppercase text-sm">Tap to Mute</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 6: ANDROID MINIMAL GLASS         -->
+        <!-- ========================================== -->
+        <div id="android-glass" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Android: "Minimal Glass"</h2>
+                <p class="text-brand-muted text-sm max-w-md">Frosted glass over blurred gradients. Highly modern, clean iOS/Pixel aesthetic.</p>
+            </div>
+            
+            <div class="w-[360px] h-[740px] bg-[#0a0a14] rounded-[2.5rem] border-[8px] border-[#1f1f25] shadow-2xl relative overflow-hidden flex flex-col font-sans">
+                <div class="absolute top-0 left-0 w-64 h-64 bg-brand-red rounded-full blur-[100px] opacity-20"></div>
+                <div class="absolute bottom-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[100px] opacity-10"></div>
+
+                <div class="h-6 flex justify-between items-center px-6 pt-2 shrink-0 z-10">
+                    <span class="text-[10px] font-bold text-white">19:42</span>
+                    <div class="flex gap-1 items-center">
+                        <i data-lucide="wifi" class="w-3 h-3 text-white"></i>
+                        <i data-lucide="battery-full" class="w-4 h-4 text-white"></i>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex flex-col p-6 relative z-10">
+                    <div class="w-full h-12 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-between px-4 mb-8">
+                        <span class="text-xs font-bold text-white tracking-widest">DARTVOICE</span>
+                        <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                    </div>
+
+                    <div class="w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 flex flex-col items-center shadow-2xl mb-8">
+                        <p class="text-[10px] font-bold text-white/50 tracking-[0.3em] mb-4">REMAINING SCORE</p>
+                        <h2 class="text-[7rem] font-black text-white leading-none tracking-tighter drop-shadow-md mb-6">121</h2>
+                        
+                        <div class="w-full bg-black/20 rounded-xl p-3 flex justify-center gap-3">
+                            <span class="text-white font-bold text-sm">T20</span>
+                            <span class="text-white font-bold text-sm">11</span>
+                            <span class="text-brand-red font-black text-sm drop-shadow-[0_0_5px_rgba(204,11,32,0.8)]">BULL</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center">
+                            <span class="block text-[10px] text-white/50 font-bold tracking-widest mb-1">AVERAGE</span>
+                            <span class="block text-2xl font-bold text-white">68.4</span>
+                        </div>
+                        <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center">
+                            <span class="block text-[10px] text-white/50 font-bold tracking-widest mb-1">DARTS</span>
+                            <span class="block text-2xl font-bold text-white">12</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto w-full h-20 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] flex items-center justify-between px-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                        <button class="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white"><i data-lucide="settings" class="w-6 h-6"></i></button>
+                        <button class="w-16 h-16 rounded-full bg-brand-red flex items-center justify-center shadow-[0_0_20px_rgba(204,11,32,0.4)] text-white hover:scale-105 transition transform -translate-y-4">
+                            <i data-lucide="mic" class="w-6 h-6"></i>
+                        </button>
+                        <button class="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white"><i data-lucide="bar-chart-2" class="w-6 h-6"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 7: WINDOWS FOCUS FULLSCREEN      -->
+        <!-- ========================================== -->
+        <div id="win-focus" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Windows: Focus Fullscreen</h2>
+                <p class="text-brand-muted text-sm max-w-lg">Designed for large TVs or monitors placed far from the board. Completely distraction-free.</p>
+            </div>
+            
+            <div class="w-full max-w-[1024px] h-[600px] bg-black rounded-xl border border-brand-wire shadow-2xl flex flex-col overflow-hidden relative font-sans">
+                <div class="absolute top-6 right-6 flex gap-4 opacity-30 hover:opacity-100 transition z-20">
+                    <button class="text-brand-muted hover:text-white"><i data-lucide="minimize-2" class="w-6 h-6"></i></button>
+                    <button class="text-brand-muted hover:text-white"><i data-lucide="settings" class="w-6 h-6"></i></button>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center justify-center relative">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(204,11,32,0.05),transparent_70%)] animate-pulse-fast pointer-events-none"></div>
+                    <h1 class="text-[18rem] font-black text-white leading-none tracking-tighter drop-shadow-2xl z-10">170</h1>
+                    <div class="flex gap-8 mt-4 z-10">
+                        <span class="text-4xl font-bold text-brand-muted">T20</span>
+                        <span class="text-4xl font-bold text-brand-muted">T20</span>
+                        <span class="text-4xl font-bold text-brand-red drop-shadow-[0_0_10px_rgba(204,11,32,0.5)]">BULL</span>
+                    </div>
+                </div>
+                
+                <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end z-10">
+                    <div class="flex flex-col">
+                        <span class="text-brand-muted text-xs font-bold tracking-widest uppercase mb-1">Average</span>
+                        <span class="text-white text-2xl font-bold">72.4</span>
+                    </div>
+                    <div class="flex items-center gap-1 opacity-50">
+                        <div class="w-1 h-3 bg-brand-red rounded-full"></div>
+                        <div class="w-1 h-6 bg-brand-red rounded-full"></div>
+                        <div class="w-1 h-4 bg-brand-red rounded-full"></div>
+                        <div class="w-1 h-8 bg-brand-red rounded-full"></div>
+                        <div class="w-1 h-2 bg-brand-red rounded-full"></div>
+                        <span class="ml-2 text-xs font-bold text-brand-red uppercase tracking-widest">Listening</span>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-brand-muted text-xs font-bold tracking-widest uppercase mb-1">Darts Thrown</span>
+                        <span class="text-white text-2xl font-bold">12</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 8: WINDOWS UTILITY DOCK          -->
+        <!-- ========================================== -->
+        <div id="win-dock" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Windows: Utility Dock</h2>
+                <p class="text-brand-muted text-sm max-w-lg">A horizontal ribbon that docks to the top of your screen, leaving the rest of the monitor free.</p>
+            </div>
+            
+            <div class="w-full max-w-[1024px] h-[600px] rounded-xl border border-brand-wire shadow-2xl flex flex-col overflow-hidden relative bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1024&q=80')] bg-cover bg-center font-sans">
+                <div class="absolute inset-0 bg-black/20"></div>
+
+                <div class="w-full h-16 bg-brand-card/95 backdrop-blur-xl border-b border-brand-wire flex items-center px-4 justify-between shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-20">
+                    <div class="flex items-center gap-4">
+                        <div class="w-8 h-8 bg-brand-red rounded flex items-center justify-center"><span class="text-white font-black text-[10px]">DV</span></div>
+                        <div class="h-8 w-px bg-brand-wire"></div>
+                        <button class="flex items-center gap-2 bg-brand-bg border border-brand-wire px-3 py-1.5 rounded-lg hover:border-brand-red transition">
+                            <i data-lucide="mic" class="w-4 h-4 text-brand-red animate-pulse"></i>
+                            <span class="text-xs font-bold text-white">ON</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-6 bg-brand-bg px-6 py-1.5 rounded-xl border border-brand-wire">
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] text-brand-muted font-bold tracking-widest">SCORE</span>
+                            <span class="text-2xl font-black text-white">116</span>
+                        </div>
+                        <div class="w-px h-6 bg-brand-wire"></div>
+                        <div class="flex gap-1.5">
+                            <span class="text-xs font-bold text-gray-300">T20</span>
+                            <span class="text-xs font-bold text-gray-300">16</span>
+                            <span class="text-xs font-bold text-brand-red drop-shadow-[0_0_5px_rgba(204,11,32,0.8)]">D20</span>
+                        </div>
+                        <div class="w-px h-6 bg-brand-wire"></div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] text-brand-muted font-bold tracking-widest">AVG</span>
+                            <span class="text-lg font-bold text-white">68.4</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button class="w-10 h-10 flex items-center justify-center text-brand-muted hover:text-white rounded-lg hover:bg-brand-wire transition"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+                        <button class="w-10 h-10 flex items-center justify-center text-brand-muted hover:text-white rounded-lg hover:bg-brand-wire transition"><i data-lucide="settings" class="w-4 h-4"></i></button>
+                        <button class="w-10 h-10 flex items-center justify-center text-brand-muted hover:text-white rounded-lg hover:bg-brand-wire transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                
+                <div class="absolute top-24 left-1/2 -translate-x-1/2 w-3/4 h-64 border-2 border-white/10 rounded-xl bg-black/40 flex flex-col items-center justify-center pointer-events-none backdrop-blur-sm">
+                    <i data-lucide="monitor" class="w-12 h-12 text-white/20 mb-4"></i>
+                    <span class="text-white/40 font-bold text-lg">Other Apps (DartCounter, Browser, OBS)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 9: ANDROID AUTH / LOGIN (NEW)    -->
+        <!-- ========================================== -->
+        <div id="android-auth" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Android: OTP Login</h2>
+                <p class="text-brand-muted text-sm max-w-md">The magic-code entry screen bridging the app to the Supabase backend.</p>
+            </div>
+            
+            <div class="w-[360px] h-[740px] bg-brand-bg rounded-[2.5rem] border-[8px] border-[#1f1f25] shadow-2xl relative overflow-hidden flex flex-col font-sans p-6">
+                <!-- Status Bar -->
+                <div class="h-6 flex justify-between items-center pt-2 mb-8 shrink-0">
+                    <span class="text-[10px] font-bold text-white">19:42</span>
+                    <div class="flex gap-1 items-center">
+                        <i data-lucide="wifi" class="w-3 h-3 text-white"></i>
+                        <i data-lucide="battery-full" class="w-4 h-4 text-white"></i>
+                    </div>
+                </div>
+
+                <div class="w-full flex justify-center mb-6 mt-4">
+                    <div class="w-16 h-16 rounded-full bg-brand-card border border-brand-wire flex items-center justify-center shadow-[0_0_20px_rgba(204,11,32,0.2)]">
+                        <i data-lucide="key" class="w-8 h-8 text-brand-red"></i>
+                    </div>
+                </div>
+
+                <h4 class="text-white font-black text-2xl text-center mb-2">Welcome Back.</h4>
+                <p class="text-brand-muted text-xs text-center mb-10 px-4">Enter your email to receive a 6-digit secure sign-in code.</p>
+
+                <div class="space-y-5 w-full">
+                    <div>
+                        <label class="text-[10px] font-bold text-brand-muted tracking-widest mb-1 block">EMAIL ADDRESS</label>
+                        <div class="relative">
+                            <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-muted"></i>
+                            <input type="email" placeholder="player@pub.com" value="luke.littler@example.com" class="w-full bg-brand-card border border-brand-wire rounded-xl h-14 pl-12 pr-4 text-white text-sm font-bold focus:border-brand-red focus:outline-none transition">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-bold text-brand-muted tracking-widest mb-1 block">MAGIC CODE</label>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="123456" class="flex-1 bg-brand-card border border-brand-wire rounded-xl h-14 px-4 text-white text-center text-lg tracking-widest font-black focus:border-brand-red focus:outline-none transition">
+                            <button class="px-6 bg-brand-card border border-brand-wire text-white font-bold rounded-xl hover:bg-brand-wire transition">Verify</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto mb-4 text-center border-t border-brand-wire pt-6">
+                    <p class="text-[10px] text-brand-muted mb-2">Don't have an account?</p>
+                    <button class="w-full h-12 bg-brand-red text-white font-bold rounded-xl shadow-[0_0_15px_rgba(204,11,32,0.4)] hover:bg-red-600 transition">
+                        Start 10-Minute Free Preview
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 10: ANDROID SETTINGS (NEW)       -->
+        <!-- ========================================== -->
+        <div id="android-settings" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Android: Settings Menu</h2>
+                <p class="text-brand-muted text-sm max-w-md">A clean, scrollable list of toggles for modifying gameplay and voice feedback.</p>
+            </div>
+            
+            <div class="w-[360px] h-[740px] bg-brand-bg rounded-[2.5rem] border-[8px] border-[#1f1f25] shadow-2xl relative overflow-hidden flex flex-col font-sans">
+                
+                <div class="h-16 flex items-center justify-between px-4 border-b border-brand-wire bg-brand-card shrink-0 pt-4">
+                    <button class="w-10 h-10 flex items-center justify-center text-brand-muted hover:text-white"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <span class="font-black text-sm tracking-widest text-white">SETTINGS</span>
+                    <div class="w-10 h-10"></div> <!-- spacer -->
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                    
+                    <!-- Group 1 -->
+                    <div>
+                        <span class="text-[10px] font-bold text-brand-red tracking-widest uppercase mb-2 block px-2">Game Tracking</span>
+                        <div class="bg-brand-card border border-brand-wire rounded-2xl overflow-hidden">
+                            <div class="p-4 border-b border-brand-wire/50 flex justify-between items-center">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-white">Live Checkouts</span>
+                                    <span class="text-[10px] text-brand-muted">Show optimal routes on screen</span>
+                                </div>
+                                <div class="w-12 h-6 bg-brand-red rounded-full relative"><div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 shadow"></div></div>
+                            </div>
+                            <div class="p-4 flex justify-between items-center">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-white">Per-Dart Mode</span>
+                                    <span class="text-[10px] text-brand-muted">Speak each dart individually</span>
+                                </div>
+                                <div class="w-12 h-6 bg-brand-wire rounded-full relative"><div class="w-5 h-5 bg-brand-muted rounded-full absolute left-0.5 top-0.5 shadow"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Group 2 -->
+                    <div>
+                        <span class="text-[10px] font-bold text-brand-red tracking-widest uppercase mb-2 block px-2">Voice & Audio</span>
+                        <div class="bg-brand-card border border-brand-wire rounded-2xl overflow-hidden">
+                            <div class="p-4 border-b border-brand-wire/50 flex justify-between items-center">
+                                <span class="text-sm font-bold text-white">Read back scores</span>
+                                <div class="w-12 h-6 bg-brand-red rounded-full relative"><div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 shadow"></div></div>
+                            </div>
+                            <div class="p-4 border-b border-brand-wire/50 flex justify-between items-center">
+                                <span class="text-sm font-bold text-white">Haptic Feedback</span>
+                                <div class="w-12 h-6 bg-brand-red rounded-full relative"><div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 shadow"></div></div>
+                            </div>
+                            <div class="p-4 flex flex-col gap-2">
+                                <span class="text-sm font-bold text-white">Speech Speed</span>
+                                <div class="w-full h-2 bg-brand-wire rounded-full relative"><div class="absolute left-0 top-0 h-full w-[70%] bg-brand-red rounded-full"></div><div class="w-4 h-4 bg-white rounded-full absolute left-[70%] top-1/2 -translate-y-1/2 -translate-x-2 shadow"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Group 3 -->
+                    <div>
+                        <span class="text-[10px] font-bold text-brand-red tracking-widest uppercase mb-2 block px-2">Theme Color</span>
+                        <div class="bg-brand-card border border-brand-wire rounded-2xl p-4 grid grid-cols-4 gap-3">
+                            <div class="w-full aspect-square rounded-full bg-[#CC0B20] border-2 border-white shadow-[0_0_10px_rgba(204,11,32,0.5)]"></div>
+                            <div class="w-full aspect-square rounded-full bg-[#0074D9] border-2 border-transparent opacity-50"></div>
+                            <div class="w-full aspect-square rounded-full bg-[#00B140] border-2 border-transparent opacity-50"></div>
+                            <div class="w-full aspect-square rounded-full bg-[#9B30FF] border-2 border-transparent opacity-50"></div>
+                            <div class="w-full aspect-square rounded-full bg-[#FF6200] border-2 border-transparent opacity-50"></div>
+                            <div class="w-full aspect-square rounded-full bg-[#D4A017] border-2 border-transparent opacity-50"></div>
+                            <div class="w-full aspect-square rounded-full bg-[#39FF14] border-2 border-transparent opacity-50"></div>
+                            <div class="w-full aspect-square rounded-full bg-[#F0F0F5] border-2 border-transparent opacity-50 flex items-center justify-center text-black text-xs font-bold">+</div>
+                        </div>
+                    </div>
+
+                    <!-- Sign Out -->
+                    <button class="w-full py-4 rounded-xl border border-brand-wire text-brand-muted font-bold text-sm bg-brand-card hover:bg-brand-wire transition mt-4 mb-4">
+                        Sign Out
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 11: ANDROID IN-GAME ALERT (NEW)  -->
+        <!-- ========================================== -->
+        <div id="android-alert" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Android: Event Popup</h2>
+                <p class="text-brand-muted text-sm max-w-md">Temporary flash overlays for massive events like 180s or Game Shots.</p>
+            </div>
+            
+            <div class="w-[360px] h-[740px] bg-brand-bg rounded-[2.5rem] border-[8px] border-[#1f1f25] shadow-2xl relative overflow-hidden flex flex-col font-sans">
+                <!-- Blurred out game behind -->
+                <div class="absolute inset-0 p-6 flex flex-col items-center justify-center opacity-20 blur-md pointer-events-none">
+                    <span class="text-white font-black text-[10rem]">116</span>
+                    <div class="w-full h-40 bg-brand-card rounded-xl mt-auto"></div>
+                </div>
+
+                <!-- The Popup Modal -->
+                <div class="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
+                    <div class="w-full bg-brand-card border-y-4 border-brand-red p-8 flex flex-col items-center text-center shadow-[0_0_80px_rgba(204,11,32,0.6)] animate-pulse-fast">
+                        <span class="text-brand-red font-bold tracking-[0.4em] text-xs mb-2">MAXIMUM</span>
+                        <h2 class="text-[6rem] font-black text-white leading-none tracking-tighter drop-shadow-[0_0_20px_rgba(204,11,32,0.8)]">180</h2>
+                        <div class="mt-6 flex gap-2">
+                            <span class="bg-brand-bg border border-brand-wire text-white font-black text-lg px-4 py-2 rounded">T20</span>
+                            <span class="bg-brand-bg border border-brand-wire text-white font-black text-lg px-4 py-2 rounded">T20</span>
+                            <span class="bg-brand-bg border border-brand-wire text-white font-black text-lg px-4 py-2 rounded">T20</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 12: WINDOWS SCAN TO PLAY (NEW)   -->
+        <!-- ========================================== -->
+        <div id="win-auth" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Windows: Auth & Login</h2>
+                <p class="text-brand-muted text-sm max-w-lg">The desktop login modal featuring QR scan link to mobile browser.</p>
+            </div>
+            
+            <div class="w-full max-w-[1024px] h-[600px] bg-brand-bg rounded-xl border border-brand-wire shadow-2xl flex overflow-hidden font-sans">
+                <!-- Left Info Side -->
+                <div class="w-1/2 p-12 flex flex-col justify-center relative overflow-hidden bg-brand-card">
+                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(204,11,32,0.15),transparent_70%)]"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-brand-red rounded-xl flex items-center justify-center mb-8 shadow-[0_0_20px_rgba(204,11,32,0.4)]">
+                            <span class="text-white font-black text-xl tracking-tighter">DV</span>
+                        </div>
+                        <h4 class="text-white font-black text-4xl mb-4 leading-tight">Link your phone<br>to play.</h4>
+                        <p class="text-brand-muted text-base mb-8 max-w-sm">Scan the QR code with your phone camera to log in via your mobile browser. The app will unlock instantly.</p>
+                        <button class="px-6 py-3 border border-brand-wire bg-brand-bg rounded-xl text-sm font-bold text-white hover:bg-brand-wire transition">Sign in with Email instead</button>
+                    </div>
+                </div>
+
+                <!-- Right QR Side -->
+                <div class="w-1/2 bg-[#050508] border-l border-brand-wire p-12 flex flex-col items-center justify-center relative">
+                    <div class="absolute inset-0 grid-bg opacity-20"></div>
+                    <div class="bg-white p-6 rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)] mb-6 z-10">
+                        <!-- Fake QR Code -->
+                        <svg viewBox="0 0 100 100" class="w-48 h-48 text-black">
+                            <rect x="0" y="0" width="100" height="100" fill="white"/>
+                            <path d="M10 10h25v25H10zm5 5v15h15V15zM65 10h25v25H65zm5 5v15h15V15zM10 65h25v25H10zm5 5v15h15V15zM45 10h10v10H45zM45 25h10v10H45zM10 45h10v10H10zM25 45h25v10H25zM65 45h10v25H65zM80 45h10v10H80zM45 65h10v25H45zM80 65h10v10H80zM80 80h10v10H80zM25 65h10v10H25z" fill="black"/>
+                        </svg>
+                    </div>
+                    <div class="flex items-center gap-2 z-10 bg-brand-card border border-brand-wire px-4 py-2 rounded-full shadow-lg">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <p class="text-[10px] text-white font-bold tracking-widest uppercase">Awaiting Connection...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 13: WINDOWS SETTINGS (NEW)       -->
+        <!-- ========================================== -->
+        <div id="win-settings" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Windows: Settings Modal</h2>
+                <p class="text-brand-muted text-sm max-w-lg">A detailed overlay setting panel showing Audio/Mic selection and Theme selection.</p>
+            </div>
+            
+            <div class="w-full max-w-[1024px] h-[600px] bg-brand-bg rounded-xl border border-brand-wire shadow-2xl relative overflow-hidden font-sans flex items-center justify-center">
+                <!-- Blurred background (Command Center behind it) -->
+                <div class="absolute inset-0 flex">
+                    <div class="w-1/4 bg-brand-card/30"></div>
+                    <div class="w-1/2 flex items-center justify-center"><span class="text-white/10 font-black text-9xl blur-sm">116</span></div>
+                    <div class="w-1/4 bg-brand-card/30"></div>
+                </div>
+                <div class="absolute inset-0 bg-black/70 backdrop-blur-sm z-0"></div>
+                
+                <!-- The Modal -->
+                <div class="relative z-10 w-[700px] h-[450px] bg-brand-card border border-brand-wire rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] flex overflow-hidden">
+                    
+                    <!-- Left Tabs -->
+                    <div class="w-1/3 bg-brand-bg border-r border-brand-wire flex flex-col p-4">
+                        <h3 class="font-black text-white text-lg px-2 mb-4 mt-2">Settings</h3>
+                        <div class="space-y-1">
+                            <button class="w-full text-left px-3 py-2 bg-brand-wire rounded-lg text-white font-bold text-sm flex items-center gap-2"><i data-lucide="mic" class="w-4 h-4"></i> Audio & Mic</button>
+                            <button class="w-full text-left px-3 py-2 text-brand-muted hover:bg-brand-cardHov hover:text-white rounded-lg font-bold text-sm flex items-center gap-2 transition"><i data-lucide="palette" class="w-4 h-4"></i> Appearance</button>
+                            <button class="w-full text-left px-3 py-2 text-brand-muted hover:bg-brand-cardHov hover:text-white rounded-lg font-bold text-sm flex items-center gap-2 transition"><i data-lucide="target" class="w-4 h-4"></i> Gameplay</button>
+                            <button class="w-full text-left px-3 py-2 text-brand-muted hover:bg-brand-cardHov hover:text-white rounded-lg font-bold text-sm flex items-center gap-2 transition"><i data-lucide="camera" class="w-4 h-4"></i> Video Scoring</button>
+                        </div>
+                    </div>
+
+                    <!-- Right Content -->
+                    <div class="w-2/3 p-8 flex flex-col">
+                        <div class="flex-1 space-y-8">
+                            <!-- Field 1 -->
+                            <div>
+                                <label class="text-brand-muted text-xs font-bold tracking-widest block mb-2">MICROPHONE DEVICE</label>
+                                <div class="relative">
+                                    <select class="w-full bg-brand-bg border border-brand-wire rounded-xl h-12 px-4 text-sm font-bold text-white focus:outline-none focus:border-brand-red appearance-none cursor-pointer">
+                                        <option>Default System Microphone (Realtek)</option>
+                                        <option>Logitech USB Headset</option>
+                                        <option>Webcam Mic</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-muted pointer-events-none"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Field 2 -->
+                            <div class="flex items-center justify-between bg-brand-bg border border-brand-wire rounded-xl p-4">
+                                <div class="flex flex-col">
+                                    <span class="text-white font-bold text-sm">Read back scores (TTS)</span>
+                                    <span class="text-brand-muted text-[10px]">App will say the score out loud</span>
+                                </div>
+                                <div class="w-12 h-6 bg-brand-red rounded-full relative cursor-pointer shadow-inner"><div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 shadow"></div></div>
+                            </div>
+
+                            <!-- Field 3 -->
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <label class="text-brand-muted text-xs font-bold tracking-widest block">VOICE VOLUME</label>
+                                    <span class="text-white text-xs font-bold">90%</span>
+                                </div>
+                                <div class="w-full h-3 bg-brand-bg border border-brand-wire rounded-full relative">
+                                    <div class="absolute left-0 top-0 h-full w-[90%] bg-brand-red rounded-full shadow-[0_0_10px_rgba(204,11,32,0.5)]"></div>
+                                    <div class="w-5 h-5 bg-white rounded-full absolute left-[90%] top-1/2 -translate-y-1/2 -translate-x-2.5 shadow border-2 border-brand-red cursor-pointer"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="mt-auto pt-6 border-t border-brand-wire flex justify-between items-center">
+                            <button class="text-brand-muted hover:text-white text-sm font-bold transition">Cancel</button>
+                            <button class="px-6 py-2.5 bg-brand-red text-white font-bold rounded-xl shadow-[0_0_15px_rgba(204,11,32,0.4)] hover:bg-red-600 transition">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PROTOTYPE 14: WINDOWS PROFILE (NEW)        -->
+        <!-- ========================================== -->
+        <div id="win-profile" class="mockup-container w-full flex-col items-center justify-center h-full">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">Windows: Account Profile</h2>
+                <p class="text-brand-muted text-sm max-w-lg">The profile popup showing active Pro status and Stripe management links.</p>
+            </div>
+            
+            <div class="w-full max-w-[1024px] h-[600px] bg-brand-bg rounded-xl border border-brand-wire shadow-2xl relative overflow-hidden font-sans flex items-center justify-center">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02),transparent_70%)]"></div>
+                
+                <div class="relative z-10 w-[400px] bg-brand-card border border-brand-wire rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                    
+                    <!-- Header -->
+                    <div class="p-6 border-b border-brand-wire flex items-center gap-4 bg-brand-bg/50">
+                        <div class="w-16 h-16 rounded-full bg-brand-card border border-brand-wire flex items-center justify-center shadow-inner">
+                            <span class="text-2xl font-black text-white">LL</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-brand-muted font-bold tracking-widest uppercase mb-1">SIGNED IN AS</span>
+                            <span class="text-lg font-bold text-white leading-tight">luke.littler@example.com</span>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Card -->
+                    <div class="p-6">
+                        <div class="bg-gradient-to-br from-brand-bg to-brand-card border border-brand-wire rounded-xl p-5 relative overflow-hidden shadow-lg mb-6">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+                            
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-white font-bold text-lg">DartVoice Pro</h4>
+                                <span class="bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Active</span>
+                            </div>
+                            
+                            <p class="text-xs text-brand-muted mb-6">Your 7-Day Free Trial ends in <strong class="text-white">4 days</strong>. Auto-bills £6.99/mo thereafter.</p>
+                            
+                            <button class="w-full py-2.5 bg-brand-card border border-brand-wire rounded-lg text-xs font-bold text-white hover:bg-brand-wire transition flex items-center justify-center gap-2">
+                                <i data-lucide="credit-card" class="w-4 h-4"></i> Manage Billing in Stripe
+                            </button>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="space-y-2">
+                            <button class="w-full text-left px-4 py-3 bg-brand-bg border border-brand-wire rounded-xl text-white font-bold text-sm flex items-center justify-between hover:border-brand-muted transition">
+                                <span class="flex items-center gap-2"><i data-lucide="help-circle" class="w-4 h-4 text-brand-muted"></i> Support & FAQ</span>
+                                <i data-lucide="arrow-right" class="w-4 h-4 text-brand-muted"></i>
+                            </button>
+                            <button class="w-full text-left px-4 py-3 bg-brand-bg border border-brand-wire rounded-xl text-white font-bold text-sm flex items-center justify-between hover:border-brand-muted transition">
+                                <span class="flex items-center gap-2"><i data-lucide="log-out" class="w-4 h-4 text-brand-red"></i> Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        function switchView(viewId) {
+            // Hide all mockups
+            document.querySelectorAll('.mockup-container').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Reset all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-wire', 'text-white', 'shadow');
+                btn.classList.add('text-brand-muted');
+            });
+            
+            // Show target mockup
+            document.getElementById(viewId).classList.add('active');
+            
+            // Highlight active button
+            const activeBtn = document.getElementById('btn-' + viewId);
+            if(activeBtn) {
+                activeBtn.classList.remove('text-brand-muted');
+                activeBtn.classList.add('bg-brand-wire', 'text-white', 'shadow');
+            }
+        }
+    </script>
+</body>
+</html>

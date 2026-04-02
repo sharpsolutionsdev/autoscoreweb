@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DartVoice | Social Media Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Rubik', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            bg: '#08080A',
+                            card: '#111114',
+                            cardHov: '#18181C',
+                            wire: '#252530',
+                            text: '#F0F0F5',
+                            muted: '#6E6E82'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            /* Live CSS variable controlled by the color picker */
+            --live-accent: #CC0B20; 
+            --live-accent-glow: rgba(204, 11, 32, 0.4);
+            --live-secondary: #000000;
+            /* Editable background colors */
+            --live-bg: #050508;
+            --live-card: #111114;
+        }
+        
+        body { background-color: #08080A; color: #F0F0F5; }
+        
+        .grid-bg {
+            background-image: 
+                linear-gradient(to right, #252530 1px, transparent 1px),
+                linear-gradient(to bottom, #252530 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center center;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #08080A; }
+        ::-webkit-scrollbar-thumb { background: #252530; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6E6E82; }
+        
+        .neon-text { text-shadow: 0 0 10px var(--live-accent-glow), 0 0 20px var(--live-accent-glow); }
+
+        /* Dynamic Classes */
+        .text-live-accent { color: var(--live-accent) !important; }
+        .bg-live-accent { background-color: var(--live-accent) !important; }
+        .border-live-accent { border-color: var(--live-accent) !important; }
+        .shadow-live-accent { box-shadow: 0 0 20px var(--live-accent-glow) !important; }
+        
+        /* Dynamic Backgrounds for Posts */
+        .dyn-bg { background-color: var(--live-bg) !important; }
+        .dyn-card { background-color: var(--live-card) !important; }
+
+        /* Make editable text obvious on hover but hide when downloading */
+        [contenteditable="true"] {
+            transition: all 0.2s;
+            outline: none;
+        }
+        .editing-mode [contenteditable="true"]:hover {
+            outline: 2px dashed rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.05);
+            cursor: text;
+            border-radius: 4px;
+        }
+        
+        .capture-container {
+            transform-origin: top left;
+        }
+    </style>
+</head>
+<body class="antialiased p-4 md:p-8 editing-mode">
+
+    <nav class="fixed top-0 left-0 right-0 bg-brand-bg/95 backdrop-blur-md border-b border-brand-wire z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            
+            <div class="flex items-center gap-3">
+                <svg viewBox="0 0 100 100" class="w-8 h-8">
+                    <circle cx="50" cy="50" r="45" stroke="#252530" stroke-width="6" fill="none" />
+                    <circle cx="50" cy="50" r="16" fill="var(--live-accent)" />
+                    <path d="M 65 20 Q 85 50 65 80" stroke="#F0F0F5" stroke-width="8" stroke-linecap="round" fill="none" />
+                </svg>
+                <span class="font-black tracking-widest text-sm text-white uppercase hidden md:inline">Social Studio</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-4 bg-brand-card border border-brand-wire p-1.5 px-3 rounded-xl shadow-lg">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-brand-muted hidden sm:inline">ACCENT:</span>
+                        <input type="color" id="global-color" value="#CC0B20" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0 p-0">
+                    </div>
+                    <div class="w-px h-4 bg-brand-wire"></div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-brand-muted hidden sm:inline">BACKGROUND:</span>
+                        <input type="color" id="global-bg-color" value="#050508" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0 p-0">
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <button class="flex items-center gap-2 bg-brand-card border border-brand-wire px-4 py-2.5 rounded-xl text-sm font-bold text-white hover:bg-brand-cardHov transition shadow-lg">
+                        Menu <i data-lucide="chevron-down" class="w-4 h-4 text-brand-muted"></i>
+                    </button>
+                    <div class="absolute right-0 top-full mt-2 w-56 bg-brand-card border border-brand-wire rounded-xl shadow-2xl p-2 hidden group-hover:flex flex-col gap-1 z-50 max-h-[80vh] overflow-y-auto">
+                        <a href="#logos" class="px-3 py-2 text-sm font-semibold text-brand-muted hover:text-white hover:bg-brand-wire rounded-lg transition flex items-center gap-2"><i data-lucide="hexagon" class="w-4 h-4"></i> 0. Logos</a>
+                        <a href="#ui-icons" class="px-3 py-2 text-sm font-semibold text-brand-muted hover:text-white hover:bg-brand-wire rounded-lg transition flex items-center gap-2"><i data-lucide="layout-grid" class="w-4 h-4"></i> 0.5 UI Icons</a>
+                        <a href="#profiles" class="px-3 py-2 text-sm font-semibold text-brand-muted hover:text-white hover:bg-brand-wire rounded-lg transition flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> 1. Profiles</a>
+                        <a href="#generator" class="px-3 py-2 text-sm font-semibold text-live-accent hover:text-white hover:bg-brand-wire rounded-lg transition flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> 2. Post Generator</a>
+                        <a href="#scripts" class="px-3 py-2 text-sm font-semibold text-brand-muted hover:text-white hover:bg-brand-wire rounded-lg transition flex items-center gap-2"><i data-lucide="video" class="w-4 h-4"></i> 3. Video Scripts</a>
+                        <a href="#outreach" class="px-3 py-2 text-sm font-semibold text-brand-muted hover:text-white hover:bg-brand-wire rounded-lg transition flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> 4. Outreach</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto mt-24 space-y-16">
+
+        <section id="logos" class="scroll-mt-32">
+            <h2 class="text-3xl font-extrabold mb-6">0. Logo Concepts</h2>
+            <p class="text-brand-muted mb-8">Base vectors that adapt to your chosen brand color.</p>
+            <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-8">
+                
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-1', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="absolute inset-0 grid-bg opacity-10"></div>
+                    <div class="relative z-10 flex items-center gap-3" id="svg-logo-1">
+                        <svg viewBox="0 0 100 100" class="w-12 h-12">
+                            <circle cx="50" cy="50" r="45" stroke="#252530" stroke-width="4" fill="none" />
+                            <circle cx="50" cy="50" r="30" stroke="#6E6E82" stroke-width="4" fill="none" />
+                            <circle cx="50" cy="50" r="12" fill="var(--live-accent)" />
+                            <path d="M 65 20 Q 85 50 65 80" stroke="#F0F0F5" stroke-width="6" stroke-linecap="round" fill="none" />
+                            <path d="M 80 35 Q 95 50 80 65" stroke="var(--live-accent)" stroke-width="6" stroke-linecap="round" fill="none" />
+                        </svg>
+                        <span class="text-2xl font-extrabold tracking-tight text-white">DARTVOICE</span>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Horizontal Lockup</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-2', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 w-24 h-24 bg-brand-bg border-2 border-brand-wire rounded-[2rem] shadow-2xl flex items-center justify-center p-3" id="svg-logo-2">
+                        <svg viewBox="0 0 100 100" class="w-full h-full shadow-live-accent">
+                            <circle cx="50" cy="50" r="40" stroke="#252530" stroke-width="6" fill="none" />
+                            <circle cx="50" cy="50" r="22" stroke="#6E6E82" stroke-width="6" fill="none" />
+                            <circle cx="50" cy="50" r="10" fill="var(--live-accent)" />
+                            <path d="M 65 25 Q 85 50 65 75" stroke="#F0F0F5" stroke-width="5" stroke-linecap="round" fill="none" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">App Icon / Square</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-3', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy HTML</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-3">
+                        <span class="text-4xl font-black tracking-tighter text-white italic pr-1">DART<span class="text-live-accent">VOICE</span></span>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Sports Wordmark</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-4', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-4">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16 drop-shadow-[0_0_10px_var(--live-accent-glow)]">
+                            <rect x="15" y="35" width="8" height="30" rx="4" fill="#6E6E82" />
+                            <rect x="35" y="20" width="8" height="60" rx="4" fill="var(--live-accent)" />
+                            <rect x="55" y="5" width="8" height="90" rx="4" fill="#F0F0F5" />
+                            <rect x="75" y="25" width="8" height="50" rx="4" fill="var(--live-accent)" />
+                            <path d="M 0 50 L 100 50" stroke="#F0F0F5" stroke-width="6" stroke-linecap="round" />
+                            <polygon points="80,40 100,50 80,60" fill="#F0F0F5" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Soundwave Dart</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-5', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-5">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <path d="M 20 20 L 50 20 Q 80 20 80 50 Q 80 80 50 80 L 20 80 Z" fill="none" stroke="#F0F0F5" stroke-width="8" />
+                            <path d="M 35 35 L 55 80 L 75 35" fill="none" stroke="var(--live-accent)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Interlocking DV</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-6', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,var(--live-accent-glow),transparent_70%)] opacity-30"></div>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-6">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16 text-white">
+                            <rect x="30" y="10" width="40" height="55" rx="20" fill="none" stroke="var(--live-accent)" stroke-width="6" />
+                            <path d="M 20 50 A 30 30 0 0 0 80 50" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+                            <line x1="50" y1="80" x2="50" y2="95" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+                            <line x1="30" y1="95" x2="70" y2="95" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+                            <circle cx="50" cy="37" r="12" fill="none" stroke="currentColor" stroke-width="4" />
+                            <circle cx="50" cy="37" r="4" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Studio Mic & Target</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-7', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-7">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <path d="M 10 90 L 40 40 L 60 50 L 90 10" fill="none" stroke="var(--live-accent)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="90" cy="10" r="6" fill="#F0F0F5" />
+                            <circle cx="10" cy="90" r="4" fill="#6E6E82" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Trajectory Flight</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-8', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy HTML</button>
+                    <div class="relative z-10 flex flex-col items-center justify-center leading-none" id="svg-logo-8">
+                        <span class="text-3xl font-black tracking-tighter text-white uppercase border-b-4 border-live-accent pb-1 mb-1">DART</span>
+                        <span class="text-3xl font-black tracking-tighter text-live-accent uppercase">VOICE</span>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Stacked Bold</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-9', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 w-20 h-20 rounded-full border-4 border-brand-wire flex items-center justify-center bg-brand-bg shadow-inner" id="svg-logo-9">
+                         <svg viewBox="0 0 50 50" class="w-12 h-12">
+                             <path d="M 25 5 L 25 45 M 5 25 L 45 25" stroke="#6E6E82" stroke-width="2" stroke-dasharray="2 2" />
+                             <circle cx="25" cy="25" r="10" fill="none" stroke="var(--live-accent)" stroke-width="2" />
+                             <circle cx="25" cy="25" r="4" fill="var(--live-accent)" />
+                             <path d="M 25 25 L 40 10" stroke="var(--live-accent)" stroke-width="3" stroke-linecap="round" />
+                         </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Radar Target</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-10', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-10">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16 drop-shadow-[0_0_10px_var(--live-accent-glow)]">
+                            <path d="M 20 20 L 80 20 L 80 50 Q 80 80 50 90 Q 20 80 20 50 Z" fill="none" stroke="var(--live-accent)" stroke-width="6" stroke-linejoin="round" />
+                            <path d="M 35 45 L 50 70 L 65 30" fill="none" stroke="#F0F0F5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Sports Crest</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-11', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-11">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <path d="M 15 30 Q 15 15 50 15 Q 85 15 85 45 Q 85 75 50 75 L 30 90 L 30 70 Q 15 65 15 30 Z" fill="none" stroke="#F0F0F5" stroke-width="6" stroke-linejoin="round" />
+                            <circle cx="35" cy="45" r="5" fill="var(--live-accent)" />
+                            <circle cx="50" cy="45" r="5" fill="var(--live-accent)" />
+                            <circle cx="65" cy="45" r="5" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Voice Bubble</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-12', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-12">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <path d="M 30 20 L 30 80" stroke="var(--live-accent)" stroke-width="12" stroke-linecap="round" />
+                            <path d="M 30 20 L 50 20 Q 80 20 80 50 Q 80 80 50 80 L 30 80" fill="none" stroke="#F0F0F5" stroke-width="12" stroke-linecap="round" />
+                            <circle cx="60" cy="50" r="6" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Minimalist 'D'</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-13', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-13">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]">
+                            <ellipse cx="50" cy="50" rx="40" ry="20" fill="none" stroke="#6E6E82" stroke-width="4" />
+                            <ellipse cx="50" cy="50" rx="20" ry="10" fill="none" stroke="#F0F0F5" stroke-width="4" />
+                            <ellipse cx="50" cy="50" rx="4" ry="2" fill="var(--live-accent)" />
+                            <path d="M 10 50 L 90 50 M 50 30 L 50 70" stroke="#6E6E82" stroke-width="2" />
+                            <path d="M 50 50 L 70 40" stroke="var(--live-accent)" stroke-width="4" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">3D Perspective Target</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-14', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-14">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <line x1="20" y1="20" x2="50" y2="80" stroke="#F0F0F5" stroke-width="8" stroke-linecap="round" />
+                            <line x1="80" y1="20" x2="72" y2="36" stroke="var(--live-accent)" stroke-width="8" stroke-linecap="round" />
+                            <line x1="68" y1="44" x2="60" y2="60" stroke="var(--live-accent)" stroke-width="8" stroke-linecap="round" />
+                            <line x1="56" y1="68" x2="50" y2="80" stroke="var(--live-accent)" stroke-width="8" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Frequency 'V'</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-15', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="absolute inset-0 grid-bg opacity-10"></div>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-15">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 drop-shadow-xl">
+                            <rect x="10" y="10" width="80" height="80" rx="20" fill="none" stroke="#F0F0F5" stroke-width="6" />
+                            <text x="44" y="62" font-family="Rubik, sans-serif" font-weight="900" font-size="32" fill="#F0F0F5" text-anchor="middle">DV</text>
+                            <circle cx="70" cy="30" r="6" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">App "Recording" Monogram</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-16', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-16">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16 drop-shadow-[0_0_10px_var(--live-accent-glow)]">
+                            <path d="M 50 10 L 90 25 L 90 55 Q 90 85 50 95 Q 10 85 10 55 L 10 25 Z" fill="none" stroke="var(--live-accent)" stroke-width="6" stroke-linejoin="round" />
+                            <path d="M 50 30 L 50 65" stroke="#F0F0F5" stroke-width="6" stroke-linecap="round" />
+                            <circle cx="50" cy="30" r="6" fill="#F0F0F5" />
+                            <path d="M 35 50 Q 50 65 65 50" fill="none" stroke="#F0F0F5" stroke-width="6" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">The Dart Shield</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-17', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-17">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20">
+                            <line x1="10" y1="40" x2="60" y2="40" stroke="#6E6E82" stroke-width="4" stroke-linecap="round" />
+                            <line x1="20" y1="60" x2="70" y2="60" stroke="#6E6E82" stroke-width="4" stroke-linecap="round" />
+                            <line x1="0" y1="50" x2="80" y2="50" stroke="var(--live-accent)" stroke-width="6" stroke-linecap="round" />
+                            <polygon points="80,40 100,50 80,60" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Speed / Precision</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-18', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-18">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16 text-white">
+                            <path d="M 10 90 Q 50 10 90 90" fill="none" stroke="#6E6E82" stroke-width="4" />
+                            <path d="M 25 90 Q 50 40 75 90" fill="none" stroke="#F0F0F5" stroke-width="4" />
+                            <path d="M 40 90 Q 50 70 60 90" fill="none" stroke="var(--live-accent)" stroke-width="6" />
+                            <circle cx="50" cy="80" r="6" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Oche Grid Target</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-19', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy HTML</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-19">
+                        <span class="text-4xl font-black tracking-widest text-transparent uppercase" style="-webkit-text-stroke: 2px var(--live-accent); filter: drop-shadow(0 0 8px var(--live-accent));">VOICE</span>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Pub Neon Outline</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-20', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-20">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <path d="M 10 50 A 40 40 0 1 1 50 90 L 10 90 L 20 65 A 40 40 0 0 1 10 50 Z" fill="none" stroke="#F0F0F5" stroke-width="6" stroke-linejoin="round" />
+                            <circle cx="55" cy="45" r="15" fill="none" stroke="var(--live-accent)" stroke-width="6" />
+                            <circle cx="55" cy="45" r="5" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Speech Target</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-21', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-21">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <path d="M 20 50 L 40 70 L 90 20" fill="none" stroke="#F0F0F5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                            <polygon points="80,10 100,20 80,30" fill="var(--live-accent)" transform="rotate(-45 90 20)" />
+                            <circle cx="40" cy="70" r="4" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Precision Check</p>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-22', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-22">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16 drop-shadow-md">
+                            <path d="M 20 40 L 35 20 L 50 35 L 65 20 L 80 40 L 70 50 L 30 50 Z" fill="var(--live-accent)" stroke="var(--live-accent)" stroke-width="2" stroke-linejoin="round" />
+                            <circle cx="35" cy="15" r="4" fill="#F0F0F5" />
+                            <circle cx="65" cy="15" r="4" fill="#F0F0F5" />
+                            <path d="M 50 60 L 50 90 M 40 60 L 60 60" stroke="#F0F0F5" stroke-width="6" stroke-linecap="round" />
+                            <polygon points="40,90 60,90 50,100" fill="#F0F0F5" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Royal Pro Dart</p>
+                </div>
+
+                <!-- NEW: Logo 23 - Waveform Flight -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-23', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-23">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16 drop-shadow-lg">
+                            <rect x="20" y="40" width="8" height="20" fill="#6E6E82" rx="4"/>
+                            <rect x="35" y="25" width="8" height="50" fill="var(--live-accent)" rx="4"/>
+                            <rect x="50" y="10" width="8" height="80" fill="#F0F0F5" rx="4"/>
+                            <path d="M 65 30 L 85 50 L 65 70 Z" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Waveform Flight</p>
+                </div>
+
+                <!-- NEW: Logo 24 - Neon Rings -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-24', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-24">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <circle cx="50" cy="50" r="45" stroke="#252530" stroke-width="2" fill="none" />
+                            <circle cx="50" cy="50" r="35" stroke="var(--live-accent)" stroke-width="2" fill="none" />
+                            <circle cx="50" cy="50" r="25" stroke="#F0F0F5" stroke-width="4" fill="none" />
+                            <circle cx="50" cy="50" r="8" fill="var(--live-accent)" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Neon Target</p>
+                </div>
+
+                <!-- NEW: Logo 25 - Monogram Block -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-25', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy HTML</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-25">
+                        <div class="w-16 h-16 bg-white flex items-center justify-center rounded-lg shadow-inner shadow-black overflow-hidden relative">
+                            <div class="absolute inset-0 bg-brand-red opacity-10"></div>
+                            <span class="text-3xl font-black tracking-tighter text-brand-bg" style="font-family: Arial, sans-serif; letter-spacing: -3px;">DV</span>
+                        </div>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">Monogram Block</p>
+                </div>
+
+                <!-- NEW: Logo 26 - The Pulse -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <button onclick="copyHTML('svg-logo-26', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center z-20">Copy SVG</button>
+                    <div class="relative z-10 flex items-center justify-center" id="svg-logo-26">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <circle cx="50" cy="50" r="40" stroke="var(--live-accent)" stroke-width="2" fill="none" opacity="0.3" stroke-dasharray="4 4" />
+                            <circle cx="50" cy="50" r="25" stroke="var(--live-accent)" stroke-width="4" fill="none" opacity="0.6" />
+                            <circle cx="50" cy="50" r="10" fill="var(--live-accent)" class="animate-pulse" />
+                        </svg>
+                    </div>
+                    <p class="text-brand-muted text-xs mt-6 font-mono">The Pulse</p>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="ui-icons" class="border-t border-brand-wire pt-16 scroll-mt-32">
+            <h2 class="text-3xl font-extrabold mb-6 flex items-center gap-3">
+                <i data-lucide="layout-grid" class="w-6 h-6 text-live-accent"></i> 0.5 Custom App UI Icons
+            </h2>
+            <p class="text-brand-muted mb-8">Copy these directly into your Windows/Android app interfaces.</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-mic', this, true)">
+                    <div id="icon-mic" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Mic</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-history', this, true)">
+                    <div id="icon-history" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path><path d="M19 9h-4"></path><path d="M19 9v4"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Stats</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-theme', this, true)">
+                    <div id="icon-theme" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Themes</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-target', this, true)">
+                    <div id="icon-target" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Target</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-download', this, true)">
+                    <div id="icon-download" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Download</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-card', this, true)">
+                    <div id="icon-card" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Billing</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-undo', this, true)">
+                    <div id="icon-undo" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Undo</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-mute', this, true)">
+                    <div id="icon-mute" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="22"></line><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Mute</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-shield', this, true)">
+                    <div id="icon-shield" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Verify</span>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-crown', this, true)">
+                    <div id="icon-crown" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="2 4 5 16 12 11 19 16 22 4 17 8 12 2 7 8 2 4"></polygon><line x1="4" y1="20" x2="20" y2="20"></line></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Premium</span>
+                </div>
+
+                <!-- NEW: Settings Icon -->
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-settings', this, true)">
+                    <div id="icon-settings" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Settings</span>
+                </div>
+
+                <!-- NEW: Share Icon -->
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-share', this, true)">
+                    <div id="icon-share" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Share</span>
+                </div>
+
+                <!-- NEW: User Icon -->
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-user', this, true)">
+                    <div id="icon-user" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Profile</span>
+                </div>
+
+                <!-- NEW: Trophy Icon -->
+                <div class="bg-brand-card border border-brand-wire rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-live-accent transition group" onclick="copyHTML('icon-trophy', this, true)">
+                    <div id="icon-trophy" class="mb-3 text-brand-text group-hover:text-live-accent transition">
+                        <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-muted group-hover:text-white">Leagues</span>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="profiles" class="scroll-mt-32 pt-8 border-t border-brand-wire">
+            <h2 class="text-3xl font-extrabold mb-6">1. Profile Optimization</h2>
+            <p class="text-brand-muted mb-8">Set up your Instagram, TikTok, and Twitter profiles to convert visitors into app downloads.</p>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 text-center">
+                    <h3 class="font-bold text-white mb-6">Profile Picture</h3>
+                    <div id="dl-profile-pic" class="w-32 h-32 mx-auto bg-white rounded-full flex items-center justify-center shadow-live-accent border-4 border-brand-bg mb-6">
+                        <span class="text-5xl font-black tracking-tighter text-live-accent">DV</span>
+                    </div>
+                    <button onclick="downloadImage('dl-profile-pic', 'DV_Profile_Pic')" class="w-full bg-brand-bg border border-brand-wire text-white text-xs font-bold py-2 rounded-lg hover:bg-brand-wire transition">
+                        Download Logo PNG
+                    </button>
+                </div>
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 lg:col-span-2">
+                    <h3 class="font-bold text-white mb-6">High-Converting Bio Templates</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-brand-bg p-4 rounded-xl border border-brand-wire">
+                            <span class="text-[10px] text-brand-muted font-bold tracking-widest mb-2 block">OPTION A (DIRECT)</span>
+                            <p class="text-sm font-sans text-gray-300 whitespace-pre-wrap">🎯 The £500 Auto-Scorer in Your Pocket.
+🎤 Score your darts with your voice.
+💻 Windows 10/11 & Android.
+👇 Start your 7-Day Free Trial</p>
+                        </div>
+                        <div class="bg-brand-bg p-4 rounded-xl border border-brand-wire">
+                            <span class="text-[10px] text-brand-muted font-bold tracking-widest mb-2 block">OPTION B (COMMUNITY)</span>
+                            <p class="text-sm font-sans text-gray-300 whitespace-pre-wrap">Tired of darts math? 🧠🚫
+We built a voice-scorer that uses your phone mic to log matches instantly. 
+Click below for a free 10 min preview! 👇</p>
+                        </div>
+                        
+                        <!-- NEW Bio Option C -->
+                        <div class="bg-brand-bg p-4 rounded-xl border border-brand-wire">
+                            <span class="text-[10px] text-brand-muted font-bold tracking-widest mb-2 block">OPTION C (PROVE IT)</span>
+                            <p class="text-sm font-sans text-gray-300 whitespace-pre-wrap">Think you can throw? Prove it. 🎯
+Voice-powered darts scoring that tracks your true average.
+No hardware needed. Just your phone.
+Get the App ⬇️</p>
+                        </div>
+                        <!-- NEW Bio Option D -->
+                        <div class="bg-brand-bg p-4 rounded-xl border border-brand-wire">
+                            <span class="text-[10px] text-brand-muted font-bold tracking-widest mb-2 block">OPTION D (PUB HERO)</span>
+                            <p class="text-sm font-sans text-gray-300 whitespace-pre-wrap">Pub champion in training. 🏆
+Auto-score your matches and dominate the local league.
+Try DartVoice for free tonight 👇</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="generator" class="border-t-4 border-brand-wire pt-16 scroll-mt-32">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-3xl font-extrabold mb-2">2. Editable Post Generator</h2>
+                    <p class="text-brand-muted">Click any text on the graphics to edit it. Change the global brand color. Download when ready.</p>
+                </div>
+            </div>
+
+            <div class="space-y-12">
+                
+                <!-- Graphic: The Comparison Matrix (1:1) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-comparison" class="w-[400px] h-[400px] dyn-bg relative overflow-hidden flex flex-col p-6 font-sans border border-brand-wire capture-container">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--live-accent-glow),transparent_60%)] opacity-20 pointer-events-none"></div>
+                            <h2 contenteditable="true" class="text-2xl font-black text-white text-center leading-tight mb-4 z-10 outline-none uppercase tracking-wide">The Ultimate Setup</h2>
+                            <div class="flex-1 w-full bg-brand-card border border-brand-wire rounded-xl shadow-2xl z-10 overflow-hidden flex flex-col">
+                                <div class="flex border-b border-brand-wire bg-brand-bg text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center py-3">
+                                    <div class="w-1/3 text-left pl-4">Feature</div><div class="w-1/3 border-l border-brand-wire">Chalk</div><div class="w-1/3 border-l border-brand-wire text-live-accent shadow-live-accent bg-live-accent/10">DartVoice</div>
+                                </div>
+                                <div class="flex border-b border-brand-wire py-4 items-center text-xs font-bold text-white text-center">
+                                    <div class="w-1/3 text-left pl-4">Auto-Scoring</div><div class="w-1/3 border-l border-brand-wire"><i data-lucide="x" class="w-5 h-5 mx-auto text-gray-600"></i></div><div class="w-1/3 border-l border-brand-wire bg-live-accent/5"><i data-lucide="check" class="w-5 h-5 mx-auto text-live-accent"></i></div>
+                                </div>
+                                <div class="flex border-b border-brand-wire py-4 items-center text-xs font-bold text-white text-center">
+                                    <div class="w-1/3 text-left pl-4">Live Checkouts</div><div class="w-1/3 border-l border-brand-wire"><i data-lucide="x" class="w-5 h-5 mx-auto text-gray-600"></i></div><div class="w-1/3 border-l border-brand-wire bg-live-accent/5"><i data-lucide="check" class="w-5 h-5 mx-auto text-live-accent"></i></div>
+                                </div>
+                                <div class="flex py-4 items-center text-xs font-bold text-white text-center">
+                                    <div class="w-1/3 text-left pl-4">Hardware Cost</div><div class="w-1/3 border-l border-brand-wire text-gray-400 font-black text-sm">£5</div><div class="w-1/3 border-l border-brand-wire bg-live-accent/5 text-live-accent font-black text-sm">£0</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center z-10"><div contenteditable="true" class="inline-block bg-white text-black font-black px-6 py-2 rounded-full text-[10px] uppercase tracking-wider outline-none shadow-lg">Start 7-Day Free Trial</div></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Comparison Matrix</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Square 1:1</span></div>
+                        <p class="text-sm text-brand-muted mb-4">A powerful SaaS marketing tool. Shows exactly how you beat the competition on features and price simultaneously.</p>
+                        <button onclick="downloadImage('post-comparison', 'DartVoice_Comparison')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- Graphic: Push Notification (9:16) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-notification" class="w-[280px] h-[498px] bg-[url('https://images.unsplash.com/photo-1544605928-1002237eb423?auto=format&fit=crop&w=320&q=80')] bg-cover bg-center relative overflow-hidden flex flex-col items-center justify-center p-4 font-sans capture-container">
+                            <div class="absolute inset-0 bg-black/60 backdrop-blur-md pointer-events-none"></div>
+                            <h2 contenteditable="true" class="text-white/80 font-bold text-5xl mb-12 relative z-10 outline-none font-mono">19:42</h2>
+                            <div class="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl relative z-10 mb-auto">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center gap-2"><div class="w-5 h-5 rounded-md bg-green-500 flex items-center justify-center"><i data-lucide="message-circle" class="w-3 h-3 text-white"></i></div><span class="text-white/90 text-[10px] font-bold uppercase tracking-wide">Messages</span></div>
+                                    <span class="text-white/60 text-[10px]">now</span>
+                                </div>
+                                <h4 contenteditable="true" class="text-white font-bold text-sm outline-none">Dave (League Captain)</h4>
+                                <p contenteditable="true" class="text-white/90 text-xs mt-1 outline-none leading-snug">Mate, how are you calling your checkout routes that fast? It's like you're not even doing the math.</p>
+                            </div>
+                            <div class="w-full text-center relative z-10 mt-auto pb-8"><div contenteditable="true" class="inline-block bg-live-accent text-white font-black px-6 py-3 rounded-full text-[10px] uppercase tracking-wider outline-none shadow-live-accent">Reveal the Secret</div></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Viral Notification</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Story 9:16</span></div>
+                        <p class="text-sm text-brand-muted mb-4">This stops users from swiping. It looks exactly like an incoming text message on their own phone lock screen.</p>
+                        <button onclick="downloadImage('post-notification', 'DartVoice_Notification')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- Graphic: The Relatable Tweet (1:1) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-tweet" class="w-[400px] h-[400px] bg-[#050508] grid-bg relative overflow-hidden flex flex-col items-center justify-center p-8 font-sans border border-brand-wire capture-container">
+                            <div class="absolute inset-0 bg-live-accent opacity-5 pointer-events-none"></div>
+                            <div class="w-full bg-brand-card border border-brand-wire rounded-2xl p-6 shadow-2xl relative z-10">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-12 h-12 rounded-full bg-brand-bg border border-brand-wire flex items-center justify-center"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" class="text-brand-muted"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                                    <div><span contenteditable="true" class="block font-bold text-white leading-tight outline-none">Pub Darts Player</span><span contenteditable="true" class="block text-xs text-brand-muted outline-none">@LocalLeagueLegend</span></div>
+                                </div>
+                                <p contenteditable="true" class="text-lg text-white mb-6 outline-none leading-relaxed">Me staring into the abyss trying to subtract 43 from 117 in my head while my opponent waits patiently at the oche.</p>
+                                <div class="text-xs text-brand-muted font-bold flex items-center gap-2 pt-4 border-t border-brand-wire"><span contenteditable="true" class="text-live-accent outline-none">DartVoice.app</span><span>•</span><span>Just throw and speak the score</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Relatable Tweet</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Square 1:1</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Text-based humor performs incredibly well. Focus on the pain of doing darts math.</p>
+                        <button onclick="downloadImage('post-tweet', 'DartVoice_Tweet_Meme')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- Graphic: The Milestone Flex (1:1) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-milestone" class="w-[400px] h-[400px] bg-brand-bg relative overflow-hidden flex flex-col items-center justify-center p-8 font-sans border border-brand-wire capture-container">
+                            <div class="absolute inset-0" id="milestone-glow" style="background: radial-gradient(circle at center, var(--live-accent-glow), transparent 70%);"></div>
+                            <div class="relative z-10 text-center w-full">
+                                <span class="inline-block bg-brand-card border border-brand-wire text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-6">MILESTONE UNLOCKED</span>
+                                <h2 contenteditable="true" class="text-7xl font-black text-white leading-none mb-2 outline-none neon-text tracking-tighter">10,000</h2>
+                                <h3 contenteditable="true" class="text-2xl font-black text-white uppercase tracking-widest mb-8 outline-none">Darts Scored</h3>
+                                <p contenteditable="true" class="text-sm text-gray-300 max-w-[280px] mx-auto outline-none">A massive thank you to the DartVoice community. The voice-scoring revolution is just getting started.</p>
+                                <div class="mt-8 flex items-center justify-center gap-2"><div class="w-2 h-2 rounded-full bg-live-accent shadow-live-accent animate-pulse"></div><span class="text-xs font-bold text-white tracking-widest">DARTVOICE.APP</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Milestone Flex</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Square 1:1</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Social proof is powerful. Update the number (1,000 users, 10,000 darts) to show explosive growth.</p>
+                        <button onclick="downloadImage('post-milestone', 'DartVoice_Milestone')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- Graphic: The Viral Giveaway (9:16) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-giveaway" class="w-[280px] h-[498px] bg-live-accent relative overflow-hidden flex flex-col items-center p-6 text-center font-sans border border-brand-wire capture-container">
+                            <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000); background-size: 20px 20px;"></div>
+                            <div class="relative z-10 w-full mt-4">
+                                <div class="bg-black text-white font-black text-2xl uppercase tracking-widest py-2 px-4 rounded-xl border-4 border-white inline-block shadow-2xl mb-6 transform -rotate-3">GIVEAWAY!</div>
+                                <h3 contenteditable="true" class="text-3xl font-black text-white leading-tight uppercase tracking-tighter mb-4 drop-shadow-md outline-none">Win a Blade 6<br>+ Lifetime Pro</h3>
+                                <div class="bg-black/40 backdrop-blur border border-white/20 rounded-xl p-4 text-left mb-auto shadow-xl">
+                                    <h4 class="text-white font-bold text-[10px] uppercase tracking-widest mb-2">HOW TO ENTER:</h4>
+                                    <ul class="text-xs text-white space-y-2 font-semibold">
+                                        <li class="flex gap-2 items-center"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> Follow us</li>
+                                        <li class="flex gap-2 items-center"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> Like this post</li>
+                                        <li class="flex gap-2 items-center"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> Tag 3 pub mates</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mt-auto relative z-10 w-full"><div class="w-full bg-black text-white font-black py-3 rounded-lg text-sm border-2 border-white shadow-xl">Tag below 👇</div></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Viral Giveaway</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Story 9:16</span></div>
+                        <p class="text-sm text-brand-muted mb-4">The ultimate engagement hack. Give away a cheap physical item plus digital access to spike your follower count.</p>
+                        <button onclick="downloadImage('post-giveaway', 'DartVoice_Giveaway')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- Graphic: Pub Banter Quote (1:1) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-quote" class="w-[400px] h-[400px] dyn-bg relative overflow-hidden flex flex-col items-center justify-center p-10 font-sans border-4 border-brand-wire capture-container">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.05),transparent_60%)] pointer-events-none"></div>
+                            
+                            <i data-lucide="quote" class="w-12 h-12 text-live-accent mb-6 opacity-50"></i>
+                            <p contenteditable="true" class="text-2xl font-black text-white text-center leading-tight mb-8 outline-none tracking-wide uppercase">"When your mate asks 'what's 145 minus 68' for the 10th time today..."</p>
+                            
+                            <div class="flex items-center gap-2 mt-auto opacity-70">
+                                <div class="w-4 h-4 rounded-full bg-live-accent"></div>
+                                <span class="text-xs font-bold text-white tracking-widest uppercase">DartVoice.app</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Pub Banter Quote</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Square 1:1</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Highly shareable text-based meme. People will tag their mathematically-challenged friends in the comments.</p>
+                        <button onclick="downloadImage('post-quote', 'DartVoice_Banter')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- Graphic: Urgency Promo (1:1) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-urgency" class="w-[400px] h-[400px] bg-live-accent relative overflow-hidden flex flex-col items-center justify-center p-8 font-sans border-4 border-brand-wire capture-container text-center">
+                            <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000); background-size: 20px 20px;"></div>
+                            
+                            <div class="relative z-10 w-full bg-black/60 backdrop-blur border border-white/20 rounded-2xl p-6 shadow-2xl">
+                                <h3 contenteditable="true" class="text-xl font-bold text-live-accent uppercase tracking-widest mb-2 outline-none">Beta Access Closing</h3>
+                                <h2 contenteditable="true" class="text-5xl font-black text-white leading-none mb-6 outline-none uppercase">87 / 100<br><span class="text-2xl opacity-80">SPOTS FILLED</span></h2>
+                                
+                                <div class="w-full h-3 bg-brand-wire rounded-full overflow-hidden mb-6 border border-white/10">
+                                    <div class="h-full bg-live-accent w-[87%] rounded-full shadow-live-accent"></div>
+                                </div>
+                                
+                                <p contenteditable="true" class="text-xs text-gray-300 outline-none mb-4">Secure your lifetime early-adopter pricing before we launch to the public.</p>
+                                <div contenteditable="true" class="inline-block bg-white text-black font-black px-6 py-2 rounded-full text-[10px] uppercase tracking-wider outline-none shadow-lg w-full">Claim Your Spot Now</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Urgency Promo</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Square 1:1</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Scarcity drives action. Use this when you are running a special promotion or closing a beta testing group.</p>
+                        <button onclick="downloadImage('post-urgency', 'DartVoice_Urgency')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- Graphic: Pro Tip Infographic (9:16) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-tip" class="w-[280px] h-[498px] dyn-bg relative overflow-hidden flex flex-col p-6 font-sans border border-brand-wire capture-container">
+                            <span class="bg-live-accent text-white text-[8px] font-bold px-2 py-1 rounded uppercase tracking-widest w-max mb-6">PRO TIP #04</span>
+                            
+                            <h2 contenteditable="true" class="text-2xl font-black text-white leading-tight mb-4 outline-none uppercase">The Perfect<br>Stance</h2>
+                            
+                            <div class="flex-1 border-l-2 border-brand-wire ml-3 pl-4 space-y-6 relative">
+                                <div class="relative">
+                                    <div class="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-live-accent shadow-live-accent"></div>
+                                    <h4 contenteditable="true" class="text-white font-bold text-sm outline-none">Shoulder Alignment</h4>
+                                    <p contenteditable="true" class="text-xs text-gray-400 mt-1 outline-none">Keep your throwing shoulder locked directly facing the board.</p>
+                                </div>
+                                <div class="relative">
+                                    <div class="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-live-accent shadow-live-accent"></div>
+                                    <h4 contenteditable="true" class="text-white font-bold text-sm outline-none">Front Foot Anchor</h4>
+                                    <p contenteditable="true" class="text-xs text-gray-400 mt-1 outline-none">Your front foot bears 80% of your weight. Don't lean too far forward.</p>
+                                </div>
+                                <div class="relative">
+                                    <div class="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-live-accent shadow-live-accent"></div>
+                                    <h4 contenteditable="true" class="text-white font-bold text-sm outline-none">Don't break rhythm</h4>
+                                    <p contenteditable="true" class="text-xs text-live-accent font-bold mt-1 outline-none">Use DartVoice so you don't have to walk to a screen between throws.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto flex items-center justify-center gap-2 pt-4 border-t border-brand-wire">
+                                <i data-lucide="mic" class="w-4 h-4 text-live-accent"></i>
+                                <span class="text-[9px] font-bold text-white tracking-widest uppercase">Powered by DartVoice</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Pro Tip Infographic</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Story 9:16</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Provide actual value first. Teach them something useful, then pitch your app as the final solution to the problem.</p>
+                        <button onclick="downloadImage('post-tip', 'DartVoice_Pro_Tip')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- NEW: Graphic 22: App Review Grid (1:1) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-review-grid" class="w-[400px] h-[400px] dyn-bg relative overflow-hidden flex flex-col p-6 font-sans border border-brand-wire capture-container">
+                            <h2 contenteditable="true" class="text-2xl font-black text-white text-center leading-tight mb-4 z-10 outline-none uppercase">Players are loving it.</h2>
+                            <div class="grid grid-cols-2 gap-3 flex-1 relative z-10">
+                                <!-- Review 1 -->
+                                <div class="bg-brand-card border border-brand-wire rounded-xl p-3 flex flex-col justify-between">
+                                    <div class="flex gap-0.5 text-yellow-400 mb-1"><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i></div>
+                                    <p contenteditable="true" class="text-[10px] text-white leading-snug flex-1 outline-none">"Absolutely brilliant. Saves me walking back and forth to my tablet."</p>
+                                    <span contenteditable="true" class="text-[8px] font-bold text-brand-muted uppercase tracking-widest outline-none">- MARK T.</span>
+                                </div>
+                                <!-- Review 2 -->
+                                <div class="bg-brand-card border border-brand-wire rounded-xl p-3 flex flex-col justify-between">
+                                    <div class="flex gap-0.5 text-yellow-400 mb-1"><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i></div>
+                                    <p contenteditable="true" class="text-[10px] text-white leading-snug flex-1 outline-none">"Canceled my DartConnect sub for this. The voice recognition is spotless."</p>
+                                    <span contenteditable="true" class="text-[8px] font-bold text-brand-muted uppercase tracking-widest outline-none">- JAMES W.</span>
+                                </div>
+                                <!-- Review 3 -->
+                                <div class="bg-brand-card border border-brand-wire rounded-xl p-3 flex flex-col justify-between">
+                                    <div class="flex gap-0.5 text-yellow-400 mb-1"><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i><i data-lucide="star" class="fill-current w-3 h-3"></i></div>
+                                    <p contenteditable="true" class="text-[10px] text-white leading-snug flex-1 outline-none">"The live checkout routes are a lifesaver under pressure."</p>
+                                    <span contenteditable="true" class="text-[8px] font-bold text-brand-muted uppercase tracking-widest outline-none">- SARAH L.</span>
+                                </div>
+                                <!-- Review 4 -->
+                                <div class="bg-live-accent/20 border-2 border-live-accent rounded-xl p-3 flex flex-col justify-center items-center text-center shadow-[0_0_15px_rgba(204,11,32,0.3)]">
+                                    <span contenteditable="true" class="text-white font-black text-sm uppercase tracking-wide mb-1 outline-none">Join Them</span>
+                                    <span class="text-[8px] font-bold text-white/80">7-DAY FREE TRIAL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The App Review Grid</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Square 1:1</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Nothing sells a product faster than seeing other people rave about it. Update the text with real reviews.</p>
+                        <button onclick="downloadImage('post-review-grid', 'DartVoice_Review_Grid')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- NEW: Graphic 23: Did You Know? (9:16) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-did-you-know" class="w-[280px] h-[498px] dyn-bg relative overflow-hidden flex flex-col p-6 font-sans border border-brand-wire capture-container items-center justify-center text-center">
+                            <div class="absolute inset-0 grid-bg opacity-20 pointer-events-none"></div>
+                            
+                            <div class="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center mb-6 relative z-10 shadow-2xl">
+                                <span class="font-black text-3xl">?</span>
+                            </div>
+                            
+                            <h2 contenteditable="true" class="text-2xl font-black text-white leading-tight mb-6 outline-none uppercase z-10">Did you know?</h2>
+                            
+                            <p contenteditable="true" class="text-sm text-gray-300 mb-8 z-10 outline-none leading-relaxed px-2">Breaking your physical rhythm to tap a screen or do mental math between throws lowers the average amateur's score by <strong class="text-live-accent text-lg">12%</strong>.</p>
+                            
+                            <div class="mt-auto w-full border-t border-brand-wire pt-4 z-10">
+                                <span class="block text-[10px] text-white font-bold mb-1 uppercase tracking-widest">Keep your rhythm</span>
+                                <span class="block text-[8px] text-brand-muted uppercase tracking-widest">Score with your voice</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The "Did You Know" Hook</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Story 9:16</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Educates the user on a problem they didn't know they had, positioning DartVoice as the cure.</p>
+                        <button onclick="downloadImage('post-did-you-know', 'DartVoice_Did_You_Know')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+                <!-- NEW: Graphic 24: Update Log (1:1) -->
+                <div class="grid lg:grid-cols-2 gap-6 bg-brand-card border border-brand-wire rounded-3xl p-6">
+                    <div class="flex flex-col items-center justify-center bg-brand-bg rounded-2xl overflow-hidden py-4">
+                        <div id="post-update" class="w-[400px] h-[400px] dyn-bg relative overflow-hidden flex flex-col p-8 font-sans border-4 border-brand-wire capture-container">
+                            <div class="absolute -right-10 -top-10 w-40 h-40 bg-live-accent rounded-full blur-[80px] opacity-40 pointer-events-none"></div>
+                            
+                            <div class="flex items-center gap-3 mb-6 relative z-10">
+                                <span class="bg-live-accent text-white text-[10px] font-black px-3 py-1 rounded-md uppercase tracking-widest shadow-live-accent animate-pulse">UPDATE LIVE</span>
+                                <span contenteditable="true" class="text-white text-xs font-bold outline-none border border-brand-wire px-2 py-0.5 rounded">Version 2.1</span>
+                            </div>
+                            
+                            <h2 contenteditable="true" class="text-4xl font-black text-white leading-tight mb-4 z-10 outline-none uppercase">Per-Dart<br>Scoring</h2>
+                            
+                            <p contenteditable="true" class="text-sm text-gray-400 mb-8 z-10 outline-none max-w-[280px]">You asked for it. You can now speak each dart individually ("Triple Twenty, Single Twenty, Miss") and the app calculates the total.</p>
+                            
+                            <div class="mt-auto flex items-center gap-4 z-10">
+                                <div class="w-10 h-10 rounded-full border-2 border-brand-wire flex items-center justify-center bg-brand-card"><i data-lucide="refresh-cw" class="w-4 h-4 text-white"></i></div>
+                                <span class="text-xs font-bold text-white">Restart app to update</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">The Feature Update</h3><span class="bg-brand-wire text-xs font-bold px-2 py-1 rounded">Square 1:1</span></div>
+                        <p class="text-sm text-brand-muted mb-4">Crucial for retention. Shows existing users you are actively improving the app based on their feedback.</p>
+                        <button onclick="downloadImage('post-update', 'DartVoice_Update')" class="w-full bg-live-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-live-accent"><i data-lucide="download" class="w-5 h-5"></i> Download High-Res PNG</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="scripts" class="border-t-4 border-brand-wire pt-16 scroll-mt-32">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-3xl font-extrabold mb-2">3. Video Script Vault</h2>
+                    <p class="text-brand-muted">High-converting short-form video scripts for TikTok, Reels, and Shorts. Use ElevenLabs for AI voiceovers or film yourself.</p>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Script 1 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-1', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "HACK" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">The £500 Setup Hack</h3>
+                    <div id="script-1" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:03]:</strong> Holding phone with DartVoice open, pointing at a standard dartboard.</p>
+                        <p><strong class="text-white">AUDIO (Hook):</strong> "Don't buy a £500 auto-scorer until you watch this."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:03-0:08]:</strong> You throw three darts quickly.</p>
+                        <p><strong class="text-white">AUDIO (Body):</strong> "I got so sick of doing darts math in my head, but I wasn't paying 500 quid for hardware. So I downloaded DartVoice."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:08-0:12]:</strong> Zoom in on the phone screen. The app says "180".</p>
+                        <p><strong class="text-white">AUDIO (Body 2):</strong> "It uses your phone's built-in mic to score your darts instantly. You just throw, and it does the math."</p>
+                        <p><strong class="text-white">AUDIO (CTA):</strong> "You get a 10-minute free preview the second you download it. Link is in my bio."</p>
+                    </div>
+                </div>
+
+                <!-- Script 2 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-2', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "FRUSTRATION" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">The "Math Sucks" POV</h3>
+                    <div id="script-2" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:04]:</strong> You staring blankly at the dartboard. Text: "Me trying to subtract 43 from 117..."</p>
+                        <p><strong class="text-white">AUDIO (Hook):</strong> (Trending funny/frustrated TikTok sound)</p>
+                        <p><strong class="text-live-accent">VISUAL [0:04-0:09]:</strong> Hard cut to you setting your phone down. Throw dart, shout "Sixty!"</p>
+                        <p><strong class="text-white">AUDIO (Body):</strong> "I finally gave up and downloaded an auto-scorer app."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:09-0:14]:</strong> The app perfectly registers the score.</p>
+                        <p><strong class="text-white">AUDIO (Body 2):</strong> "DartVoice listens to you and logs the score. It even gives live checkout routes."</p>
+                        <p><strong class="text-white">AUDIO (CTA):</strong> "Start your free trial at the link in my bio."</p>
+                    </div>
+                </div>
+
+                <!-- Script 4 (Solo Dev) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-4', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "SOLO DEV" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">The Founder Story</h3>
+                    <div id="script-4" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:04]:</strong> You sitting at a computer looking at lines of code, then cutting to you throwing darts.</p>
+                        <p><strong class="text-white">AUDIO (Hook):</strong> "I spent 3 months coding an app so I wouldn't have to buy a £500 dartboard ring."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:04-0:10]:</strong> Time-lapse of setting up a phone on a stool next to the board.</p>
+                        <p><strong class="text-white">AUDIO (Body):</strong> "I'm a solo developer, and I built DartVoice. It uses AI to process your voice completely offline, so you just say your score and it logs it."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:10-0:14]:</strong> Showing the "Live Checkout" route changing dynamically on screen.</p>
+                        <p><strong class="text-white">AUDIO (CTA):</strong> "I'm looking for 100 beta testers to try it this week for free. Link is in my bio if you want to support a small creator!"</p>
+                    </div>
+                </div>
+
+                <!-- Script 5 (Skeptic) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-5', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "SKEPTIC" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Busting the Pub Myth</h3>
+                    <div id="script-5" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:03]:</strong> Screenshot of a comment: "This will never work in a loud pub."</p>
+                        <p><strong class="text-white">AUDIO (Hook):</strong> "Everyone keeps asking if voice scoring actually works when there's background noise."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:03-0:08]:</strong> You standing by a board with loud music playing from a speaker.</p>
+                        <p><strong class="text-white">AUDIO (Body):</strong> "DartVoice uses an offline AI model trained specifically to isolate the numbers you're shouting and ignore the chatter."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:08-0:12]:</strong> You throw and say "Sixty!" over the loud music. The app registers it instantly.</p>
+                        <p><strong class="text-white">AUDIO (CTA):</strong> "Don't believe me? Try it yourself. 7-day free trial at the link in my bio."</p>
+                    </div>
+                </div>
+
+                <!-- Script 7 (Speedrun) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-7', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "SPEEDRUN" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">The 15-Second Setup</h3>
+                    <div id="script-7" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:02]:</strong> You holding a phone and a timer on screen starting at 00:00.</p>
+                        <p><strong class="text-white">AUDIO (Hook):</strong> "Watch me set up a pro auto-scoring darts system in under 15 seconds."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:02-0:08]:</strong> Fast-forward opening the app, clicking 'Play', and setting the phone on a table.</p>
+                        <p><strong class="text-white">AUDIO (Body):</strong> "No cameras to mount. No £500 hardware rings to buy. You just download DartVoice, put your phone down, and start throwing."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:08-0:12]:</strong> You throw a dart and shout the score. Timer stops at 12 seconds.</p>
+                        <p><strong class="text-white">AUDIO (CTA):</strong> "It's that easy. Try it for 10 minutes free at the link in my bio."</p>
+                    </div>
+                </div>
+
+                <!-- Script 8 (Comeback) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-8', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "COMEBACK" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">The Focus Strategy</h3>
+                    <div id="script-8" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:04]:</strong> You looking annoyed at a whiteboard full of darts scores.</p>
+                        <p><strong class="text-white">AUDIO (Hook):</strong> "I was losing so many matches because my mental math was terrible and I kept losing focus."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:04-0:09]:</strong> Smooth B-roll of you throwing darts rhythmically.</p>
+                        <p><strong class="text-white">AUDIO (Body):</strong> "Then I found DartVoice. I stopped worrying about subtracting odd numbers and just focused on my mechanics."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:09-0:12]:</strong> Screen recording of the app's 'History' tab showing a rising average chart.</p>
+                        <p><strong class="text-white">AUDIO (CTA):</strong> "My average went up 12 points in a month. If you want to actually improve, get the free trial in my bio."</p>
+                    </div>
+                </div>
+
+                <!-- NEW: Script 9 (The Omni Roast) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-9', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "ROAST" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">The £500 Hardware Roast</h3>
+                    <div id="script-9" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:04]:</strong> Image of the Target Omni (£500) behind you (greenscreen filter).</p>
+                        <p><strong class="text-white">AUDIO (Hook):</strong> "Target wants you to pay £500 for a plastic ring to score your darts."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:04-0:08]:</strong> Hard cut to you holding your phone running DartVoice.</p>
+                        <p><strong class="text-white">AUDIO (Body):</strong> "I just downloaded this app for £6.99 instead. It literally uses my phone's microphone to hear the score and log it."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:08-0:12]:</strong> You shouting "One hundred and forty" and the app updating instantly.</p>
+                        <p><strong class="text-white">AUDIO (CTA):</strong> "Stop wasting money on hardware. Try it for free right now at the link in my bio."</p>
+                    </div>
+                </div>
+
+                <!-- NEW: Script 10 (ASMR) -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 flex flex-col h-full relative group">
+                    <button onclick="copyText('script-10', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <div class="inline-block bg-brand-bg border border-brand-wire px-3 py-1 rounded-full text-[10px] font-bold text-brand-muted uppercase tracking-widest w-max mb-4">THE "SILENT" ANGLE</div>
+                    <h3 class="text-xl font-bold text-white mb-2">ASMR Darts Scoring</h3>
+                    <div id="script-10" class="bg-brand-bg rounded-xl p-4 border border-brand-wire flex-1 overflow-y-auto text-sm text-gray-300 font-sans space-y-3">
+                        <p><strong class="text-brand-muted">Note: No talking from you in this script. Just raw audio.</strong></p>
+                        <p><strong class="text-live-accent">VISUAL [0:00-0:05]:</strong> High-quality close up of darts thudding into the board. THWACK. THWACK. THWACK.</p>
+                        <p><strong class="text-white">AUDIO:</strong> (You off-camera) "Sixty."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:05-0:08]:</strong> Cut to phone screen. It flashes '60'. The robot voice speaks.</p>
+                        <p><strong class="text-white">AUDIO:</strong> (App TTS Voice) "Sixty. You require 41."</p>
+                        <p><strong class="text-live-accent">VISUAL [0:08-0:12]:</strong> Text overlay appears: 'Voice controlled scoring. Link in bio to try free.'</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="outreach" class="border-t-4 border-brand-wire pt-16 scroll-mt-32 mb-24">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-3xl font-extrabold mb-2">4. Outreach & DM Templates</h2>
+                    <p class="text-brand-muted">Copy-paste these templates to mutuals on DartCounter or local pub league captains to drive direct signups.</p>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-1', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The DartCounter "Math" DM</h3>
+                    <p class="text-xs text-brand-muted mb-6">Send to recent opponents on DartCounter. High conversion rate.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-1" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Alright mate! Quick one - I got so sick of adding up my scores in my head on here that I actually built an app to do it automatically. It just uses your phone mic to listen and score for you. Letting mates test it out this week, grab a 7-day free trial here if you want to test it: dartvoice.app</p>
+                    </div>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-8', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The "Landlord Pitch"</h3>
+                    <p class="text-xs text-brand-muted mb-6">Direct, no-nonsense pitch to local pub Facebook pages.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-8" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Hey [Pub Name], quick question — do your dartboard games take forever because people are arguing over the math or messing with a chalkboard? 
+
+I built DartVoice Commercial. It’s an auto-scoring app that runs on a tablet next to the board. Players just yell their score and it logs it instantly. Faster games = more time spent at the bar buying pints. 🍻
+
+I'm doing a 14-day free trial for local pubs if you want to test it on your board this weekend?</p>
+                    </div>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-5', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The "No-Reply" Follow Up</h3>
+                    <p class="text-xs text-brand-muted mb-6">If they didn't reply to the first message after 3 days, send this.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-5" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Hey mate, no worries if you're busy! Just wanted to drop a quick follow-up to see if you wanted a free trial link to the voice-scorer app before I close the beta group this weekend? No pressure either way, hope the darts are going well! 🎯</p>
+                    </div>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-9', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The Tournament Sponsor</h3>
+                    <p class="text-xs text-brand-muted mb-6">Pitch to organizers of local amateur tournaments to get massive exposure.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-9" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Hi there! I saw you are organizing the local tournament next month. I'm the developer of DartVoice, a voice-controlled scoring app. 
+
+Would you be open to me sponsoring the event? I can provide tablets running the software for all your boards to make scoring lightning fast, completely free of charge, in exchange for a small banner. Let me know if you want to chat!</p>
+                    </div>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-10', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The App Store Review Ask</h3>
+                    <p class="text-xs text-brand-muted mb-6">Send to users who have been actively subscribed for more than 1 month.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-10" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Hey! Just checking in — I see you've been using DartVoice for a few weeks now. Thank you so much for the support! 
+
+As a solo developer, reviews mean everything to getting the app seen. If you're enjoying it, would you mind dropping a quick 5-star review on the App Store? It takes 10 seconds and helps me out massively. No worries if not! 🎯</p>
+                    </div>
+                </div>
+
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-11', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The "Rival Banter"</h3>
+                    <p class="text-xs text-brand-muted mb-6">Send to people you play regularly on DartCounter.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-11" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Alright mate, you battered me in that last leg 😂 
+
+Just so you know, the reason I play so fast is because I built an app that listens to my score so I don't have to type it in. Figured I owed you the secret since you play so much. Grab a free trial here if you want to try it for your home board: dartvoice.app</p>
+                    </div>
+                </div>
+
+                <!-- NEW: DM 12 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-12', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The League Committee Pitch</h3>
+                    <p class="text-xs text-brand-muted mb-6">Send to the admin of a regional darts league (B2B).</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-12" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Hi Committee, hope the winter season prep is going well. 
+
+I'm the founder of DartVoice. We build voice-controlled scoring tablets that eliminate math errors and speed up league nights massively. 
+
+I'd love to offer the entire league a heavily discounted commercial license so every pub in your division is on the same standardized, automatic scoring system. Let me know if you'd be open to a quick 5-min demo video showing how it works?</p>
+                    </div>
+                </div>
+
+                <!-- NEW: DM 13 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-13', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The Creator Sponsorship</h3>
+                    <p class="text-xs text-brand-muted mb-6">Send to TikTokers who post darts videos.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-13" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Hey! Love the darts content you've been posting. 🎯
+
+I'm the developer of DartVoice. It's an app that auto-scores your matches using your phone mic. I'm looking to sponsor a few top creators. 
+
+If you're interested, I'll give you a free lifetime Pro account, plus a custom affiliate link. We pay out £2.00/mo recurring commission for every player you bring in. You just leave the link in your bio and use the app in your videos. Up for it?</p>
+                    </div>
+                </div>
+
+                <!-- NEW: DM 14 -->
+                <div class="bg-brand-card border border-brand-wire rounded-2xl p-6 relative group">
+                    <button onclick="copyText('dm-14', this)" class="absolute top-4 right-4 bg-brand-bg hover:bg-brand-wire text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center shadow-lg"><i data-lucide="copy" class="w-4 h-4 mr-1.5"></i> Copy</button>
+                    <h3 class="text-xl font-bold text-white mb-2">The Churn Win-Back</h3>
+                    <p class="text-xs text-brand-muted mb-6">Send to users who cancelled their trial weeks ago.</p>
+                    <div class="bg-brand-bg rounded-xl p-4 border border-brand-wire">
+                        <p id="dm-14" class="text-sm text-gray-300 font-sans whitespace-pre-wrap">Hey mate, saw you tried DartVoice a while back but didn't stick around. 
+
+We just pushed a massive Version 2.1 update that completely overhauls the background noise filtering (so it works perfectly in loud pubs now) and added Per-Dart scoring. 
+
+I'd love to get your thoughts on the new version. Here is a link to bypass the paywall and get another 14 days completely free on me: [Link]</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Live Color Picker Logic
+        const colorPicker = document.getElementById('global-color');
+        const bgColorPicker = document.getElementById('global-bg-color');
+
+        function hexToRGBA(hex, alpha) {
+            let r = parseInt(hex.slice(1, 3), 16),
+                g = parseInt(hex.slice(3, 5), 16),
+                b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        if(colorPicker) {
+            colorPicker.addEventListener('input', (e) => {
+                const val = e.target.value;
+                document.documentElement.style.setProperty('--live-accent', val);
+                document.documentElement.style.setProperty('--live-accent-glow', hexToRGBA(val, 0.4));
+            });
+        }
+        
+        if(bgColorPicker) {
+            bgColorPicker.addEventListener('input', (e) => {
+                const val = e.target.value;
+                document.documentElement.style.setProperty('--live-bg', val);
+                // Automatically make the 'card' slightly lighter than the background
+                let r = parseInt(val.slice(1, 3), 16),
+                    g = parseInt(val.slice(3, 5), 16),
+                    b = parseInt(val.slice(5, 7), 16);
+                r = Math.min(255, r + 10);
+                g = Math.min(255, g + 10);
+                b = Math.min(255, b + 10);
+                const cardHex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                document.documentElement.style.setProperty('--live-card', cardHex);
+            });
+        }
+
+        // HTML2CANVAS DOWNLOAD LOGIC
+        function downloadImage(elementId, baseFilename) {
+            const node = document.getElementById(elementId);
+            document.body.classList.remove('editing-mode');
+            
+            setTimeout(() => {
+                html2canvas(node, {
+                    backgroundColor: null,
+                    scale: 3, 
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `${baseFilename}_${Date.now()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    document.body.classList.add('editing-mode');
+                }).catch(err => {
+                    console.error('Error generating image:', err);
+                    alert("Failed to render image.");
+                    document.body.classList.add('editing-mode');
+                });
+            }, 100);
+        }
+
+        // COPY FUNCTION
+        function copyText(elementId, btnElement) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const originalHtml = btnElement.innerHTML;
+                btnElement.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-400"></i>';
+                lucide.createIcons();
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    lucide.createIcons();
+                }, 2000);
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function copyHTML(elementId, btnElement, isIcon=false) {
+            let htmlToCopy = document.getElementById(elementId).innerHTML.trim();
+            htmlToCopy = htmlToCopy.replace(/\s+class="/g, ' class="');
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = htmlToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const originalHtml = btnElement.innerHTML;
+                
+                if(isIcon) {
+                    const originalColor = btnElement.style.borderColor;
+                    btnElement.style.borderColor = '#10B981';
+                    setTimeout(() => {
+                        btnElement.style.borderColor = originalColor;
+                    }, 1000);
+                } else {
+                    btnElement.innerHTML = '<i data-lucide="check" class="w-4 h-4 mr-1.5 text-green-400"></i> Copied';
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        btnElement.innerHTML = originalHtml;
+                        lucide.createIcons();
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>
