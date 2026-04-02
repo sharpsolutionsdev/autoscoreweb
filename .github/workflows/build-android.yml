@@ -1,0 +1,94 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'autoscore/dartvoice_android.py'
+      - 'autoscore/buildozer.spec'
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch:   # allows manual trigger from the Actions tab
+
+jobs:
+  build:
+    name: Build APK (arm64)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # ── 2. System dependencies ───────────────────────────────────────────────
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            git zip unzip wget \
+            openjdk-17-jdk \
+            python3-pip python3-venv \
+            libffi-dev libssl-dev \
+            autoconf libtool pkg-config \
+            zlib1g-dev cmake \
+            libltdl-dev
+
+      # ── 3. Python / buildozer ────────────────────────────────────────────────
+      - name: Install Python build tools
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install buildozer cython
+
+      # ── 4. Cache the Android SDK/NDK + buildozer downloads ──────────────────
+      #    This makes subsequent builds ~10 min instead of ~40 min
+      - name: Cache buildozer global dir
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: buildozer-${{ runner.os }}-${{ hashFiles('autoscore/buildozer.spec') }}
+          restore-keys: |
+            buildozer-${{ runner.os }}-
+
+      - name: Cache .gradle
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle
+          key: gradle-${{ runner.os }}
+
+      # ── 5. Build ─────────────────────────────────────────────────────────────
+      - name: Build debug APK
+        working-directory: autoscore
+        run: |
+          buildozer android debug 2>&1 | tee build.log
+          echo "--- Last 50 lines of build log ---"
+          tail -50 build.log
+
+      # ── 6. Find the APK ──────────────────────────────────────────────────────
+      - name: Locate APK
+        id: find_apk
+        working-directory: autoscore
+        run: |
+          APK=$(find bin -name "*.apk" | head -1)
+          echo "apk_path=$APK" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK"
+          ls -lh bin/ || true
+
+      # ── 7. Upload as artifact (downloadable from Actions tab) ────────────────
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DartVoice-debug-apk
+          path: autoscore/${{ steps.find_apk.outputs.apk_path }}
+          retention-days: 30
+
+      # ── 8. Print download instructions ───────────────────────────────────────
+      - name: Done
+        run: |
+          echo ""
+          echo "============================================"
+          echo " APK built successfully!"
+          echo " Download it from:"
+          echo " GitHub → Actions → this run → Artifacts"
+          echo " → DartVoice-debug-apk"
+          echo "============================================"
