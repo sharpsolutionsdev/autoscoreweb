@@ -45,8 +45,8 @@
         /* ── Glow ── */
         .hero-glow {
             background:
-                radial-gradient(ellipse 70% 50% at 50% -10%, rgba(204,11,32,0.12) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 30% at 50% 5%, rgba(204,11,32,0.06) 0%, transparent 60%);
+                radial-gradient(ellipse 100% 400px at 50% 0px, rgba(204,11,32,0.22) 0%, rgba(204,11,32,0.06) 40%, transparent 70%),
+                #08080A;
         }
 
         /* ── Noise ── */
@@ -99,7 +99,8 @@
 
         /* ── Buttons ── */
         .btn-brand {
-            background: #CC0B20;
+            background: linear-gradient(135deg, #e60d24 0%, #CC0B20 100%);
+            box-shadow: 0 4px 20px rgba(204,11,32,0.35), 0 1px 0 rgba(255,255,255,0.08) inset;
             transition: all 0.25s;
             position: relative;
             overflow: hidden;
@@ -108,14 +109,13 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 50%);
             opacity: 0;
             transition: opacity 0.25s;
         }
         .btn-brand:hover::after { opacity: 1; }
         .btn-brand:hover {
-            background: #e60d24;
-            box-shadow: 0 0 32px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
+            box-shadow: 0 6px 32px rgba(204,11,32,0.55), 0 2px 8px rgba(204,11,32,0.3);
             transform: translateY(-1px);
         }
         .btn-brand:active { transform: translateY(0); }
@@ -146,24 +146,25 @@
 
         /* ── Cards ── */
         .card-panel {
-            background: #111111;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: #111114;
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
         }
 
         .dl-card {
-            background: #0f0f0f;
+            background: #0d0d10;
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 12px;
             transition: all 0.25s;
             cursor: pointer;
         }
         .dl-card:hover {
-            border-color: rgba(204,11,32,0.2);
-            background: #131313;
+            border-color: rgba(204,11,32,0.28);
+            background: #111114;
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(204,11,32,0.04);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.5), 0 0 24px rgba(204,11,32,0.07);
         }
 
         /* ── Step connector ── */
@@ -178,7 +179,7 @@
 
         /* ── Subscription accent bar ── */
         .sub-accent {
-            background: linear-gradient(90deg, #CC0B20 0%, rgba(204,11,32,0.3) 100%);
+            background: linear-gradient(90deg, #CC0B20 0%, rgba(204,11,32,0.25) 60%, transparent 100%);
             height: 2px;
         }
 
@@ -186,14 +187,15 @@
         .trial-bar-track {
             background: rgba(255,255,255,0.06);
             border-radius: 999px;
-            height: 4px;
+            height: 5px;
             overflow: hidden;
         }
         .trial-bar-fill {
             height: 100%;
             border-radius: 999px;
-            background: linear-gradient(90deg, #CC0B20, #e60d24);
-            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #CC0B20, #ff2438);
+            box-shadow: 0 0 8px rgba(204,11,32,0.6);
+            transition: width 0.6s ease;
         }
 
         /* ── Disabled ── */
@@ -225,10 +227,10 @@
         }
     </style>
 </head>
-<body class="hero-glow min-h-screen text-white antialiased noise">
+<body class="min-h-screen text-white antialiased noise" style="background:#08080A;">
 
     <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <nav class="border-b border-white/[0.04] bg-dark/70 backdrop-blur-xl sticky top-0 z-50">
+    <nav class="border-b border-white/[0.05] sticky top-0 z-50" style="background:rgba(8,8,10,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
         <div class="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
 
             <!-- Logo -->
@@ -272,34 +274,41 @@
 
     <!-- ━━━ DASHBOARD VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div id="view-dashboard" class="hidden">
-        <div class="max-w-5xl mx-auto px-5 sm:px-8 py-10 pb-20">
 
-            <!-- ── First-time welcome banner ────────────────────── -->
-            <div id="welcome-banner" class="hidden mb-6 fade-up">
-                <div class="flex items-start gap-4 p-5 rounded-2xl" style="background: linear-gradient(135deg, rgba(204,11,32,0.12) 0%, rgba(204,11,32,0.04) 100%); border: 1px solid rgba(204,11,32,0.2);">
-                    <div class="w-10 h-10 rounded-xl bg-brand/15 border border-brand/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-semibold text-chalk text-sm">You're in — welcome to DartVoice!</p>
-                        <p class="text-muted text-xs mt-0.5 leading-relaxed">Start your 7-day free trial below to download the app and get scoring. No credit card charge until day 7 — cancel any time.</p>
-                    </div>
-                    <button onclick="this.closest('#welcome-banner').classList.add('hidden')" class="text-muted hover:text-chalk transition shrink-0 mt-0.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-            </div>
+        <!-- Hero band with red glow -->
+        <div style="background:radial-gradient(ellipse 100% 340px at 50% 0, rgba(204,11,32,0.2) 0%, rgba(204,11,32,0.05) 45%, transparent 70%), #08080A; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div class="max-w-5xl mx-auto px-5 sm:px-8 pt-10 pb-8">
 
-            <!-- ── Page header ───────────────────────────────────── -->
-            <div class="mb-6 fade-up flex items-end justify-between gap-4">
-                <div>
-                    <p id="dash-greeting" class="text-[11px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Dashboard</p>
-                    <h1 class="display text-4xl sm:text-5xl">DARTVOICE</h1>
+                <!-- Welcome banner -->
+                <div id="welcome-banner" class="hidden mb-6 fade-up">
+                    <div class="flex items-start gap-4 p-5 rounded-2xl" style="background:linear-gradient(135deg,rgba(204,11,32,0.12) 0%,rgba(204,11,32,0.04) 100%);border:1px solid rgba(204,11,32,0.22);">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style="background:rgba(204,11,32,0.15);border:1px solid rgba(204,11,32,0.25);">
+                            <svg class="w-4 h-4" fill="none" stroke="#CC0B20" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm" style="color:#F0F0F5;">You're in — welcome to DartVoice!</p>
+                            <p class="text-xs mt-0.5 leading-relaxed" style="color:#6E6E82;">Start your 7-day free trial below to download the app and get scoring. No charge until day 8 — cancel any time.</p>
+                        </div>
+                        <button onclick="this.closest('#welcome-banner').classList.add('hidden')" class="transition shrink-0 mt-0.5" style="color:#6E6E82;" onmouseover="this.style.color='#F0F0F5'" onmouseout="this.style.color='#6E6E82'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Page header -->
+                <div class="fade-up">
+                    <p id="dash-greeting" class="text-xs font-semibold uppercase tracking-widest mb-2" style="color:#4A4A5A;">Dashboard</p>
+                    <h1 class="display" style="font-size:clamp(2.6rem,5.5vw,4rem);line-height:1;color:#F0F0F5;margin-bottom:6px;">DARTVOICE</h1>
+                    <p class="text-sm" style="color:#6E6E82;">Manage your subscription, download the app, and track referrals.</p>
+                </div>
+
             </div>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-5 sm:px-8 pt-8 pb-20">
 
             <!-- ── Tab nav ──────────────────────────────────────── -->
-            <div class="mb-6 fade-up flex gap-1 border-b border-white/[0.06]">
+            <div class="mb-6 fade-up flex gap-1" style="border-bottom:1px solid rgba(255,255,255,0.06);">
                 <button onclick="switchTab('overview')" id="tab-btn-overview"
                         class="tab-btn active px-4 py-2.5 text-sm font-semibold relative transition">
                     Overview
@@ -323,11 +332,11 @@
                     <div class="card-panel fade-up-2">
                         <div class="sub-accent"></div>
                         <div class="p-6">
-                            <div class="flex items-start justify-between gap-4 mb-4">
-                                <div>
-                                    <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Subscription</p>
-                                    <div id="status-details" class="text-sm text-muted">
-                                        <div class="skeleton w-56 h-4 mb-2"></div>
+                            <div class="flex items-start justify-between gap-4 mb-5">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest mb-2" style="color:#4A4A5A;">Subscription</p>
+                                    <div id="status-details" class="text-sm" style="color:#6E6E82;">
+                                        <div class="skeleton w-56 h-4 mb-2.5"></div>
                                         <div class="skeleton w-36 h-3"></div>
                                     </div>
                                 </div>
@@ -336,7 +345,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="status-actions" class="border-t border-white/[0.04] px-6 py-4 bg-dark-2/40 flex gap-3 flex-wrap">
+                        <div id="status-actions" class="px-6 py-4 flex gap-3 flex-wrap" style="border-top:1px solid rgba(255,255,255,0.05);background:rgba(15,15,15,0.5);">
                             <div class="skeleton w-44 h-10 rounded-xl"></div>
                         </div>
                     </div>
@@ -394,8 +403,8 @@
                     <div id="card-downloads" class="hidden card-panel fade-up-2">
                         <div class="p-5 pb-4">
                             <div class="flex items-center gap-2 mb-0.5">
-                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest">Downloads</p>
-                                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/15 tracking-wide">UNLOCKED</span>
+                                <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#4A4A5A;">Downloads</p>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.15);">UNLOCKED</span>
                             </div>
                             <h2 class="display text-2xl">GET THE APP</h2>
                         </div>
@@ -440,8 +449,8 @@
                     <!-- Locked downloads (shown when not subscribed) -->
                     <div id="card-downloads-locked" class="card-panel fade-up-2">
                         <div class="p-5 pb-4">
-                            <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-0.5">Downloads</p>
-                            <h2 class="display text-2xl text-muted">GET THE APP</h2>
+                            <p class="text-[10px] font-bold uppercase tracking-widest mb-0.5" style="color:#4A4A5A;">Downloads</p>
+                            <h2 class="display text-2xl" style="color:#4A4A5A;">GET THE APP</h2>
                         </div>
                         <div class="px-5 pb-5 space-y-3">
                             <div class="flex items-center gap-3 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] opacity-50 pointer-events-none select-none">
@@ -505,8 +514,8 @@
                     <div class="p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1">Ambassador Program</p>
-                                <h2 class="display text-2xl">YOUR REFERRAL LINK</h2>
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#4A4A5A;">Ambassador Program</p>
+                                <h2 class="display text-2xl" style="color:#F0F0F5;">YOUR REFERRAL LINK</h2>
                             </div>
                             <span id="amb-status-badge" class="shrink-0">
                                 <div class="skeleton w-20 h-6 rounded-full"></div>
@@ -515,7 +524,7 @@
 
                         <!-- Link copy row -->
                         <div class="flex gap-2 mb-5">
-                            <div class="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-dark border border-white/[0.06] font-mono text-sm text-muted overflow-hidden">
+                            <div class="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl font-mono text-sm overflow-hidden" style="background:#08080A;border:1px solid rgba(255,255,255,0.07);color:#6E6E82;">
                                 <svg class="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                 </svg>
@@ -529,23 +538,23 @@
 
                         <!-- Stats row -->
                         <div class="grid grid-cols-3 gap-3">
-                            <div class="p-4 rounded-xl bg-dark border border-white/[0.04] text-center">
-                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1.5">Referrals</p>
-                                <p id="amb-total-referrals" class="display text-3xl text-chalk">—</p>
+                            <div class="p-4 rounded-xl text-center" style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5" style="color:#4A4A5A;">Referrals</p>
+                                <p id="amb-total-referrals" class="display text-3xl" style="color:#F0F0F5;">—</p>
                             </div>
-                            <div class="p-4 rounded-xl bg-dark border border-white/[0.04] text-center">
-                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1.5">Converted</p>
-                                <p id="amb-converted" class="display text-3xl text-chalk">—</p>
+                            <div class="p-4 rounded-xl text-center" style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5" style="color:#4A4A5A;">Converted</p>
+                                <p id="amb-converted" class="display text-3xl" style="color:#F0F0F5;">—</p>
                             </div>
-                            <div class="p-4 rounded-xl bg-dark border border-white/[0.04] text-center">
-                                <p class="text-[10px] font-semibold text-muted-2 uppercase tracking-widest mb-1.5">Balance</p>
-                                <p id="amb-balance" class="display text-3xl text-success">£—</p>
+                            <div class="p-4 rounded-xl text-center" style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5" style="color:#4A4A5A;">Balance</p>
+                                <p id="amb-balance" class="display text-3xl" style="color:#22c55e;">£—</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Share buttons + earn hint -->
-                    <div class="border-t border-white/[0.04] px-6 py-4 bg-dark-2/40 flex flex-wrap gap-3 items-center justify-between">
+                    <div class="px-6 py-4 flex flex-wrap gap-3 items-center justify-between" style="border-top:1px solid rgba(255,255,255,0.05);background:rgba(15,15,15,0.5);">
                         <div class="flex gap-2 flex-wrap">
                             <button onclick="shareWhatsApp()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:border-white/15 text-sm font-medium transition">
                                 <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -556,7 +565,7 @@
                                 Share Link
                             </button>
                         </div>
-                        <p class="text-[11px] text-muted-2">£5 per paying referral &middot; no limit</p>
+                        <p class="text-[11px]" style="color:#4A4A5A;">£5 per paying referral &middot; no limit</p>
                     </div>
                 </div>
 
@@ -642,15 +651,19 @@
             </div><!-- /tab-ambassador -->
 
         </div>
-    </div>
+        </div><!-- /inner container -->
+    </div><!-- /view-dashboard -->
 
     <!-- ═══════════════════════════════════════════════════════════
          JAVASCRIPT
          ═══════════════════════════════════════════════════════════ -->
     <script>
-    const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
-    const BILLING_URL  = 'https://billing.dartvoice.com';
+    const SUPABASE_URL   = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+    const SUPABASE_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+    const BILLING_URL    = 'https://billing.dartvoice.com';
+    // Direct Stripe Payment Link — append ?client_reference_id=USER_ID so the
+    // checkout.session.completed webhook can match back to the Supabase user.
+    const STRIPE_PAY_URL = 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00';
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const $ = id => document.getElementById(id);
@@ -751,7 +764,7 @@
                 </div>`;
             actions.innerHTML = `
                 <div class="flex flex-wrap items-center gap-3">
-                    <a href="${BILLING_URL}/checkout?user_id=${userId}"
+                    <a href="${STRIPE_PAY_URL}?client_reference_id=${userId}"
                        class="btn-brand inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         Start 7-Day Free Trial &mdash; &pound;6.99/mo
@@ -1020,7 +1033,7 @@
             // Auto-redirect to Stripe checkout after sign-up flow
             const _params = new URLSearchParams(window.location.search);
             if (_params.get('subscribe') === '1') {
-                window.location.replace(`${BILLING_URL}/checkout?user_id=${session.user.id}`);
+                window.location.replace(`${STRIPE_PAY_URL}?client_reference_id=${session.user.id}`);
                 return;
             }
 

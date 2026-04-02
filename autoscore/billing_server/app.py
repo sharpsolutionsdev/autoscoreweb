@@ -149,9 +149,18 @@ def checkout():
             customer=customer_id,
             mode='subscription',
             payment_method_types=['card'],
+            # Always collect card details upfront so day-8 billing works automatically.
+            payment_method_collection='always',
             line_items=[{'price': _PRICE_ID, 'quantity': 1}],
             subscription_data={
                 'trial_period_days': TRIAL_DAYS,
+                # If user never adds a payment method, cancel rather than leaving
+                # them in a broken "trialing with no card" state.
+                'trial_settings': {
+                    'end_behavior': {
+                        'missing_payment_method': 'cancel',
+                    },
+                },
                 'metadata': {
                     'supabase_user_id': user_id,
                     'install_id':       install_id,
@@ -160,6 +169,8 @@ def checkout():
             client_reference_id=user_id,
             success_url=SUCCESS_URL + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=CANCEL_URL,
+            # Allow promotion codes (for ambassador referrals)
+            allow_promotion_codes=True,
         )
         return redirect(session.url, code=303)
     except stripe.StripeError as e:
@@ -263,6 +274,24 @@ def webhook():
         user_id = _user_id_for_customer(cust_id)
         if user_id:
             _upsert_sub(user_id, status='canceled')
+
+    # ── First invoice paid (trial converts to active) ─────────────────────────
+    elif etype == 'invoice.payment_succeeded':
+        cust_id = obj.get('customer')
+        sub_id  = obj.get('subscription')
+        user_id = _user_id_for_customer(cust_id)
+        if user_id and sub_id:
+            try:
+                sub = stripe.Subscription.retrieve(sub_id)
+                _upsert_sub(user_id,
+                            stripe_sub_id=sub_id,
+                            status=sub.status,   # 'active' after trial converts
+                            current_period_end=time.strftime(
+                                '%Y-%m-%dT%H:%M:%SZ',
+                                time.gmtime(sub.current_period_end)
+                            ) if sub.current_period_end else None)
+            except Exception:
+                pass
 
     # ── Payment failed ────────────────────────────────────────────────────────
     elif etype == 'invoice.payment_failed':
