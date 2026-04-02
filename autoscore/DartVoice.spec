@@ -81,7 +81,7 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=['matplotlib', 'scipy', 'pandas', 'IPython', 'notebook',
-              'pytest', 'setuptools', 'distutils'],
+              'pytest', 'setuptools', 'distutils', 'kivy'],
     noarchive=False,
     optimize=0,
 )
@@ -97,14 +97,31 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,                  # no console window
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,                      # add icon.ico here when you have one
+    icon=None,          # swap in 'dartvoice.ico' when you have one
     version=None,
+    # Application manifest — requests DPI awareness so text isn't blurry
+    manifest='''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity version="1.7.0.0" processorArchitecture="amd64"
+                    name="DartVoice" type="win32"/>
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+    </windowsSettings>
+  </application>
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
+    <security><requestedPrivileges>
+      <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+    </requestedPrivileges></security>
+  </trustInfo>
+</assembly>''',
 )
 
 coll = COLLECT(

@@ -1079,13 +1079,46 @@ class DartVoiceApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("DartVoice")
-        self.geometry("860x540")
+        self.geometry("1024x600")
         self.configure(fg_color=BG)
-        self.attributes('-topmost', True)
         self.resizable(True, True)
         self.minsize(720, 480)
 
-        # Set a blank icon to hide the default CTk icon
+        # ── Borderless / Discord-style chrome ────────────────────────────────
+        self.overrideredirect(True)
+        # Keep Windows drop shadow + rounded corners (DWM)
+        if sys.platform == 'win32':
+            try:
+                import ctypes
+                HWND = int(self.wm_frame(), 16) if hasattr(self, 'wm_frame') else None
+                # Use win32api via ctypes to set window style (shadow, no standard frame)
+                GWL_STYLE   = -16
+                WS_POPUP    = 0x80000000
+                WS_VISIBLE  = 0x10000000
+                WS_THICKFRAME = 0x00040000
+                WS_MINIMIZEBOX = 0x00020000
+                WS_MAXIMIZEBOX = 0x00010000
+                self.update_idletasks()
+                hwnd = ctypes.windll.user32.FindWindowW(None, "DartVoice")
+                if hwnd:
+                    style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
+                    ctypes.windll.user32.SetWindowLongW(
+                        hwnd, GWL_STYLE,
+                        (style | WS_POPUP | WS_VISIBLE | WS_THICKFRAME
+                               | WS_MINIMIZEBOX | WS_MAXIMIZEBOX) & ~0x00C00000)
+                    # Apply DWM shadow
+                    DWMWA_NCRENDERING_POLICY = 2
+                    DWMWA_ALLOW_NCPAINT = 4
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                        hwnd, DWMWA_NCRENDERING_POLICY,
+                        ctypes.byref(ctypes.c_int(2)), ctypes.sizeof(ctypes.c_int))
+            except Exception:
+                pass
+
+        # ── Drag / resize state ───────────────────────────────────────────────
+        self._drag_data = {'x': 0, 'y': 0, 'dragging': False}
+
+        # Set a blank icon
         try:
             self.iconbitmap('')
         except Exception:
@@ -1102,10 +1135,10 @@ class DartVoiceApp(ctk.CTk):
         self._darts_str      = tk.StringVar(value="0")
         self._status         = tk.StringVar(value="Ready")
         self._session_scores = []
-        self._visit_history  = []   # list of (label_str, score_str) for history panel
+        self._visit_history  = []
         # X01 game tracking
-        self._x01_remaining  = None          # None = not tracking yet
-        self._current_darts  = []            # per-dart mode accumulator [(val, disp), ...]
+        self._x01_remaining  = None
+        self._current_darts  = []
         self._remaining_str  = tk.StringVar(value="")
         self._checkout_str   = tk.StringVar(value="")
 
@@ -1114,9 +1147,52 @@ class DartVoiceApp(ctk.CTk):
         if sys.platform == 'win32':
             self._setup_tray()
 
-        self._build_ui()
-        self._pulse()
-        self.after(200, self._billing_gate)
+        self.attributes('-alpha',   self.cfg.get('ghost_opacity',  1.0))
+        self.attributes('-topmost', self.cfg.get('always_on_top',  True))
+        self._show_splash()
+
+    def _show_splash(self):
+        """Animated splash that dissolves into the main UI after ~1.4 s."""
+        splash = tk.Frame(self, bg=BG)
+        splash.place(x=0, y=0, relwidth=1, relheight=1)
+        splash.lift()
+
+        # Bullseye SVG-style canvas drawn with primitives
+        c = tk.Canvas(splash, bg=BG, highlightthickness=0, width=80, height=80)
+        c.place(relx=0.5, rely=0.42, anchor='center')
+        _r = [36, 27, 18, 9]
+        _cols = [SEP, SEP, ACCENT_DIM, ACCENT]
+        for r2, col in zip(_r, _cols):
+            c.create_oval(40-r2, 40-r2, 40+r2, 40+r2, outline=col, width=2)
+        # Dart wire: diagonal line from upper-right
+        c.create_line(60, 16, 40, 40, fill=FG, width=3, capstyle='round')
+        c.create_oval(37, 37, 43, 43, fill=ACCENT, outline='')
+
+        name_lbl = tk.Label(splash, text="DARTVOICE", bg=BG, fg=FG,
+                            font=("Uber Move Bold", 22, "bold"))
+        name_lbl.place(relx=0.5, rely=0.56, anchor='center')
+
+        tag_lbl = tk.Label(splash, text="Voice-activated scoring", bg=BG, fg=FG2,
+                           font=("Rubik", 10))
+        tag_lbl.place(relx=0.5, rely=0.63, anchor='center')
+
+        # Animated loading bar
+        bar_bg = tk.Frame(splash, bg=SEP, height=2, width=160)
+        bar_bg.place(relx=0.5, rely=0.72, anchor='center')
+        bar_fill = tk.Frame(bar_bg, bg=ACCENT, height=2, width=0)
+        bar_fill.place(x=0, y=0)
+
+        def _animate_bar(step=0):
+            if step > 40:
+                self._build_ui()
+                splash.destroy()
+                self._pulse()
+                self.after(100, self._billing_gate)
+                return
+            bar_fill.config(width=int(160 * step / 40))
+            self.after(28, lambda: _animate_bar(step + 1))
+
+        self.after(120, lambda: _animate_bar(0))
 
     # ── Billing gate (called 200ms after launch) ──────────────────────────────
     def _billing_gate(self):
@@ -1172,32 +1248,56 @@ class DartVoiceApp(ctk.CTk):
         except ImportError:
             return
 
-        if hasattr(self, '_acct_win') and self._acct_win.winfo_exists():
-            self._acct_win.lift(); return
+        if hasattr(self, '_acct_overlay') and self._acct_overlay.winfo_exists():
+            self._acct_overlay.lift(); return
 
-        win = ctk.CTkToplevel(self)
-        self._acct_win = win
-        win.title("DartVoice — Account")
-        win.geometry(self._right_of(340, 460))
-        win.configure(fg_color=BG)
-        win.resizable(False, False)
-        win.attributes('-topmost', True)
-        win.after(50, lambda: (win.lift(), win.focus_force()))
+        import webbrowser
 
-        # ── Top accent bar ────────────────────────────────────────────────
-        ctk.CTkFrame(win, fg_color=ACCENT, height=3, corner_radius=0).pack(fill='x')
+        # ── Full-window dim overlay ───────────────────────────────────────
+        ov = tk.Frame(self, bg='#05050A')
+        ov.place(x=0, y=0, relwidth=1.0, relheight=1.0)
+        ov.lift()
+        self._acct_overlay = ov
 
-        # Header
-        hdr = ctk.CTkFrame(win, fg_color=CARD, corner_radius=0, height=52)
-        hdr.pack(fill='x'); hdr.pack_propagate(False)
+        def _close(refocus=True):
+            ov.destroy()
+            if hasattr(self, '_acct_overlay'):
+                del self._acct_overlay
+            if refocus:
+                self.focus_force()
+
+        ov.bind('<Button-1>', lambda e: _close() if e.widget is ov else None)
+        self.bind('<Escape>', lambda e: _close())
+
+        # ── Centered modal card ───────────────────────────────────────────
+        modal = ctk.CTkFrame(ov, fg_color=CARD, corner_radius=18,
+                             border_width=1, border_color=SEP,
+                             width=400, height=520)
+        modal.pack_propagate(False)
+        modal.place(relx=0.5, rely=0.5, anchor='center')
+
+        # Accent top bar
+        ctk.CTkFrame(modal, fg_color=ACCENT, height=3, corner_radius=0,
+                     ).pack(fill='x')
+
+        # Header row
+        hdr = ctk.CTkFrame(modal, fg_color='transparent', height=52)
+        hdr.pack(fill='x', padx=20, pady=(10, 0))
+        hdr.pack_propagate(False)
         lc = tk.Canvas(hdr, width=22, height=22, bg=CARD, highlightthickness=0)
-        lc.place(x=20, rely=0.5, anchor='w')
+        lc.place(x=0, rely=0.5, anchor='w')
         self._draw_bullseye(lc, 11, 11, [9, 6, 3, 1])
         ctk.CTkLabel(hdr, text="  ACCOUNT", text_color=FG,
-                     font=("Uber Move Bold", 14, "bold")).place(x=48, rely=0.5, anchor='w')
-        ctk.CTkFrame(win, fg_color=SEP, height=1).pack(fill='x')
+                     font=("Uber Move Bold", 15, "bold")).place(x=28, rely=0.5, anchor='w')
+        close_btn = ctk.CTkButton(hdr, text="✕", width=28, height=28,
+                                  fg_color='transparent', hover_color=CARD2,
+                                  text_color=FG2, font=("Rubik", 12),
+                                  corner_radius=6, command=_close)
+        close_btn.place(relx=1.0, rely=0.5, anchor='e')
 
-        body = ctk.CTkFrame(win, fg_color='transparent')
+        ctk.CTkFrame(modal, fg_color=SEP, height=1).pack(fill='x', pady=(8, 0))
+
+        body = ctk.CTkFrame(modal, fg_color='transparent')
         body.pack(fill='both', expand=True, padx=28, pady=20)
 
         account = get_account()
@@ -1206,53 +1306,61 @@ class DartVoiceApp(ctk.CTk):
             # ── Signed-in view ────────────────────────────────────────────
             bs = billing_status()
 
-            # Status badge row
-            badge_row = ctk.CTkFrame(body, fg_color='transparent')
-            badge_row.pack(anchor='w', pady=(0, 6))
+            # Avatar circle + email block
+            av_row = ctk.CTkFrame(body, fg_color='transparent')
+            av_row.pack(anchor='w', pady=(0, 16))
+
+            av_canvas = tk.Canvas(av_row, width=42, height=42, bg=CARD, highlightthickness=0)
+            av_canvas.pack(side='left', padx=(0, 12))
+            av_canvas.create_oval(2, 2, 40, 40, fill=CARD2, outline=SEP, width=1)
+            av_canvas.create_text(21, 21, text=account['email'][0].upper(),
+                                  fill=FG, font=("Uber Move Bold", 16, "bold"))
+
+            txt_col = ctk.CTkFrame(av_row, fg_color='transparent')
+            txt_col.pack(side='left')
+            ctk.CTkLabel(txt_col, text=account['email'], text_color=FG,
+                         font=("Uber Move Bold", 12, "bold")).pack(anchor='w')
+
             if bs['subscribed']:
-                badge_text, badge_fg, badge_bg = "MEMBER", '#22CC66', '#0A1F0E'
+                badge_text, badge_fg, badge_bg = "● MEMBER", '#22CC66', '#0A1F0E'
             elif bs.get('admin'):
-                badge_text, badge_fg, badge_bg = "ADMIN", ACCENT, '#1A0608'
+                badge_text, badge_fg, badge_bg = "● ADMIN", ACCENT, '#1A0608'
             elif bs['demo_active']:
-                badge_text, badge_fg, badge_bg = "DEMO", '#D4A017', '#1A1606'
+                badge_text, badge_fg, badge_bg = "● DEMO ACTIVE", '#D4A017', '#1A1606'
             else:
-                badge_text, badge_fg, badge_bg = "INACTIVE", FG2, CARD2
-            ctk.CTkLabel(badge_row, text=badge_text, text_color=badge_fg,
-                         font=("Rubik", 8, "bold"),
-                         fg_color=badge_bg, corner_radius=5,
-                         ).pack(side='left', ipadx=7, ipady=3)
+                badge_text, badge_fg, badge_bg = "● INACTIVE", FG2, CARD2
+            ctk.CTkLabel(txt_col, text=badge_text, text_color=badge_fg,
+                         font=("Rubik", 9, "bold"),
+                         fg_color=badge_bg, corner_radius=6,
+                         ).pack(anchor='w', ipadx=7, ipady=3, pady=(3, 0))
 
-            ctk.CTkLabel(body, text=account['email'], text_color=FG,
-                         font=("Uber Move Bold", 13, "bold")).pack(anchor='w', pady=(0, 16))
-
-            import webbrowser
+            ctk.CTkFrame(body, fg_color=SEP, height=1).pack(fill='x', pady=(0, 14))
 
             if not bs['subscribed']:
                 ctk.CTkButton(
                     body, text="START 7-DAY FREE TRIAL  →  £6.99/mo",
-                    font=("Uber Move Bold", 12, "bold"),
+                    font=("Uber Move Bold", 13, "bold"),
                     fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-                    height=46, corner_radius=10,
+                    height=50, corner_radius=12,
                     command=lambda: webbrowser.open(get_checkout_url()),
                 ).pack(fill='x', pady=(0, 8))
 
                 def _refresh_status():
-                    """Re-check subscription after user subscribes online."""
                     check_subscription_async(self._on_billing_checked)
                     self._status.set("Checking subscription…")
-                    win.destroy()
+                    _close(refocus=False)
 
                 ctk.CTkButton(
-                    body, text="I just subscribed — refresh status",
+                    body, text="I just subscribed — refresh",
                     font=("Rubik", 10), fg_color=CARD2, hover_color=SEP,
                     text_color=FG2, height=36, corner_radius=8,
                     command=_refresh_status,
                 ).pack(fill='x', pady=(0, 8))
 
             ctk.CTkButton(
-                body, text="Manage subscription / billing",
+                body, text="Manage subscription / billing  ↗",
                 font=("Rubik", 11), fg_color=CARD2, hover_color=SEP,
-                text_color=FG2, height=38, corner_radius=8,
+                text_color=FG2, height=42, corner_radius=10,
                 command=lambda: webbrowser.open(
                     f"{os.environ.get('DV_BILLING_URL','https://billing.dartvoice.com')}"
                     f"/portal?user_id={account['user_id']}"
@@ -1261,13 +1369,14 @@ class DartVoiceApp(ctk.CTk):
 
             def _do_signout():
                 sign_out()
-                win.destroy()
+                _close(refocus=False)
                 self._status.set("Signed out")
 
             ctk.CTkButton(
                 body, text="Sign out",
-                font=("Rubik", 11), fg_color=CARD2, hover_color=SEP,
-                text_color=FG2, height=38, corner_radius=8,
+                font=("Rubik", 11), fg_color='transparent', hover_color=CARD2,
+                text_color=FG2, height=36, corner_radius=8,
+                border_width=1, border_color=SEP,
                 command=_do_signout,
             ).pack(fill='x')
 
@@ -1277,89 +1386,80 @@ class DartVoiceApp(ctk.CTk):
             code_var  = tk.StringVar()
             msg_var   = tk.StringVar()
 
+            # Hero text
+            ctk.CTkLabel(body, text="Welcome to DartVoice",
+                         text_color=FG, font=("Uber Move Bold", 17, "bold"),
+                         ).pack(anchor='w', pady=(0, 4))
+            ctk.CTkLabel(body, text="Sign in or create an account to continue.",
+                         text_color=FG2, font=("Rubik", 10),
+                         ).pack(anchor='w', pady=(0, 18))
+
             # ── STEP 1: Email ─────────────────────────────────────────────
             step1 = ctk.CTkFrame(body, fg_color='transparent')
             step1.pack(fill='x')
 
-            # Section label
-            sec_row = ctk.CTkFrame(step1, fg_color='transparent')
-            sec_row.pack(anchor='w', pady=(0, 8))
-            ctk.CTkFrame(sec_row, fg_color=ACCENT, width=3, corner_radius=2,
-                         height=14).pack(side='left', padx=(0, 8))
-            ctk.CTkLabel(sec_row, text="SIGN IN  /  CREATE ACCOUNT",
-                         text_color=FG2, font=("Rubik", 8, "bold")).pack(side='left')
-
-            ctk.CTkLabel(
-                step1,
-                text="Enter your email — we'll send a 6-digit code.",
-                text_color=FG2, font=("Rubik", 10), justify='left',
-            ).pack(anchor='w', pady=(0, 10))
-
+            ctk.CTkLabel(step1, text="EMAIL ADDRESS", text_color=FG2,
+                         font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
             email_entry = ctk.CTkEntry(
                 step1, textvariable=email_var,
                 placeholder_text="your@email.com",
-                font=("Rubik", 12), height=46, corner_radius=10,
-                border_color=SEP, fg_color=CARD2, text_color=FG,
+                font=("Rubik", 13), height=50, corner_radius=12,
+                border_color=SEP, border_width=1,
+                fg_color=BG, text_color=FG,
+                placeholder_text_color=FG2,
             )
-            email_entry.pack(fill='x', pady=(0, 10))
+            email_entry.pack(fill='x', pady=(0, 12))
             email_entry.focus()
 
             send_btn = ctk.CTkButton(
                 step1, text="CONTINUE  →",
                 font=("Uber Move Bold", 13, "bold"),
                 fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-                height=46, corner_radius=10,
+                height=50, corner_radius=12,
             )
             send_btn.pack(fill='x')
 
-            # ── STEP 2: OTP (hidden until code sent) ─────────────────────
+            # ── STEP 2: OTP ───────────────────────────────────────────────
             step2 = ctk.CTkFrame(body, fg_color='transparent')
 
-            back_row = ctk.CTkFrame(step2, fg_color='transparent')
-            back_row.pack(anchor='w', pady=(0, 10))
-            ctk.CTkFrame(back_row, fg_color=ACCENT, width=3, corner_radius=2,
-                         height=14).pack(side='left', padx=(0, 8))
-            sent_lbl = ctk.CTkLabel(back_row, text="CODE SENT",
-                                    text_color=FG2, font=("Rubik", 8, "bold"))
-            sent_lbl.pack(side='left')
-
-            confirm_lbl = ctk.CTkLabel(
-                step2, text="",
-                text_color=FG2, font=("Rubik", 10), justify='left', wraplength=280,
-            )
+            confirm_lbl = ctk.CTkLabel(step2, text="", text_color=FG2,
+                                       font=("Rubik", 10), wraplength=320, justify='left')
             confirm_lbl.pack(anchor='w', pady=(0, 12))
 
+            ctk.CTkLabel(step2, text="MAGIC CODE", text_color=FG2,
+                         font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
             code_entry = ctk.CTkEntry(
                 step2, textvariable=code_var,
-                placeholder_text="000000",
-                font=("Courier New", 28, "bold"),
-                height=60, corner_radius=10,
-                border_color=ACCENT, fg_color=CARD2, text_color=FG,
+                placeholder_text="0 0 0 0 0 0",
+                font=("Courier New", 30, "bold"),
+                height=64, corner_radius=12,
+                border_color=ACCENT, border_width=2,
+                fg_color=BG, text_color=FG,
                 justify='center',
             )
-            code_entry.pack(fill='x', pady=(0, 10))
+            code_entry.pack(fill='x', pady=(0, 12))
 
             verify_btn = ctk.CTkButton(
                 step2, text="VERIFY CODE  →",
                 font=("Uber Move Bold", 13, "bold"),
                 fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-                height=46, corner_radius=10,
+                height=50, corner_radius=12,
             )
             verify_btn.pack(fill='x', pady=(0, 8))
 
             back_btn = ctk.CTkButton(
-                step2, text="← Change email",
+                step2, text="← Use a different email",
                 font=("Rubik", 10), fg_color='transparent',
                 hover_color=CARD2, text_color=FG2,
                 height=30, corner_radius=8,
             )
             back_btn.pack()
 
-            # Shared message label
+            # Error label
             msg_lbl = ctk.CTkLabel(body, textvariable=msg_var,
-                                   text_color='#e05555', font=("Rubik", 10),
-                                   wraplength=280)
-            msg_lbl.pack(pady=(8, 0))
+                                   text_color='#FF5555', font=("Rubik", 10),
+                                   wraplength=320)
+            msg_lbl.pack(pady=(10, 0))
 
             def _go_step1():
                 step2.pack_forget()
@@ -1370,7 +1470,7 @@ class DartVoiceApp(ctk.CTk):
             def _send():
                 email = email_var.get().strip()
                 if not email or '@' not in email:
-                    msg_var.set("Enter a valid email address.")
+                    msg_var.set("Please enter a valid email address.")
                     return
                 send_btn.configure(state='disabled', text='Sending…')
                 msg_var.set('')
@@ -1387,7 +1487,7 @@ class DartVoiceApp(ctk.CTk):
                             code_entry.focus()
                         else:
                             msg_var.set(f"Error: {err}")
-                    win.after(0, _ui)
+                    self.after(0, _ui)
                 threading.Thread(target=_do, daemon=True).start()
 
             def _verify():
@@ -1403,12 +1503,12 @@ class DartVoiceApp(ctk.CTk):
                     def _ui():
                         verify_btn.configure(state='normal', text='VERIFY CODE  →')
                         if ok:
-                            win.destroy()
+                            _close(refocus=False)
                             self._billing_gate()
                         else:
                             msg_var.set("Invalid code — try again or resend.")
                             code_var.set('')
-                    win.after(0, _ui)
+                    self.after(0, _ui)
                 threading.Thread(target=_do, daemon=True).start()
 
             send_btn.configure(command=_send)
@@ -1623,32 +1723,94 @@ class DartVoiceApp(ctk.CTk):
             self._draw_dartboard_wire(self.bg_canvas, e.width, e.height)
         ])
 
-        # ── Top accent bar ────────────────────────────────────────────────
-        ctk.CTkFrame(self, fg_color=ACCENT, height=3, corner_radius=0).pack(fill='x')
+        # ── Custom borderless titlebar ────────────────────────────────────
+        titlebar = tk.Frame(self, bg=CARD, height=48)
+        titlebar.pack(fill='x')
+        titlebar.pack_propagate(False)
 
-        # ── Nav bar ───────────────────────────────────────────────────────
-        nav = ctk.CTkFrame(self, fg_color=CARD, corner_radius=0, height=48)
-        nav.pack(fill='x')
-        nav.pack_propagate(False)
+        # Thin accent strip at very top
+        acc_strip = tk.Frame(titlebar, bg=ACCENT, height=3)
+        acc_strip.pack(fill='x', side='top')
 
-        # Logo
-        lc = tk.Canvas(nav, width=22, height=22, bg=CARD, highlightthickness=0)
+        tb_inner = tk.Frame(titlebar, bg=CARD)
+        tb_inner.pack(fill='both', expand=True)
+
+        # Drag the window by clicking the titlebar background
+        def _tb_drag_start(e):
+            self._drag_data['x'] = e.x_root - self.winfo_x()
+            self._drag_data['y'] = e.y_root - self.winfo_y()
+            self._drag_data['dragging'] = True
+        def _tb_drag_move(e):
+            if self._drag_data['dragging']:
+                self.geometry(f"+{e.x_root - self._drag_data['x']}+{e.y_root - self._drag_data['y']}")
+        def _tb_drag_stop(e):
+            self._drag_data['dragging'] = False
+        for _w in (titlebar, tb_inner, acc_strip):
+            _w.bind('<ButtonPress-1>',   _tb_drag_start)
+            _w.bind('<B1-Motion>',       _tb_drag_move)
+            _w.bind('<ButtonRelease-1>', _tb_drag_stop)
+        # Double-click titlebar to maximise / restore
+        def _tb_dblclick(e):
+            if self.winfo_width() >= self.winfo_screenwidth() - 10:
+                self.geometry("1024x600")
+            else:
+                self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
+        titlebar.bind('<Double-Button-1>', _tb_dblclick)
+
+        # Logo (bullseye canvas)
+        lc = tk.Canvas(tb_inner, width=22, height=22, bg=CARD, highlightthickness=0)
         lc.place(x=16, rely=0.5, anchor='w')
         self._draw_bullseye(lc, 11, 11, [9, 6, 3, 1])
-        ctk.CTkLabel(nav, text="  DARTVOICE", text_color=FG,
-                     font=("Uber Move Bold", 15, "bold")).place(x=44, rely=0.5, anchor='w')
+        lc.bind('<ButtonPress-1>',   _tb_drag_start)
+        lc.bind('<B1-Motion>',       _tb_drag_move)
+        lc.bind('<ButtonRelease-1>', _tb_drag_stop)
+
+        tb_title = tk.Label(tb_inner, text="  DARTVOICE", bg=CARD, fg=FG,
+                            font=("Uber Move Bold", 15, "bold"))
+        tb_title.place(x=44, rely=0.5, anchor='w')
+        tb_title.bind('<ButtonPress-1>',   _tb_drag_start)
+        tb_title.bind('<B1-Motion>',       _tb_drag_move)
+        tb_title.bind('<ButtonRelease-1>', _tb_drag_stop)
 
         # Compat badges centred
-        compat_f = ctk.CTkFrame(nav, fg_color='transparent')
+        compat_f = ctk.CTkFrame(tb_inner, fg_color='transparent')
         compat_f.place(relx=0.5, rely=0.5, anchor='center')
         for badge_text in ["Target Dartcounter", "X01", "Cricket", "121"]:
             ctk.CTkLabel(compat_f, text=badge_text, text_color=FG2,
                          font=("Rubik", 8, "bold"), fg_color=CARD2, corner_radius=5,
                          ).pack(side='left', padx=2, ipadx=5, ipady=2)
 
-        # Right: account + settings + in-game buttons
-        nav_r = ctk.CTkFrame(nav, fg_color='transparent')
-        nav_r.place(relx=1.0, x=-12, rely=0.5, anchor='e')
+        # Right side: app controls + window controls
+        nav_r = ctk.CTkFrame(tb_inner, fg_color='transparent')
+        nav_r.place(relx=1.0, x=-8, rely=0.5, anchor='e')
+
+        # Window controls: close / max / min
+        def _win_btn(parent, symbol, bg_hover, cmd):
+            b = tk.Label(parent, text=symbol, bg=CARD, fg=FG2,
+                         font=("Rubik", 11), padx=10, pady=4, cursor='hand2')
+            b.pack(side='right')
+            b.bind('<Enter>', lambda e: b.config(bg=bg_hover, fg=FG))
+            b.bind('<Leave>', lambda e: b.config(bg=CARD, fg=FG2))
+            b.bind('<Button-1>', lambda e: cmd())
+            return b
+
+        _win_btn(nav_r, "✕", '#CC2222', self._hide_to_tray)
+        _win_btn(nav_r, "□", CARD2, lambda: self.geometry(
+            f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0"
+            if self.winfo_width() < self.winfo_screenwidth() - 10
+            else "1024x600"))
+        def _minimise():
+            # overrideredirect windows need withdraw + iconify trick
+            self.overrideredirect(False)
+            self.iconify()
+            def _rewrap(e=None):
+                self.overrideredirect(True)
+                self.unbind('<Map>')
+            self.bind('<Map>', _rewrap)
+        _win_btn(nav_r, "—", CARD2, _minimise)
+
+        # Sep line
+        tk.Frame(nav_r, bg=SEP, width=1, height=24).pack(side='right', padx=4)
 
         try:
             from billing import get_account
@@ -1664,15 +1826,19 @@ class DartVoiceApp(ctk.CTk):
             width=32, height=32, corner_radius=8,
             command=self._open_account_dialog,
         )
-        self._acct_btn.pack(side='right', padx=(3, 0))
+        self._acct_btn.pack(side='right', padx=(0, 3))
 
-        ctk.CTkButton(
-            nav_r, text="⚙", font=("Rubik", 14),
-            fg_color=CARD2, hover_color=SEP, text_color=FG2,
-            border_width=1, border_color=SEP,
-            width=32, height=32, corner_radius=8,
-            command=self._open_settings,
-        ).pack(side='right', padx=(3, 0))
+        settings_wrap = ctk.CTkFrame(nav_r, fg_color=CARD2, corner_radius=8,
+                                      border_width=1, border_color=SEP,
+                                      width=32, height=32)
+        settings_wrap.pack(side='right', padx=(0, 3))
+        settings_wrap.pack_propagate(False)
+        settings_ic = tk.Canvas(settings_wrap, width=32, height=32, bg=CARD2, highlightthickness=0)
+        settings_ic.pack(fill='both', expand=True)
+        self._draw_svg_icon(settings_ic, 'settings', FG2, 18)
+        settings_ic.bind('<Button-1>', lambda e: self._open_settings())
+        settings_ic.bind('<Enter>', lambda e: self._draw_svg_icon(settings_ic, 'settings', FG, 18))
+        settings_ic.bind('<Leave>', lambda e: self._draw_svg_icon(settings_ic, 'settings', FG2, 18))
 
         ctk.CTkButton(
             nav_r, text="⊞", font=("Rubik", 14),
@@ -1680,30 +1846,42 @@ class DartVoiceApp(ctk.CTk):
             border_width=1, border_color=SEP,
             width=32, height=32, corner_radius=8,
             command=self._open_ingame,
-        ).pack(side='right', padx=(0, 0))
+        ).pack(side='right', padx=(0, 3))
 
-        ctk.CTkFrame(self, fg_color=SEP, height=1).pack(fill='x')
+        tk.Frame(self, bg=SEP, height=1).pack(fill='x')
 
-        # ── Three-column body ─────────────────────────────────────────────
+        # ── Three-column body (.grid layout: col 0 | sep | col 2 | sep | col 4) ──
         body = ctk.CTkFrame(self, fg_color='transparent')
         body.pack(fill='both', expand=True)
+        body.grid_columnconfigure(0, weight=1, minsize=190)
+        body.grid_columnconfigure(1, weight=0, minsize=1)
+        body.grid_columnconfigure(2, weight=2)
+        body.grid_columnconfigure(3, weight=0, minsize=1)
+        body.grid_columnconfigure(4, weight=1, minsize=190)
+        body.grid_rowconfigure(0, weight=1)
 
-        # ── LEFT: History + Mode ──────────────────────────────────────────
-        left_panel = ctk.CTkFrame(body, fg_color=CARD, corner_radius=0, width=180)
-        left_panel.pack(side='left', fill='y')
-        left_panel.pack_propagate(False)
-        ctk.CTkFrame(body, fg_color=SEP, width=1, corner_radius=0).pack(side='left', fill='y')
+        # ── COLUMN 0: Session History ─────────────────────────────────────
+        left_panel = ctk.CTkFrame(body, fg_color=CARD, corner_radius=0)
+        left_panel.grid(row=0, column=0, sticky='nsew')
 
-        # History header
-        hist_hdr = ctk.CTkFrame(left_panel, fg_color='transparent', height=38)
+        hist_hdr = ctk.CTkFrame(left_panel, fg_color='transparent', height=42)
         hist_hdr.pack(fill='x')
         hist_hdr.pack_propagate(False)
         h_dot_row = ctk.CTkFrame(hist_hdr, fg_color='transparent')
         h_dot_row.place(x=14, rely=0.5, anchor='w')
         ctk.CTkFrame(h_dot_row, fg_color=ACCENT, width=8, height=8,
                      corner_radius=4).pack(side='left', padx=(0, 6))
-        ctk.CTkLabel(h_dot_row, text="HISTORY", text_color=FG2,
+        ctk.CTkLabel(h_dot_row, text="SESSION HISTORY", text_color=FG2,
                      font=("Rubik", 8, "bold")).pack(side='left')
+
+        # Rotate-ccw undo icon at right of history header
+        undo_ic = tk.Canvas(hist_hdr, width=20, height=20, bg=CARD, highlightthickness=0)
+        undo_ic.place(relx=1.0, x=-14, rely=0.5, anchor='e')
+        self._draw_svg_icon(undo_ic, 'rotate-ccw', FG2, 16)
+        undo_ic.bind('<Button-1>', lambda e: self._on_cancel())
+        undo_ic.bind('<Enter>', lambda e: self._draw_svg_icon(undo_ic, 'rotate-ccw', FG, 16))
+        undo_ic.bind('<Leave>', lambda e: self._draw_svg_icon(undo_ic, 'rotate-ccw', FG2, 16))
+
         ctk.CTkFrame(left_panel, fg_color=SEP, height=1).pack(fill='x')
 
         # Mode selector
@@ -1722,7 +1900,6 @@ class DartVoiceApp(ctk.CTk):
         ).pack(fill='x', padx=12, pady=(0, 8))
         ctk.CTkFrame(left_panel, fg_color=SEP, height=1).pack(fill='x', padx=12)
 
-        # History list
         hist_scroll = ctk.CTkScrollableFrame(left_panel, fg_color='transparent',
                                               scrollbar_button_color=SEP,
                                               scrollbar_button_hover_color=FG2)
@@ -1730,89 +1907,111 @@ class DartVoiceApp(ctk.CTk):
         self._hist_scroll = hist_scroll
         self._redraw_history()
 
-        # ── RIGHT: Stats ──────────────────────────────────────────────────
-        ctk.CTkFrame(body, fg_color=SEP, width=1, corner_radius=0).pack(side='right', fill='y')
-        right_panel = ctk.CTkFrame(body, fg_color=CARD, corner_radius=0, width=196)
-        right_panel.pack(side='right', fill='y')
-        right_panel.pack_propagate(False)
+        # ── Trigger word quick-toggle ─────────────────────────────────────
+        ctk.CTkFrame(left_panel, fg_color=SEP, height=1).pack(fill='x')
+        trig_card = ctk.CTkFrame(left_panel, fg_color='transparent')
+        trig_card.pack(fill='x', padx=12, pady=(8, 0))
 
-        # Checkout route section
-        co_hdr = ctk.CTkFrame(right_panel, fg_color='transparent', height=38)
-        co_hdr.pack(fill='x')
-        co_hdr.pack_propagate(False)
-        ctk.CTkLabel(co_hdr, text="CHECKOUT ROUTE", text_color=FG2,
-                     font=("Rubik", 7, "bold")).place(x=16, rely=0.5, anchor='w')
-        ctk.CTkFrame(right_panel, fg_color=SEP, height=1).pack(fill='x')
+        # Header row
+        trig_hdr = ctk.CTkFrame(trig_card, fg_color='transparent')
+        trig_hdr.pack(fill='x', pady=(0, 4))
+        trig_ic = tk.Canvas(trig_hdr, width=12, height=12, bg=CARD, highlightthickness=0)
+        trig_ic.pack(side='left', padx=(0, 5))
+        self._draw_svg_icon(trig_ic, 'zap', FG2, 10)
+        ctk.CTkLabel(trig_hdr, text="TRIGGER WORD", text_color=FG2,
+                     font=("Rubik", 7, "bold")).pack(side='left')
 
-        co_area = ctk.CTkFrame(right_panel, fg_color='transparent')
-        co_area.pack(fill='x', padx=12, pady=(8, 0))
-        ctk.CTkLabel(co_area, textvariable=self._checkout_str, text_color=ACCENT,
-                     font=("Uber Move Bold", 13, "bold"), wraplength=166,
-                     justify='left').pack(anchor='w')
-        ctk.CTkFrame(right_panel, fg_color=SEP, height=1).pack(fill='x', padx=12, pady=(8, 0))
+        # Toggle row
+        trig_row = ctk.CTkFrame(trig_card, fg_color=BG, corner_radius=8,
+                                border_width=1, border_color=SEP)
+        trig_row.pack(fill='x', pady=(0, 4))
+        ctk.CTkLabel(trig_row, text="Require trigger", text_color=FG,
+                     font=("Rubik", 10)).pack(side='left', padx=10, pady=6)
+        _lt_rv = ctk.BooleanVar(value=self.cfg.get('require_trigger', True))
+        ctk.CTkSwitch(
+            trig_row, variable=_lt_rv, text='',
+            onvalue=True, offvalue=False,
+            fg_color=SEP, progress_color=ACCENT,
+            button_color=FG, button_hover_color=FG2,
+            width=36, height=18,
+            command=lambda: self._save_setting('require_trigger', _lt_rv.get()),
+        ).pack(side='right', padx=10)
 
-        # Stats
-        stats_body = ctk.CTkFrame(right_panel, fg_color='transparent')
-        stats_body.pack(fill='x', padx=16, pady=(12, 0))
+        # Trigger word entry
+        _lt_tw = ctk.CTkEntry(
+            trig_card, font=("Rubik", 11), fg_color=BG,
+            border_color=SEP, border_width=1, text_color=FG,
+            placeholder_text="trigger word…",
+            placeholder_text_color=FG2,
+            justify='center', height=34, corner_radius=8,
+        )
+        _lt_tw.insert(0, self.cfg.get('trigger', 'score'))
+        _lt_tw.pack(fill='x', pady=(0, 8))
+        _lt_tw.bind('<KeyRelease>',
+                    lambda e: self._save_setting('trigger', _lt_tw.get().strip().lower() or 'score'))
 
-        ctk.CTkLabel(stats_body, text="SESSION AVG", text_color=FG2,
-                     font=("Rubik", 7, "bold")).pack(anchor='w')
-        ctk.CTkLabel(stats_body, textvariable=self._avg_str, text_color=FG,
-                     font=("Uber Move Bold", 38, "bold")).pack(anchor='w', pady=(0, 10))
+        # ── How To Use ────────────────────────────────────────────────────
+        ctk.CTkFrame(left_panel, fg_color=SEP, height=1).pack(fill='x')
+        how_hdr = ctk.CTkFrame(left_panel, fg_color='transparent', height=32)
+        how_hdr.pack(fill='x')
+        how_hdr.pack_propagate(False)
+        how_ic = tk.Canvas(how_hdr, width=12, height=12, bg=CARD, highlightthickness=0)
+        how_ic.place(x=14, rely=0.5, anchor='w')
+        self._draw_svg_icon(how_ic, 'help-circle', FG2, 10)
+        ctk.CTkLabel(how_hdr, text="  HOW TO USE", text_color=FG2,
+                     font=("Rubik", 7, "bold")).place(x=30, rely=0.5, anchor='w')
 
-        ctk.CTkLabel(stats_body, text="DARTS THROWN", text_color=FG2,
-                     font=("Rubik", 7, "bold")).pack(anchor='w')
-        ctk.CTkLabel(stats_body, textvariable=self._darts_str, text_color=FG,
-                     font=("Uber Move Bold", 38, "bold")).pack(anchor='w', pady=(0, 10))
+        _how_steps = [
+            ('mic',        'Say trigger word\n(default: "score")'),
+            ('target',     'Call darts:\n"Treble 20, 5, Double 16"'),
+            ('zap',        'Score types into app\nautomatically'),
+            ('rotate-ccw', 'Say cancel word to\nundo last entry'),
+        ]
+        how_frame = ctk.CTkFrame(left_panel, fg_color='transparent')
+        how_frame.pack(fill='x', padx=12, pady=(4, 10))
+        for step_icon, step_text in _how_steps:
+            sr = ctk.CTkFrame(how_frame, fg_color=BG, corner_radius=8,
+                              border_width=1, border_color=SEP)
+            sr.pack(fill='x', pady=2)
+            si = tk.Canvas(sr, width=20, height=20, bg=BG, highlightthickness=0)
+            si.pack(side='left', padx=(8, 6), pady=6)
+            self._draw_svg_icon(si, step_icon, ACCENT, 13)
+            ctk.CTkLabel(sr, text=step_text, text_color=FG2,
+                         font=("Rubik", 9), justify='left',
+                         wraplength=130).pack(side='left', anchor='w', padx=(0, 6), pady=4)
 
-        if self.cfg.get('live_checkout', False) and self.cfg.get('game_mode', 'X01') == 'X01':
-            ctk.CTkLabel(stats_body, text="REMAINING", text_color=FG2,
-                         font=("Rubik", 7, "bold")).pack(anchor='w')
-            ctk.CTkLabel(stats_body, textvariable=self._remaining_str, text_color=FG,
-                         font=("Uber Move Bold", 38, "bold")).pack(anchor='w', pady=(0, 10))
+        # Left column separator
+        tk.Frame(body, bg=SEP, width=1).grid(row=0, column=1, sticky='nsew')
 
-        # Bottom action row (undo + account)
-        ctk.CTkFrame(right_panel, fg_color=SEP, height=1).pack(side='bottom', fill='x')
-        bot_row = ctk.CTkFrame(right_panel, fg_color='transparent', height=46)
-        bot_row.pack(side='bottom', fill='x')
-        bot_row.pack_propagate(False)
-        for icon, cmd in [("↩", self._on_cancel), ("👤", self._open_account_dialog)]:
-            ctk.CTkButton(
-                bot_row, text=icon, font=("Rubik", 14),
-                fg_color='transparent', hover_color=CARD2, text_color=FG2,
-                width=40, height=36, corner_radius=8, command=cmd,
-            ).pack(side='right', padx=4, pady=5)
-
-        # ── CENTER: Score display + LISTEN ────────────────────────────────
+        # ── COLUMN 2: Main Stage ──────────────────────────────────────────
         center = ctk.CTkFrame(body, fg_color='transparent')
-        center.pack(fill='both', expand=True)
+        center.grid(row=0, column=2, sticky='nsew')
 
-        # Mode info chips
         chips_row = ctk.CTkFrame(center, fg_color='transparent')
-        chips_row.pack(pady=(14, 0))
+        chips_row.pack(pady=(16, 0))
         mode_text = self.cfg.get('game_mode', 'X01')
         ctk.CTkLabel(chips_row, text=f"{mode_text} MODE", text_color=FG2,
                      font=("Rubik", 8, "bold"), fg_color=CARD2, corner_radius=20,
                      ).pack(side='left', padx=3, ipadx=8, ipady=4)
         if mode_text == 'X01':
             start_v = self.cfg.get('x01_start', 501)
-            ctk.CTkLabel(chips_row, text=f"START: {start_v}", text_color=FG2,
+            ctk.CTkLabel(chips_row, text=f"FIRST TO {start_v}", text_color=FG2,
                          font=("Rubik", 8, "bold"), fg_color=CARD2, corner_radius=20,
                          ).pack(side='left', padx=3, ipadx=8, ipady=4)
 
-        # LAST SCORE label
-        ctk.CTkLabel(center, text="LAST SCORE", text_color=FG2,
-                     font=("Rubik", 8, "bold")).pack(pady=(16, 4))
+        is_live = self.cfg.get('live_checkout', False) and mode_text == 'X01'
+        score_label_text = "REMAINING" if is_live else "LAST SCORE"
+        ctk.CTkLabel(center, text=score_label_text, text_color=FG2,
+                     font=("Rubik", 8, "bold")).pack(pady=(14, 4))
 
-        # Big score canvas
-        self._score_canvas = tk.Canvas(center, bg=CARD, highlightthickness=0,
-                                        width=400, height=130)
-        self._score_canvas.pack(padx=36)
+        self._score_canvas = tk.Canvas(center, bg=BG, highlightthickness=0,
+                                        width=400, height=160)
+        self._score_canvas.pack(padx=36, fill='x')
         self._score_canvas.bind('<Configure>', lambda e: self._redraw_score())
         self._score_str.trace_add('write', lambda *_: self._redraw_score())
+        self._remaining_str.trace_add('write', lambda *_: self._redraw_score())
         self._redraw_score()
 
-        # Status pill
         stat_wrap = ctk.CTkFrame(center, fg_color='transparent')
         stat_wrap.pack(pady=(10, 0))
         stat_pill = ctk.CTkFrame(stat_wrap, fg_color=CARD2, corner_radius=20,
@@ -1828,9 +2027,220 @@ class DartVoiceApp(ctk.CTk):
             center, text="START LISTENING",
             font=("Uber Move Bold", 15, "bold"),
             fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-            height=56, corner_radius=14, command=self._toggle,
+            height=60, corner_radius=14, command=self._toggle,
         )
-        self._toggle_btn.pack(fill='x', padx=36, pady=(16, 0))
+        self._toggle_btn.pack(fill='x', padx=36, pady=(14, 0))
+
+        # Right column separator
+        tk.Frame(body, bg=SEP, width=1).grid(row=0, column=3, sticky='nsew')
+
+        # ── COLUMN 4: Stats & Settings ────────────────────────────────────
+        right_panel = ctk.CTkFrame(body, fg_color=CARD, corner_radius=0)
+        right_panel.grid(row=0, column=4, sticky='nsew')
+
+        co_hdr = ctk.CTkFrame(right_panel, fg_color=BG, corner_radius=0, height=42)
+        co_hdr.pack(fill='x')
+        co_hdr.pack_propagate(False)
+        ctk.CTkLabel(co_hdr, text="LIVE CHECKOUT", text_color=FG2,
+                     font=("Rubik", 7, "bold")).place(x=16, rely=0.5, anchor='w')
+        ctk.CTkFrame(right_panel, fg_color=SEP, height=1).pack(fill='x')
+
+        co_area = ctk.CTkFrame(right_panel, fg_color='transparent')
+        co_area.pack(fill='x', padx=16, pady=(10, 0))
+        ctk.CTkLabel(co_area, textvariable=self._checkout_str, text_color=ACCENT,
+                     font=("Uber Move Bold", 13, "bold"), wraplength=166,
+                     justify='left').pack(anchor='w')
+        ctk.CTkFrame(right_panel, fg_color=SEP, height=1).pack(fill='x', padx=12, pady=(10, 0))
+
+        # ── Stats row ─────────────────────────────────────────────────────────
+        stats_row = ctk.CTkFrame(right_panel, fg_color='transparent')
+        stats_row.pack(fill='x', padx=14, pady=(10, 0))
+        stats_row.grid_columnconfigure(0, weight=1)
+        stats_row.grid_columnconfigure(1, weight=1)
+
+        def _stat_col(parent, label, var, col):
+            f = ctk.CTkFrame(parent, fg_color=BG, corner_radius=10,
+                             border_width=1, border_color=SEP)
+            f.grid(row=0, column=col, sticky='ew',
+                   padx=(0, 5) if col == 0 else (5, 0), pady=0)
+            ctk.CTkLabel(f, text=label, text_color=FG2,
+                         font=("Rubik", 6, "bold")).pack(anchor='w', padx=8, pady=(6, 0))
+            ctk.CTkLabel(f, textvariable=var, text_color=FG,
+                         font=("Uber Move Bold", 26, "bold")).pack(anchor='w', padx=8, pady=(0, 6))
+
+        _stat_col(stats_row, "SESSION AVG",   self._avg_str,   0)
+        _stat_col(stats_row, "DARTS THROWN",  self._darts_str, 1)
+
+        ctk.CTkFrame(right_panel, fg_color=SEP, height=1).pack(fill='x', padx=12, pady=(10, 0))
+
+        # ── Scrollable quick-controls ─────────────────────────────────────────
+        ctrl_scroll = ctk.CTkScrollableFrame(
+            right_panel, fg_color='transparent',
+            scrollbar_button_color=CARD2, scrollbar_button_hover_color=SEP,
+        )
+        ctrl_scroll.pack(fill='both', expand=True)
+
+        # ─ helper: section header with icon ───────────────────────────────────
+        def _ctrl_section(icon_name, title):
+            row = ctk.CTkFrame(ctrl_scroll, fg_color='transparent')
+            row.pack(fill='x', padx=12, pady=(10, 3))
+            ic = tk.Canvas(row, width=12, height=12, bg=CARD, highlightthickness=0)
+            ic.pack(side='left', padx=(0, 5))
+            self._draw_svg_icon(ic, icon_name, FG2, 10)
+            ctk.CTkLabel(row, text=title, text_color=FG2,
+                         font=("Rubik", 7, "bold")).pack(side='left')
+
+        # ─ helper: compact toggle row ─────────────────────────────────────────
+        def _ctrl_toggle(label, cfg_key, default=False, on_change=None):
+            row = ctk.CTkFrame(ctrl_scroll, fg_color=BG, corner_radius=8,
+                               border_width=1, border_color=SEP)
+            row.pack(fill='x', padx=12, pady=2)
+            ctk.CTkLabel(row, text=label, text_color=FG,
+                         font=("Rubik", 10)).pack(side='left', padx=10, pady=8)
+            var = ctk.BooleanVar(value=self.cfg.get(cfg_key, default))
+            sw = ctk.CTkSwitch(
+                row, variable=var, text='',
+                onvalue=True, offvalue=False,
+                fg_color=SEP, progress_color=ACCENT,
+                button_color=FG, button_hover_color=FG2,
+                width=36, height=18,
+                command=lambda: (
+                    self._save_setting(cfg_key, var.get()),
+                    on_change(var.get()) if on_change else None,
+                ),
+            )
+            sw.pack(side='right', padx=10)
+            return var
+
+        # ── 1. MICROPHONE ─────────────────────────────────────────────────────
+        _ctrl_section('mic', 'MICROPHONE')
+
+        rp_mic_labels    = ['Default']
+        rp_mic_index_map = {0: None}
+        try:
+            import pyaudio as _pa_rp
+            _pa3 = _pa_rp.PyAudio()
+            for _i3 in range(_pa3.get_device_count()):
+                _inf3 = _pa3.get_device_info_by_index(_i3)
+                if _inf3.get('maxInputChannels', 0) < 1:
+                    continue
+                _raw3 = _inf3['name']
+                try: _raw3 = _raw3.encode('latin-1').decode('utf-8')
+                except (UnicodeEncodeError, UnicodeDecodeError): pass
+                rp_mic_labels.append(_raw3)
+                rp_mic_index_map[len(rp_mic_labels) - 1] = _i3
+            _pa3.terminate()
+        except Exception:
+            pass
+
+        _rp_cur_lbl = 'Default'
+        for _li3, _di3 in rp_mic_index_map.items():
+            if _di3 == self.cfg.get('mic_index') and _li3 > 0:
+                _rp_cur_lbl = rp_mic_labels[_li3]; break
+
+        rp_mic_var = ctk.StringVar(value=_rp_cur_lbl)
+        def _rp_on_mic(label):
+            for _li3, _n3 in enumerate(rp_mic_labels):
+                if _n3 == label:
+                    self.cfg['mic_index'] = rp_mic_index_map.get(_li3)
+                    save_config(self.cfg); break
+        ctk.CTkOptionMenu(
+            ctrl_scroll, variable=rp_mic_var, values=rp_mic_labels,
+            font=("Rubik", 10),
+            fg_color=BG, button_color=ACCENT_DIM, button_hover_color=ACCENT,
+            text_color=FG, dropdown_fg_color=CARD, dropdown_text_color=FG,
+            dropdown_hover_color=CARD2, corner_radius=8, height=36,
+            command=_rp_on_mic,
+        ).pack(fill='x', padx=12, pady=(0, 2))
+
+        # ── 2. SCORING MODE ───────────────────────────────────────────────────
+        _ctrl_section('target', 'SCORING MODE')
+
+        seg2 = ctk.CTkFrame(ctrl_scroll, fg_color='transparent')
+        seg2.pack(fill='x', padx=12, pady=(0, 2))
+        seg2.grid_columnconfigure(0, weight=1)
+        seg2.grid_columnconfigure(1, weight=1)
+
+        _pd2 = self.cfg.get('per_dart_mode', False)
+
+        def _set_mode2(per_dart):
+            self._save_setting('per_dart_mode', per_dart)
+            b_per2.configure(fg_color=ACCENT if per_dart else BG,
+                             border_color=ACCENT if per_dart else SEP,
+                             text_color=PRI_FG if per_dart else FG2)
+            b_3d2.configure(fg_color=ACCENT if not per_dart else BG,
+                            border_color=ACCENT if not per_dart else SEP,
+                            text_color=PRI_FG if not per_dart else FG2)
+
+        b_per2 = ctk.CTkButton(
+            seg2, text="Per Dart", font=("Rubik", 10, "bold"), height=34,
+            corner_radius=8, border_width=1,
+            fg_color=ACCENT if _pd2 else BG,
+            border_color=ACCENT if _pd2 else SEP,
+            hover_color=PRI_HOV, text_color=PRI_FG if _pd2 else FG2,
+            command=lambda: _set_mode2(True),
+        )
+        b_per2.grid(row=0, column=0, sticky='ew', padx=(0, 3))
+
+        b_3d2 = ctk.CTkButton(
+            seg2, text="3 Darts", font=("Rubik", 10, "bold"), height=34,
+            corner_radius=8, border_width=1,
+            fg_color=ACCENT if not _pd2 else BG,
+            border_color=ACCENT if not _pd2 else SEP,
+            hover_color=PRI_HOV, text_color=PRI_FG if not _pd2 else FG2,
+            command=lambda: _set_mode2(False),
+        )
+        b_3d2.grid(row=0, column=1, sticky='ew', padx=(3, 0))
+
+        # ── 3. GAME CALIBRATION ───────────────────────────────────────────────
+        _ctrl_section('sliders', 'GAME CALIBRATION')
+        cur_mode = self.cfg.get('game_mode', 'X01')
+
+        calib_card = ctk.CTkFrame(ctrl_scroll, fg_color=BG, corner_radius=8,
+                                   border_width=1, border_color=SEP)
+        calib_card.pack(fill='x', padx=12, pady=2)
+
+        if cur_mode == 'X01':
+            ctk.CTkLabel(calib_card, text="Starting Score", text_color=FG2,
+                         font=("Rubik", 9)).pack(anchor='w', padx=10, pady=(6, 0))
+            start_var2 = ctk.StringVar(value=str(self.cfg.get('x01_start', 501)))
+            ctk.CTkOptionMenu(
+                calib_card, variable=start_var2,
+                values=['170', '301', '501', '701', '1001'],
+                font=("Rubik", 11, "bold"),
+                fg_color=CARD, button_color=ACCENT_DIM, button_hover_color=ACCENT,
+                text_color=FG, dropdown_fg_color=CARD, dropdown_text_color=FG,
+                dropdown_hover_color=CARD2, corner_radius=8, height=36,
+                command=lambda v: self._save_setting('x01_start', int(v)),
+            ).pack(fill='x', padx=8, pady=(2, 8))
+        else:
+            # Cricket: live checkout toggle
+            _ctrl_toggle('Live checkout tracking', 'live_checkout', False)
+
+        # Bottom icon buttons: Settings + Account (canvas icons + label)
+        ctk.CTkFrame(right_panel, fg_color=SEP, height=1).pack(side='bottom', fill='x')
+        bot_row = ctk.CTkFrame(right_panel, fg_color='transparent', height=56)
+        bot_row.pack(side='bottom', fill='x')
+        bot_row.pack_propagate(False)
+        bot_row.grid_columnconfigure(0, weight=1)
+        bot_row.grid_columnconfigure(1, weight=1)
+        bot_row.grid_rowconfigure(0, weight=1)
+
+        def _make_icon_btn(parent, icon, label_text, command, col):
+            f = ctk.CTkFrame(parent, fg_color=BG, corner_radius=8,
+                              border_width=1, border_color=SEP)
+            f.grid(row=0, column=col, sticky='nsew',
+                   padx=(8, 4) if col == 0 else (4, 8), pady=8)
+            ic = tk.Canvas(f, width=18, height=18, bg=BG, highlightthickness=0)
+            ic.pack(pady=(5, 0))
+            self._draw_svg_icon(ic, icon, FG2, 14)
+            ctk.CTkLabel(f, text=label_text, text_color=FG2,
+                         font=("Rubik", 7, "bold")).pack(pady=(1, 4))
+            f.bind('<Button-1>', lambda e: command())
+            ic.bind('<Button-1>', lambda e: command())
+
+        _make_icon_btn(bot_row, 'settings', 'SETTINGS', self._open_settings, 0)
+        _make_icon_btn(bot_row, 'user', 'ACCOUNT', self._open_account_dialog, 1)
 
     # ── Visit history panel ───────────────────────────────────────────────────
     def _push_history(self, label: str, score_str: str):
@@ -1914,19 +2324,21 @@ class DartVoiceApp(ctk.CTk):
         c = self._score_canvas
         c.delete('all')
         w = c.winfo_width()  or 400
-        h = c.winfo_height() or 130
+        h = c.winfo_height() or 160
         L = 18  # bracket arm length
         T = 2
 
-        val = self._score_str.get()
-        is_180 = (val == '180')
+        is_live = (self.cfg.get('live_checkout', False) and
+                   self.cfg.get('game_mode', 'X01') == 'X01')
+        val = self._remaining_str.get() if is_live else self._score_str.get()
+        is_180 = (val == '180') and not is_live
         col = ACCENT if self._active else SEP
 
         # Radial glow behind score (active state)
         if self._active:
-            # Parse accent for alpha-layered ovals
             ah = ACCENT.lstrip('#')
             ar, ag, ab = int(ah[0:2], 16), int(ah[2:4], 16), int(ah[4:6], 16)
+            bg_h = BG.lstrip('#')
             glow_steps = [
                 (w * 0.9, h * 1.6, 0.06),
                 (w * 0.65, h * 1.1, 0.10),
@@ -1934,9 +2346,9 @@ class DartVoiceApp(ctk.CTk):
             ]
             for gw, gh, alpha in glow_steps:
                 _hex = '#{:02X}{:02X}{:02X}'.format(
-                    int(ar * alpha + int(CARD.lstrip('#')[0:2], 16) * (1 - alpha)),
-                    int(ag * alpha + int(CARD.lstrip('#')[2:4], 16) * (1 - alpha)),
-                    int(ab * alpha + int(CARD.lstrip('#')[4:6], 16) * (1 - alpha)),
+                    int(ar * alpha + int(bg_h[0:2], 16) * (1 - alpha)),
+                    int(ag * alpha + int(bg_h[2:4], 16) * (1 - alpha)),
+                    int(ab * alpha + int(bg_h[4:6], 16) * (1 - alpha)),
                 )
                 x0 = w / 2 - gw / 2
                 y0 = h / 2 - gh / 2
@@ -1953,18 +2365,17 @@ class DartVoiceApp(ctk.CTk):
 
         # Score text
         if not val:
-            c.create_text(w//2, h//2, text="—", font=("Uber Move Bold", 52, "bold"),
+            c.create_text(w//2, h//2, text="—", font=("Uber Move Bold", 64, "bold"),
                           fill=FG3, anchor='center')
         else:
-            # "MAXIMUM" label above 180
             score_cy = h // 2
             if is_180:
-                c.create_text(w // 2, score_cy - 42, text="MAXIMUM",
+                c.create_text(w // 2, score_cy - 50, text="MAXIMUM",
                               font=("Rubik", 9, "bold"), fill=ACCENT, anchor='center')
                 score_cy = score_cy - 6
 
             max_w = w - 32
-            size = 72
+            size = 96 if is_live else 72
             while size > 16:
                 fnt = ("Uber Move Bold", size, "bold")
                 tid = c.create_text(-1000, -1000, text=val, font=fnt)
@@ -1978,7 +2389,6 @@ class DartVoiceApp(ctk.CTk):
             cx = w // 2
 
             if self._active:
-                glow_color = ACCENT if is_180 else None
                 layers = _glow_layers(ACCENT)
                 for offset, glow_col in zip((5, 4, 3, 2, 1), layers):
                     for ox, oy in [(-offset,0),(offset,0),(0,-offset),(0,offset),
@@ -1986,7 +2396,7 @@ class DartVoiceApp(ctk.CTk):
                         c.create_text(cx+ox, score_cy+oy, text=val, font=fnt,
                                       fill=glow_col, anchor='center')
             c.create_text(cx, score_cy, text=val, font=fnt,
-                          fill=(ACCENT if is_180 else FG), anchor='center')
+                          fill=(ACCENT if (is_180 or is_live) else FG), anchor='center')
 
     # ── Bullseye logo ─────────────────────────────────────────────────────────
     @staticmethod
@@ -1997,139 +2407,358 @@ class DartVoiceApp(ctk.CTk):
         # Centre dot
         canvas.create_oval(cx-2, cy-2, cx+2, cy+2, fill=ACCENT, outline='')
 
-    # ── In-game compact overlay ───────────────────────────────────────────────
+    # ── SVG icon renderer ─────────────────────────────────────────────────────
+    def _draw_svg_icon(self, canvas, icon_name, color, size=20):
+        """Draw a Lucide-style icon on a tkinter Canvas using geometric primitives.
+        Supports: mic, settings, user, rotate-ccw, corner-down-left.
+        Icons are drawn centred within the canvas at the given pixel size.
+        """
+        canvas.delete('all')
+        cw = canvas.winfo_reqwidth() or (size + 4)
+        ch = canvas.winfo_reqheight() or (size + 4)
+        ox = (cw - size) / 2
+        oy = (ch - size) / 2
+        s  = size / 24.0
+        lw = max(1.5, size / 14.0)
+
+        def px(x): return ox + x * s
+        def py(y): return oy + y * s
+
+        if icon_name == 'mic':
+            # Body: rounded rect (9,2)–(15,14)
+            bx1, by1, bx2, by2 = px(9), py(2), px(15), py(14)
+            r = 3 * s
+            canvas.create_arc(bx1,      by1,      bx1+r*2, by1+r*2, start=90,  extent=90,  outline=color, width=lw, style='arc')
+            canvas.create_arc(bx2-r*2,  by1,      bx2,     by1+r*2, start=0,   extent=90,  outline=color, width=lw, style='arc')
+            canvas.create_arc(bx1,      by2-r*2,  bx1+r*2, by2,     start=180, extent=90,  outline=color, width=lw, style='arc')
+            canvas.create_arc(bx2-r*2,  by2-r*2,  bx2,     by2,     start=270, extent=90,  outline=color, width=lw, style='arc')
+            canvas.create_line(bx1+r, by1, bx2-r, by1, fill=color, width=lw)
+            canvas.create_line(bx1+r, by2, bx2-r, by2, fill=color, width=lw)
+            canvas.create_line(bx1, by1+r, bx1, by2-r,  fill=color, width=lw)
+            canvas.create_line(bx2, by1+r, bx2, by2-r,  fill=color, width=lw)
+            # Stand arc (D-shape below body) + stem + base
+            canvas.create_arc(px(5), py(10), px(19), py(20), start=180, extent=-180,
+                              outline=color, width=lw, style='arc')
+            canvas.create_line(px(12), py(20), px(12), py(23), fill=color, width=lw)
+            canvas.create_line(px(8),  py(23), px(16), py(23), fill=color, width=lw)
+
+        elif icon_name == 'settings':
+            # Gear polygon: alternating outer/inner radius vertices
+            cx2, cy2 = px(12), py(12)
+            ro, ri = 9.5 * s, 6.0 * s
+            teeth = 8
+            pts = []
+            for i in range(teeth * 2):
+                angle = math.radians(i * 180 / teeth - 90)
+                r = ro if i % 2 == 0 else ri
+                pts.extend([cx2 + r * math.cos(angle), cy2 + r * math.sin(angle)])
+            canvas.create_polygon(pts, outline=color, fill='', width=lw)
+            # Centre hole
+            rh = 3.5 * s
+            canvas.create_oval(cx2-rh, cy2-rh, cx2+rh, cy2+rh, outline=color, width=lw)
+
+        elif icon_name == 'user':
+            # Head circle at (12, 7) r=4
+            hx, hy = px(12), py(7)
+            r = 4 * s
+            canvas.create_oval(hx-r, hy-r, hx+r, hy+r, outline=color, width=lw)
+            # Shoulders arc
+            canvas.create_arc(px(4), py(13), px(20), py(23), start=0, extent=180,
+                              outline=color, width=lw, style='arc')
+
+        elif icon_name == 'rotate-ccw':
+            # 270° arc + two-line arrow at start point
+            cx2, cy2 = px(12), py(12)
+            r = 8 * s
+            canvas.create_arc(cx2-r, cy2-r, cx2+r, cy2+r, start=60, extent=270,
+                              outline=color, width=lw, style='arc')
+            canvas.create_line(px(3), py(7),  px(9),  py(7),  fill=color, width=lw)
+            canvas.create_line(px(3), py(7),  px(3),  py(13), fill=color, width=lw)
+
+        elif icon_name == 'corner-down-left':
+            # Vertical drop → curve → horizontal → arrowhead
+            canvas.create_line(px(20), py(4),  px(20), py(11), fill=color, width=lw)
+            canvas.create_arc(px(12), py(11), px(20), py(19), start=0, extent=-90,
+                              outline=color, width=lw, style='arc')
+            canvas.create_line(px(12), py(15), px(4),  py(15), fill=color, width=lw)
+            canvas.create_line(px(4),  py(15), px(9),  py(10), fill=color, width=lw)
+            canvas.create_line(px(4),  py(15), px(9),  py(20), fill=color, width=lw)
+
+        elif icon_name == 'target':
+            # Bullseye: 3 concentric circles + crosshair lines
+            for r_u in (9, 6, 3):
+                r_p = r_u * s
+                cx2, cy2 = px(12), py(12)
+                canvas.create_oval(cx2-r_p, cy2-r_p, cx2+r_p, cy2+r_p,
+                                   outline=color, width=lw)
+            canvas.create_line(px(12), py(1),  px(12), py(5),  fill=color, width=lw)
+            canvas.create_line(px(12), py(19), px(12), py(23), fill=color, width=lw)
+            canvas.create_line(px(1),  py(12), px(5),  py(12), fill=color, width=lw)
+            canvas.create_line(px(19), py(12), px(23), py(12), fill=color, width=lw)
+
+        elif icon_name == 'zap':
+            # Lightning bolt
+            pts = [px(13), py(2), px(6), py(13), px(12), py(13),
+                   px(11), py(22), px(18), py(11), px(12), py(11), px(13), py(2)]
+            canvas.create_polygon(pts, outline=color, fill='', width=lw)
+
+        elif icon_name == 'sliders':
+            # Three horizontal slider lines with knobs
+            for row, knob_x in [(4, 16), (12, 8), (20, 13)]:
+                canvas.create_line(px(2), py(row), px(22), py(row),
+                                   fill=color, width=lw)
+                r_k = 2.2 * s
+                kx = px(knob_x)
+                ky = py(row)
+                canvas.create_oval(kx-r_k, ky-r_k, kx+r_k, ky+r_k,
+                                   outline=color, fill=canvas['bg'], width=lw)
+
+        elif icon_name == 'help-circle':
+            # Outer circle
+            r_o = 10 * s
+            cx2, cy2 = px(12), py(12)
+            canvas.create_oval(cx2-r_o, cy2-r_o, cx2+r_o, cy2+r_o,
+                               outline=color, width=lw)
+            # "?" shape: arc top + vertical drop
+            canvas.create_arc(px(8), py(7), px(16), py(14),
+                               start=0, extent=180, outline=color, width=lw, style='arc')
+            canvas.create_line(px(12), py(11), px(12), py(16), fill=color, width=lw)
+            r_dot = 0.9 * s
+            canvas.create_oval(px(12)-r_dot, py(18.5)-r_dot,
+                               px(12)+r_dot, py(18.5)+r_dot,
+                               fill=color, outline='')
+
+        elif icon_name == 'chevron-right':
+            canvas.create_line(px(9), py(6),  px(15), py(12), fill=color, width=lw)
+            canvas.create_line(px(15), py(12), px(9), py(18), fill=color, width=lw)
+
+        elif icon_name == 'book-open':
+            # Open book outline
+            canvas.create_line(px(12), py(20), px(12), py(5), fill=color, width=lw)
+            canvas.create_line(px(2), py(3), px(12), py(5), px(22), py(3),
+                               fill=color, width=lw)
+            canvas.create_line(px(2),  py(3),  px(2),  py(20), fill=color, width=lw)
+            canvas.create_line(px(22), py(3),  px(22), py(20), fill=color, width=lw)
+            canvas.create_line(px(2),  py(20), px(12), py(22), px(22), py(20),
+                               fill=color, width=lw)
+
+    # ── PiP Streamer Widget ───────────────────────────────────────────────────
     def _open_ingame(self):
         if hasattr(self, '_igw') and self._igw.winfo_exists():
-            self._igw.focus(); return
+            self._igw.lift(); return
 
-        win = ctk.CTkToplevel(self)
+        is_live = (self.cfg.get('live_checkout', False) and
+                   self.cfg.get('game_mode', 'X01') == 'X01')
+
+        # Window: borderless, transparent chrome, always-on-top
+        win = tk.Toplevel(self)
         self._igw = win
-        win.title("DartVoice")
-        win.geometry("300x240")
-        win.configure(fg_color=BG)
+        win.overrideredirect(True)
+        win.config(bg=BG)
         win.attributes('-topmost', True)
-        win.resizable(False, False)
-        win.after(50, lambda: (win.lift(), win.focus_force()))
+        if sys.platform == 'win32':
+            win.attributes('-transparentcolor', BG)
+        pill_w = 300
+        pill_h = 170 if is_live else 130
+        # Position top-right of main window
+        self.update_idletasks()
+        px = self.winfo_x() + self.winfo_width() - pill_w - 20
+        py = self.winfo_y() + 60
+        win.geometry(f"{pill_w}x{pill_h}+{px}+{py}")
 
-        # ── Top accent bar ────────────────────────────────────────────────
-        ctk.CTkFrame(win, fg_color=ACCENT, height=3, corner_radius=0).pack(fill='x')
+        # ── Drag logic ───────────────────────────────────────────────────
+        _drag = {'x': 0, 'y': 0}
 
-        # ── Compact header ────────────────────────────────────────────────
-        hf = ctk.CTkFrame(win, fg_color=CARD, corner_radius=0, height=40)
-        hf.pack(fill='x')
-        hf.pack_propagate(False)
+        def _drag_start(e):
+            _drag['x'] = e.x_root - win.winfo_x()
+            _drag['y'] = e.y_root - win.winfo_y()
 
-        lc = tk.Canvas(hf, width=18, height=18, bg=CARD, highlightthickness=0)
-        lc.place(x=12, rely=0.5, anchor='w')
-        self._draw_bullseye(lc, 9, 9, [7, 5, 3, 1])
+        def _drag_move(e):
+            win.geometry(f"+{e.x_root - _drag['x']}+{e.y_root - _drag['y']}")
 
-        ctk.CTkLabel(hf, text="DARTVOICE", text_color=FG,
-                     font=("Uber Move Bold", 12, "bold"),
-                     fg_color=CARD).place(x=36, rely=0.5, anchor='w')
+        # ── Pill card ────────────────────────────────────────────────────
+        pill = ctk.CTkFrame(win, fg_color=CARD, corner_radius=20,
+                            border_width=1, border_color=SEP)
+        pill.place(x=0, y=0, width=pill_w, height=pill_h)
+        pill.bind('<ButtonPress-1>', _drag_start)
+        pill.bind('<B1-Motion>',     _drag_move)
 
-        ctk.CTkButton(hf, text="✕", font=("Rubik", 10, "bold"),
-                      fg_color='transparent', hover_color=CARD2, text_color=FG2,
-                      height=28, width=32, corner_radius=6,
-                      command=win.destroy
-                      ).place(relx=1.0, x=-8, rely=0.5, anchor='e')
+        # Thin accent line along top of pill
+        accent_bar = tk.Canvas(pill, width=pill_w, height=3, bg=CARD,
+                               highlightthickness=0)
+        accent_bar.pack(fill='x', pady=(0, 0))
+        accent_bar.bind('<ButtonPress-1>', _drag_start)
+        accent_bar.bind('<B1-Motion>',     _drag_move)
 
-        ctk.CTkFrame(win, fg_color=SEP, height=1).pack(fill='x')
+        def _draw_accent_bar(*_):
+            accent_bar.delete('all')
+            bw = accent_bar.winfo_width() or pill_w
+            r  = 20
+            accent_bar.create_rectangle(r, 0, bw - r, 3, fill=ACCENT, outline='')
+            accent_bar.create_oval(r - r, 0, r + r, 3 * 2, fill=ACCENT, outline='')
+            accent_bar.create_oval(bw - r - r, 0, bw, 3 * 2, fill=ACCENT, outline='')
 
-        # ── Last score ────────────────────────────────────────────────────
-        score_c = tk.Canvas(win, width=298, height=100, bg=CARD, highlightthickness=0)
-        score_c.pack(pady=(6, 0), padx=10)
+        accent_bar.bind('<Configure>', _draw_accent_bar)
 
-        def _redraw_ig(*_):
+        # Top row: logo + close
+        top_row = tk.Frame(pill, bg=CARD)
+        top_row.pack(fill='x', padx=14, pady=(6, 0))
+        top_row.bind('<ButtonPress-1>', _drag_start)
+        top_row.bind('<B1-Motion>',     _drag_move)
+
+        lc = tk.Canvas(top_row, width=16, height=16, bg=CARD, highlightthickness=0)
+        lc.pack(side='left')
+        lc.bind('<ButtonPress-1>', _drag_start)
+        lc.bind('<B1-Motion>',     _drag_move)
+        self._draw_bullseye(lc, 8, 8, [6, 4, 2, 1])
+
+        logo_lbl = tk.Label(top_row, text="  DARTVOICE", bg=CARD, fg=FG,
+                            font=("Uber Move Bold", 10, "bold"))
+        logo_lbl.pack(side='left')
+        logo_lbl.bind('<ButtonPress-1>', _drag_start)
+        logo_lbl.bind('<B1-Motion>',     _drag_move)
+
+        close_btn = tk.Label(top_row, text="✕", bg=CARD, fg=FG2,
+                             font=("Rubik", 10), cursor='hand2')
+        close_btn.pack(side='right', padx=(0, 2))
+        close_btn.bind('<Button-1>', lambda e: win.destroy())
+        close_btn.bind('<Enter>',    lambda e: close_btn.config(fg=FG))
+        close_btn.bind('<Leave>',    lambda e: close_btn.config(fg=FG2))
+
+        # ── Score display canvas ──────────────────────────────────────────
+        score_c = tk.Canvas(pill, width=pill_w - 28, height=72,
+                            bg=CARD, highlightthickness=0)
+        score_c.pack(padx=14, pady=(2, 0))
+        score_c.bind('<ButtonPress-1>', _drag_start)
+        score_c.bind('<B1-Motion>',     _drag_move)
+
+        def _redraw_pip(*_):
             score_c.delete('all')
-            w  = score_c.winfo_width()  or 298
-            h  = score_c.winfo_height() or 100
-            val = self._score_str.get()
-            is_180 = (val == '180')
-            L, T = 12, 2
-            col = ACCENT if self._active else SEP
-
-            # Radial glow
+            w   = score_c.winfo_width()  or (pill_w - 28)
+            h   = score_c.winfo_height() or 72
+            val = self._remaining_str.get() if is_live else self._score_str.get()
+            if not val:
+                score_c.create_text(w // 2, h // 2, text="—",
+                                    font=("Uber Move Bold", 28, "bold"),
+                                    fill=FG3, anchor='center')
+                return
+            is_180 = (val == '180' and not is_live)
+            # Soft radial glow when active
             if self._active:
                 ah = ACCENT.lstrip('#')
                 ar, ag, ab = int(ah[0:2],16), int(ah[2:4],16), int(ah[4:6],16)
                 ch_hex = CARD.lstrip('#')
-                cr, cg, cb = int(ch_hex[0:2],16), int(ch_hex[2:4],16), int(ch_hex[4:6],16)
-                for gw_f, gh_f, alpha in ((0.85, 1.5, 0.06), (0.55, 1.0, 0.11), (0.32, 0.62, 0.16)):
-                    gw2, gh2 = w * gw_f, h * gh_f
-                    _hex = '#{:02X}{:02X}{:02X}'.format(
-                        int(ar*alpha + cr*(1-alpha)),
-                        int(ag*alpha + cg*(1-alpha)),
-                        int(ab*alpha + cb*(1-alpha)),
+                cr2, cg2, cb2 = int(ch_hex[0:2],16), int(ch_hex[2:4],16), int(ch_hex[4:6],16)
+                for gf, alpha in ((0.9, 0.05), (0.6, 0.10), (0.35, 0.15)):
+                    gw2 = w * gf
+                    _c = '#{:02X}{:02X}{:02X}'.format(
+                        int(ar*alpha + cr2*(1-alpha)),
+                        int(ag*alpha + cg2*(1-alpha)),
+                        int(ab*alpha + cb2*(1-alpha)),
                     )
-                    score_c.create_oval(w/2-gw2/2, h/2-gh2/2, w/2+gw2/2, h/2+gh2/2,
-                                        fill=_hex, outline='')
-
-            for x0, y0, dx, dy in [(0,0,1,1),(w,0,-1,1),(0,h,1,-1),(w,h,-1,-1)]:
-                score_c.create_line(x0, y0+dy*L, x0, y0, x0+dx*L, y0,
-                                    width=T, fill=col, capstyle='round')
-            if not val:
-                score_c.create_text(w//2, h//2, text="—",
-                                    font=("Uber Move Bold", 36, "bold"),
-                                    fill=FG3, anchor='center')
-            else:
-                score_cy = h // 2
-                if is_180:
-                    score_c.create_text(w//2, score_cy - 32, text="MAXIMUM",
-                                        font=("Rubik", 7, "bold"), fill=ACCENT, anchor='center')
-                    score_cy -= 4
-                max_w = w - 20
-                size = 46
-                while size > 14:
-                    fnt = ("Uber Move Bold", size, "bold")
-                    tid = score_c.create_text(-1000, -1000, text=val, font=fnt)
-                    tw = score_c.bbox(tid)[2] - score_c.bbox(tid)[0]
-                    score_c.delete(tid)
-                    if tw <= max_w:
-                        break
-                    size -= 2
+                    score_c.create_oval(w/2-gw2/2, h/2-gw2/4,
+                                        w/2+gw2/2, h/2+gw2/4,
+                                        fill=_c, outline='')
+            max_w = w - 16
+            size  = 48
+            while size > 16:
                 fnt = ("Uber Move Bold", size, "bold")
-                cx = w // 2
-                if self._active:
-                    for offset, glow_col in zip((4, 3, 2, 1), _glow_layers(ACCENT)[1:]):
-                        for ox, oy in [(-offset,0),(offset,0),(0,-offset),(0,offset)]:
-                            score_c.create_text(cx+ox, score_cy+oy, text=val, font=fnt,
-                                                fill=glow_col, anchor='center')
-                score_c.create_text(cx, score_cy, text=val, font=fnt,
-                                    fill=(ACCENT if is_180 else FG), anchor='center')
+                tid = score_c.create_text(-1000, -1000, text=val, font=fnt)
+                tw  = score_c.bbox(tid)[2] - score_c.bbox(tid)[0]
+                score_c.delete(tid)
+                if tw <= max_w:
+                    break
+                size -= 2
+            fnt = ("Uber Move Bold", size, "bold")
+            cy2 = h // 2
+            if self._active:
+                for off, gc in zip((3, 2, 1), _glow_layers(ACCENT)[2:]):
+                    for ox, oy in [(-off,0),(off,0),(0,-off),(0,off)]:
+                        score_c.create_text(w//2+ox, cy2+oy, text=val, font=fnt,
+                                            fill=gc, anchor='center')
+            score_c.create_text(w//2, cy2, text=val, font=fnt,
+                                fill=ACCENT if is_180 else FG, anchor='center')
 
-        self._score_str.trace_add('write', _redraw_ig)
-        self._redraw_ig = _redraw_ig
-        _redraw_ig()
+        self._score_str.trace_add('write',     _redraw_pip)
+        self._remaining_str.trace_add('write', _redraw_pip)
+        _redraw_pip()
 
-        # ── Stats row ─────────────────────────────────────────────────────
-        sr = ctk.CTkFrame(win, fg_color='transparent')
-        sr.pack(fill='x', padx=12, pady=(8, 4))
+        # ── Bottom row: avg | mic indicator | darts ───────────────────────
+        bot = tk.Frame(pill, bg=CARD)
+        bot.pack(fill='x', padx=14, pady=(4, 0))
+        bot.bind('<ButtonPress-1>', _drag_start)
+        bot.bind('<B1-Motion>',     _drag_move)
 
-        for label_text, var in [("SESSION AVG", self._avg_str),
-                                 ("DARTS",       self._darts_str)]:
-            card = ctk.CTkFrame(sr, fg_color=CARD, corner_radius=8,
-                                border_width=1, border_color=SEP)
-            card.pack(side='left', expand=True, fill='x', padx=3)
-            ctk.CTkLabel(card, text=label_text, text_color=FG2,
-                         font=("Rubik", 7, "bold")).pack(pady=(8, 0))
-            ctk.CTkLabel(card, textvariable=var, text_color=FG,
-                         font=("Uber Move Bold", 18, "bold")).pack(pady=(0, 8))
+        # Avg
+        avg_f = tk.Frame(bot, bg=CARD)
+        avg_f.pack(side='left')
+        tk.Label(avg_f, text="AVG", bg=CARD, fg=FG2,
+                 font=("Rubik", 7, "bold")).pack(anchor='w')
+        avg_val = tk.Label(avg_f, bg=CARD, fg=FG, font=("Uber Move Bold", 15, "bold"))
+        avg_val.pack(anchor='w')
 
-        # ── Checkout row (live tracking) ───────────────────────────────────
-        if self.cfg.get('live_checkout', False) and self.cfg.get('game_mode', 'X01') == 'X01':
-            cr = ctk.CTkFrame(win, fg_color='transparent')
-            cr.pack(fill='x', padx=12, pady=(0, 8))
-            for lbl_txt, var, col in [
-                ("REMAINING", self._remaining_str, FG),
-                ("CHECKOUT",  self._checkout_str,  ACCENT),
-            ]:
-                cc = ctk.CTkFrame(cr, fg_color=CARD, corner_radius=8,
-                                  border_width=1, border_color=SEP)
-                cc.pack(side='left', expand=True, fill='x', padx=3)
-                ctk.CTkLabel(cc, text=lbl_txt, text_color=FG2,
-                             font=("Rubik", 7, "bold")).pack(pady=(6, 0))
-                ctk.CTkLabel(cc, textvariable=var, text_color=col,
-                             font=("Uber Move Bold", 13, "bold")).pack(pady=(0, 6))
+        def _sync_avg(*_):
+            avg_val.config(text=self._avg_str.get())
+        self._avg_str.trace_add('write', _sync_avg)
+        _sync_avg()
+
+        # Mic pulse indicator (centre)
+        mic_c = tk.Canvas(bot, width=32, height=32, bg=CARD, highlightthickness=0)
+        mic_c.pack(side='left', expand=True)
+        mic_c.bind('<ButtonPress-1>', _drag_start)
+        mic_c.bind('<B1-Motion>',     _drag_move)
+
+        def _redraw_mic_dot(*_):
+            mic_c.delete('all')
+            col = ACCENT if self._active else FG3
+            mic_c.create_oval(10, 10, 22, 22, fill=col, outline='')
+            if self._active:
+                mic_c.create_oval(7, 7, 25, 25, outline=ACCENT_DIM, width=1)
+
+        self._active_pip_cb = _redraw_mic_dot
+        _redraw_mic_dot()
+
+        # Darts
+        drt_f = tk.Frame(bot, bg=CARD)
+        drt_f.pack(side='right')
+        tk.Label(drt_f, text="DARTS", bg=CARD, fg=FG2,
+                 font=("Rubik", 7, "bold")).pack(anchor='e')
+        drt_val = tk.Label(drt_f, bg=CARD, fg=FG, font=("Uber Move Bold", 15, "bold"))
+        drt_val.pack(anchor='e')
+
+        def _sync_darts(*_):
+            drt_val.config(text=self._darts_str.get())
+        self._darts_str.trace_add('write', _sync_darts)
+        _sync_darts()
+
+        # ── Checkout row (live X01 only) ──────────────────────────────────
+        if is_live:
+            co_f = tk.Frame(pill, bg=CARD2)
+            co_f.pack(fill='x', padx=14, pady=(6, 0))
+            co_f.bind('<ButtonPress-1>', _drag_start)
+            co_f.bind('<B1-Motion>',     _drag_move)
+            co_lbl = tk.Label(co_f, bg=CARD2, fg=ACCENT,
+                              font=("Uber Move Bold", 11, "bold"),
+                              anchor='center', pady=4)
+            co_lbl.pack(fill='x')
+            co_lbl.bind('<ButtonPress-1>', _drag_start)
+            co_lbl.bind('<B1-Motion>',     _drag_move)
+
+            def _sync_co(*_):
+                co_lbl.config(text=self._checkout_str.get() or "—")
+            self._checkout_str.trace_add('write', _sync_co)
+            _sync_co()
+
+        # Hook _set_active via a wrapper stored on the instance so PiP updates
+        _prev_set_active = self._set_active
+
+        def _pip_set_active(active):
+            _prev_set_active(active)
+            if win.winfo_exists():
+                _redraw_mic_dot()
+                _redraw_pip()
+
+        self._set_active = _pip_set_active
 
     # ── Dartboard FULL BACKGROUND graphic ─────────────────────────────────────
     @staticmethod
@@ -2175,10 +2804,11 @@ class DartVoiceApp(ctk.CTk):
     def _pulse(self):
         alive = (self._listener and self._listener.is_alive()) or \
                 (self._video_scorer and self._video_scorer.is_alive())
-        if alive:
-            self._dot.configure(text_color=ACCENT if int(time.time()*2)%2==0 else ACCENT_DIM)
-        else:
-            self._dot.configure(text_color=FG3)
+        if hasattr(self, '_dot'):
+            if alive:
+                self._dot.configure(text_color=ACCENT if int(time.time()*2)%2==0 else ACCENT_DIM)
+            else:
+                self._dot.configure(text_color=FG3)
         self.after(500, self._pulse)
 
     def _save_mode(self, v):
@@ -2257,151 +2887,541 @@ class DartVoiceApp(ctk.CTk):
 
     # ── Settings window ───────────────────────────────────────────────────────
     def _open_settings(self):
-        if hasattr(self, '_sw') and self._sw.winfo_exists():
-            self._sw.focus(); return
+        if hasattr(self, '_sw_overlay') and self._sw_overlay.winfo_exists():
+            self._sw_overlay.lift(); return
 
-        win = ctk.CTkToplevel(self)
-        self._sw = win
-        win.title("DartVoice — Settings")
-        win.geometry(self._right_of(340, 720))
-        win.configure(fg_color=BG)
-        win.attributes('-topmost', True)
-        win.resizable(False, True)
-        win.after(50, lambda: (win.lift(), win.focus_force()))
+        # ── Full-window dim overlay ───────────────────────────────────────
+        ov = tk.Frame(self, bg='#05050A')
+        ov.place(x=0, y=0, relwidth=1.0, relheight=1.0)
+        ov.lift()
+        self._sw_overlay = ov
 
-        # ── Top accent bar ────────────────────────────────────────────────
-        ctk.CTkFrame(win, fg_color=ACCENT, height=3, corner_radius=0).pack(fill='x')
+        def _close():
+            if ov.winfo_exists():
+                ov.destroy()
+            if hasattr(self, '_sw_overlay'):
+                del self._sw_overlay
 
-        # ── Fixed header ─────────────────────────────────────────────────
-        hdr = ctk.CTkFrame(win, fg_color=CARD, corner_radius=0, height=52)
-        hdr.pack(fill='x')
-        hdr.pack_propagate(False)
+        ov.bind('<Button-1>', lambda e: _close())
+        self.bind('<Escape>', lambda e: _close())
 
-        lc = tk.Canvas(hdr, width=22, height=22, bg=CARD, highlightthickness=0)
-        lc.place(x=24, rely=0.5, anchor='w')
-        self._draw_bullseye(lc, 11, 11, [9, 6, 3, 1])
-        ctk.CTkLabel(hdr, text="  SETTINGS", text_color=FG,
-                     font=("Uber Move Bold", 15, "bold")).place(x=50, rely=0.5, anchor='w')
+        # ── Modal card ────────────────────────────────────────────────────
+        modal = ctk.CTkFrame(ov, fg_color=CARD, corner_radius=16,
+                             border_width=1, border_color=SEP,
+                             width=860, height=540)
+        modal.pack_propagate(False)
+        modal.place(relx=0.5, rely=0.5, anchor='center')
+        modal.bind('<Button-1>', lambda e: 'break')
 
-        ctk.CTkFrame(win, fg_color=SEP, height=1).pack(fill='x')
+        # Footer (packed first so it anchors to bottom)
+        footer = ctk.CTkFrame(modal, fg_color=CARD, corner_radius=0, height=58)
+        footer.pack(side='bottom', fill='x')
+        footer.pack_propagate(False)
+        ctk.CTkFrame(footer, fg_color=SEP, height=1, corner_radius=0).pack(fill='x')
+        ctk.CTkButton(footer, text="Close",
+                      font=("Rubik", 11, "bold"),
+                      fg_color='transparent', hover_color=CARD2, text_color=FG2,
+                      height=38, corner_radius=8, command=_close
+                      ).pack(side='right', padx=16, pady=8)
 
-        # ── Scrollable content ───────────────────────────────────────────
-        scroll = ctk.CTkScrollableFrame(win, fg_color=BG, corner_radius=0,
-                                         scrollbar_button_color=SEP,
-                                         scrollbar_button_hover_color=FG3)
-        scroll.pack(fill='both', expand=True)
+        # Main area: sidebar | sep | content
+        main_area = ctk.CTkFrame(modal, fg_color='transparent', corner_radius=0)
+        main_area.pack(fill='both', expand=True)
 
-        def _sec(label, top=22):
-            # Section header: left red accent bar + uppercase label
-            ctk.CTkFrame(scroll, fg_color='transparent', height=top).pack()
-            row = ctk.CTkFrame(scroll, fg_color='transparent')
-            row.pack(fill='x', padx=20, pady=(0, 8))
-            ctk.CTkFrame(row, fg_color=ACCENT, width=3, corner_radius=2,
-                         height=16).pack(side='left', padx=(0, 8))
-            ctk.CTkLabel(row, text=label, text_color=FG2,
+        sidebar = ctk.CTkFrame(main_area, fg_color=BG, corner_radius=0, width=210)
+        sidebar.pack(side='left', fill='y')
+        sidebar.pack_propagate(False)
+
+        _sep_bar = ctk.CTkFrame(main_area, fg_color=SEP, width=1, corner_radius=0)
+        _sep_bar.pack_propagate(False)
+        _sep_bar.pack(side='left', fill='y')
+
+        content_host = ctk.CTkFrame(main_area, fg_color=CARD, corner_radius=0)
+        content_host.pack(side='left', fill='both', expand=True)
+
+        # Sidebar title
+        ctk.CTkLabel(sidebar, text="Settings", text_color=FG,
+                     font=("Uber Move Bold", 17, "bold")
+                     ).pack(anchor='w', padx=16, pady=(18, 10))
+
+        # ── Tab management ────────────────────────────────────────────────
+        _pages    = {}
+        _tab_btns = {}
+
+        def _switch(tab_name):
+            for name, page in _pages.items():
+                page.lower() if name != tab_name else page.lift()
+            for name, btn in _tab_btns.items():
+                btn.configure(
+                    fg_color=SEP   if name == tab_name else 'transparent',
+                    text_color=FG  if name == tab_name else FG2,
+                )
+
+        def _make_tab(name, label):
+            btn = ctk.CTkButton(
+                sidebar, text=f"  {label}",
+                font=("Rubik", 12, "bold"),
+                fg_color='transparent', hover_color=CARD2,
+                text_color=FG2, anchor='w', height=38, corner_radius=8,
+                command=lambda n=name: _switch(n),
+            )
+            btn.pack(fill='x', padx=8, pady=1)
+            _tab_btns[name] = btn
+            page = ctk.CTkScrollableFrame(
+                content_host, fg_color=CARD, corner_radius=0,
+                scrollbar_button_color=SEP,
+                scrollbar_button_hover_color=FG3,
+            )
+            page.place(x=0, y=0, relwidth=1.0, relheight=1.0)
+            _pages[name] = page
+            return page
+
+        p_audio    = _make_tab('audio',    'Audio & Mic')
+        p_appear   = _make_tab('appear',   'Appearance')
+        p_gameplay = _make_tab('gameplay', 'Gameplay')
+        p_video    = _make_tab('video',    'Video Scoring')
+
+        # ── Shared widget helpers ─────────────────────────────────────────
+        def _section(parent, text):
+            row = ctk.CTkFrame(parent, fg_color='transparent')
+            row.pack(fill='x', padx=24, pady=(18, 6))
+            ctk.CTkFrame(row, fg_color=ACCENT, width=3, height=14,
+                         corner_radius=2).pack(side='left', padx=(0, 8))
+            ctk.CTkLabel(row, text=text, text_color=FG2,
                          font=("Rubik", 8, "bold")).pack(side='left')
 
-        def _sep():
-            ctk.CTkFrame(scroll, fg_color=SEP, height=1).pack(fill='x', padx=20, pady=(8, 0))
+        def _switch_row(parent, label, sublabel, var, cmd):
+            row = ctk.CTkFrame(parent, fg_color=BG, corner_radius=10,
+                               border_width=1, border_color=SEP)
+            row.pack(fill='x', padx=24, pady=(0, 6))
+            txt = ctk.CTkFrame(row, fg_color='transparent')
+            txt.pack(side='left', fill='x', expand=True, padx=14, pady=10)
+            ctk.CTkLabel(txt, text=label, text_color=FG,
+                         font=("Rubik", 12, "bold")).pack(anchor='w')
+            if sublabel:
+                ctk.CTkLabel(txt, text=sublabel, text_color=FG2,
+                             font=("Rubik", 9)).pack(anchor='w')
+            ctk.CTkSwitch(row, variable=var, text='',
+                          fg_color=SEP, progress_color=ACCENT,
+                          command=cmd, width=48,
+                          ).pack(side='right', padx=14)
 
-        def _btn(label, cmd):
-            ctk.CTkButton(scroll, text=label, font=("Rubik", 11),
-                          fg_color=CARD, hover_color=CARD2, text_color=FG,
-                          border_width=1, border_color=SEP,
-                          height=40, corner_radius=10, command=cmd,
-                          ).pack(fill='x', padx=20, pady=(0, 6))
+        def _option_menu(parent, var, values, cmd):
+            ctk.CTkOptionMenu(
+                parent, variable=var, values=values,
+                font=("Rubik", 11),
+                fg_color=BG, button_color=ACCENT_DIM, button_hover_color=ACCENT,
+                text_color=FG, dropdown_fg_color=CARD, dropdown_text_color=FG,
+                dropdown_hover_color=CARD2, corner_radius=10, height=44,
+                command=cmd,
+            ).pack(fill='x', padx=24, pady=(0, 6))
 
-        # Checkbox helper
-        def _chk(parent, text, var, cmd):
-            ctk.CTkCheckBox(parent, text=text, variable=var,
-                            font=("Rubik", 11), fg_color=ACCENT, hover_color=PRI_HOV,
-                            checkmark_color=PRI_FG, text_color=FG, border_color=SEP,
-                            command=cmd
-                            ).pack(anchor='w', padx=20, pady=(0, 8))
+        def _action_btn(parent, label, cmd):
+            ctk.CTkButton(
+                parent, text=label, font=("Rubik", 11),
+                fg_color=CARD2, hover_color=SEP, text_color=FG,
+                border_width=1, border_color=SEP,
+                height=40, corner_radius=10, command=cmd,
+            ).pack(fill='x', padx=24, pady=(0, 6))
 
-        # ── Theme picker ─────────────────────────────────────────────────
-        _sec("COLOUR THEME", top=12)
+        def _slider_row(parent, label, var, from_, to_, steps, unit, save_key):
+            ctk.CTkLabel(parent, text=label, text_color=FG2,
+                         font=("Rubik", 9)).pack(anchor='w', padx=24, pady=(4, 0))
+            val_lbl = ctk.CTkLabel(parent, text=f"{var.get()} {unit}",
+                                   text_color=FG, font=("Rubik", 11, "bold"))
+            val_lbl.pack(anchor='e', padx=24)
+            ctk.CTkSlider(
+                parent, from_=from_, to=to_, variable=var, number_of_steps=steps,
+                fg_color=SEP, progress_color=ACCENT_DIM,
+                button_color=ACCENT, button_hover_color=PRI_HOV,
+                command=lambda v, vl=val_lbl, u=unit, sk=save_key: [
+                    self._save_setting(sk, int(v)),
+                    vl.configure(text=f"{int(v)} {u}"),
+                ],
+            ).pack(fill='x', padx=24, pady=(0, 4))
 
-        theme_names    = list(THEMES.keys())
-        current_theme  = self.cfg.get('theme', 'Littler')
+        # ══════════════════════════════ AUDIO TAB ════════════════════════
+
+        # ── Quick-setup strip: Mic + Scoring Mode ─────────────────────────
+        quick_row = ctk.CTkFrame(p_audio, fg_color='transparent')
+        quick_row.pack(fill='x', padx=24, pady=(14, 4))
+
+        # Mic tile
+        mic_tile = ctk.CTkFrame(quick_row, fg_color=BG, corner_radius=12,
+                                border_width=1, border_color=SEP)
+        mic_tile.pack(side='left', fill='both', expand=True, padx=(0, 6))
+        ctk.CTkLabel(mic_tile, text="🎙  MICROPHONE", text_color=FG2,
+                     font=("Rubik", 8, "bold")).pack(anchor='w', padx=12, pady=(10, 2))
+
+        qs_mic_labels    = ['Default']
+        qs_mic_index_map = {0: None}
+        try:
+            import pyaudio as _pa_qs
+            _pa2 = _pa_qs.PyAudio()
+            for _i2 in range(_pa2.get_device_count()):
+                _inf2 = _pa2.get_device_info_by_index(_i2)
+                if _inf2.get('maxInputChannels', 0) < 1:
+                    continue
+                _raw2 = _inf2['name']
+                try: _raw2 = _raw2.encode('latin-1').decode('utf-8')
+                except (UnicodeEncodeError, UnicodeDecodeError): pass
+                qs_mic_labels.append(_raw2)
+                qs_mic_index_map[len(qs_mic_labels) - 1] = _i2
+            _pa2.terminate()
+        except Exception:
+            pass
+
+        _qs_cur_lbl = 'Default'
+        for _li2, _di2 in qs_mic_index_map.items():
+            if _di2 == self.cfg.get('mic_index') and _li2 > 0:
+                _qs_cur_lbl = qs_mic_labels[_li2]; break
+
+        qs_mic_var = ctk.StringVar(value=_qs_cur_lbl)
+        def _qs_on_mic(label):
+            for _li2, _name2 in enumerate(qs_mic_labels):
+                if _name2 == label:
+                    self.cfg['mic_index'] = qs_mic_index_map.get(_li2)
+                    save_config(self.cfg); break
+        ctk.CTkOptionMenu(
+            mic_tile, variable=qs_mic_var, values=qs_mic_labels,
+            font=("Rubik", 10),
+            fg_color=CARD2, button_color=ACCENT_DIM, button_hover_color=ACCENT,
+            text_color=FG, dropdown_fg_color=CARD, dropdown_text_color=FG,
+            dropdown_hover_color=CARD2, corner_radius=8, height=36,
+            command=_qs_on_mic,
+        ).pack(fill='x', padx=8, pady=(0, 10))
+
+        # Scoring mode tile
+        mode_tile = ctk.CTkFrame(quick_row, fg_color=BG, corner_radius=12,
+                                 border_width=1, border_color=SEP)
+        mode_tile.pack(side='left', fill='both', expand=True)
+        ctk.CTkLabel(mode_tile, text="🎯  SCORING MODE", text_color=FG2,
+                     font=("Rubik", 8, "bold")).pack(anchor='w', padx=12, pady=(10, 2))
+
+        seg_frame = ctk.CTkFrame(mode_tile, fg_color='transparent')
+        seg_frame.pack(fill='x', padx=8, pady=(0, 10))
+        _pd_active = self.cfg.get('per_dart_mode', False)
+
+        def _make_seg_btn(parent, label, is_active_fn, on_click):
+            b = ctk.CTkButton(
+                parent, text=label, font=("Rubik", 10, "bold"),
+                height=36, corner_radius=8,
+                fg_color=ACCENT if is_active_fn() else CARD2,
+                hover_color=PRI_HOV if is_active_fn() else SEP,
+                text_color=PRI_FG if is_active_fn() else FG2,
+                command=on_click,
+            )
+            return b
+
+        def _set_mode(per_dart: bool):
+            self._save_setting('per_dart_mode', per_dart)
+            btn_per.configure(
+                fg_color=ACCENT if per_dart else CARD2,
+                hover_color=PRI_HOV if per_dart else SEP,
+                text_color=PRI_FG if per_dart else FG2,
+            )
+            btn_3d.configure(
+                fg_color=ACCENT if not per_dart else CARD2,
+                hover_color=PRI_HOV if not per_dart else SEP,
+                text_color=PRI_FG if not per_dart else FG2,
+            )
+
+        btn_per = ctk.CTkButton(
+            seg_frame, text="Per Dart", font=("Rubik", 10, "bold"),
+            height=36, corner_radius=8,
+            fg_color=ACCENT if _pd_active else CARD2,
+            hover_color=PRI_HOV if _pd_active else SEP,
+            text_color=PRI_FG if _pd_active else FG2,
+            command=lambda: _set_mode(True),
+        )
+        btn_per.pack(side='left', fill='x', expand=True, padx=(0, 4))
+
+        btn_3d = ctk.CTkButton(
+            seg_frame, text="3 Darts", font=("Rubik", 10, "bold"),
+            height=36, corner_radius=8,
+            fg_color=ACCENT if not _pd_active else CARD2,
+            hover_color=PRI_HOV if not _pd_active else SEP,
+            text_color=PRI_FG if not _pd_active else FG2,
+            command=lambda: _set_mode(False),
+        )
+        btn_3d.pack(side='left', fill='x', expand=True)
+
+        _section(p_audio, "MICROPHONE DEVICE")
+
+        mic_labels    = ['Default']
+        mic_index_map = {0: None}
+        try:
+            import pyaudio
+            _pa = pyaudio.PyAudio()
+            for _i in range(_pa.get_device_count()):
+                _info = _pa.get_device_info_by_index(_i)
+                if _info.get('maxInputChannels', 0) < 1:
+                    continue
+                _raw = _info['name']
+                try:
+                    _raw = _raw.encode('latin-1').decode('utf-8')
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    pass
+                mic_labels.append(_raw)
+                mic_index_map[len(mic_labels) - 1] = _i
+            _pa.terminate()
+        except Exception:
+            pass
+
+        cur_mic_idx   = self.cfg.get('mic_index')
+        cur_mic_label = 'Default'
+        for _li, _di in mic_index_map.items():
+            if _di == cur_mic_idx and _li > 0:
+                cur_mic_label = mic_labels[_li]; break
+
+        mic_var = ctk.StringVar(value=cur_mic_label)
+
+        def _on_mic_change(label):
+            for _li, _name in enumerate(mic_labels):
+                if _name == label:
+                    self.cfg['mic_index'] = mic_index_map.get(_li)
+                    save_config(self.cfg); break
+
+        ctk.CTkOptionMenu(
+            p_audio, variable=mic_var, values=mic_labels,
+            font=("Rubik", 11),
+            fg_color=BG, button_color=ACCENT_DIM, button_hover_color=ACCENT,
+            text_color=FG, dropdown_fg_color=CARD, dropdown_text_color=FG,
+            dropdown_hover_color=CARD2, corner_radius=10, height=44,
+            command=_on_mic_change,
+        ).pack(fill='x', padx=24, pady=(0, 6))
+
+        _section(p_audio, "VOICE ASSISTANT")
+        vc_var = ctk.BooleanVar(value=self.cfg.get('voice_confirm', True))
+        _switch_row(p_audio, "Read back scores (TTS)",
+                    "App will say the score out loud",
+                    vc_var,
+                    lambda: self._save_setting('voice_confirm', vc_var.get()))
+
+        va_var = ctk.BooleanVar(value=self.cfg.get('voice_assist', False))
+        _switch_row(p_audio, "Enable voice assistant", '',
+                    va_var,
+                    lambda: self._save_setting('voice_assist', va_var.get()))
+
+        vs_var = ctk.BooleanVar(value=self.cfg.get('voice_stats', True))
+        _switch_row(p_audio, "Announce session average (X01)", '',
+                    vs_var,
+                    lambda: self._save_setting('voice_stats', vs_var.get()))
+
+        _section(p_audio, "VOICE VOLUME")
+        vv2 = ctk.DoubleVar(value=self.cfg.get('voice_volume', 0.9))
+        vol_lbl = ctk.CTkLabel(p_audio, text=f"{int(vv2.get()*100)}%",
+                               text_color=FG, font=("Rubik", 11, "bold"))
+        vol_lbl.pack(anchor='e', padx=24)
+        ctk.CTkSlider(
+            p_audio, from_=0.1, to=1.0, variable=vv2,
+            fg_color=SEP, progress_color=ACCENT,
+            button_color=ACCENT, button_hover_color=PRI_HOV,
+            command=lambda v, vl=vol_lbl: [
+                self._save_setting('voice_volume', round(float(v), 2)),
+                vl.configure(text=f"{int(float(v)*100)}%"),
+            ],
+        ).pack(fill='x', padx=24, pady=(0, 6))
+
+        _section(p_audio, "SPEECH SPEED")
+        vr = ctk.IntVar(value=self.cfg.get('voice_rate', 170))
+        rate_lbl = ctk.CTkLabel(p_audio, text=f"{vr.get()} wpm",
+                                text_color=FG, font=("Rubik", 11, "bold"))
+        rate_lbl.pack(anchor='e', padx=24)
+        ctk.CTkSlider(
+            p_audio, from_=100, to=250, variable=vr,
+            fg_color=SEP, progress_color=ACCENT,
+            button_color=ACCENT, button_hover_color=PRI_HOV,
+            command=lambda v, rl=rate_lbl: [
+                self._save_setting('voice_rate', int(v)),
+                rl.configure(text=f"{int(v)} wpm"),
+            ],
+        ).pack(fill='x', padx=24, pady=(0, 6))
+
+        _action_btn(p_audio, "Test Voice",
+                    lambda: speak("One hundred and eighty!", self.cfg))
+
+        _section(p_audio, "TRIGGER WORD")
+        rv = ctk.BooleanVar(value=self.cfg.get('require_trigger', True))
+        _switch_row(p_audio, "Require trigger word", '',
+                    rv,
+                    lambda: self._save_setting('require_trigger', rv.get()))
+        te = ctk.CTkEntry(p_audio, font=("Rubik", 12), fg_color=BG,
+                          border_color=SEP, text_color=FG,
+                          justify='center', height=40, corner_radius=10)
+        te.insert(0, self.cfg.get('trigger', 'score'))
+        te.pack(fill='x', padx=24, pady=(0, 6))
+        te.bind('<KeyRelease>',
+                lambda e: self._save_setting('trigger', te.get().strip().lower()))
+
+        _section(p_audio, "CANCEL WORD")
+        ctk.CTkLabel(p_audio, text='Say to undo last dart / score',
+                     text_color=FG2, font=("Rubik", 9)
+                     ).pack(anchor='w', padx=24, pady=(0, 2))
+        cw_entry = ctk.CTkEntry(p_audio, font=("Rubik", 12), fg_color=BG,
+                                border_color=SEP, text_color=FG,
+                                justify='center', height=40, corner_radius=10)
+        cw_entry.insert(0, self.cfg.get('cancel_word', 'wait'))
+        cw_entry.pack(fill='x', padx=24, pady=(0, 6))
+        cw_entry.bind('<KeyRelease>',
+                      lambda e: self._save_setting('cancel_word',
+                                                   cw_entry.get().strip().lower()))
+
+        _section(p_audio, "TYPING SPEED")
+        sv = ctk.StringVar(value=self.cfg.get('speed', 'Fast'))
+        _option_menu(p_audio, sv, ['Lightning', 'Fast', 'Normal', 'Slow'],
+                     lambda v: self._save_setting('speed', v))
+
+        # ══════════════════════════ APPEARANCE TAB ═══════════════════════
+        _section(p_appear, "COLOUR THEME")
+
+        theme_names   = list(THEMES.keys())
+        current_theme = self.cfg.get('theme', 'Littler')
         self._theme_indicators = {}
 
-        theme_frame = ctk.CTkFrame(scroll, fg_color='transparent')
-        theme_frame.pack(fill='x', padx=20, pady=(0, 4))
+        theme_frame = ctk.CTkFrame(p_appear, fg_color='transparent')
+        theme_frame.pack(fill='x', padx=24, pady=(0, 4))
 
         def _effective_accent(name):
             t = THEMES[name]
-            if t.get('_custom'):
-                return self.cfg.get('custom_accent', '#FFFFFF')
-            return t['accent']
+            return self.cfg.get('custom_accent', '#FFFFFF') if t.get('_custom') else t['accent']
+
+        def _redraw_dots(active_name):
+            for sn, (dc, lbl) in self._theme_indicators.items():
+                sel = (sn == active_name)
+                dc.delete('ring')
+                dc.create_oval(2, 2, 22, 22,
+                               fill=_effective_accent(sn),
+                               outline=FG if sel else SEP,
+                               width=2, tags='ring')
+                lbl.configure(text_color=FG if sel else FG3)
 
         def _pick(n):
             if THEMES[n].get('_custom'):
-                self._pick_custom_colour(n, lambda active: _redraw_dots(active))
+                _close()
+                from tkinter import colorchooser
+                result = colorchooser.askcolor(
+                    color=self.cfg.get('custom_accent', '#FFFFFF'),
+                    title='Pick your accent colour', parent=self)
+                if result[1] is None:
+                    self.after(60, self._open_settings); return
+                chosen = result[1].upper()
+                self._save_setting('custom_accent', chosen)
+                THEMES['Custom']['accent'] = chosen
+                _apply_theme('Custom', chosen)
+                self._save_setting('theme', 'Custom')
+                self._rebuild_ui()
+                self.after(60, self._open_settings)
                 return
             _apply_theme(n)
             self._save_setting('theme', n)
             _redraw_dots(n)
             self._rebuild_ui()
-            self.after(50, self._open_settings)
-
-        def _redraw_dots(active_name):
-            for sn, (dc, lbl) in self._theme_indicators.items():
-                selected = (sn == active_name)
-                dc.delete('ring')
-                dc.create_oval(2, 2, 22, 22,
-                               fill=_effective_accent(sn),
-                               outline=FG if selected else SEP,
-                               width=2, tags='ring')
-                lbl.configure(text_color=FG if selected else FG3)
+            _close()
+            self.after(80, self._open_settings)
 
         cols = 3
         for i, name in enumerate(theme_names):
             t       = THEMES[name]
             col_idx = i % cols
             row_idx = i // cols
-
-            swatch = ctk.CTkFrame(theme_frame, fg_color='transparent',
-                                  width=88, height=62, cursor='hand2')
+            swatch  = ctk.CTkFrame(theme_frame, fg_color='transparent',
+                                   width=88, height=62, cursor='hand2')
             swatch.grid(row=row_idx, column=col_idx, padx=4, pady=4, sticky='nsew')
             swatch.grid_propagate(False)
             theme_frame.grid_columnconfigure(col_idx, weight=1)
-
-            # Colour dot
-            dot_c = tk.Canvas(swatch, width=24, height=24, bg=BG,
-                              highlightthickness=0)
+            dot_c = tk.Canvas(swatch, width=24, height=24, bg=BG, highlightthickness=0)
             dot_c.pack(pady=(6, 0))
-            selected = (name == current_theme)
+            sel = (name == current_theme)
             dot_c.create_oval(2, 2, 22, 22,
                               fill=_effective_accent(name),
-                              outline=FG if selected else SEP,
+                              outline=FG if sel else SEP,
                               width=2, tags='ring')
-
-            # Player surname only (fits in the small swatch)
             surname = t['player'].split()[-1] if not t.get('_custom') else 'Custom'
             lbl = ctk.CTkLabel(swatch, text=surname,
-                               text_color=FG if selected else FG3,
+                               text_color=FG if sel else FG3,
                                font=("Rubik", 8))
             lbl.pack(pady=(1, 0))
-
             self._theme_indicators[name] = (dot_c, lbl)
-
             for w in (swatch, dot_c, lbl):
                 w.bind('<Button-1>', lambda e, n=name: _pick(n))
 
-        _sep()
+        # ══════════════════════════ GAMEPLAY TAB ═════════════════════════
+        _section(p_gameplay, "X01 GAME TRACKING")
 
-        _sec("VIDEO SCORING")
+        pd_var = ctk.BooleanVar(value=self.cfg.get('per_dart_mode', False))
+        _switch_row(p_gameplay, "Per-dart scoring",
+                    "Say each dart individually",
+                    pd_var,
+                    lambda: self._save_setting('per_dart_mode', pd_var.get()))
+
+        lc_var = ctk.BooleanVar(value=self.cfg.get('live_checkout', False))
+
+        def _toggle_live_checkout():
+            self._save_setting('live_checkout', lc_var.get())
+            self._x01_remaining = None
+            self._update_remaining_display()
+            self._rebuild_ui()
+            _close()
+            self.after(80, self._open_settings)
+
+        _switch_row(p_gameplay, "Live checkout tracking",
+                    "Show remaining + route",
+                    lc_var, _toggle_live_checkout)
+
+        _section(p_gameplay, "STARTING SCORE")
+        start_var = ctk.StringVar(value=str(self.cfg.get('x01_start', 501)))
+        _option_menu(p_gameplay, start_var, ['501', '301', '701', '170'],
+                     lambda v: self._save_setting('x01_start', int(v)))
+
+        ctk.CTkLabel(p_gameplay,
+                     text='Say "new leg" at any time to reset the counter.',
+                     text_color=FG3, font=("Rubik", 9), justify='left'
+                     ).pack(anchor='w', padx=24, pady=(0, 6))
+
+        _section(p_gameplay, "CALIBRATION")
+        _action_btn(p_gameplay, "Calibrate X01 Box",       self._calibrate_x01)
+        _action_btn(p_gameplay, "Calibrate Cricket Grid",   self._calibrate_cricket)
+
+        _section(p_gameplay, "CRICKET GRID FINE-TUNING")
+
+        cas_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_auto_submit', True))
+        _switch_row(p_gameplay, "Auto-submit after entering darts", '',
+                    cas_var2,
+                    lambda: self._save_setting('cricket_auto_submit', cas_var2.get()))
+
+        cib_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_include_bull', True))
+        _switch_row(p_gameplay, "Include Bull row (7 rows)", '',
+                    cib_var2,
+                    lambda: self._save_setting('cricket_include_bull', cib_var2.get()))
+
+        cox_v = ctk.IntVar(value=self.cfg.get('cricket_offset_x', 0))
+        coy_v = ctk.IntVar(value=self.cfg.get('cricket_offset_y', 0))
+        ccd_v = ctk.IntVar(value=self.cfg.get('cricket_click_delay', 0))
+        _slider_row(p_gameplay, "Grid offset X (pixels)",  cox_v, -50,  50,  100, 'px', 'cricket_offset_x')
+        _slider_row(p_gameplay, "Grid offset Y (pixels)",  coy_v, -50,  50,  100, 'px', 'cricket_offset_y')
+        _slider_row(p_gameplay, "Extra click delay (ms)",  ccd_v,   0, 500,   50, 'ms', 'cricket_click_delay')
+
+        ctk.CTkLabel(p_gameplay,
+                     text='Adjust offsets if clicks land slightly off.\n'
+                          'Increase delay if your scoring app misses clicks.',
+                     text_color=FG3, font=("Rubik", 9), justify='left'
+                     ).pack(anchor='w', padx=24, pady=(4, 16))
+
+        # ══════════════════════════ VIDEO SCORING TAB ════════════════════
+        _section(p_video, "VIDEO SCORING")
+
         vv = ctk.BooleanVar(value=self.cfg.get('video_scoring', False))
-        _chk(scroll, "Use screen-capture instead of mic", vv,
-             lambda: self._save_setting('video_scoring', vv.get()))
+        _switch_row(p_video, "Use screen-capture instead of mic", '',
+                    vv,
+                    lambda: self._save_setting('video_scoring', vv.get()))
 
         region = self.cfg.get('video_region', {})
         region_lbl_text = (f"Region: {region['w']}x{region['h']} at ({region['x']},{region['y']})"
                            if region.get('w') else "No region selected")
-        region_info = ctk.CTkLabel(scroll, text=region_lbl_text, text_color=FG2,
-                                   font=("Rubik", 9))
-        region_info.pack(anchor='w', padx=20, pady=(0, 4))
+        region_info = ctk.CTkLabel(p_video, text=region_lbl_text,
+                                   text_color=FG2, font=("Rubik", 9))
+        region_info.pack(anchor='w', padx=24, pady=(0, 4))
 
         def _select_region():
             self._calibrate_video_region()
@@ -2410,203 +3430,19 @@ class DartVoiceApp(ctk.CTk):
                 if r.get('w'):
                     region_info.configure(
                         text=f"Region: {r['w']}x{r['h']} at ({r['x']},{r['y']})")
-            win.after(500, _poll)
+            ov.after(500, _poll)
 
-        _btn("Select Camera Region  (drag)",  _select_region)
-        _btn("Calibrate Board in Video",       self._calibrate_video_board)
-        _btn("Show Video Debug",               self._open_video_debug)
+        _action_btn(p_video, "Select Camera Region  (drag)", _select_region)
+        _action_btn(p_video, "Calibrate Board in Video",      self._calibrate_video_board)
+        _action_btn(p_video, "Show Video Debug",              self._open_video_debug)
 
         cal = self.cfg.get('video_board_cal', {})
-        if cal.get('r_v'):
-            cal_text = (f"Board calibrated  v={cal['r_v']:.0f}  h={cal['r_h']:.0f}  "
-                        f"rot={cal.get('rot', 0):.1f}")
-        else:
-            cal_text = "Board not calibrated"
-        ctk.CTkLabel(scroll, text=cal_text, text_color=FG2, font=("Rubik", 9)
-                     ).pack(anchor='w', padx=20, pady=(0, 4))
-        _sep()
+        cal_text = (f"Board calibrated  v={cal['r_v']:.0f}  h={cal['r_h']:.0f}  "
+                    f"rot={cal.get('rot', 0):.1f}") if cal.get('r_v') else "Board not calibrated"
+        ctk.CTkLabel(p_video, text=cal_text, text_color=FG2,
+                     font=("Rubik", 9)).pack(anchor='w', padx=24, pady=(0, 6))
 
-        _sec("CALIBRATION")
-        _btn("Calibrate X01 Box",    self._calibrate_x01)
-        _btn("Calibrate Cricket Grid", self._calibrate_cricket)
-
-        # ── Cricket fine-tuning (directly under calibration) ─────────────
-        _sec("CRICKET GRID FINE-TUNING")
-
-        cas_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_auto_submit', True))
-        _chk(scroll, "Auto-submit after entering darts", cas_var2,
-             lambda: self._save_setting('cricket_auto_submit', cas_var2.get()))
-
-        cib_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_include_bull', True))
-        _chk(scroll, "Include Bull row  (7 rows instead of 6)", cib_var2,
-             lambda: self._save_setting('cricket_include_bull', cib_var2.get()))
-
-        ctk.CTkLabel(scroll, text="Grid offset X  (pixels)", text_color=FG2,
-                     font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(6, 2))
-        cox_v = ctk.IntVar(value=self.cfg.get('cricket_offset_x', 0))
-        ctk.CTkSlider(scroll, from_=-50, to=50, variable=cox_v, number_of_steps=100,
-                       fg_color=SEP, progress_color=ACCENT_DIM,
-                       button_color=ACCENT, button_hover_color=PRI_HOV,
-                       command=lambda v: self._save_setting('cricket_offset_x', int(v))
-                       ).pack(fill='x', padx=20, pady=(0, 2))
-        cox_l = ctk.CTkLabel(scroll, text=f"{cox_v.get()} px", text_color=FG3,
-                              font=("Rubik", 9))
-        cox_l.pack(anchor='w', padx=20, pady=(0, 4))
-        cox_v.trace_add('write', lambda *_: cox_l.configure(text=f"{cox_v.get()} px"))
-
-        ctk.CTkLabel(scroll, text="Grid offset Y  (pixels)", text_color=FG2,
-                     font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(0, 2))
-        coy_v = ctk.IntVar(value=self.cfg.get('cricket_offset_y', 0))
-        ctk.CTkSlider(scroll, from_=-50, to=50, variable=coy_v, number_of_steps=100,
-                       fg_color=SEP, progress_color=ACCENT_DIM,
-                       button_color=ACCENT, button_hover_color=PRI_HOV,
-                       command=lambda v: self._save_setting('cricket_offset_y', int(v))
-                       ).pack(fill='x', padx=20, pady=(0, 2))
-        coy_l = ctk.CTkLabel(scroll, text=f"{coy_v.get()} px", text_color=FG3,
-                              font=("Rubik", 9))
-        coy_l.pack(anchor='w', padx=20, pady=(0, 4))
-        coy_v.trace_add('write', lambda *_: coy_l.configure(text=f"{coy_v.get()} px"))
-
-        ctk.CTkLabel(scroll, text="Extra click delay  (ms)", text_color=FG2,
-                     font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(0, 2))
-        ccd_v = ctk.IntVar(value=self.cfg.get('cricket_click_delay', 0))
-        ctk.CTkSlider(scroll, from_=0, to=500, variable=ccd_v, number_of_steps=50,
-                       fg_color=SEP, progress_color=ACCENT_DIM,
-                       button_color=ACCENT, button_hover_color=PRI_HOV,
-                       command=lambda v: self._save_setting('cricket_click_delay', int(v))
-                       ).pack(fill='x', padx=20, pady=(0, 2))
-        ccd_l = ctk.CTkLabel(scroll, text=f"{ccd_v.get()} ms", text_color=FG3,
-                              font=("Rubik", 9))
-        ccd_l.pack(anchor='w', padx=20, pady=(0, 4))
-        ccd_v.trace_add('write', lambda *_: ccd_l.configure(text=f"{ccd_v.get()} ms"))
-
-        ctk.CTkLabel(scroll, text="Adjust offsets if clicks land slightly off.\n"
-                                  "Increase delay if your scoring app misses clicks.",
-                     text_color=FG3, font=("Rubik", 9), justify='left'
-                     ).pack(anchor='w', padx=20, pady=(4, 0))
-        _sep()
-
-        _sec("MICROPHONE")
-        _btn("Select Microphone", self._select_mic)
-        _sep()
-
-        _sec("TYPING SPEED")
-        sv = ctk.StringVar(value=self.cfg.get('speed', 'Fast'))
-        ctk.CTkOptionMenu(scroll, variable=sv, values=['Lightning','Fast','Normal','Slow'],
-                          font=("Rubik", 11),
-                          fg_color=CARD2, button_color=ACCENT_DIM, button_hover_color=ACCENT,
-                          text_color=FG, dropdown_fg_color=CARD, dropdown_text_color=FG,
-                          dropdown_hover_color=CARD2, corner_radius=8,
-                          command=lambda v: self._save_setting('speed', v)
-                          ).pack(fill='x', padx=20, pady=(0, 0))
-        _sep()
-
-        _sec("TRIGGER WORD")
-        rv = ctk.BooleanVar(value=self.cfg.get('require_trigger', True))
-        _chk(scroll, "Require trigger word", rv,
-             lambda: self._save_setting('require_trigger', rv.get()))
-        te = ctk.CTkEntry(scroll, font=("Rubik", 12), fg_color=CARD2, border_color=SEP,
-                          text_color=FG, justify='center', height=38, corner_radius=8)
-        te.insert(0, self.cfg.get('trigger', 'score'))
-        te.pack(fill='x', padx=20)
-        te.bind('<KeyRelease>', lambda e: self._save_setting('trigger', te.get().strip().lower()))
-        _sep()
-
-        # ── X01 Game Tracking ─────────────────────────────────────────────
-        _sec("X01 GAME TRACKING")
-
-        pd_var = ctk.BooleanVar(value=self.cfg.get('per_dart_mode', False))
-        _chk(scroll, "Per-dart scoring  (say each dart individually)", pd_var,
-             lambda: self._save_setting('per_dart_mode', pd_var.get()))
-
-        lc_var = ctk.BooleanVar(value=self.cfg.get('live_checkout', False))
-
-        def _toggle_live_checkout():
-            self._save_setting('live_checkout', lc_var.get())
-            # reset remaining so it initialises fresh next time listening starts
-            self._x01_remaining = None
-            self._update_remaining_display()
-            self._rebuild_ui()
-            self.after(50, self._open_settings)
-
-        ctk.CTkCheckBox(scroll, text="Live checkout tracking  (show remaining + route)",
-                        variable=lc_var, font=("Rubik", 11),
-                        fg_color=ACCENT, hover_color=PRI_HOV,
-                        checkmark_color=PRI_FG, text_color=FG, border_color=SEP,
-                        command=_toggle_live_checkout
-                        ).pack(anchor='w', padx=20, pady=(0, 7))
-
-        ctk.CTkLabel(scroll, text="Starting score", text_color=FG2,
-                     font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(0, 2))
-        start_var = ctk.StringVar(value=str(self.cfg.get('x01_start', 501)))
-        ctk.CTkOptionMenu(scroll, variable=start_var, values=['501', '301', '701', '170'],
-                          font=("Rubik", 11),
-                          fg_color=CARD2, button_color=ACCENT_DIM, button_hover_color=ACCENT,
-                          text_color=FG, dropdown_fg_color=CARD, dropdown_text_color=FG,
-                          dropdown_hover_color=CARD2, corner_radius=8,
-                          command=lambda v: self._save_setting('x01_start', int(v))
-                          ).pack(fill='x', padx=20, pady=(0, 6))
-
-        ctk.CTkLabel(scroll, text="Cancel word  (say to undo last dart / score)",
-                     text_color=FG2, font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(0, 2))
-        cw_entry = ctk.CTkEntry(scroll, font=("Rubik", 12), fg_color=CARD2, border_color=SEP,
-                                text_color=FG, justify='center', height=38, corner_radius=8)
-        cw_entry.insert(0, self.cfg.get('cancel_word', 'wait'))
-        cw_entry.pack(fill='x', padx=20)
-        cw_entry.bind('<KeyRelease>',
-                      lambda e: self._save_setting('cancel_word', cw_entry.get().strip().lower()))
-
-        ctk.CTkLabel(scroll, text='Say "new leg" at any time to reset the counter.',
-                     text_color=FG3, font=("Rubik", 9), justify='left'
-                     ).pack(anchor='w', padx=20, pady=(6, 0))
-        _sep()
-
-        _sep()
-
-        # ── Voice Assistant ──────────────────────────────────────────────
-        _sec("VOICE ASSISTANT")
-        va = ctk.BooleanVar(value=self.cfg.get('voice_assist', False))
-        _chk(scroll, "Enable voice assistant", va,
-             lambda: self._save_setting('voice_assist', va.get()))
-
-        vc = ctk.BooleanVar(value=self.cfg.get('voice_confirm', True))
-        _chk(scroll, "Read back scores", vc,
-             lambda: self._save_setting('voice_confirm', vc.get()))
-
-        vs_var = ctk.BooleanVar(value=self.cfg.get('voice_stats', True))
-        _chk(scroll, "Announce session average (X01)", vs_var,
-             lambda: self._save_setting('voice_stats', vs_var.get()))
-
-        ctk.CTkLabel(scroll, text="Speech speed", text_color=FG2,
-                     font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(0, 2))
-        vr = ctk.IntVar(value=self.cfg.get('voice_rate', 170))
-        ctk.CTkSlider(scroll, from_=100, to=250, variable=vr,
-                       fg_color=SEP, progress_color=ACCENT_DIM,
-                       button_color=ACCENT, button_hover_color=PRI_HOV,
-                       command=lambda v: self._save_setting('voice_rate', int(v))
-                       ).pack(fill='x', padx=20, pady=(0, 2))
-        rate_lbl = ctk.CTkLabel(scroll, text=f"{vr.get()} wpm", text_color=FG3,
-                                font=("Rubik", 9))
-        rate_lbl.pack(anchor='w', padx=20, pady=(0, 4))
-        vr.trace_add('write', lambda *_: rate_lbl.configure(text=f"{vr.get()} wpm"))
-
-        ctk.CTkLabel(scroll, text="Volume", text_color=FG2,
-                     font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(0, 2))
-        vv2 = ctk.DoubleVar(value=self.cfg.get('voice_volume', 0.9))
-        ctk.CTkSlider(scroll, from_=0.1, to=1.0, variable=vv2,
-                       fg_color=SEP, progress_color=ACCENT_DIM,
-                       button_color=ACCENT, button_hover_color=PRI_HOV,
-                       command=lambda v: self._save_setting('voice_volume', round(float(v), 2))
-                       ).pack(fill='x', padx=20, pady=(0, 2))
-        vol_lbl = ctk.CTkLabel(scroll, text=f"{int(vv2.get()*100)}%", text_color=FG3,
-                               font=("Rubik", 9))
-        vol_lbl.pack(anchor='w', padx=20, pady=(0, 6))
-        vv2.trace_add('write', lambda *_: vol_lbl.configure(text=f"{int(vv2.get()*100)}%"))
-
-        _btn("Test Voice", lambda: speak("One hundred and eighty!", self.cfg))
-
-        # ── Admin bypass ─────────────────────────────────────────────────
-        _sec("DEVELOPER")
+        _section(p_video, "DEVELOPER")
         try:
             from billing import is_admin_unlocked, admin_unlock, admin_lock
             _is_admin = is_admin_unlocked()
@@ -2614,16 +3450,16 @@ class DartVoiceApp(ctk.CTk):
             _is_admin = False
 
         admin_status_var = ctk.StringVar(
-            value="Admin mode: ON" if _is_admin else "Admin mode: OFF"
-        )
-        ctk.CTkLabel(scroll, textvariable=admin_status_var, text_color=FG3,
-                     font=("Rubik", 9)).pack(anchor='w', padx=20, pady=(0, 4))
+            value="Admin mode: ON" if _is_admin else "Admin mode: OFF")
+        ctk.CTkLabel(p_video, textvariable=admin_status_var,
+                     text_color=FG3, font=("Rubik", 9)
+                     ).pack(anchor='w', padx=24, pady=(0, 4))
 
-        admin_entry = ctk.CTkEntry(scroll, placeholder_text="Enter admin passcode",
-                                   show='*', fg_color=CARD2, border_color=SEP,
+        admin_entry = ctk.CTkEntry(p_video, placeholder_text="Enter admin passcode",
+                                   show='*', fg_color=BG, border_color=SEP,
                                    text_color=FG, font=("Rubik", 11), height=34,
                                    corner_radius=8)
-        admin_entry.pack(fill='x', padx=20, pady=(0, 6))
+        admin_entry.pack(fill='x', padx=24, pady=(0, 6))
 
         def _toggle_admin():
             try:
@@ -2642,16 +3478,49 @@ class DartVoiceApp(ctk.CTk):
                 else:
                     admin_status_var.set("Wrong passcode")
 
-        ctk.CTkButton(
-            scroll, text="Toggle Admin Mode",
-            fg_color=CARD2, hover_color=SEP, text_color=FG2,
-            height=32, corner_radius=8, border_width=1, border_color=SEP,
-            font=("Rubik", 10, "bold"),
-            command=_toggle_admin,
-        ).pack(fill='x', padx=20, pady=(0, 6))
+        ctk.CTkButton(p_video, text="Toggle Admin Mode",
+                      fg_color=CARD2, hover_color=SEP, text_color=FG2,
+                      height=32, corner_radius=8, border_width=1, border_color=SEP,
+                      font=("Rubik", 10, "bold"),
+                      command=_toggle_admin,
+                      ).pack(fill='x', padx=24, pady=(0, 16))
 
-        # Bottom padding
-        ctk.CTkFrame(scroll, fg_color='transparent', height=12).pack()
+        # ══════════════════════ GHOST MODE (Appearance tab) ═════════════
+        _section(p_appear, "GHOST MODE")
+
+        aot_var = ctk.BooleanVar(value=self.cfg.get('always_on_top', True))
+
+        def _toggle_aot():
+            v = aot_var.get()
+            self._save_setting('always_on_top', v)
+            self.attributes('-topmost', v)
+
+        _switch_row(p_appear, "Always on Top",
+                    "Keep DartVoice above all other windows",
+                    aot_var, _toggle_aot)
+
+        _section(p_appear, "WINDOW OPACITY")
+        op_var = ctk.DoubleVar(value=self.cfg.get('ghost_opacity', 1.0))
+        op_lbl = ctk.CTkLabel(p_appear, text=f"{int(op_var.get()*100)}%",
+                              text_color=FG, font=("Rubik", 11, "bold"))
+        op_lbl.pack(anchor='e', padx=24)
+        ctk.CTkSlider(
+            p_appear, from_=0.3, to=1.0, variable=op_var,
+            fg_color=SEP, progress_color=ACCENT,
+            button_color=ACCENT, button_hover_color=PRI_HOV,
+            command=lambda v, ol=op_lbl: [
+                self._save_setting('ghost_opacity', round(float(v), 2)),
+                self.attributes('-alpha', float(v)),
+                ol.configure(text=f"{int(float(v)*100)}%"),
+            ],
+        ).pack(fill='x', padx=24, pady=(0, 4))
+        ctk.CTkLabel(p_appear,
+                     text="Drag left to see through the window (\"Ghost Mode\").",
+                     text_color=FG3, font=("Rubik", 9), justify='left'
+                     ).pack(anchor='w', padx=24, pady=(0, 16))
+
+        # ── Activate first tab ────────────────────────────────────────────
+        _switch('audio')
 
     # ── Mic selector ─────────────────────────────────────────────────────────
     def _select_mic(self):
@@ -2942,6 +3811,23 @@ class DartVoiceApp(ctk.CTk):
             self._set_status(f"Undid {removed} — also undo in your software")
         else:
             self._set_status("Nothing to cancel")
+
+    def _on_manual_score(self):
+        """Submit a score typed into the manual entry box."""
+        if not hasattr(self, '_manual_var'):
+            return
+        text = self._manual_var.get().strip()
+        if not text:
+            return
+        try:
+            score = int(text)
+        except ValueError:
+            score = parse_score(text)
+        if score is None or not (0 <= score <= 180):
+            self._status.set("Invalid score (0–180)")
+            return
+        self._manual_var.set('')
+        self._on_score(score)
 
     def _on_new_leg(self):
         """Reset remaining to the starting score for a new leg."""

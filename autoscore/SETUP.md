@@ -2,123 +2,118 @@
 
 ---
 
-# FOR USERS — Installing DartVoice on Windows
+## FOR USERS — Installing DartVoice on Windows
 
-> **Users need nothing except the installer file. No Python. No technical knowledge.**
+> **You need nothing except the installer file. No Python. No technical knowledge.**
 
-### How to install
+### Install
 
-1. Download **DartVoice_Setup.exe** (from wherever you share it — website, Google Drive, etc.)
-2. Double-click it
-3. Click **Next → Next → Install**
-4. DartVoice launches automatically when done
+1. Download **DartVoice_Setup_v1.7.exe**
+2. Double-click it → Next → Next → Install
+3. DartVoice launches automatically
 
-That's it. It works like any normal Windows program.
+### How to use
 
-### How to use it
-
-1. Open your darts scoring software (Lidarts, Autodarts, etc.) and get to the score screen
-2. Open DartVoice from the Start Menu or desktop shortcut
-3. Click **Settings → Calibrate X01 box**, then click on the score input in your darts software
+1. Open your darts scoring software (Target Dartcounter, Lidarts, etc.) and get to the score entry screen
+2. Open DartVoice from Start Menu / desktop shortcut
+3. First time: click **Calibrate** in the right panel and click on the score input box in your scoring app
 4. Click **START LISTENING**
-5. Say *"score one forty"* — it types the score in automatically
+5. Say *"score one forty"* (or just *"one forty"* if trigger word is off) — it types automatically
 
-### Uninstalling
+### Uninstall
 
-Settings → Apps → DartVoice → Uninstall  (like any normal program)
-
----
----
-
-# FOR YOU (THE DEVELOPER) — Building the installer
-
-These steps are run **once on your machine** to produce the `DartVoice_Setup.exe` that you give to users.
+Settings → Apps → DartVoice → Uninstall
 
 ---
+---
 
-## Step 1 — Build the exe
+## FOR DEVELOPERS — Building the installer
 
-Double-click **`build_windows.bat`** in the autoscore folder.
+### One-command build
 
-It installs PyInstaller automatically and builds everything.
-When it finishes you'll see:
-```
-Build complete!
-Distributable folder: dist\DartVoice\
+```cmd
+build_windows.bat
 ```
 
-Or from the terminal:
+That single script:
+1. Installs/upgrades PyInstaller
+2. Builds `dist\DartVoice\DartVoice.exe` (bundles Python + all dependencies)
+3. Auto-detects Inno Setup and compiles `installer_output\DartVoice_Setup_v1.7.exe`
+
+**That `.exe` is what you distribute.**
+
+---
+
+### Manual build (step by step)
+
+**Step 1 — Build the exe**
+
+```cmd
+python -m PyInstaller DartVoice.spec --noconfirm --clean
+```
+
+Output: `dist\DartVoice\DartVoice.exe`  (~150–200 MB folder, runs on any Windows 10/11 PC, no Python needed)
+
+**Step 2 — Build the installer**
+
+1. Download **Inno Setup 6** (free): https://jrsoftware.org/isinfo.php
+2. Open `installer.iss` → Ctrl+F9
+3. Output: `installer_output\DartVoice_Setup_v1.7.exe`  (~60–80 MB compressed)
+
+---
+
+### First-time dev setup
+
+```cmd
+pip install -r requirements_windows.txt
+```
+
+---
+
+### Distributing to users
+
+Options:
+- **GitHub Releases** (recommended — free, versioned)
+  ```
+  GitHub → your repo → Releases → Draft new release
+  → Attach DartVoice_Setup_v1.7.exe → Publish
+  ```
+- Upload to your website as a direct download
+- Google Drive / Dropbox share link
+
+---
+
+### After code changes
+
 ```cmd
 python -m PyInstaller DartVoice.spec --noconfirm
 ```
-
-> **Note:** use `python -m PyInstaller`, not just `pyinstaller` — Windows sometimes doesn't put PyInstaller on PATH even when it's installed.
-
-This produces `dist\DartVoice\DartVoice.exe` — runs on any Windows 10/11 PC with no Python required.
+Then recompile in Inno Setup (Ctrl+F9) or re-run `build_windows.bat`.
 
 ---
 
-## Step 2 — Build the installer with Inno Setup
+### Version bump checklist
 
-1. Download **Inno Setup 6** (free): https://jrsoftware.org/isinfo.php
-2. Install it (next → next → finish)
-3. Open `installer.iss` in Inno Setup
-4. Press **Ctrl+F9** (or Build → Compile)
-5. The installer appears at: `installer_output\DartVoice_Setup.exe`
-
-**That single file is what you distribute to users.**
-It's ~50–80MB, includes everything, and installs like any normal Windows software.
+| File | What to change |
+|------|----------------|
+| `installer.iss` | `#define AppVersion "x.x"` |
+| `DartVoice.spec` | `version` line in manifest |
+| `build_windows.bat` | banner line at top |
 
 ---
-
-## Step 3 — Distribute it
-
-Options (pick one):
-- Upload to your website as a download link
-- Share via Google Drive / Dropbox link
-- GitHub Releases (free, works well for software downloads)
-
-For GitHub Releases:
-```
-github.com → your repo → Releases → Draft a new release
-→ Attach DartVoice_Setup.exe → Publish
-```
-
-Users then download directly from GitHub. No hosting costs.
-
 ---
 
-## Rebuilding after code changes
+## Android build (APK)
 
-```cmd
-pyinstaller DartVoice.spec          # rebuilds dist\DartVoice\
-```
-Then recompile in Inno Setup (Ctrl+F9) to get a new `DartVoice_Setup.exe`.
+> Requires WSL2 (Windows Subsystem for Linux) — Ubuntu.
 
----
+**One-time setup**
 
----
-
-# FOR YOU — Testing on Android
-
-> The APK build requires Linux or WSL2 (Windows Subsystem for Linux).
-> Your phone just needs USB debugging enabled.
-
----
-
-## Step 1 — Enable WSL2 (one time only)
-
-Open **PowerShell as Administrator**:
 ```powershell
+# PowerShell as Administrator
 wsl --install
 ```
-Restart your PC. Open **Ubuntu** from the Start Menu and complete the first-run setup.
-
-All commands below are run inside the Ubuntu terminal.
-
----
-
-## Step 2 — Install build tools (one time only)
+Restart, open Ubuntu, then:
 
 ```bash
 sudo apt update && sudo apt install -y \
@@ -131,91 +126,32 @@ source ~/buildozer-env/bin/activate
 pip install buildozer cython
 ```
 
----
-
-## Step 3 — Copy the project into WSL2
+**Copy project + build**
 
 ```bash
-cp -r /mnt/c/Users/vrynw/Desktop/autoscore ~/dartvoice
+cp -r /mnt/c/Users/vrynw/Documents/GitHub/dartvoice/testomg/autoscore ~/dartvoice
 cd ~/dartvoice
 source ~/buildozer-env/bin/activate
-```
-
----
-
-## Step 4 — Download the Vosk Android library
-
-```bash
-wget https://github.com/alphacep/vosk-api/releases/download/v0.3.45/vosk-0.3.45-cp311-cp311-linux_aarch64.whl
-```
-
-Edit `buildozer.spec` — find the `requirements =` line and change `vosk` to the filename:
-```
-requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,./vosk-0.3.45-cp311-cp311-linux_aarch64.whl,numpy,stripe
-```
-
----
-
-## Step 5 — Enable USB debugging on your phone
-
-1. **Settings → About phone** → tap **Build number** 7 times
-   → "Developer mode enabled" toast appears
-2. **Settings → Developer options** → turn on **USB debugging**
-3. Plug phone into PC via USB cable
-4. Tap **Allow** on the phone when it asks to trust this computer
-
-Check it's detected:
-```bash
-adb devices
-```
-You should see your device (not "unauthorized").
-
----
-
-## Step 6 — Build and install
-
-First build downloads the Android SDK/NDK automatically — takes **20–40 minutes** once.
-
-```bash
 buildozer android debug deploy run
 ```
 
-When it finishes the app opens on your phone automatically.
+First build downloads Android SDK/NDK (~20–40 min). Subsequent builds: ~2–5 min.
 
----
+**USB debugging on your phone**
 
-## Rebuilding after code changes
+1. Settings → About phone → tap Build number 7 times
+2. Settings → Developer options → enable USB debugging
+3. Plug in phone → tap Allow
 
 ```bash
-buildozer android debug deploy run
+adb devices   # should show your device
 ```
-Subsequent builds take **2–5 minutes** (SDK already downloaded).
 
----
-
-## Troubleshooting
+**Troubleshooting**
 
 | Problem | Fix |
 |---------|-----|
-| `adb devices` shows "unauthorized" | Unplug → replug → tap Allow on phone |
-| Build fails on `vosk` | Check the `.whl` filename matches exactly in buildozer.spec |
-| App crashes on launch | `adb logcat -s python` to see the error |
-| "Model not found" on first launch | Wait 30–60 sec — it's extracting the voice model |
-| Mic permission denied | Phone Settings → Apps → DartVoice → Permissions → Microphone → Allow |
-
-View live logs from the phone:
-```bash
-adb logcat -s python
-```
-
----
-
-## Quick reference
-
-| Task | Command |
-|------|---------|
-| Rebuild Windows exe | `pyinstaller DartVoice.spec` |
-| Build Android APK + install | `buildozer android debug deploy run` |
-| Install APK manually | `adb install bin/dartvoice-*.apk` |
-| View phone logs | `adb logcat -s python` |
-| Clean build cache | `buildozer android clean` |
+| `adb devices` shows "unauthorized" | Unplug → replug → tap Allow |
+| App crashes on launch | `adb logcat -s python` to see error |
+| "Model not found" | Wait 30–60s — extracting voice model |
+| Mic permission denied | Phone Settings → Apps → DartVoice → Permissions → Microphone |
