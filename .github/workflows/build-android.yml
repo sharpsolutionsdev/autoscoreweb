@@ -63,7 +63,7 @@ jobs:
           wget -q \
             https://github.com/alphacep/vosk-api/releases/download/v0.3.45/vosk-0.3.45-cp311-cp311-linux_aarch64.whl
           # Replace bare "vosk" with the local wheel path (word-boundary safe)
-          sed -i 's/\bvosk\b/.\\/vosk-0.3.45-cp311-cp311-linux_aarch64.whl/' buildozer.spec
+          sed -i 's|\bvosk\b|./vosk-0.3.45-cp311-cp311-linux_aarch64.whl|' buildozer.spec
           echo "=== requirements line after patch ==="
           grep '^requirements' buildozer.spec
 
