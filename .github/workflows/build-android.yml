@@ -38,11 +38,11 @@ jobs:
       - name: Install Python build tools
         run: |
           python3 -m pip install --upgrade pip
-          # PINNED CYTHON TO <3.0 to fix the pyjnius compilation error!
+          # Cython pinned <3.0 to avoid pyjnius compilation errors
           python3 -m pip install buildozer "Cython<3.0"
 
       # ── 4. Cache the Android SDK/NDK + buildozer downloads ──────────────────
-      #    This makes subsequent builds ~10 min instead of ~40 min
+      #    Makes subsequent builds ~10 min instead of ~40 min
       - name: Cache buildozer global dir
         uses: actions/cache@v4
         with:
@@ -61,28 +61,39 @@ jobs:
       - name: Build debug APK
         working-directory: autoscore
         run: |
-          # ADDED PIPEFAIL so GitHub Actions properly catches Buildozer errors
           set -o pipefail
           buildozer android debug 2>&1 | tee build.log
           echo "--- Last 50 lines of build log ---"
           tail -50 build.log
 
-      # ── 6. Upload as artifact (downloadable from Actions tab) ────────────────
+      # ── 6. Rename APK for a clean, stable download URL ───────────────────────
+      - name: Rename APK
+        run: mv autoscore/bin/*.apk autoscore/bin/DartVoice.apk
+
+      # ── 7. Keep artifact for debugging purposes (30 days) ────────────────────
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: DartVoice-debug-apk
-          # FIXED PATH to directly grab the compiled APK
-          path: autoscore/bin/*.apk 
+          path: autoscore/bin/DartVoice.apk
           retention-days: 30
 
-      # ── 7. Print download instructions ───────────────────────────────────────
-      - name: Done
-        run: |
-          echo ""
-          echo "============================================"
-          echo " APK built successfully!"
-          echo " Download it from:"
-          echo " GitHub → Actions → this run → Artifacts"
-          echo " → DartVoice-debug-apk"
-          echo "============================================"
+      # ── 8. Publish to GitHub Releases (public download) ──────────────────────
+      #    Creates/updates the "android-latest" release so the URL never changes:
+      #    https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: "DartVoice Android (latest)"
+          body: |
+            Latest DartVoice Android build — auto-published by CI.
+
+            **Install instructions:**
+            1. Open this link on your Android phone and tap Download
+            2. Go to Settings → Security → enable "Install from unknown sources" (or "Install unknown apps")
+            3. Open the downloaded APK and tap Install
+          files: autoscore/bin/DartVoice.apk
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

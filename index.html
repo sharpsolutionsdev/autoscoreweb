@@ -290,7 +290,7 @@
             </div>
             <div class="hidden sm:flex items-center gap-3 ml-2">
                 <a href="login.html" class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold text-chalk">Sign In</a>
-                <a href="login.html?intent=subscribe" class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white">
+                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)" class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white">
                     Start Free Trial
                 </a>
             </div>
@@ -316,7 +316,7 @@
                 </a>
                 <div class="border-t border-wire/50 mt-1 pt-3 grid grid-cols-2 gap-2">
                     <a href="login.html" class="btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk">Sign In</a>
-                    <a href="login.html?intent=subscribe" class="btn-brand px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Free Trial</a>
+                    <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)" class="btn-brand px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Free Trial</a>
                 </div>
             </div>
         </div>
@@ -372,7 +372,7 @@
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-3 fade-up-4 mb-5">
-                        <a href="login.html?intent=subscribe"
+                        <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
                            class="btn-brand px-7 py-3.5 rounded-xl font-semibold text-base text-white text-center relative z-10">
                             Start Free Trial
                         </a>
@@ -815,7 +815,7 @@
                     </div>
                 </div>
 
-                <a href="login.html?intent=subscribe"
+                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
                    class="btn-brand block text-center py-3.5 rounded-xl font-semibold text-white relative z-10">
                     Start 7-Day Free Trial
                 </a>
@@ -1175,6 +1175,33 @@
 
         </div>
     </footer>
+
+    <script>
+    // ── Stripe checkout popup ─────────────────────────────────────────────────
+    const DV_CHECKOUT_URL = 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00';
+
+    function dvCheckout(e) {
+        if (e) e.preventDefault();
+        const isMobile = /Mobi|Android|iPhone|iPad|IEMobile/i.test(navigator.userAgent)
+                         || window.innerWidth < 768;
+        if (isMobile) {
+            window.open(DV_CHECKOUT_URL, '_blank', 'noopener');
+            return;
+        }
+        // Desktop: centered popup
+        const w = 520, h = 720;
+        const left = Math.max(0, Math.round((screen.width  - w) / 2 + (screen.availLeft || 0)));
+        const top  = Math.max(0, Math.round((screen.height - h) / 2));
+        const popup = window.open(
+            DV_CHECKOUT_URL, 'dvCheckout',
+            `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,toolbar=no,menubar=no`
+        );
+        if (!popup || popup.closed) {
+            // Popup blocked — fall back to new tab
+            window.open(DV_CHECKOUT_URL, '_blank', 'noopener');
+        }
+    }
+    </script>
 
     <script>
     // Scroll reveal

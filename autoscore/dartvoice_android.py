@@ -61,8 +61,11 @@ def load_config():
     defaults = {
         'game_mode': 'X01', 'x01_start': 501,
         'trigger': 'score', 'require_trigger': True,
+        'cancel_word': 'wait',
         'voice_assist': True, 'voice_rate': 1.0,
         'mic_index': None,
+        'per_dart_mode': False,
+        'live_checkout': False,
     }
     if os.path.exists(path):
         try:
@@ -189,8 +192,9 @@ _CRICKET_TARGETS = {
 _CRICKET_MODS = {
     'single':'s','double':'d','treble':'t','triple':'t',
     'travel':'t','trouble':'t','tribal':'t','tremble':'t','trickle':'t',
-    'devil':'d','doubles':'d','doubled':'d','dabble':'d',
-    'singles':'s','singled':'s',
+    'tripled':'t','tripple':'t','trebble':'t','trible':'t','tripe':'t',
+    'devil':'d','doubles':'d','doubled':'d','dabble':'d','dbl':'d',
+    'singles':'s','singled':'s','sgl':'s',
 }
 _SHORTHAND_RE = re.compile(r'^([sdt])(\d{2}|bull?)$')
 _SHORTHAND_TARGETS = {
@@ -217,6 +221,98 @@ def parse_cricket_darts(text):
                          (tgt, ('s' if tgt == 'b' and mod == 't' else mod)))
             mod = 's'
     return darts[:3]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Single-dart parser  (per-dart X01 mode)
+# ─────────────────────────────────────────────────────────────────────────────
+_SINGLE_DART_SH = re.compile(r'^([sdt])(\d{1,2})$')
+
+def parse_single_dart(text):
+    """Parse one spoken dart. Returns (value: int, display: str) or None."""
+    t = re.sub(r'\s+', ' ', text.lower().strip())
+    m = _SINGLE_DART_SH.match(t)
+    if m:
+        mc, num = m.group(1), int(m.group(2))
+        if 1 <= num <= 20:
+            if mc == 't': return (num * 3, f"T{num}")
+            if mc == 'd': return (num * 2, f"D{num}")
+            return (num, str(num))
+    if t in ('bull', 'bullseye', 'bulls', 'double bull', 'double bullseye', 'fifty',
+             "bull's eye", 'bulls eye', 'double twenty five', 'inner bull'):
+        return (50, 'Bull')
+    if t in ('outer bull', 'twenty five', 'twenty-five', 'half bull', 'single bull'):
+        return (25, '25')
+    if t in ('miss', 'missed', 'zero', 'nothing', 'none', 'no score',
+             'outside', 'bounce out', 'bounce', 'bounced out'):
+        return (0, 'Miss')
+    words = t.split()
+    mod, pfx = 1, ''
+    if words and words[0] in _CRICKET_MODS:
+        mc2 = _CRICKET_MODS[words[0]]
+        if mc2 == 't': mod, pfx = 3, 'T'
+        elif mc2 == 'd': mod, pfx = 2, 'D'
+        words = words[1:]
+    if not words:
+        return None
+    val = _parse_under_100(' '.join(words))
+    if val is None:
+        return None
+    if 1 <= val <= 20:
+        return (val * mod, f"{pfx}{val}" if pfx else str(val))
+    # No modifier: reverse-map raw score (e.g. "51" → T17, "40" → D20)
+    if mod == 1:
+        if val % 3 == 0 and 1 <= val // 3 <= 20:
+            return (val, f"T{val // 3}")
+        if val % 2 == 0 and 1 <= val // 2 <= 20:
+            return (val, f"D{val // 2}")
+    return None
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Checkout table
+# ─────────────────────────────────────────────────────────────────────────────
+def _build_checkout_table():
+    opts    = [(t * 3, f"T{t}") for t in range(20, 0, -1)]
+    opts.append((50, 'Bull'))
+    opts   += [(d * 2, f"D{d}") for d in range(20, 0, -1)]
+    opts   += [(s, str(s)) for s in range(20, 0, -1)]
+    opts.append((25, '25'))
+    doubles = [(d * 2, f"D{d}") for d in range(1, 21)] + [(50, 'Bull')]
+    table   = {}
+    for n in range(2, 171):
+        for dv, dn in doubles:
+            if dv == n:
+                table[n] = dn; break
+        if n in table:
+            continue
+        found = False
+        for fv, fn in opts:
+            rem = n - fv
+            if rem <= 0: continue
+            for dv, dn in doubles:
+                if dv == rem:
+                    table[n] = f"{fn} {dn}"; found = True; break
+            if found: break
+        if found: continue
+        for fv, fn in opts:
+            rem2 = n - fv
+            if rem2 < 2: continue
+            found2 = False
+            for fv2, fn2 in opts:
+                rem3 = rem2 - fv2
+                if rem3 <= 0: continue
+                for dv, dn in doubles:
+                    if dv == rem3:
+                        table[n] = f"{fn} {fn2} {dn}"; found2 = True; break
+                if found2: break
+            if found2: break
+    return table
+
+CHECKOUT = _build_checkout_table()
+
+def checkout_hint(remaining):
+    if not isinstance(remaining, int) or remaining < 2 or remaining > 170:
+        return None
+    return CHECKOUT.get(remaining)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Game state
@@ -313,16 +409,19 @@ def speak(text, cfg):
 # Speech listener thread
 # ─────────────────────────────────────────────────────────────────────────────
 class SpeechListener(threading.Thread):
-    def __init__(self, model_path, cfg, on_score, on_status):
+    def __init__(self, model_path, cfg, on_score, on_status,
+                 on_cancel=None, on_new_leg=None):
         super().__init__(daemon=True)
         self.model_path = model_path
         self.cfg        = cfg
         self.on_score   = on_score
         self.on_status  = on_status
-        self._stop      = threading.Event()
+        self.on_cancel  = on_cancel
+        self.on_new_leg = on_new_leg
+        self._stop_evt  = threading.Event()
 
     def stop(self):
-        self._stop.set()
+        self._stop_evt.set()
 
     def run(self):
         try:
@@ -366,7 +465,7 @@ class SpeechListener(threading.Thread):
 
         self.on_status('Listening')
         chunk = bytearray(4096)
-        while not self._stop.is_set():
+        while not self._stop_evt.is_set():
             try:
                 n = recorder.read(chunk, len(chunk))
                 if n > 0:
@@ -403,7 +502,7 @@ class SpeechListener(threading.Thread):
             return
 
         self.on_status('Listening')
-        while not self._stop.is_set():
+        while not self._stop_evt.is_set():
             try:
                 data = stream.read(4000, exception_on_overflow=False)
                 if rec.AcceptWaveform(data):
@@ -420,7 +519,20 @@ class SpeechListener(threading.Thread):
         pa.terminate()
 
     def _process(self, text):
-        text    = text.lower()
+        text = text.lower().strip()
+
+        # Cancel word (no trigger required)
+        cancel = self.cfg.get('cancel_word', 'wait').lower().strip()
+        if cancel and text == cancel:
+            if self.on_cancel: self.on_cancel()
+            return
+
+        # New leg / reset (no trigger required)
+        if any(p in text for p in ('new leg', 'new game', 'next leg', 'reset leg',
+                                   'reset game', 'restart leg')):
+            if self.on_new_leg: self.on_new_leg()
+            return
+
         trigger = self.cfg.get('trigger', 'score').lower()
         require = self.cfg.get('require_trigger', True)
         if require:
@@ -434,6 +546,10 @@ class SpeechListener(threading.Thread):
             darts = parse_cricket_darts(after)
             if darts:
                 self.on_score(darts)
+        elif self.cfg.get('per_dart_mode', False):
+            dart = parse_single_dart(after)
+            if dart is not None:
+                self.on_score(('dart', dart[0], dart[1]))
         else:
             score = parse_score(after)
             if score is not None and 0 <= score <= 180:
@@ -732,6 +848,22 @@ class SettingsOverlay(FloatLayout):
         va_card.add_widget(self._toggle_row('Require Trigger Word',
                                             'Only score when trigger is spoken',
                                             self._tog_trigger))
+
+        self._tog_per_dart = KvToggle(
+            active=self._cfg.get('per_dart_mode', False),
+            on_change=lambda v: self._save('per_dart_mode', v),
+        )
+        va_card.add_widget(self._toggle_row('Per Dart Mode',
+                                            'Say each dart individually',
+                                            self._tog_per_dart))
+
+        self._tog_live_co = KvToggle(
+            active=self._cfg.get('live_checkout', False),
+            on_change=lambda v: self._save('live_checkout', v),
+        )
+        va_card.add_widget(self._toggle_row('Live Checkout',
+                                            'Track remaining & show checkout route',
+                                            self._tog_live_co))
 
         content.add_widget(va_card)
 
@@ -1155,9 +1287,11 @@ class DartVoiceLayout(FloatLayout):
             mode  = self.cfg.get('game_mode', 'X01'),
             start = int(self.cfg.get('x01_start', 501)),
         )
-        self._listener  = None
-        self._active    = False
-        self._status_ev = None
+        self._listener      = None
+        self._active        = False
+        self._status_ev     = None
+        self._current_darts = []      # per-dart accumulation
+        self._x01_remaining = None    # live checkout tracking
 
         self._build()
         Clock.schedule_once(lambda dt: self._billing_gate(), 0.5)
@@ -1372,12 +1506,13 @@ class DartVoiceLayout(FloatLayout):
                                   size_hint=(1, None), height=dp(18))
         top_stage.add_widget(self.maximum_lbl)
 
-        # "REMAINING" label
-        top_stage.add_widget(Label(
+        # Score area label (REMAINING or LAST SCORE depending on mode)
+        self._score_area_lbl = Label(
             text='REMAINING', font_size=sp(10), bold=True, color=FG2,
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(20),
-        ))
+        )
+        top_stage.add_widget(self._score_area_lbl)
 
         self.score_lbl = Label(
             text=str(self.state.remaining), font_size=sp(76), bold=True,
@@ -1385,6 +1520,22 @@ class DartVoiceLayout(FloatLayout):
             size_hint=(1, 1),
         )
         top_stage.add_widget(self.score_lbl)
+
+        # Per-dart slot display (hidden when not in per-dart mode)
+        self.dart_row_lbl = Label(
+            text='', font_size=sp(22), bold=True, color=FG2,
+            halign='center', valign='middle',
+            size_hint=(1, None), height=dp(32), opacity=0,
+        )
+        top_stage.add_widget(self.dart_row_lbl)
+
+        # Live checkout hint
+        self.checkout_lbl = Label(
+            text='', font_size=sp(13), bold=True, color=ACCENT,
+            halign='center', valign='middle',
+            size_hint=(1, None), height=dp(24),
+        )
+        top_stage.add_widget(self.checkout_lbl)
 
         self.status_lbl = Label(text='Ready', font_size=sp(11), color=FG2,
                                  halign='center', valign='middle',
@@ -1604,17 +1755,23 @@ class DartVoiceLayout(FloatLayout):
         self._refresh_mode_ui()
 
     def _refresh_mode_ui(self):
-        mode = self.cfg.get('game_mode', 'X01')
+        mode     = self.cfg.get('game_mode', 'X01')
+        is_live  = self.cfg.get('live_checkout', False) and mode == 'X01'
+        is_pdart = self.cfg.get('per_dart_mode', False) and mode == 'X01'
         if mode == 'Cricket':
             self.cricket_card.height  = dp(260)
             self.cricket_card.opacity = 1
-            self.score_lbl.text = 'CRICKET'
+            self.score_lbl.text      = 'CRICKET'
             self.score_lbl.font_size = sp(48)
         else:
             self.cricket_card.height  = 0
             self.cricket_card.opacity = 0
-            self.score_lbl.text = str(self.state.remaining)
-            self.score_lbl.font_size = sp(76)
+            self.score_lbl.text      = str(self.state.remaining)
+            self.score_lbl.font_size = sp(76 if not is_pdart else 52)
+        if hasattr(self, '_score_area_lbl'):
+            self._score_area_lbl.text = 'REMAINING' if is_live else 'LAST SCORE'
+        if hasattr(self, 'dart_row_lbl'):
+            self.dart_row_lbl.opacity = 1 if is_pdart else 0
 
     # ── Listening toggle ──────────────────────────────────────────────────────
     def _toggle(self):
@@ -1713,11 +1870,16 @@ class DartVoiceLayout(FloatLayout):
                 return
             self._listener = SpeechListener(
                 model_path, self.cfg, self._on_score, self._set_status,
+                on_cancel=self._on_cancel, on_new_leg=self._on_new_leg,
             )
             self._listener.start()
         self._active = True
         self.toggle_btn.text = 'STOP LISTENING'
         self._set_toggle_style(active=True)
+        # Initialise live checkout on first start
+        if self.cfg.get('live_checkout', False) and self._x01_remaining is None:
+            self._x01_remaining = self.cfg.get('x01_start', 501)
+            self._update_checkout_display()
         # Pulse mic icon while listening
         if hasattr(self, '_mic_icon'):
             self._mic_icon.opacity = 1
@@ -1808,19 +1970,93 @@ class DartVoiceLayout(FloatLayout):
         mode = self.cfg.get('game_mode', 'X01')
         if mode == 'Cricket':
             Clock.schedule_once(lambda dt: self._apply_cricket(data))
+        elif isinstance(data, tuple) and data[0] == 'dart':
+            _, dart_val, dart_disp = data
+            Clock.schedule_once(lambda dt: self._apply_dart(dart_val, dart_disp))
         else:
             Clock.schedule_once(lambda dt: self._apply_x01(data))
 
+    def _on_cancel(self):
+        """Undo the last per-dart entry, or (in 3-dart mode) the last visit."""
+        def _do(dt):
+            if self.cfg.get('per_dart_mode', False) and self._current_darts:
+                removed_val, _ = self._current_darts.pop()
+                if self.cfg.get('live_checkout', False) and self._x01_remaining is not None:
+                    self._x01_remaining += removed_val
+                self._update_dart_display()
+                self._update_checkout_display()
+                self._set_status('Cancelled')
+            elif self.state.scores:
+                last = self.state.scores.pop()
+                self.state.remaining += last
+                if self.cfg.get('live_checkout', False):
+                    self._x01_remaining = self.state.remaining
+                self.score_lbl.text = str(self.state.remaining)
+                self._update_checkout_display()
+                self._set_status('Undone')
+        Clock.schedule_once(_do)
+
+    def _on_new_leg(self):
+        Clock.schedule_once(lambda dt: self._reset())
+
+    def _apply_dart(self, dart_val, dart_disp):
+        """Accept one dart in per-dart mode."""
+        self._current_darts.append((dart_val, dart_disp))
+        if self.cfg.get('live_checkout', False) and self._x01_remaining is not None:
+            self._x01_remaining -= dart_val
+        self._update_dart_display()
+        self._update_checkout_display()
+        speak(dart_disp, self.cfg)
+        if len(self._current_darts) >= 3:
+            self._submit_current_visit()
+
+    def _submit_current_visit(self):
+        """Submit the accumulated darts as one visit."""
+        if not self._current_darts:
+            return
+        total = sum(v for v, _ in self._current_darts)
+        disps = [d for _, d in self._current_darts]
+        self._current_darts = []
+        self._apply_x01(total)
+
+    def _update_dart_display(self):
+        """Show current dart slots (e.g. 'T19  15  —') in per-dart mode."""
+        if not self.cfg.get('per_dart_mode', False):
+            return
+        slots = [d for _, d in self._current_darts]
+        while len(slots) < 3:
+            slots.append('—')
+        self.dart_row_lbl.text    = '   '.join(slots)
+        self.dart_row_lbl.opacity = 1
+
+    def _update_checkout_display(self):
+        """Update score label and checkout hint for live checkout mode."""
+        if not self.cfg.get('live_checkout', False):
+            return
+        rem = self._x01_remaining if self._x01_remaining is not None else self.state.remaining
+        self.score_lbl.text = str(max(0, rem))
+        hint = checkout_hint(rem)
+        self.checkout_lbl.text = hint or ('—' if isinstance(rem, int) and 2 <= rem <= 170 else '')
+
     def _apply_x01(self, score):
         result = self.state.apply_x01(score)
-        self.score_lbl.text = str(self.state.remaining)
+        # Update live checkout remaining
+        if self.cfg.get('live_checkout', False):
+            self._x01_remaining = self.state.remaining
+            self._update_checkout_display()
+        else:
+            self.score_lbl.text = str(self.state.remaining)
+        # In per-dart mode, clear dart row after submit
+        if self.cfg.get('per_dart_mode', False):
+            self.dart_row_lbl.text    = ''
+            self.dart_row_lbl.opacity = 0
         # MAXIMUM treatment for 180
         if score == 180:
-            self.maximum_lbl.text  = 'M A X I M U M'
-            self.score_lbl.color   = ACCENT
+            self.maximum_lbl.text = 'M A X I M U M'
+            self.score_lbl.color  = ACCENT
         else:
-            self.maximum_lbl.text  = ''
-            self.score_lbl.color   = FG
+            self.maximum_lbl.text = ''
+            self.score_lbl.color  = FG
         if self.state.scores:
             avg   = sum(self.state.scores) / len(self.state.scores)
             darts = len(self.state.scores) * 3
@@ -1835,7 +2071,8 @@ class DartVoiceLayout(FloatLayout):
             speak('Game shot!', self.cfg)
         else:
             self._set_status(f'Score: {score}')
-            speak(str(score), self.cfg)
+            if not self.cfg.get('per_dart_mode', False):
+                speak(str(score), self.cfg)
 
     def _apply_cricket(self, darts):
         results = self.state.apply_cricket(darts)
@@ -1900,6 +2137,8 @@ class DartVoiceLayout(FloatLayout):
     # ── Reset ─────────────────────────────────────────────────────────────────
     def _reset(self):
         self.state.reset()
+        self._current_darts = []
+        self._x01_remaining = None
         if self.state.mode == 'X01':
             self.score_lbl.text      = str(self.state.remaining)
             self.score_lbl.font_size = sp(76)
@@ -1909,6 +2148,11 @@ class DartVoiceLayout(FloatLayout):
         self.score_lbl.color = FG
         if hasattr(self, 'maximum_lbl'):
             self.maximum_lbl.text = ''
+        if hasattr(self, 'dart_row_lbl'):
+            self.dart_row_lbl.text    = ''
+            self.dart_row_lbl.opacity = 0
+        if hasattr(self, 'checkout_lbl'):
+            self.checkout_lbl.text = ''
         self.avg_lbl.text    = 'Avg —'
         self.darts_lbl.text  = 'Darts 0'
         self.history_box.clear_widgets()

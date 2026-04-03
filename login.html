@@ -232,7 +232,7 @@
             </div>
 
             <div class="hidden sm:flex items-center gap-3">
-                <a href="login.html?intent=subscribe" class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
+                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)" class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
             </div>
 
             <button onclick="document.getElementById('mob-nav').classList.toggle('open')"
@@ -251,7 +251,7 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
                 </a>
                 <div class="border-t border-wire/50 mt-1 pt-3">
-                    <a href="login.html?intent=subscribe" class="btn-brand block px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Start Free Trial</a>
+                    <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)" class="btn-brand block px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Start Free Trial</a>
                 </div>
             </div>
         </div>
@@ -377,7 +377,7 @@
                     <p class="text-[11px] text-muted">New to DartVoice?</p>
                     <p class="text-[12px] text-chalk font-semibold mt-0.5">7-day free trial — then £6.99/mo</p>
                 </div>
-                <a href="login.html?intent=subscribe"
+                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
                    class="shrink-0 px-3.5 py-1.5 rounded-lg bg-brand text-white text-xs font-bold hover:bg-brand-light transition">
                     Try Free →
                 </a>
@@ -430,9 +430,10 @@
     // Adapt UI for sign-up vs sign-in
     if (_isSignUp) {
         // Swap nav CTA to "Sign In" — user is already on the sign-up page
-        document.querySelectorAll('a[href="login.html?intent=subscribe"]').forEach(el => {
+        document.querySelectorAll('a.btn-brand[onclick*="dvCheckout"]').forEach(el => {
             el.textContent = 'Sign In';
             el.href = 'login.html';
+            el.removeAttribute('onclick');
             el.classList.remove('btn-brand');
             el.classList.add('btn-outline');
         });
@@ -630,6 +631,21 @@
         if (_resendTimer) clearInterval(_resendTimer);
         clearOtpBoxes();
         document.getElementById('input-email').focus();
+    }
+    </script>
+    <script>
+    const DV_CHECKOUT_URL = 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00';
+    function dvCheckout(e) {
+        if (e) e.preventDefault();
+        const isMobile = /Mobi|Android|iPhone|iPad|IEMobile/i.test(navigator.userAgent)
+                         || window.innerWidth < 768;
+        if (isMobile) { window.open(DV_CHECKOUT_URL, '_blank', 'noopener'); return; }
+        const w = 520, h = 720;
+        const left = Math.max(0, Math.round((screen.width  - w) / 2));
+        const top  = Math.max(0, Math.round((screen.height - h) / 2));
+        const popup = window.open(DV_CHECKOUT_URL, 'dvCheckout',
+            `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,toolbar=no,menubar=no`);
+        if (!popup || popup.closed) window.open(DV_CHECKOUT_URL, '_blank', 'noopener');
     }
     </script>
 </body>

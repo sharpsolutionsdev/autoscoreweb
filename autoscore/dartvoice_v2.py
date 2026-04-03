@@ -314,8 +314,9 @@ _CRICKET_TARGETS = {
 }
 _CRICKET_MODS = {'single':'s','double':'d','treble':'t','triple':'t',
                  'travel':'t','trouble':'t','tribal':'t','tremble':'t','trickle':'t',
-                 'devil':'d','doubles':'d','doubled':'d','dabble':'d',
-                 'singles':'s','singled':'s'}
+                 'tripled':'t','tripple':'t','trebble':'t','trible':'t','tripe':'t',
+                 'devil':'d','doubles':'d','doubled':'d','dabble':'d','dbl':'d',
+                 'singles':'s','singled':'s','sgl':'s'}
 
 _SHORTHAND_RE = re.compile(r'^([sdt])(\d{2}|bull?)$')
 _SHORTHAND_TARGETS = {'20':'20','19':'19','18':'18','17':'17','16':'16','15':'15','bul':'b','bull':'b','b':'b'}
@@ -341,9 +342,11 @@ def parse_single_dart(text):
             return (num, str(num))
     # special names
     if t in ('bull', 'bullseye', 'bulls', 'double bull', 'double bullseye', 'fifty',
-             'bull\'s eye', 'bulls eye'):
+             'bull\'s eye', 'bulls eye', 'double twenty five', 'double twenty-five',
+             'double outer bull', 'inner bull', 'fifty points'):
         return (50, 'Bull')
-    if t in ('outer bull', 'twenty five', 'twenty-five', 'half bull'):
+    if t in ('outer bull', 'twenty five', 'twenty-five', 'half bull', 'single bull',
+             'single twenty five', 'green bull', 'twenty-five points'):
         return (25, '25')
     if t in ('miss', 'missed', 'zero', 'nothing', 'none', 'no score',
              'outside', 'bounce out', 'bounce', 'bounced out'):
@@ -359,9 +362,17 @@ def parse_single_dart(text):
     if not words:
         return None
     val = _parse_under_100(' '.join(words))
-    if val is None or not (1 <= val <= 20):
+    if val is None:
         return None
-    return (val * mod, f"{pfx}{val}" if pfx else str(val))
+    if 1 <= val <= 20:
+        return (val * mod, f"{pfx}{val}" if pfx else str(val))
+    # No modifier: try reverse-mapping raw score to a dart (e.g. "51" → T17)
+    if mod == 1:
+        if val % 3 == 0 and 1 <= val // 3 <= 20:
+            return (val, f"T{val // 3}")
+        if val % 2 == 0 and 1 <= val // 2 <= 20:
+            return (val, f"D{val // 2}")
+    return None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Checkout suggestion table  (built once at import)
@@ -979,15 +990,17 @@ class _RecordThread(threading.Thread):
 
     LOGO_TEXT = "● DARTVOICE"
 
-    def __init__(self, region: dict, out_path: str, fps: int = 30):
+    def __init__(self, region: dict, out_path: str, fps: int = 30, mic: bool = False):
         super().__init__(daemon=True)
         self.region   = region    # {'left','top','width','height'}
         self.out_path = out_path
         self.fps      = fps
-        self._stop    = threading.Event()
+        self.mic      = mic
+        self._stop_evt = threading.Event()
+        self._audio_frames = []
 
     def stop(self):
-        self._stop.set()
+        self._stop_evt.set()
 
     def run(self):
         try:
@@ -999,7 +1012,9 @@ class _RecordThread(threading.Thread):
 
         w, h = self.region['width'], self.region['height']
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        writer = cv2.VideoWriter(self.out_path, fourcc, self.fps, (w, h))
+        # Write video to a temp path; we'll mux audio in afterwards if needed
+        vid_path = self.out_path if not self.mic else self.out_path + '_vid.mp4'
+        writer = cv2.VideoWriter(vid_path, fourcc, self.fps, (w, h))
 
         # Pre-render watermark once
         _font      = cv2.FONT_HERSHEY_SIMPLEX
@@ -1010,8 +1025,29 @@ class _RecordThread(threading.Thread):
         _wy = h - 10
         _interval = 1.0 / self.fps
 
+        # Start mic capture thread if requested
+        _pa = _pa_stream = None
+        _audio_frames = []
+        _CHUNK = 1024; _RATE = 44100; _CHANNELS = 1
+        if self.mic:
+            try:
+                import pyaudio as _pyaudio
+                _pa = _pyaudio.PyAudio()
+                _pa_stream = _pa.open(format=_pyaudio.paInt16,
+                                      channels=_CHANNELS, rate=_RATE,
+                                      input=True, frames_per_buffer=_CHUNK)
+                def _audio_loop():
+                    while not self._stop_evt.is_set():
+                        try:
+                            _audio_frames.append(_pa_stream.read(_CHUNK, exception_on_overflow=False))
+                        except Exception:
+                            break
+                threading.Thread(target=_audio_loop, daemon=True).start()
+            except Exception:
+                _pa = None  # mic unavailable — record video only
+
         with mss.mss() as sct:
-            while not self._stop.is_set():
+            while not self._stop_evt.is_set():
                 t0 = time.time()
                 img   = sct.grab(self.region)
                 frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGRA2BGR)
@@ -1028,6 +1064,38 @@ class _RecordThread(threading.Thread):
 
         writer.release()
 
+        # Mux audio if captured
+        if _pa_stream:
+            try:
+                _pa_stream.stop_stream(); _pa_stream.close(); _pa.terminate()
+            except Exception:
+                pass
+        if self.mic and _audio_frames:
+            try:
+                import wave as _wave, subprocess as _sp, os as _os
+                wav_path = self.out_path + '_audio.wav'
+                with _wave.open(wav_path, 'wb') as wf:
+                    wf.setnchannels(_CHANNELS)
+                    wf.setsampwidth(2)
+                    wf.setframerate(_RATE)
+                    wf.writeframes(b''.join(_audio_frames))
+                # Mux with ffmpeg if available
+                result = _sp.run(
+                    ['ffmpeg', '-y', '-i', vid_path, '-i', wav_path,
+                     '-c:v', 'copy', '-c:a', 'aac', '-shortest', self.out_path],
+                    capture_output=True, timeout=60)
+                if result.returncode == 0:
+                    _os.remove(vid_path)
+                    _os.remove(wav_path)
+                else:
+                    # ffmpeg failed — rename video as final output
+                    _os.replace(vid_path, self.out_path)
+                    _os.remove(wav_path)
+            except Exception:
+                import os as _os
+                try: _os.replace(vid_path, self.out_path)
+                except Exception: pass
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Speech thread
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1038,9 +1106,9 @@ class SpeechListener(threading.Thread):
         self.model_path = model_path; self.mic_index = mic_index
         self.cfg = cfg; self.on_score = on_score; self.on_status = on_status
         self.on_cancel = on_cancel; self.on_new_leg = on_new_leg
-        self._stop = threading.Event()
+        self._stop_evt = threading.Event()
 
-    def stop(self): self._stop.set()
+    def stop(self): self._stop_evt.set()
 
     def run(self):
         try:
@@ -1055,7 +1123,7 @@ class SpeechListener(threading.Thread):
             self.on_status(f"Mic error: {e}"); return
 
         self.on_status("Listening")
-        while not self._stop.is_set():
+        while not self._stop_evt.is_set():
             try:
                 data = stream.read(4000, exception_on_overflow=False)
                 if rec.AcceptWaveform(data):
@@ -1989,7 +2057,9 @@ class DartVoiceApp(ctk.CTk):
         body.grid_rowconfigure(0, weight=1)
 
         # ── COLUMN 0: Session History ─────────────────────────────────────
-        left_panel = ctk.CTkFrame(body, fg_color=CARD, corner_radius=0)
+        left_panel = ctk.CTkScrollableFrame(body, fg_color=CARD, corner_radius=0,
+                                            scrollbar_button_color=ACCENT,
+                                            scrollbar_button_hover_color=PRI_HOV)
         left_panel.grid(row=0, column=0, sticky='nsew')
 
         hist_hdr = ctk.CTkFrame(left_panel, fg_color='transparent', height=42)
@@ -2127,7 +2197,8 @@ class DartVoiceApp(ctk.CTk):
                          font=("Rubik", 8, "bold"), fg_color=CARD2, corner_radius=20,
                          ).pack(side='left', padx=3, ipadx=8, ipady=4)
 
-        is_live = self.cfg.get('live_checkout', False) and mode_text == 'X01'
+        is_live = (self.cfg.get('live_checkout', False) and mode_text == 'X01'
+                   and not self.cfg.get('per_dart_mode', False))
         score_label_text = "REMAINING" if is_live else "LAST SCORE"
         ctk.CTkLabel(center, text=score_label_text, text_color=FG2,
                      font=("Rubik", 8, "bold")).pack(pady=(14, 4))
@@ -2175,6 +2246,8 @@ class DartVoiceApp(ctk.CTk):
 
         co_area = ctk.CTkFrame(right_panel, fg_color='transparent')
         co_area.pack(fill='x', padx=16, pady=(10, 0))
+        ctk.CTkLabel(co_area, textvariable=self._remaining_str, text_color=FG,
+                     font=("Uber Move Bold", 28, "bold")).pack(anchor='w')
         ctk.CTkLabel(co_area, textvariable=self._checkout_str, text_color=ACCENT,
                      font=("Uber Move Bold", 13, "bold"), wraplength=166,
                      justify='left').pack(anchor='w')
@@ -2442,7 +2515,8 @@ class DartVoiceApp(ctk.CTk):
         T = 2
 
         is_live = (self.cfg.get('live_checkout', False) and
-                   self.cfg.get('game_mode', 'X01') == 'X01')
+                   self.cfg.get('game_mode', 'X01') == 'X01' and
+                   not self.cfg.get('per_dart_mode', False))
         val = self._remaining_str.get() if is_live else self._score_str.get()
         is_180 = (val == '180') and not is_live
         col = ACCENT if self._active else SEP
@@ -2666,17 +2740,18 @@ class DartVoiceApp(ctk.CTk):
         """Show region selector overlay, then begin recording."""
         sel_win = tk.Toplevel(self)
         sel_win.overrideredirect(True)
-        sel_win.attributes('-fullscreen', True)
-        sel_win.attributes('-alpha', 0.25)
-        sel_win.attributes('-topmost', True)
-        sel_win.config(bg='#000010')
-        sel_win.lift(); sel_win.focus_force()
-
-        canvas = tk.Canvas(sel_win, bg='#000010', highlightthickness=0, cursor='crosshair')
-        canvas.pack(fill='both', expand=True)
-
         sw = sel_win.winfo_screenwidth()
         sh = sel_win.winfo_screenheight()
+        sel_win.geometry(f"{sw}x{sh}+0+0")
+        sel_win.attributes('-alpha', 0.35)
+        sel_win.attributes('-topmost', True)
+        sel_win.config(bg='#000018')
+        sel_win.update_idletasks()
+        sel_win.lift(); sel_win.focus_force()
+
+        canvas = tk.Canvas(sel_win, bg='#000018', highlightthickness=0, cursor='crosshair')
+        canvas.pack(fill='both', expand=True)
+        sel_win.update_idletasks()
 
         # Instruction label
         inst = canvas.create_text(sw // 2, 40, text="Click and drag to select the area to record  ·  ESC to cancel",
@@ -2717,7 +2792,10 @@ class DartVoiceApp(ctk.CTk):
     def _begin_recording(self, region):
         import os, datetime
         ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        out_dir = os.path.join(os.path.expanduser('~'), 'Videos')
+        # Use saved dir from config, defaulting to ~/Videos/DartVoice
+        out_dir = self.cfg.get('rec_save_dir', '')
+        if not out_dir or not os.path.isdir(out_dir):
+            out_dir = os.path.join(os.path.expanduser('~'), 'Videos', 'DartVoice')
         os.makedirs(out_dir, exist_ok=True)
         out_path = os.path.join(out_dir, f'DartVoice_{ts}.mp4')
 
@@ -2731,7 +2809,9 @@ class DartVoiceApp(ctk.CTk):
                 f"Screen recording needs mss and opencv-python.\n\npip install mss opencv-python\n\n({err})")
             return
 
-        self._recorder_thread = _RecordThread(region, out_path)
+        mic_on = self.cfg.get('rec_mic', False)
+        fps = int(self.cfg.get('rec_fps', 30))
+        self._recorder_thread = _RecordThread(region, out_path, fps=fps, mic=mic_on)
         self._recorder_thread.start()
         self._record_out_path = out_path
 
@@ -2809,7 +2889,8 @@ class DartVoiceApp(ctk.CTk):
             self._igw.lift(); return
 
         is_live = (self.cfg.get('live_checkout', False) and
-                   self.cfg.get('game_mode', 'X01') == 'X01')
+                   self.cfg.get('game_mode', 'X01') == 'X01' and
+                   not self.cfg.get('per_dart_mode', False))
 
         # Window: borderless, transparent chrome, always-on-top
         win = tk.Toplevel(self)
@@ -3406,6 +3487,7 @@ class DartVoiceApp(ctk.CTk):
         p_appear   = _make_tab('appear',   'Appearance')
         p_gameplay = _make_tab('gameplay', 'Gameplay')
         p_video    = _make_tab('video',    'Video Scoring')
+        p_record   = _make_tab('record',   'Recordings')
 
         # ── Shared widget helpers ─────────────────────────────────────────
         def _section(parent, text):
@@ -3921,6 +4003,124 @@ class DartVoiceApp(ctk.CTk):
                          ).pack(anchor='w', padx=24, pady=(0, 16))
 
         _builders['appear'] = _build_appear
+
+        # ══════════════════════════ RECORDINGS TAB ═══════════════════════
+        def _build_record():
+            import os
+
+            _section(p_record, "SAVE LOCATION")
+            save_dir = self.cfg.get('rec_save_dir', '') or os.path.join(
+                os.path.expanduser('~'), 'Videos', 'DartVoice')
+            dir_var = ctk.StringVar(value=save_dir)
+
+            dir_frame = ctk.CTkFrame(p_record, fg_color='transparent')
+            dir_frame.pack(fill='x', padx=24, pady=(0, 6))
+            ctk.CTkEntry(
+                dir_frame, textvariable=dir_var, font=("Rubik", 10),
+                fg_color=BG, border_color=SEP, text_color=FG2,
+                height=34, corner_radius=8,
+            ).pack(side='left', fill='x', expand=True, padx=(0, 6))
+
+            def _pick_dir():
+                from tkinter import filedialog
+                chosen = filedialog.askdirectory(
+                    title="Choose recordings folder",
+                    initialdir=dir_var.get() if os.path.isdir(dir_var.get()) else os.path.expanduser('~'))
+                if chosen:
+                    dir_var.set(chosen)
+                    self._save_setting('rec_save_dir', chosen)
+
+            ctk.CTkButton(
+                dir_frame, text="Browse", width=72,
+                fg_color=CARD2, hover_color=SEP, text_color=FG,
+                height=34, corner_radius=8, border_width=1, border_color=SEP,
+                command=_pick_dir,
+            ).pack(side='left')
+
+            _section(p_record, "AUDIO")
+            mic_var = ctk.BooleanVar(value=self.cfg.get('rec_mic', False))
+            _switch_row(p_record, "Record microphone audio",
+                        "Requires pyaudio + ffmpeg installed",
+                        mic_var,
+                        lambda: self._save_setting('rec_mic', mic_var.get()))
+
+            _section(p_record, "QUALITY")
+            fps_var = ctk.StringVar(value=str(self.cfg.get('rec_fps', 30)))
+            _option_menu(p_record, fps_var, ['15', '24', '30', '60'],
+                         lambda v: self._save_setting('rec_fps', int(v)))
+
+            _section(p_record, "SAVED RECORDINGS")
+
+            rec_list_frame = ctk.CTkScrollableFrame(
+                p_record, fg_color=BG, corner_radius=10,
+                border_width=1, border_color=SEP, height=220)
+            rec_list_frame.pack(fill='x', padx=24, pady=(0, 8))
+
+            def _refresh_recordings():
+                for w in rec_list_frame.winfo_children():
+                    w.destroy()
+                d = dir_var.get()
+                if not os.path.isdir(d):
+                    ctk.CTkLabel(rec_list_frame, text="Folder not found",
+                                 text_color=FG3, font=("Rubik", 10)).pack(pady=12)
+                    return
+                files = sorted(
+                    [f for f in os.listdir(d) if f.startswith('DartVoice_') and f.endswith('.mp4')],
+                    reverse=True)
+                if not files:
+                    ctk.CTkLabel(rec_list_frame, text="No recordings yet",
+                                 text_color=FG3, font=("Rubik", 10)).pack(pady=12)
+                    return
+                for fname in files:
+                    fpath = os.path.join(d, fname)
+                    try:
+                        size_mb = os.path.getsize(fpath) / (1024 * 1024)
+                        size_str = f"{size_mb:.1f} MB"
+                    except Exception:
+                        size_str = ""
+                    row = ctk.CTkFrame(rec_list_frame, fg_color='transparent')
+                    row.pack(fill='x', pady=1)
+                    ctk.CTkLabel(row, text=fname, text_color=FG,
+                                 font=("Rubik", 10), anchor='w').pack(
+                        side='left', fill='x', expand=True, padx=(4, 0))
+                    ctk.CTkLabel(row, text=size_str, text_color=FG3,
+                                 font=("Rubik", 9)).pack(side='left', padx=4)
+                    ctk.CTkButton(
+                        row, text="▶", width=28, height=26, corner_radius=6,
+                        fg_color=CARD2, hover_color=SEP, text_color=FG,
+                        command=lambda p=fpath: os.startfile(p),
+                    ).pack(side='left', padx=1)
+                    ctk.CTkButton(
+                        row, text="📁", width=28, height=26, corner_radius=6,
+                        fg_color=CARD2, hover_color=SEP, text_color=FG,
+                        command=lambda p=fpath: os.startfile(os.path.dirname(p)),
+                    ).pack(side='left', padx=1)
+                    def _del(p=fpath):
+                        from tkinter import messagebox
+                        if messagebox.askyesno("Delete", f"Delete {os.path.basename(p)}?"):
+                            try: os.remove(p)
+                            except Exception: pass
+                            _refresh_recordings()
+                    ctk.CTkButton(
+                        row, text="✕", width=28, height=26, corner_radius=6,
+                        fg_color='#2A0000', hover_color='#440000', text_color='#FF6666',
+                        command=_del,
+                    ).pack(side='left', padx=(1, 4))
+
+            _refresh_recordings()
+
+            ctk.CTkButton(
+                p_record, text="↺  Refresh", height=32, corner_radius=8,
+                fg_color=CARD2, hover_color=SEP, text_color=FG2,
+                border_width=1, border_color=SEP,
+                command=_refresh_recordings,
+            ).pack(fill='x', padx=24, pady=(0, 6))
+
+            _action_btn(p_record, "Open Recordings Folder",
+                        lambda: (os.makedirs(dir_var.get(), exist_ok=True),
+                                 os.startfile(dir_var.get())))
+
+        _builders['record'] = _build_record
 
         # ── Activate first tab ────────────────────────────────────────────
         _switch_lazy('audio')
