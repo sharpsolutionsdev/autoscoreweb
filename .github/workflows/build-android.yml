@@ -7,13 +7,16 @@ on:
       - 'autoscore/dartvoice_android.py'
       - 'autoscore/buildozer.spec'
       - '.github/workflows/build-android.yml'
-  workflow_dispatch:   # allows manual trigger from the Actions tab
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # silence Node 20 deprecation warning
 
 jobs:
   build:
     name: Build APK (arm64)
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
 
@@ -28,21 +31,23 @@ jobs:
           sudo apt-get install -y \
             git zip unzip wget \
             openjdk-17-jdk \
-            python3-pip python3-venv \
+            python3-pip python3-venv python3-setuptools \
             libffi-dev libssl-dev \
             autoconf libtool pkg-config \
             zlib1g-dev cmake \
-            libltdl-dev
+            libltdl-dev \
+            build-essential \
+            libncurses-dev \
+            lld
 
       # ── 3. Python / buildozer ────────────────────────────────────────────────
       - name: Install Python build tools
         run: |
           python3 -m pip install --upgrade pip
-          # Cython pinned <3.0 to avoid pyjnius compilation errors
+          # Cython pinned <3.0 — higher versions break pyjnius compilation
           python3 -m pip install buildozer "Cython<3.0"
 
       # ── 4. Cache the Android SDK/NDK + buildozer downloads ──────────────────
-      #    Makes subsequent builds ~10 min instead of ~40 min
       - name: Cache buildozer global dir
         uses: actions/cache@v4
         with:
@@ -57,30 +62,44 @@ jobs:
           path: ~/.gradle
           key: gradle-${{ runner.os }}
 
-      # ── 5. Build ─────────────────────────────────────────────────────────────
+      # ── 5. Vosk Android wheel ────────────────────────────────────────────────
+      # The p4a vosk recipe is unreliable; use the official pre-built arm64 wheel.
+      - name: Download Vosk arm64 wheel
+        working-directory: autoscore
+        run: |
+          wget -q \
+            https://github.com/alphacep/vosk-api/releases/download/v0.3.45/vosk-0.3.45-cp311-cp311-linux_aarch64.whl
+          # Swap "vosk" in requirements for the local wheel path so buildozer
+          # uses the pre-built binary instead of trying to compile from source
+          sed -i 's/,vosk,/,.\\/vosk-0.3.45-cp311-cp311-linux_aarch64.whl,/' buildozer.spec
+
+      # ── 6. Build ─────────────────────────────────────────────────────────────
       - name: Build debug APK
         working-directory: autoscore
         run: |
           set -o pipefail
           buildozer android debug 2>&1 | tee build.log
-          echo "--- Last 50 lines of build log ---"
-          tail -50 build.log
+          echo "--- Last 80 lines of build log ---"
+          tail -80 build.log
 
-      # ── 6. Rename APK for a clean, stable download URL ───────────────────────
+      # ── 7. Rename for stable URL ─────────────────────────────────────────────
       - name: Rename APK
         run: mv autoscore/bin/*.apk autoscore/bin/DartVoice.apk
 
-      # ── 7. Keep artifact for debugging purposes (30 days) ────────────────────
+      # ── 8. Keep artifact for debugging (30 days) ─────────────────────────────
       - name: Upload APK artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: DartVoice-debug-apk
-          path: autoscore/bin/DartVoice.apk
+          path: |
+            autoscore/bin/DartVoice.apk
+            autoscore/build.log
           retention-days: 30
 
-      # ── 8. Publish to GitHub Releases (public download) ──────────────────────
-      #    Creates/updates the "android-latest" release so the URL never changes:
-      #    https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk
+      # ── 9. Publish to GitHub Releases ────────────────────────────────────────
+      # Public URL (never changes between builds):
+      # https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
@@ -89,10 +108,10 @@ jobs:
           body: |
             Latest DartVoice Android build — auto-published by CI.
 
-            **Install instructions:**
-            1. Open this link on your Android phone and tap Download
-            2. Go to Settings → Security → enable "Install from unknown sources" (or "Install unknown apps")
-            3. Open the downloaded APK and tap Install
+            **Install steps:**
+            1. Tap the `DartVoice.apk` link below to download on your Android device
+            2. Settings → Security → enable **Install from unknown sources** (or *Install unknown apps*)
+            3. Open the downloaded file and tap **Install**
           files: autoscore/bin/DartVoice.apk
           make_latest: true
         env:
