@@ -1319,7 +1319,7 @@ class DartVoiceLayout(FloatLayout):
         # Demo expired — show blocking paywall
         self._show_paywall()
 
-    def _on_billing_checked(self, subscribed: bool):
+    def _on_billing_checked(self, subscribed: bool, account=None):
         if subscribed:
             Clock.schedule_once(
                 lambda dt: setattr(self.status_lbl, 'text', 'Ready')
