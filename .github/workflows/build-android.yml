@@ -18,6 +18,8 @@ jobs:
   build:
     name: Build APK (arm64)
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     timeout-minutes: 90
 
     steps:
