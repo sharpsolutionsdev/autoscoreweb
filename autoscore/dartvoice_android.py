@@ -36,16 +36,74 @@ from kivy.animation import Animation
 # ─────────────────────────────────────────────────────────────────────────────
 # Palette (matches desktop app)
 # ─────────────────────────────────────────────────────────────────────────────
-BG      = (0.031, 0.031, 0.039, 1)
-CARD    = (0.067, 0.067, 0.078, 1)
-FG      = (0.941, 0.941, 0.961, 1)
-FG2     = (0.431, 0.431, 0.510, 1)
-ACCENT  = (0.784, 0.063, 0.180, 1)   # Sharp Red default
-SEP     = (0.145, 0.145, 0.188, 1)
+BG   = (0.031, 0.031, 0.039, 1)
+CARD = (0.067, 0.067, 0.078, 1)
+FG   = (0.941, 0.941, 0.961, 1)
+FG2  = (0.431, 0.431, 0.510, 1)
+SEP  = (0.145, 0.145, 0.188, 1)
+
+# Theme-driven globals (updated by _apply_theme)
+ACCENT     = (0.800, 0.043, 0.125, 1)
+ACCENT_DIM = (0.533, 0.027, 0.078, 1)
+STOP_BG    = (0.102, 0.024, 0.031, 1)
+STOP_BDR   = (0.227, 0.063, 0.094, 1)
 
 def hex_to_kivy(h):
     h = h.lstrip('#')
     return tuple(int(h[i:i+2], 16) / 255 for i in (0, 2, 4)) + (1,)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Player themes  (mirrors Windows app exactly)
+# ─────────────────────────────────────────────────────────────────────────────
+THEMES = {
+    'Littler':       {'player': 'Luke Littler',          'nickname': 'The Nuke',
+                      'accent': '#CC0B20', 'accent_dim': '#880714',
+                      'stop_bg': '#1A0608', 'stop_bdr': '#3A1018'},
+    'Anderson':      {'player': 'Gary Anderson',         'nickname': 'The Flying Scotsman',
+                      'accent': '#0074D9', 'accent_dim': '#004A8C',
+                      'stop_bg': '#080E1A', 'stop_bdr': '#12223A'},
+    'van Gerwen':    {'player': 'Michael van Gerwen',    'nickname': 'MvG',
+                      'accent': '#00B140', 'accent_dim': '#006B26',
+                      'stop_bg': '#081408', 'stop_bdr': '#102A14'},
+    'Wright':        {'player': 'Peter Wright',          'nickname': 'Snakebite',
+                      'accent': '#9B30FF', 'accent_dim': '#5E1AAA',
+                      'stop_bg': '#120A1C', 'stop_bdr': '#26143C'},
+    'van Barneveld': {'player': 'Raymond van Barneveld', 'nickname': 'Barney',
+                      'accent': '#FF6200', 'accent_dim': '#A33D00',
+                      'stop_bg': '#1A0E04', 'stop_bdr': '#3A1E08'},
+    'Taylor':        {'player': 'Phil Taylor',           'nickname': 'The Power',
+                      'accent': '#D4A017', 'accent_dim': '#8C6A0A',
+                      'stop_bg': '#1A1606', 'stop_bdr': '#3A2E0C'},
+    'Price':         {'player': 'Gerwyn Price',          'nickname': 'The Iceman',
+                      'accent': '#D0E8FF', 'accent_dim': '#6080A0',
+                      'stop_bg': '#0C1218', 'stop_bdr': '#1E2E3C',
+                      '_light': True},
+    'Sherrock':      {'player': 'Fallon Sherrock',       'nickname': 'Queen of the Palace',
+                      'accent': '#E8007A', 'accent_dim': '#960050',
+                      'stop_bg': '#1A0410', 'stop_bdr': '#3A0C28'},
+    'Custom':        {'player': 'Your Colour',           'nickname': 'Pick any accent',
+                      'accent': '#FFFFFF', 'accent_dim': '#888888',
+                      'stop_bg': '#111114', 'stop_bdr': '#282830',
+                      '_custom': True},
+}
+
+def _apply_theme(name, custom_hex='#FFFFFF'):
+    """Update global theme colours. Call before building/rebuilding UI."""
+    global ACCENT, ACCENT_DIM, STOP_BG, STOP_BDR
+    t = THEMES.get(name, THEMES['Littler'])
+    if t.get('_custom'):
+        ACCENT     = hex_to_kivy(custom_hex)
+        # Derive dim + tints from the custom hex
+        h = custom_hex.lstrip('#')
+        r, g, b = (int(h[i:i+2], 16) / 255 for i in (0, 2, 4))
+        ACCENT_DIM = (r * 0.55, g * 0.55, b * 0.55, 1)
+        STOP_BG    = (r * 0.10, g * 0.10, b * 0.10, 1)
+        STOP_BDR   = (r * 0.22, g * 0.22, b * 0.22, 1)
+    else:
+        ACCENT     = hex_to_kivy(t['accent'])
+        ACCENT_DIM = hex_to_kivy(t['accent_dim'])
+        STOP_BG    = hex_to_kivy(t['stop_bg'])
+        STOP_BDR   = hex_to_kivy(t['stop_bdr'])
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Config
@@ -705,22 +763,16 @@ class KvToggle(Widget):
 # ─────────────────────────────────────────────────────────────────────────────
 # Settings overlay
 # ─────────────────────────────────────────────────────────────────────────────
-_PRESET_ACCENTS = [
-    ('#C80F2D', 'Red'),    ('#9B59B6', 'Purple'), ('#3498DB', 'Blue'),
-    ('#27AE60', 'Green'),  ('#E67E22', 'Orange'), ('#F1C40F', 'Gold'),
-    ('#00BCD4', 'Cyan'),   ('#FFFFFF', 'White'),
-]
-
 class SettingsOverlay(FloatLayout):
     """Slide-up settings panel. Touch-blocks the game UI beneath it."""
 
-    def __init__(self, cfg, save_cb, apply_accent_cb, **kwargs):
+    def __init__(self, cfg, save_cb, apply_theme_cb, **kwargs):
         kwargs.setdefault('pos_hint', {'x': 0, 'y': -1})
         kwargs.setdefault('size_hint', (1, 1))
         super().__init__(**kwargs)
-        self._cfg         = cfg
-        self._save_cb     = save_cb
-        self._apply_accent = apply_accent_cb
+        self._cfg          = cfg
+        self._save_cb      = save_cb
+        self._apply_theme  = apply_theme_cb
         self._build()
 
     # ── touch blocking ────────────────────────────────────────────────────────
@@ -779,31 +831,85 @@ class SettingsOverlay(FloatLayout):
         hdr.add_widget(close_btn)
         content.add_widget(hdr)
 
-        # ── Section: Theme Color ──────────────────────────────────────────────
-        content.add_widget(self._section_label('THEME COLOUR'))
+        # ── Section: Player Theme ─────────────────────────────────────────────
+        content.add_widget(self._section_label('PLAYER THEME'))
 
-        swatch_grid = GridLayout(cols=4, size_hint_y=None, height=dp(110),
-                                 spacing=dp(8))
-        for hex_col, name in _PRESET_ACCENTS:
-            col = hex_to_kivy(hex_col)
-            btn = Button(size_hint=(1, 1),
-                         background_normal='', background_color=(0, 0, 0, 0),
-                         on_press=lambda *_, h=hex_col: self._apply_accent(h))
-            with btn.canvas.before:
-                Color(*col)
-                btn._swatch = RoundedRectangle(pos=btn.pos, size=btn.size,
-                                               radius=[dp(10)])
-            btn.bind(pos=lambda *_, b=btn: setattr(b._swatch, 'pos', b.pos),
-                     size=lambda *_, b=btn: setattr(b._swatch, 'size', b.size))
-            swatch_grid.add_widget(btn)
-        content.add_widget(swatch_grid)
+        active_theme = self._cfg.get('theme', 'Littler')
+        theme_grid = GridLayout(cols=2, size_hint_y=None, spacing=dp(8))
+        theme_grid.bind(minimum_height=theme_grid.setter('height'))
 
-        # Custom hex row
+        for t_name, t_data in THEMES.items():
+            is_selected = (t_name == active_theme)
+            accent_col  = hex_to_kivy(t_data['accent'])
+
+            card = BoxLayout(orientation='horizontal', size_hint_y=None,
+                             height=dp(58), padding=[dp(10), dp(8), dp(10), dp(8)],
+                             spacing=dp(10))
+            with card.canvas.before:
+                if is_selected:
+                    Color(*accent_col[:3], 0.18)
+                else:
+                    Color(*CARD)
+                card._bg = RoundedRectangle(pos=card.pos, size=card.size,
+                                            radius=[dp(12)])
+                if is_selected:
+                    Color(*accent_col[:3], 0.55)
+                    card._bdr = RoundedRectangle(pos=card.pos, size=card.size,
+                                                 radius=[dp(12)])
+            card.bind(
+                pos=lambda w, *_: (setattr(w._bg,  'pos', w.pos),
+                                   setattr(w._bg,  'size', w.size),
+                                   setattr(w._bdr, 'pos', w.pos) if hasattr(w, '_bdr') else None,
+                                   setattr(w._bdr, 'size', w.size) if hasattr(w, '_bdr') else None),
+                size=lambda w, *_: (setattr(w._bg,  'pos', w.pos),
+                                    setattr(w._bg,  'size', w.size),
+                                    setattr(w._bdr, 'pos', w.pos) if hasattr(w, '_bdr') else None,
+                                    setattr(w._bdr, 'size', w.size) if hasattr(w, '_bdr') else None),
+            )
+
+            # Accent dot
+            dot_wrap = Widget(size_hint=(None, None), size=(dp(28), dp(28)))
+            with dot_wrap.canvas:
+                Color(*accent_col)
+                dot_wrap._dot = Ellipse(pos=(0, 0), size=(dp(28), dp(28)))
+            dot_wrap.bind(
+                pos=lambda w, *_: setattr(w._dot, 'pos', (w.center_x - dp(14), w.center_y - dp(14))),
+                size=lambda w, *_: setattr(w._dot, 'size', w.size),
+            )
+            card.add_widget(dot_wrap)
+
+            # Text column
+            txt = BoxLayout(orientation='vertical', size_hint_x=1)
+            txt.add_widget(Label(
+                text=t_data['player'], font_size=sp(12), bold=True,
+                color=accent_col if is_selected else FG,
+                halign='left', valign='middle',
+                size_hint_y=None, height=dp(22), text_size=(None, None),
+            ))
+            txt.add_widget(Label(
+                text=t_data['nickname'], font_size=sp(10),
+                color=FG2, halign='left', valign='top',
+                size_hint_y=None, height=dp(16), text_size=(None, None),
+            ))
+            card.add_widget(txt)
+
+            # Tap handler
+            touch_btn = Button(size_hint=(1, 1), background_normal='',
+                               background_color=(0, 0, 0, 0),
+                               on_press=lambda *_, n=t_name: self._pick_theme(n))
+            card.add_widget(touch_btn)
+            theme_grid.add_widget(card)
+
+        content.add_widget(theme_grid)
+
+        # Custom hex row (shown always; only meaningful when Custom theme active)
+        content.add_widget(self._section_label('CUSTOM COLOUR'))
         hex_row = BoxLayout(size_hint_y=None, height=dp(48), spacing=dp(8))
         self._hex_input = TextInput(
-            hint_text='Custom hex  #C80F2D',
+            hint_text='Hex colour  e.g. #E8007A',
+            text=self._cfg.get('custom_accent', ''),
             font_size=sp(13), multiline=False,
-            background_normal='', background_color=(*[c for c in BG[:3]], 1),
+            background_normal='', background_color=(*BG[:3], 1),
             foreground_color=FG, hint_text_color=FG2,
             cursor_color=ACCENT[:3] + (1,),
             size_hint_x=1,
@@ -812,12 +918,11 @@ class SettingsOverlay(FloatLayout):
         apply_btn = Button(text='Apply', font_size=sp(13), bold=True,
                            size_hint=(None, 1), width=dp(70),
                            background_normal='', background_color=(0, 0, 0, 0),
-                           color=FG,
-                           on_press=lambda *_: self._on_apply_custom())
+                           color=FG, on_press=lambda *_: self._on_apply_custom())
         with apply_btn.canvas.before:
             Color(*ACCENT)
             apply_btn._bg = RoundedRectangle(pos=apply_btn.pos,
-                                              size=apply_btn.size, radius=[dp(10)])
+                                             size=apply_btn.size, radius=[dp(10)])
         apply_btn.bind(
             pos=lambda *_: setattr(apply_btn._bg, 'pos', apply_btn.pos),
             size=lambda *_: setattr(apply_btn._bg, 'size', apply_btn.size),
@@ -910,12 +1015,16 @@ class SettingsOverlay(FloatLayout):
         self._cfg[key] = value
         self._save_cb()
 
+    def _pick_theme(self, theme_name):
+        custom_hex = self._cfg.get('custom_accent', '#FFFFFF')
+        self._apply_theme(theme_name, custom_hex)
+
     def _on_apply_custom(self):
         raw = self._hex_input.text.strip()
         if not raw.startswith('#'):
             raw = '#' + raw
         if len(raw) in (4, 7):
-            self._apply_accent(raw)
+            self._apply_theme('Custom', raw)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1273,11 +1382,12 @@ class DartVoiceLayout(FloatLayout):
         super().__init__(**kwargs)
         Window.clearcolor = BG
 
-        self.cfg   = load_config()
-        # Apply saved accent colour before building UI
-        if 'custom_accent' in self.cfg:
-            global ACCENT
-            ACCENT = hex_to_kivy(self.cfg['custom_accent'])
+        self.cfg = load_config()
+        # Apply saved theme before building UI
+        _apply_theme(
+            self.cfg.get('theme', 'Littler'),
+            self.cfg.get('custom_accent', '#FFFFFF'),
+        )
         self.state = GameState(
             mode  = self.cfg.get('game_mode', 'X01'),
             start = int(self.cfg.get('x01_start', 501)),
@@ -1337,11 +1447,9 @@ class DartVoiceLayout(FloatLayout):
         if bs['locked']:
             Clock.schedule_once(lambda dt: self._show_paywall())
 
-    def _apply_accent(self, hex_color):
-        global ACCENT
-        ACCENT = hex_to_kivy(hex_color)
-        self._save_cfg({'custom_accent': hex_color})
-        # Close any open overlays cleanly, then rebuild
+    def _apply_theme_cb(self, theme_name, custom_hex='#FFFFFF'):
+        _apply_theme(theme_name, custom_hex)
+        self._save_cfg({'theme': theme_name, 'custom_accent': custom_hex})
         for child in list(self.children):
             if isinstance(child, (SettingsOverlay, PaywallOverlay)):
                 self.remove_widget(child)
@@ -1354,7 +1462,7 @@ class DartVoiceLayout(FloatLayout):
         overlay = SettingsOverlay(
             cfg=self.cfg,
             save_cb=lambda: self._save_cfg({}),
-            apply_accent_cb=self._apply_accent,
+            apply_theme_cb=self._apply_theme_cb,
             size_hint=(1, 1),
         )
         self.add_widget(overlay)
@@ -1783,12 +1891,11 @@ class DartVoiceLayout(FloatLayout):
         btn = self.toggle_btn
 
         if active:
-            r, g, b    = ACCENT[0], ACCENT[1], ACCENT[2]
-            target_bg  = (r * 0.08, g * 0.06, b * 0.08, 1)
-            target_fg  = ACCENT
+            target_bg = STOP_BG
+            target_fg = ACCENT
         else:
-            target_bg  = ACCENT
-            target_fg  = FG
+            target_bg = ACCENT
+            target_fg = FG
 
         # Build the canvas instruction objects (or reuse if already present)
         if not hasattr(btn, '_anim_color_instr'):
@@ -2208,7 +2315,18 @@ class DartVoiceAndroidApp(App):
         return DartVoiceLayout()
 
     def on_pause(self):
-        # Allow the app to stay alive when home button is pressed
+        if ANDROID:
+            try:
+                from jnius import autoclass  # type: ignore
+                Build = autoclass('android.os.Build$VERSION')
+                if Build.SDK_INT >= 26:
+                    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                    Builder   = autoclass('android.app.PictureInPictureParams$Builder')
+                    Rational  = autoclass('android.util.Rational')
+                    params = Builder().setAspectRatio(Rational(9, 16)).build()
+                    PythonActivity.mActivity.enterPictureInPictureMode(params)
+            except Exception:
+                pass
         return True
 
     def on_resume(self):
