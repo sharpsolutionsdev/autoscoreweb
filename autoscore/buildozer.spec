@@ -8,7 +8,6 @@ version        = 1.7
 
 # Source
 source.dir          = .
-source.main         = dartvoice_android.py
 source.include_exts = py,json,ttf,otf
 
 # Bundle the Vosk model inside the APK (extracted to writable storage on first run)
