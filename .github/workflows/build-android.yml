@@ -6,11 +6,13 @@ on:
     paths:
       - 'autoscore/dartvoice_android.py'
       - 'autoscore/buildozer.spec'
+      - 'autoscore/billing.py'
+      - 'autoscore/service/main.py'
       - '.github/workflows/build-android.yml'
   workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # silence Node 20 deprecation warning
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -20,11 +22,9 @@ jobs:
 
     steps:
 
-      # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ── 2. System dependencies ───────────────────────────────────────────────
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
@@ -34,27 +34,20 @@ jobs:
             python3-pip python3-venv python3-setuptools \
             libffi-dev libssl-dev \
             autoconf libtool pkg-config \
-            zlib1g-dev cmake \
-            libltdl-dev \
-            build-essential \
-            libncurses-dev \
-            lld
+            zlib1g-dev cmake build-essential \
+            libncurses-dev libltdl-dev lld
 
-      # ── 3. Python / buildozer ────────────────────────────────────────────────
-      - name: Install Python build tools
+      - name: Install buildozer + Cython
         run: |
           python3 -m pip install --upgrade pip
-          # Cython pinned <3.0 — higher versions break pyjnius compilation
           python3 -m pip install buildozer "Cython<3.0"
 
-      # ── 4. Cache the Android SDK/NDK + buildozer downloads ──────────────────
       - name: Cache buildozer global dir
         uses: actions/cache@v4
         with:
           path: ~/.buildozer
           key: buildozer-${{ runner.os }}-${{ hashFiles('autoscore/buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
+          restore-keys: buildozer-${{ runner.os }}-
 
       - name: Cache .gradle
         uses: actions/cache@v4
@@ -62,43 +55,50 @@ jobs:
           path: ~/.gradle
           key: gradle-${{ runner.os }}
 
-      # ── 5. Vosk Android wheel ────────────────────────────────────────────────
-      # The p4a vosk recipe is unreliable; use the official pre-built arm64 wheel.
-      - name: Download Vosk arm64 wheel
+      # Swap the "vosk" recipe placeholder for the pre-built arm64 wheel.
+      # The p4a vosk recipe is unreliable; this is the approach that works.
+      - name: Inject Vosk arm64 wheel into buildozer.spec
         working-directory: autoscore
         run: |
           wget -q \
             https://github.com/alphacep/vosk-api/releases/download/v0.3.45/vosk-0.3.45-cp311-cp311-linux_aarch64.whl
-          # Swap "vosk" in requirements for the local wheel path so buildozer
-          # uses the pre-built binary instead of trying to compile from source
-          sed -i 's/,vosk,/,.\\/vosk-0.3.45-cp311-cp311-linux_aarch64.whl,/' buildozer.spec
+          # Replace bare "vosk" with the local wheel path (word-boundary safe)
+          sed -i 's/\bvosk\b/.\\/vosk-0.3.45-cp311-cp311-linux_aarch64.whl/' buildozer.spec
+          echo "=== requirements line after patch ==="
+          grep '^requirements' buildozer.spec
 
-      # ── 6. Build ─────────────────────────────────────────────────────────────
       - name: Build debug APK
         working-directory: autoscore
         run: |
           set -o pipefail
-          buildozer android debug 2>&1 | tee build.log
-          echo "--- Last 80 lines of build log ---"
-          tail -80 build.log
+          buildozer android debug 2>&1 | tee build.log || true
+          echo ""
+          echo "====== LAST 100 LINES OF BUILD LOG ======"
+          tail -100 build.log
+          echo "========================================="
+          # Fail the step if no APK was produced
+          ls bin/*.apk 2>/dev/null || { echo "ERROR: no APK in bin/ — build failed"; exit 1; }
 
-      # ── 7. Rename for stable URL ─────────────────────────────────────────────
-      - name: Rename APK
-        run: mv autoscore/bin/*.apk autoscore/bin/DartVoice.apk
-
-      # ── 8. Keep artifact for debugging (30 days) ─────────────────────────────
-      - name: Upload APK artifact
+      # Always upload the build log so failures can be diagnosed
+      - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
         with:
+          name: build-log
+          path: autoscore/build.log
+          retention-days: 7
+
+      - name: Rename APK for stable URL
+        run: mv autoscore/bin/*.apk autoscore/bin/DartVoice.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
           name: DartVoice-debug-apk
-          path: |
-            autoscore/bin/DartVoice.apk
-            autoscore/build.log
+          path: autoscore/bin/DartVoice.apk
           retention-days: 30
 
-      # ── 9. Publish to GitHub Releases ────────────────────────────────────────
-      # Public URL (never changes between builds):
+      # Public permanent URL:
       # https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -109,8 +109,8 @@ jobs:
             Latest DartVoice Android build — auto-published by CI.
 
             **Install steps:**
-            1. Tap the `DartVoice.apk` link below to download on your Android device
-            2. Settings → Security → enable **Install from unknown sources** (or *Install unknown apps*)
+            1. Tap `DartVoice.apk` below to download on your Android device
+            2. Settings → Security → enable **Install from unknown sources**
             3. Open the downloaded file and tap **Install**
           files: autoscore/bin/DartVoice.apk
           make_latest: true

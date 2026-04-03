@@ -21,7 +21,7 @@ services = DartVoice:./service/main.py:foreground
 # vosk — the p4a recipe downloads libvosk.so automatically for arm64
 # If the standard recipe is unavailable in your p4a version, see the
 # manual wheel instructions at the bottom of this file.
-requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,vosk,numpy,stripe
+requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,vosk
 
 # Orientation & display
 orientation = portrait
