@@ -1302,7 +1302,10 @@ class DartVoiceLayout(FloatLayout):
         except ImportError:
             return
 
-        bs = billing_status()
+        try:
+            bs = billing_status()
+        except Exception:
+            return
         # Background server verification regardless of local state
         check_subscription_async(self._on_billing_checked)
 
@@ -1823,8 +1826,11 @@ class DartVoiceLayout(FloatLayout):
                     radius=[dp(12 if not active else 11)],
                 )
 
-        # Rebind size/pos updates
-        btn.unbind_all(btn.canvas.before)
+        # Rebind size/pos updates — remove previous binding first
+        prev = getattr(btn, '_toggle_upd_cb', None)
+        if prev is not None:
+            btn.unbind(pos=prev, size=prev)
+
         if active:
             def _upd_active(*_):
                 p = dp(1.5)
@@ -1833,12 +1839,15 @@ class DartVoiceLayout(FloatLayout):
                     btn._border_instr.size = btn.size
                 btn._bg.pos  = (btn.x + p, btn.y + p)
                 btn._bg.size = (btn.width - p*2, btn.height - p*2)
+            btn._toggle_upd_cb = _upd_active
             btn.bind(pos=_upd_active, size=_upd_active)
         else:
-            btn.bind(
-                pos=lambda *_: setattr(btn._bg, 'pos', btn.pos),
-                size=lambda *_: setattr(btn._bg, 'size', btn.size),
-            )
+            def _upd_inactive(*_):
+                if hasattr(btn, '_bg'):
+                    btn._bg.pos  = btn.pos
+                    btn._bg.size = btn.size
+            btn._toggle_upd_cb = _upd_inactive
+            btn.bind(pos=_upd_inactive, size=_upd_inactive)
 
         # Animate the canvas Color r/g/b over 0.3 s
         ci = btn._anim_color_instr
