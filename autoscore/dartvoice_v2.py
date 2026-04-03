@@ -1377,7 +1377,7 @@ class DartVoiceApp(ctk.CTk):
     def _open_account_dialog(self):
         try:
             from billing import get_account, send_otp, verify_otp, sign_out, \
-                                 billing_status, check_subscription_async, get_checkout_url
+                                 billing_status, check_subscription_async
         except ImportError:
             return
 
@@ -1480,7 +1480,7 @@ class DartVoiceApp(ctk.CTk):
                         font=("Uber Move Bold", 13, "bold"),
                         fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
                         height=50, corner_radius=12,
-                        command=lambda: webbrowser.open(get_checkout_url()),
+                        command=lambda: webbrowser.open('https://dartvoice.com'),
                     ).pack(fill='x', pady=(0, 8))
 
                     def _refresh_status():

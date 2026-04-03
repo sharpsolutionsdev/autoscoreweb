@@ -1063,14 +1063,9 @@ class PaywallOverlay(FloatLayout):
 
     def _open_checkout(self):
         import webbrowser
-        try:
-            from billing import get_checkout_url
-            url = get_checkout_url()
-        except ImportError:
-            return
-        webbrowser.open(url)
+        webbrowser.open('https://dartvoice.com')
         self._sub_btn.text = 'Waiting for payment…'
-        # Auto-poll after a short delay
+        # Auto-poll after a short delay (checks Supabase for active subscription)
         self._start_polling(max_attempts=12, interval=8)
 
     def _check_now(self):
@@ -1092,7 +1087,7 @@ class PaywallOverlay(FloatLayout):
             return
         self._remaining -= 1
 
-        def _got(subscribed):
+        def _got(subscribed, account=None):
             if subscribed:
                 if self._poll_event:
                     self._poll_event.cancel()
