@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /dartvoice-dashboard.html
+Disallow: /designhub.html
+Disallow: /social-media-gen.html
+Disallow: /appuiprototype.html
+Disallow: /promptguide.md
+
+Sitemap: https://dartvoice.com/sitemap.xml

@@ -198,6 +198,7 @@
                     <a href="#cricket-settings"  class="toc-link text-sm text-muted hover:text-brand">7. Cricket Settings</a>
                     <a href="#mic-setup"         class="toc-link text-sm text-muted hover:text-brand">4. Microphone Setup</a>
                     <a href="#troubleshooting"   class="toc-link text-sm text-muted hover:text-brand">8. Troubleshooting</a>
+                    <a href="#android"           class="toc-link text-sm text-muted hover:text-brand">9. Android</a>
                 </div>
             </div>
         </div>
@@ -527,6 +528,70 @@
                         <li>&bull; Adjust the <strong class="text-chalk">Typing Speed</strong> — "Slow" gives more time between actions</li>
                     </ul>
                 </div>
+            </div>
+        </section>
+
+        <!-- ━━━ 9. ANDROID ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="android" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">9. ANDROID</h2>
+            <p class="text-sm text-muted mb-6 leading-relaxed">DartVoice runs on Android as a native app. Prop your phone up next to the board and call your scores — no PC required.</p>
+
+            <div class="space-y-4 mb-8">
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">1</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Download the APK</p>
+                            <p class="text-xs text-muted leading-relaxed">From your <a href="dartvoice-dashboard.html" class="text-brand hover:underline">dashboard</a>, tap the Android download button. Your browser will download <strong class="text-chalk">DartVoice.apk</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">2</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Enable installation from unknown sources</p>
+                            <p class="text-xs text-muted leading-relaxed">Go to <strong class="text-chalk">Settings → Security</strong> (or <strong class="text-chalk">Settings → Apps → Special app access → Install unknown apps</strong> on Android 8+) and allow your browser to install apps.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">3</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Open the downloaded file</p>
+                            <p class="text-xs text-muted leading-relaxed">Tap the <strong class="text-chalk">DartVoice.apk</strong> notification or find it in your Downloads folder, then tap <strong class="text-chalk">Install</strong> and <strong class="text-chalk">Open</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">4</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Grant microphone permission</p>
+                            <p class="text-xs text-muted leading-relaxed">On first launch DartVoice will request microphone access. Tap <strong class="text-chalk">Allow</strong> — this is required for voice scoring.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">5</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Sign in with your account</p>
+                            <p class="text-xs text-muted leading-relaxed">Enter your email to receive a sign-in code, then enter it in the app. Your active subscription is verified automatically.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-card border border-wire rounded-xl p-5">
+                <p class="text-sm font-medium text-chalk mb-3">Android tips</p>
+                <ul class="text-xs text-muted space-y-2 leading-relaxed">
+                    <li>&bull; <strong class="text-chalk">Offline recognition</strong> — the Vosk speech model is bundled in the APK, so no internet is needed for voice scoring once installed.</li>
+                    <li>&bull; <strong class="text-chalk">Background service</strong> — DartVoice runs a foreground service to keep listening active. You'll see a persistent notification while scoring is on.</li>
+                    <li>&bull; <strong class="text-chalk">Shared subscription</strong> — Windows and Android share one account. Active sessions are limited to one device at a time.</li>
+                    <li>&bull; <strong class="text-chalk">Updates</strong> — re-download the APK from your dashboard to get the latest version.</li>
+                </ul>
             </div>
         </section>
 

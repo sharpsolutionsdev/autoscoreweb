@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>404 — Page Not Found | DartVoice</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Barlow Condensed"', 'sans-serif'],
+                        sans:    ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#CC0B20',
+                        dark:  '#08080A',
+                        card:  '#111114',
+                        wire:  '#252530',
+                        muted: '#6E6E82',
+                        chalk: '#F0F0F5',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.02em; text-transform: uppercase; }
+        .neon-score { text-shadow: 0 0 12px rgba(204,11,32,0.9), 0 0 24px rgba(204,11,32,0.5), 0 0 48px rgba(204,11,32,0.2); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center px-5 text-center">
+
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2.5 mb-12 group">
+        <svg viewBox="0 0 36 36" class="w-9 h-9 shrink-0" fill="none">
+            <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+            <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+            <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+            <circle cx="18" cy="18" r="3" fill="white"/>
+            <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="display text-xl group-hover:text-brand transition-colors">DARTVOICE</span>
+    </a>
+
+    <!-- 404 -->
+    <p class="display text-[120px] sm:text-[180px] leading-none neon-score text-brand mb-4">404</p>
+    <h1 class="display text-2xl sm:text-4xl text-chalk mb-3">PAGE NOT FOUND</h1>
+    <p class="text-muted text-sm sm:text-base max-w-sm mb-10">
+        Looks like that page missed the board. Head back home and try again.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-3">
+        <a href="/" class="px-6 py-3 rounded-xl text-sm font-semibold text-white" style="background:#CC0B20;">
+            Back to Home
+        </a>
+        <a href="dartvoice-dashboard.html" class="px-6 py-3 rounded-xl text-sm font-semibold text-chalk border border-white/10 hover:border-white/25 transition">
+            Dashboard
+        </a>
+    </div>
+
+</body>
+</html>
