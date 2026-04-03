@@ -972,6 +972,63 @@ class VideoScorerThread(threading.Thread):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Screen recorder thread
+# ─────────────────────────────────────────────────────────────────────────────
+class _RecordThread(threading.Thread):
+    """Captures a screen region and writes an MP4 using mss + opencv."""
+
+    LOGO_TEXT = "● DARTVOICE"
+
+    def __init__(self, region: dict, out_path: str, fps: int = 30):
+        super().__init__(daemon=True)
+        self.region   = region    # {'left','top','width','height'}
+        self.out_path = out_path
+        self.fps      = fps
+        self._stop    = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def run(self):
+        try:
+            import mss
+            import cv2
+            import numpy as np
+        except ImportError:
+            return
+
+        w, h = self.region['width'], self.region['height']
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        writer = cv2.VideoWriter(self.out_path, fourcc, self.fps, (w, h))
+
+        # Pre-render watermark once
+        _font      = cv2.FONT_HERSHEY_SIMPLEX
+        _scale     = 0.45
+        _thickness = 1
+        (tw, th), _ = cv2.getTextSize(self.LOGO_TEXT, _font, _scale, _thickness)
+        _wx = w - tw - 10
+        _wy = h - 10
+        _interval = 1.0 / self.fps
+
+        with mss.mss() as sct:
+            while not self._stop.is_set():
+                t0 = time.time()
+                img   = sct.grab(self.region)
+                frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGRA2BGR)
+                # Watermark: shadow then white text
+                cv2.putText(frame, self.LOGO_TEXT, (_wx+1, _wy+1),
+                            _font, _scale, (0, 0, 0), _thickness+1, cv2.LINE_AA)
+                cv2.putText(frame, self.LOGO_TEXT, (_wx, _wy),
+                            _font, _scale, (220, 200, 255), _thickness, cv2.LINE_AA)
+                writer.write(frame)
+                elapsed = time.time() - t0
+                leftover = _interval - elapsed
+                if leftover > 0:
+                    time.sleep(leftover)
+
+        writer.release()
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Speech thread
 # ─────────────────────────────────────────────────────────────────────────────
 class SpeechListener(threading.Thread):
@@ -1106,9 +1163,14 @@ class DartVoiceApp(ctk.CTk):
                         hwnd, GWL_STYLE,
                         (style | WS_POPUP | WS_VISIBLE | WS_THICKFRAME
                                | WS_MINIMIZEBOX | WS_MAXIMIZEBOX) & ~0x00C00000)
+                    # Add WS_EX_APPWINDOW so window always shows on taskbar
+                    GWL_EXSTYLE      = -20
+                    WS_EX_APPWINDOW  = 0x00040000
+                    es = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+                    ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE,
+                                                        es | WS_EX_APPWINDOW)
                     # Apply DWM shadow
                     DWMWA_NCRENDERING_POLICY = 2
-                    DWMWA_ALLOW_NCPAINT = 4
                     ctypes.windll.dwmapi.DwmSetWindowAttribute(
                         hwnd, DWMWA_NCRENDERING_POLICY,
                         ctypes.byref(ctypes.c_int(2)), ctypes.sizeof(ctypes.c_int))
@@ -1143,12 +1205,15 @@ class DartVoiceApp(ctk.CTk):
         self._checkout_str   = tk.StringVar(value="")
 
         self._tray = None
+        self._cached_mic_list = None   # populated in background at startup
         self.protocol("WM_DELETE_WINDOW", self._hide_to_tray)
         if sys.platform == 'win32':
             self._setup_tray()
 
         self.attributes('-alpha',   self.cfg.get('ghost_opacity',  1.0))
         self.attributes('-topmost', self.cfg.get('always_on_top',  True))
+        # Pre-scan mics in background so settings opens instantly
+        threading.Thread(target=self._prefetch_mics, daemon=True).start()
         self._show_splash()
 
     def _show_splash(self):
@@ -1258,6 +1323,7 @@ class DartVoiceApp(ctk.CTk):
         ov.place(x=0, y=0, relwidth=1.0, relheight=1.0)
         ov.lift()
         self._acct_overlay = ov
+        ov.update_idletasks()   # paint dim before network fetch
 
         def _close(refocus=True):
             ov.destroy()
@@ -1300,222 +1366,219 @@ class DartVoiceApp(ctk.CTk):
         body = ctk.CTkFrame(modal, fg_color='transparent')
         body.pack(fill='both', expand=True, padx=28, pady=20)
 
-        account = get_account()
+        # ── Show skeleton immediately; load account data in background ──────
+        _load_lbl = ctk.CTkLabel(body, text="Loading…", text_color=FG2,
+                                 font=("Rubik", 11))
+        _load_lbl.pack(pady=30)
 
-        if account:
-            # ── Signed-in view ────────────────────────────────────────────
-            bs = billing_status()
+        def _populate_body(account, bs):
+            if not body.winfo_exists(): return
+            _load_lbl.destroy()
 
-            # Avatar circle + email block
-            av_row = ctk.CTkFrame(body, fg_color='transparent')
-            av_row.pack(anchor='w', pady=(0, 16))
+            if account:
+                # ── Signed-in view ────────────────────────────────────────
+                av_row = ctk.CTkFrame(body, fg_color='transparent')
+                av_row.pack(anchor='w', pady=(0, 16))
 
-            av_canvas = tk.Canvas(av_row, width=42, height=42, bg=CARD, highlightthickness=0)
-            av_canvas.pack(side='left', padx=(0, 12))
-            av_canvas.create_oval(2, 2, 40, 40, fill=CARD2, outline=SEP, width=1)
-            av_canvas.create_text(21, 21, text=account['email'][0].upper(),
-                                  fill=FG, font=("Uber Move Bold", 16, "bold"))
+                av_canvas = tk.Canvas(av_row, width=42, height=42, bg=CARD, highlightthickness=0)
+                av_canvas.pack(side='left', padx=(0, 12))
+                av_canvas.create_oval(2, 2, 40, 40, fill=CARD2, outline=SEP, width=1)
+                av_canvas.create_text(21, 21, text=account['email'][0].upper(),
+                                      fill=FG, font=("Uber Move Bold", 16, "bold"))
 
-            txt_col = ctk.CTkFrame(av_row, fg_color='transparent')
-            txt_col.pack(side='left')
-            ctk.CTkLabel(txt_col, text=account['email'], text_color=FG,
-                         font=("Uber Move Bold", 12, "bold")).pack(anchor='w')
+                txt_col = ctk.CTkFrame(av_row, fg_color='transparent')
+                txt_col.pack(side='left')
+                ctk.CTkLabel(txt_col, text=account['email'], text_color=FG,
+                             font=("Uber Move Bold", 12, "bold")).pack(anchor='w')
 
-            if bs['subscribed']:
-                badge_text, badge_fg, badge_bg = "● MEMBER", '#22CC66', '#0A1F0E'
-            elif bs.get('admin'):
-                badge_text, badge_fg, badge_bg = "● ADMIN", ACCENT, '#1A0608'
-            elif bs['demo_active']:
-                badge_text, badge_fg, badge_bg = "● DEMO ACTIVE", '#D4A017', '#1A1606'
-            else:
-                badge_text, badge_fg, badge_bg = "● INACTIVE", FG2, CARD2
-            ctk.CTkLabel(txt_col, text=badge_text, text_color=badge_fg,
-                         font=("Rubik", 9, "bold"),
-                         fg_color=badge_bg, corner_radius=6,
-                         ).pack(anchor='w', ipadx=7, ipady=3, pady=(3, 0))
+                if bs['subscribed']:
+                    badge_text, badge_fg, badge_bg = "● MEMBER", '#22CC66', '#0A1F0E'
+                elif bs.get('admin'):
+                    badge_text, badge_fg, badge_bg = "● ADMIN", ACCENT, '#1A0608'
+                elif bs['demo_active']:
+                    badge_text, badge_fg, badge_bg = "● DEMO ACTIVE", '#D4A017', '#1A1606'
+                else:
+                    badge_text, badge_fg, badge_bg = "● INACTIVE", FG2, CARD2
+                ctk.CTkLabel(txt_col, text=badge_text, text_color=badge_fg,
+                             font=("Rubik", 9, "bold"),
+                             fg_color=badge_bg, corner_radius=6,
+                             ).pack(anchor='w', ipadx=7, ipady=3, pady=(3, 0))
 
-            ctk.CTkFrame(body, fg_color=SEP, height=1).pack(fill='x', pady=(0, 14))
+                ctk.CTkFrame(body, fg_color=SEP, height=1).pack(fill='x', pady=(0, 14))
 
-            if not bs['subscribed']:
+                if not bs['subscribed']:
+                    ctk.CTkButton(
+                        body, text="START 7-DAY FREE TRIAL  →  £6.99/mo",
+                        font=("Uber Move Bold", 13, "bold"),
+                        fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
+                        height=50, corner_radius=12,
+                        command=lambda: webbrowser.open(get_checkout_url()),
+                    ).pack(fill='x', pady=(0, 8))
+
+                    def _refresh_status():
+                        check_subscription_async(self._on_billing_checked)
+                        self._status.set("Checking subscription…")
+                        _close(refocus=False)
+
+                    ctk.CTkButton(
+                        body, text="I just subscribed — refresh",
+                        font=("Rubik", 10), fg_color=CARD2, hover_color=SEP,
+                        text_color=FG2, height=36, corner_radius=8,
+                        command=_refresh_status,
+                    ).pack(fill='x', pady=(0, 8))
+
                 ctk.CTkButton(
-                    body, text="START 7-DAY FREE TRIAL  →  £6.99/mo",
+                    body, text="Manage subscription / billing  ↗",
+                    font=("Rubik", 11), fg_color=CARD2, hover_color=SEP,
+                    text_color=FG2, height=42, corner_radius=10,
+                    command=lambda: webbrowser.open(
+                        f"{os.environ.get('DV_BILLING_URL','https://billing.dartvoice.com')}"
+                        f"/portal?user_id={account['user_id']}"
+                    ),
+                ).pack(fill='x', pady=(0, 8))
+
+                def _do_signout():
+                    sign_out()
+                    _close(refocus=False)
+                    self._status.set("Signed out")
+
+                ctk.CTkButton(
+                    body, text="Sign out",
+                    font=("Rubik", 11), fg_color='transparent', hover_color=CARD2,
+                    text_color=FG2, height=36, corner_radius=8,
+                    border_width=1, border_color=SEP,
+                    command=_do_signout,
+                ).pack(fill='x')
+
+            else:
+                # ── Sign-in view — two-step: email → OTP ─────────────────
+                email_var = tk.StringVar()
+                code_var  = tk.StringVar()
+                msg_var   = tk.StringVar()
+
+                ctk.CTkLabel(body, text="Welcome to DartVoice",
+                             text_color=FG, font=("Uber Move Bold", 17, "bold"),
+                             ).pack(anchor='w', pady=(0, 4))
+                ctk.CTkLabel(body, text="Sign in or create an account to continue.",
+                             text_color=FG2, font=("Rubik", 10),
+                             ).pack(anchor='w', pady=(0, 18))
+
+                step1 = ctk.CTkFrame(body, fg_color='transparent')
+                step1.pack(fill='x')
+                ctk.CTkLabel(step1, text="EMAIL ADDRESS", text_color=FG2,
+                             font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
+                email_entry = ctk.CTkEntry(
+                    step1, textvariable=email_var,
+                    placeholder_text="your@email.com",
+                    font=("Rubik", 13), height=50, corner_radius=12,
+                    border_color=SEP, border_width=1,
+                    fg_color=BG, text_color=FG,
+                    placeholder_text_color=FG2,
+                )
+                email_entry.pack(fill='x', pady=(0, 12))
+                email_entry.focus()
+                send_btn = ctk.CTkButton(
+                    step1, text="CONTINUE  →",
                     font=("Uber Move Bold", 13, "bold"),
                     fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
                     height=50, corner_radius=12,
-                    command=lambda: webbrowser.open(get_checkout_url()),
-                ).pack(fill='x', pady=(0, 8))
+                )
+                send_btn.pack(fill='x')
 
-                def _refresh_status():
-                    check_subscription_async(self._on_billing_checked)
-                    self._status.set("Checking subscription…")
-                    _close(refocus=False)
+                step2 = ctk.CTkFrame(body, fg_color='transparent')
+                confirm_lbl = ctk.CTkLabel(step2, text="", text_color=FG2,
+                                           font=("Rubik", 10), wraplength=320, justify='left')
+                confirm_lbl.pack(anchor='w', pady=(0, 12))
+                ctk.CTkLabel(step2, text="MAGIC CODE", text_color=FG2,
+                             font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
+                code_entry = ctk.CTkEntry(
+                    step2, textvariable=code_var,
+                    placeholder_text="0 0 0 0 0 0",
+                    font=("Courier New", 30, "bold"),
+                    height=64, corner_radius=12,
+                    border_color=ACCENT, border_width=2,
+                    fg_color=BG, text_color=FG,
+                    justify='center',
+                )
+                code_entry.pack(fill='x', pady=(0, 12))
+                verify_btn = ctk.CTkButton(
+                    step2, text="VERIFY CODE  →",
+                    font=("Uber Move Bold", 13, "bold"),
+                    fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
+                    height=50, corner_radius=12,
+                )
+                verify_btn.pack(fill='x', pady=(0, 8))
+                back_btn = ctk.CTkButton(
+                    step2, text="← Use a different email",
+                    font=("Rubik", 10), fg_color='transparent',
+                    hover_color=CARD2, text_color=FG2,
+                    height=30, corner_radius=8,
+                )
+                back_btn.pack()
 
-                ctk.CTkButton(
-                    body, text="I just subscribed — refresh",
-                    font=("Rubik", 10), fg_color=CARD2, hover_color=SEP,
-                    text_color=FG2, height=36, corner_radius=8,
-                    command=_refresh_status,
-                ).pack(fill='x', pady=(0, 8))
+                msg_lbl = ctk.CTkLabel(body, textvariable=msg_var,
+                                       text_color='#FF5555', font=("Rubik", 10),
+                                       wraplength=320)
+                msg_lbl.pack(pady=(10, 0))
 
-            ctk.CTkButton(
-                body, text="Manage subscription / billing  ↗",
-                font=("Rubik", 11), fg_color=CARD2, hover_color=SEP,
-                text_color=FG2, height=42, corner_radius=10,
-                command=lambda: webbrowser.open(
-                    f"{os.environ.get('DV_BILLING_URL','https://billing.dartvoice.com')}"
-                    f"/portal?user_id={account['user_id']}"
-                ),
-            ).pack(fill='x', pady=(0, 8))
+                def _go_step1():
+                    step2.pack_forget(); step1.pack(fill='x')
+                    msg_var.set(''); email_entry.focus()
 
-            def _do_signout():
-                sign_out()
-                _close(refocus=False)
-                self._status.set("Signed out")
+                def _send():
+                    email = email_var.get().strip()
+                    if not email or '@' not in email:
+                        msg_var.set("Please enter a valid email address."); return
+                    send_btn.configure(state='disabled', text='Sending…')
+                    msg_var.set('')
+                    def _do():
+                        ok, err = send_otp(email)
+                        def _ui():
+                            send_btn.configure(state='normal', text='Resend code →')
+                            if ok:
+                                msg_var.set('')
+                                confirm_lbl.configure(
+                                    text=f"Code sent to {email}\nEnter it below — expires in 10 minutes.")
+                                step1.pack_forget(); step2.pack(fill='x'); code_entry.focus()
+                            else:
+                                msg_var.set(f"Error: {err}")
+                        self.after(0, _ui)
+                    threading.Thread(target=_do, daemon=True).start()
 
-            ctk.CTkButton(
-                body, text="Sign out",
-                font=("Rubik", 11), fg_color='transparent', hover_color=CARD2,
-                text_color=FG2, height=36, corner_radius=8,
-                border_width=1, border_color=SEP,
-                command=_do_signout,
-            ).pack(fill='x')
+                def _verify():
+                    email = email_var.get().strip()
+                    code  = code_var.get().strip()
+                    if not code:
+                        msg_var.set("Enter the 6-digit code from your email."); return
+                    verify_btn.configure(state='disabled', text='Verifying…')
+                    msg_var.set('')
+                    def _do():
+                        ok, _ = verify_otp(email, code)
+                        def _ui():
+                            verify_btn.configure(state='normal', text='VERIFY CODE  →')
+                            if ok:
+                                _close(refocus=False); self._billing_gate()
+                            else:
+                                msg_var.set("Invalid code — try again or resend.")
+                                code_var.set('')
+                        self.after(0, _ui)
+                    threading.Thread(target=_do, daemon=True).start()
 
-        else:
-            # ── Sign-in view — two-step: email → OTP ─────────────────────
-            email_var = tk.StringVar()
-            code_var  = tk.StringVar()
-            msg_var   = tk.StringVar()
+                send_btn.configure(command=_send)
+                verify_btn.configure(command=_verify)
+                back_btn.configure(command=_go_step1)
+                email_entry.bind('<Return>', lambda e: _send())
+                code_entry.bind('<Return>',  lambda e: _verify())
 
-            # Hero text
-            ctk.CTkLabel(body, text="Welcome to DartVoice",
-                         text_color=FG, font=("Uber Move Bold", 17, "bold"),
-                         ).pack(anchor='w', pady=(0, 4))
-            ctk.CTkLabel(body, text="Sign in or create an account to continue.",
-                         text_color=FG2, font=("Rubik", 10),
-                         ).pack(anchor='w', pady=(0, 18))
+        def _fetch():
+            try:
+                _acct = get_account()
+                _bs   = billing_status() if _acct else None
+            except Exception:
+                _acct = None; _bs = None
+            self.after(0, lambda: _populate_body(_acct, _bs))
 
-            # ── STEP 1: Email ─────────────────────────────────────────────
-            step1 = ctk.CTkFrame(body, fg_color='transparent')
-            step1.pack(fill='x')
-
-            ctk.CTkLabel(step1, text="EMAIL ADDRESS", text_color=FG2,
-                         font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
-            email_entry = ctk.CTkEntry(
-                step1, textvariable=email_var,
-                placeholder_text="your@email.com",
-                font=("Rubik", 13), height=50, corner_radius=12,
-                border_color=SEP, border_width=1,
-                fg_color=BG, text_color=FG,
-                placeholder_text_color=FG2,
-            )
-            email_entry.pack(fill='x', pady=(0, 12))
-            email_entry.focus()
-
-            send_btn = ctk.CTkButton(
-                step1, text="CONTINUE  →",
-                font=("Uber Move Bold", 13, "bold"),
-                fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-                height=50, corner_radius=12,
-            )
-            send_btn.pack(fill='x')
-
-            # ── STEP 2: OTP ───────────────────────────────────────────────
-            step2 = ctk.CTkFrame(body, fg_color='transparent')
-
-            confirm_lbl = ctk.CTkLabel(step2, text="", text_color=FG2,
-                                       font=("Rubik", 10), wraplength=320, justify='left')
-            confirm_lbl.pack(anchor='w', pady=(0, 12))
-
-            ctk.CTkLabel(step2, text="MAGIC CODE", text_color=FG2,
-                         font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
-            code_entry = ctk.CTkEntry(
-                step2, textvariable=code_var,
-                placeholder_text="0 0 0 0 0 0",
-                font=("Courier New", 30, "bold"),
-                height=64, corner_radius=12,
-                border_color=ACCENT, border_width=2,
-                fg_color=BG, text_color=FG,
-                justify='center',
-            )
-            code_entry.pack(fill='x', pady=(0, 12))
-
-            verify_btn = ctk.CTkButton(
-                step2, text="VERIFY CODE  →",
-                font=("Uber Move Bold", 13, "bold"),
-                fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-                height=50, corner_radius=12,
-            )
-            verify_btn.pack(fill='x', pady=(0, 8))
-
-            back_btn = ctk.CTkButton(
-                step2, text="← Use a different email",
-                font=("Rubik", 10), fg_color='transparent',
-                hover_color=CARD2, text_color=FG2,
-                height=30, corner_radius=8,
-            )
-            back_btn.pack()
-
-            # Error label
-            msg_lbl = ctk.CTkLabel(body, textvariable=msg_var,
-                                   text_color='#FF5555', font=("Rubik", 10),
-                                   wraplength=320)
-            msg_lbl.pack(pady=(10, 0))
-
-            def _go_step1():
-                step2.pack_forget()
-                step1.pack(fill='x')
-                msg_var.set('')
-                email_entry.focus()
-
-            def _send():
-                email = email_var.get().strip()
-                if not email or '@' not in email:
-                    msg_var.set("Please enter a valid email address.")
-                    return
-                send_btn.configure(state='disabled', text='Sending…')
-                msg_var.set('')
-                def _do():
-                    ok, err = send_otp(email)
-                    def _ui():
-                        send_btn.configure(state='normal', text='Resend code →')
-                        if ok:
-                            msg_var.set('')
-                            confirm_lbl.configure(
-                                text=f"Code sent to {email}\nEnter it below — expires in 10 minutes.")
-                            step1.pack_forget()
-                            step2.pack(fill='x')
-                            code_entry.focus()
-                        else:
-                            msg_var.set(f"Error: {err}")
-                    self.after(0, _ui)
-                threading.Thread(target=_do, daemon=True).start()
-
-            def _verify():
-                email = email_var.get().strip()
-                code  = code_var.get().strip()
-                if not code:
-                    msg_var.set("Enter the 6-digit code from your email.")
-                    return
-                verify_btn.configure(state='disabled', text='Verifying…')
-                msg_var.set('')
-                def _do():
-                    ok, _ = verify_otp(email, code)
-                    def _ui():
-                        verify_btn.configure(state='normal', text='VERIFY CODE  →')
-                        if ok:
-                            _close(refocus=False)
-                            self._billing_gate()
-                        else:
-                            msg_var.set("Invalid code — try again or resend.")
-                            code_var.set('')
-                    self.after(0, _ui)
-                threading.Thread(target=_do, daemon=True).start()
-
-            send_btn.configure(command=_send)
-            verify_btn.configure(command=_verify)
-            back_btn.configure(command=_go_step1)
-            email_entry.bind('<Return>', lambda e: _send())
-            code_entry.bind('<Return>',  lambda e: _verify())
+        threading.Thread(target=_fetch, daemon=True).start()
 
     # ── Paywall (trial expired, not signed in / not subscribed) ──────────────
     def _show_paywall(self):
@@ -1687,10 +1750,17 @@ class DartVoiceApp(ctk.CTk):
         threading.Thread(target=self._tray.run, daemon=True).start()
 
     def _hide_to_tray(self):
+        self._tray_geo = self.geometry()   # remember position
         self.withdraw()
 
     def _show_from_tray(self):
+        # overrideredirect windows need withdraw+deiconify+geometry restore
+        self.withdraw()
+        self.update_idletasks()
+        if hasattr(self, '_tray_geo') and self._tray_geo:
+            self.geometry(self._tray_geo)
         self.deiconify()
+        self.update_idletasks()
         self.lift()
         self.focus_force()
 
@@ -1702,6 +1772,28 @@ class DartVoiceApp(ctk.CTk):
         if self._tray:
             self._tray.stop()
         self.destroy()
+
+    def _prefetch_mics(self):
+        """Scan audio devices once at startup so settings opens instantly."""
+        try:
+            import pyaudio as _pa
+            pa = _pa.PyAudio()
+            labels = ['Default']
+            idx_map = {0: None}
+            for i in range(pa.get_device_count()):
+                inf = pa.get_device_info_by_index(i)
+                if inf.get('maxInputChannels', 0) < 1:
+                    continue
+                raw = inf['name']
+                try: raw = raw.encode('latin-1').decode('utf-8')
+                except Exception: pass
+                label = raw[:38]
+                labels.append(label)
+                idx_map[len(labels) - 1] = i
+            pa.terminate()
+            self._cached_mic_list = (labels, idx_map)
+        except Exception:
+            self._cached_mic_list = (['Default'], {0: None})
 
     # ── Build UI ─────────────────────────────────────────────────────────────
     def _build_ui(self):
@@ -1718,10 +1810,15 @@ class DartVoiceApp(ctk.CTk):
         # ── Background wire canvas ────────────────────────────────────────
         self.bg_canvas = tk.Canvas(self, bg=BG, highlightthickness=0)
         self.bg_canvas.place(x=0, y=0, relwidth=1, relheight=1)
-        self.bg_canvas.bind('<Configure>', lambda e: [
-            self.bg_canvas.delete('all'),
-            self._draw_dartboard_wire(self.bg_canvas, e.width, e.height)
-        ])
+        self._wire_redraw_job = None
+        def _debounced_wire(e):
+            if self._wire_redraw_job:
+                self.after_cancel(self._wire_redraw_job)
+            self._wire_redraw_job = self.after(120, lambda: (
+                self.bg_canvas.delete('all'),
+                self._draw_dartboard_wire(self.bg_canvas, e.width, e.height),
+            ))
+        self.bg_canvas.bind('<Configure>', _debounced_wire)
 
         # ── Custom borderless titlebar ────────────────────────────────────
         titlebar = tk.Frame(self, bg=CARD, height=48)
@@ -1735,13 +1832,22 @@ class DartVoiceApp(ctk.CTk):
         tb_inner = tk.Frame(titlebar, bg=CARD)
         tb_inner.pack(fill='both', expand=True)
 
-        # Drag the window by clicking the titlebar background
+        # Drag via native Win32 WM_NCLBUTTONDOWN — OS handles the move at
+        # compositor level, no Python geometry() calls per pixel, buttery smooth.
         def _tb_drag_start(e):
-            self._drag_data['x'] = e.x_root - self.winfo_x()
-            self._drag_data['y'] = e.y_root - self.winfo_y()
-            self._drag_data['dragging'] = True
+            try:
+                import ctypes
+                hwnd = ctypes.windll.user32.GetParent(self.winfo_id()) or self.winfo_id()
+                ctypes.windll.user32.ReleaseCapture()
+                ctypes.windll.user32.PostMessageW(hwnd, 0xA1, 0x2, 0)
+                # 0xA1 = WM_NCLBUTTONDOWN, 0x2 = HTCAPTION
+            except Exception:
+                # Fallback for non-Windows / ctypes failure
+                self._drag_data['x'] = e.x_root - self.winfo_x()
+                self._drag_data['y'] = e.y_root - self.winfo_y()
+                self._drag_data['dragging'] = True
         def _tb_drag_move(e):
-            if self._drag_data['dragging']:
+            if self._drag_data.get('dragging'):
                 self.geometry(f"+{e.x_root - self._drag_data['x']}+{e.y_root - self._drag_data['y']}")
         def _tb_drag_stop(e):
             self._drag_data['dragging'] = False
@@ -1761,16 +1867,12 @@ class DartVoiceApp(ctk.CTk):
         lc = tk.Canvas(tb_inner, width=22, height=22, bg=CARD, highlightthickness=0)
         lc.place(x=16, rely=0.5, anchor='w')
         self._draw_bullseye(lc, 11, 11, [9, 6, 3, 1])
-        lc.bind('<ButtonPress-1>',   _tb_drag_start)
-        lc.bind('<B1-Motion>',       _tb_drag_move)
-        lc.bind('<ButtonRelease-1>', _tb_drag_stop)
+        lc.bind('<ButtonPress-1>', _tb_drag_start)
 
         tb_title = tk.Label(tb_inner, text="  DARTVOICE", bg=CARD, fg=FG,
                             font=("Uber Move Bold", 15, "bold"))
         tb_title.place(x=44, rely=0.5, anchor='w')
-        tb_title.bind('<ButtonPress-1>',   _tb_drag_start)
-        tb_title.bind('<B1-Motion>',       _tb_drag_move)
-        tb_title.bind('<ButtonRelease-1>', _tb_drag_stop)
+        tb_title.bind('<ButtonPress-1>', _tb_drag_start)
 
         # Compat badges centred
         compat_f = ctk.CTkFrame(tb_inner, fg_color='transparent')
@@ -1800,7 +1902,19 @@ class DartVoiceApp(ctk.CTk):
             if self.winfo_width() < self.winfo_screenwidth() - 10
             else "1024x600"))
         def _minimise():
-            # overrideredirect windows need withdraw + iconify trick
+            try:
+                import ctypes as _c
+                _hwnd = _c.windll.user32.FindWindowW(None, "DartVoice")
+                if _hwnd:
+                    # Ensure taskbar entry exists before minimising
+                    _GWL_EX = -20; _APPWIN = 0x00040000
+                    _es = _c.windll.user32.GetWindowLongW(_hwnd, _GWL_EX)
+                    _c.windll.user32.SetWindowLongW(_hwnd, _GWL_EX, _es | _APPWIN)
+                    _c.windll.user32.ShowWindow(_hwnd, 6)   # SW_MINIMIZE
+                    return
+            except Exception:
+                pass
+            # Fallback for non-Win32
             self.overrideredirect(False)
             self.iconify()
             def _rewrap(e=None):
@@ -1812,21 +1926,26 @@ class DartVoiceApp(ctk.CTk):
         # Sep line
         tk.Frame(nav_r, bg=SEP, width=1, height=24).pack(side='right', padx=4)
 
-        try:
-            from billing import get_account
-            acct = get_account()
-            acct_label = acct['email'][0].upper() if acct else '→'
-        except Exception:
-            acct_label = '→'
-
         self._acct_btn = ctk.CTkButton(
-            nav_r, text=acct_label, font=("Uber Move Bold", 11, "bold"),
+            nav_r, text='→', font=("Uber Move Bold", 11, "bold"),
             fg_color=CARD2, hover_color=SEP, text_color=ACCENT,
             border_width=1, border_color=SEP,
             width=32, height=32, corner_radius=8,
             command=self._open_account_dialog,
         )
         self._acct_btn.pack(side='right', padx=(0, 3))
+
+        def _load_acct_label():
+            try:
+                from billing import get_account as _ga
+                _acct = _ga()
+                _lbl = _acct['email'][0].upper() if _acct else '→'
+            except Exception:
+                _lbl = '→'
+            self.after(0, lambda: self._acct_btn.configure(text=_lbl)
+                       if self._acct_btn.winfo_exists() else None)
+        threading.Thread(target=_load_acct_label, daemon=True).start()
+
 
         settings_wrap = ctk.CTkFrame(nav_r, fg_color=CARD2, corner_radius=8,
                                       border_width=1, border_color=SEP,
@@ -1847,6 +1966,15 @@ class DartVoiceApp(ctk.CTk):
             width=32, height=32, corner_radius=8,
             command=self._open_ingame,
         ).pack(side='right', padx=(0, 3))
+
+        self._rec_btn = ctk.CTkButton(
+            nav_r, text="⏺", font=("Rubik", 14),
+            fg_color=CARD2, hover_color=SEP, text_color='#CC2222',
+            border_width=1, border_color=SEP,
+            width=32, height=32, corner_radius=8,
+            command=self._toggle_record,
+        )
+        self._rec_btn.pack(side='right', padx=(0, 3))
 
         tk.Frame(self, bg=SEP, height=1).pack(fill='x')
 
@@ -2115,23 +2243,8 @@ class DartVoiceApp(ctk.CTk):
         # ── 1. MICROPHONE ─────────────────────────────────────────────────────
         _ctrl_section('mic', 'MICROPHONE')
 
-        rp_mic_labels    = ['Default']
-        rp_mic_index_map = {0: None}
-        try:
-            import pyaudio as _pa_rp
-            _pa3 = _pa_rp.PyAudio()
-            for _i3 in range(_pa3.get_device_count()):
-                _inf3 = _pa3.get_device_info_by_index(_i3)
-                if _inf3.get('maxInputChannels', 0) < 1:
-                    continue
-                _raw3 = _inf3['name']
-                try: _raw3 = _raw3.encode('latin-1').decode('utf-8')
-                except (UnicodeEncodeError, UnicodeDecodeError): pass
-                rp_mic_labels.append(_raw3)
-                rp_mic_index_map[len(rp_mic_labels) - 1] = _i3
-            _pa3.terminate()
-        except Exception:
-            pass
+        _mic_cache3 = self._cached_mic_list or (['Default'], {0: None})
+        rp_mic_labels, rp_mic_index_map = _mic_cache3[0][:], dict(_mic_cache3[1])
 
         _rp_cur_lbl = 'Default'
         for _li3, _di3 in rp_mic_index_map.items():
@@ -2542,6 +2655,154 @@ class DartVoiceApp(ctk.CTk):
             canvas.create_line(px(2),  py(20), px(12), py(22), px(22), py(20),
                                fill=color, width=lw)
 
+    # ── Screen Recorder ──────────────────────────────────────────────────────
+    def _toggle_record(self):
+        if getattr(self, '_recorder_thread', None) and self._recorder_thread.is_alive():
+            self._stop_record()
+        else:
+            self._start_record_flow()
+
+    def _start_record_flow(self):
+        """Show region selector overlay, then begin recording."""
+        sel_win = tk.Toplevel(self)
+        sel_win.overrideredirect(True)
+        sel_win.attributes('-fullscreen', True)
+        sel_win.attributes('-alpha', 0.25)
+        sel_win.attributes('-topmost', True)
+        sel_win.config(bg='#000010')
+        sel_win.lift(); sel_win.focus_force()
+
+        canvas = tk.Canvas(sel_win, bg='#000010', highlightthickness=0, cursor='crosshair')
+        canvas.pack(fill='both', expand=True)
+
+        sw = sel_win.winfo_screenwidth()
+        sh = sel_win.winfo_screenheight()
+
+        # Instruction label
+        inst = canvas.create_text(sw // 2, 40, text="Click and drag to select the area to record  ·  ESC to cancel",
+                                  fill='white', font=("Rubik", 14, "bold"))
+
+        _drag = {}
+        _rect = [None]
+
+        def _on_press(e):
+            _drag['x0'] = e.x; _drag['y0'] = e.y
+            if _rect[0]: canvas.delete(_rect[0])
+
+        def _on_drag(e):
+            if _rect[0]: canvas.delete(_rect[0])
+            x0, y0 = _drag['x0'], _drag['y0']
+            _rect[0] = canvas.create_rectangle(
+                x0, y0, e.x, e.y,
+                outline=ACCENT, width=2, dash=(6, 3))
+            w = abs(e.x - x0); h = abs(e.y - y0)
+            canvas.itemconfig(inst,
+                text=f"{w}×{h} px  ·  release to confirm  ·  ESC to cancel")
+
+        def _on_release(e):
+            x0 = min(_drag['x0'], e.x); y0 = min(_drag['y0'], e.y)
+            x1 = max(_drag['x0'], e.x); y1 = max(_drag['y0'], e.y)
+            sel_win.destroy()
+            w = x1 - x0; h = y1 - y0
+            if w < 20 or h < 20:
+                return
+            region = {'left': x0, 'top': y0, 'width': w, 'height': h}
+            self.after(80, lambda: self._begin_recording(region))
+
+        canvas.bind('<ButtonPress-1>',   _on_press)
+        canvas.bind('<B1-Motion>',       _on_drag)
+        canvas.bind('<ButtonRelease-1>', _on_release)
+        sel_win.bind('<Escape>', lambda e: sel_win.destroy())
+
+    def _begin_recording(self, region):
+        import os, datetime
+        ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        out_dir = os.path.join(os.path.expanduser('~'), 'Videos')
+        os.makedirs(out_dir, exist_ok=True)
+        out_path = os.path.join(out_dir, f'DartVoice_{ts}.mp4')
+
+        try:
+            import mss as _mss      # noqa
+            import cv2 as _cv2      # noqa
+            import numpy as _np     # noqa
+        except ImportError as err:
+            from tkinter import messagebox
+            messagebox.showerror("Missing package",
+                f"Screen recording needs mss and opencv-python.\n\npip install mss opencv-python\n\n({err})")
+            return
+
+        self._recorder_thread = _RecordThread(region, out_path)
+        self._recorder_thread.start()
+        self._record_out_path = out_path
+
+        # Update button to show recording state
+        self._rec_btn.configure(text="⏹", fg_color='#2A0000',
+                                text_color='#FF4444', border_color='#CC2222')
+
+        # Floating REC indicator
+        self._show_rec_hud(region)
+
+    def _show_rec_hud(self, region):
+        hud = tk.Toplevel(self)
+        hud.overrideredirect(True)
+        hud.attributes('-topmost', True)
+        hud.config(bg='#0D0D0F')
+        self._rec_hud = hud
+        x = region['left'] + region['width'] - 180
+        y = region['top'] + 8
+        hud.geometry(f"172x38+{x}+{y}")
+
+        f = tk.Frame(hud, bg='#0D0D0F')
+        f.pack(fill='both', expand=True, padx=2, pady=2)
+
+        # DartVoice brand dot
+        lc = tk.Canvas(f, width=12, height=12, bg='#0D0D0F', highlightthickness=0)
+        lc.pack(side='left', padx=(6, 0), pady=12)
+        self._draw_bullseye(lc, 6, 6, [5, 3, 2, 1])
+
+        tk.Label(f, text=" DARTVOICE", bg='#0D0D0F', fg='#CCCCDD',
+                 font=("Uber Move Bold", 8, "bold")).pack(side='left')
+
+        # Blinking REC dot
+        _dot = tk.Label(f, text="● REC", bg='#0D0D0F', fg='#FF3333',
+                        font=("Rubik", 8, "bold"))
+        _dot.pack(side='right', padx=6)
+
+        _blink = [True]
+        def _do_blink():
+            if not hud.winfo_exists(): return
+            if not (getattr(self, '_recorder_thread', None) and
+                    self._recorder_thread.is_alive()):
+                hud.destroy(); return
+            _dot.config(fg='#FF3333' if _blink[0] else '#440000')
+            _blink[0] = not _blink[0]
+            hud.after(600, _do_blink)
+        hud.after(600, _do_blink)
+
+        # Drag
+        _d = {}
+        def _dp(e): _d['x'] = e.x_root - hud.winfo_x(); _d['y'] = e.y_root - hud.winfo_y()
+        def _dm(e): hud.geometry(f"+{e.x_root-_d['x']}+{e.y_root-_d['y']}")
+        for w in (hud, f, _dot, lc):
+            w.bind('<ButtonPress-1>', _dp)
+            w.bind('<B1-Motion>', _dm)
+
+    def _stop_record(self):
+        if getattr(self, '_recorder_thread', None):
+            self._recorder_thread.stop()
+            self._recorder_thread.join(timeout=4)
+        self._rec_btn.configure(text="⏺", fg_color=CARD2,
+                                text_color='#CC2222', border_color=SEP)
+        if hasattr(self, '_rec_hud') and self._rec_hud.winfo_exists():
+            self._rec_hud.destroy()
+        path = getattr(self, '_record_out_path', None)
+        if path:
+            import os
+            from tkinter import messagebox
+            if messagebox.askyesno("Recording saved",
+                    f"Saved to:\n{path}\n\nOpen folder?"):
+                os.startfile(os.path.dirname(path))
+
     # ── PiP Streamer Widget ───────────────────────────────────────────────────
     def _open_ingame(self):
         if hasattr(self, '_igw') and self._igw.winfo_exists():
@@ -2558,84 +2819,123 @@ class DartVoiceApp(ctk.CTk):
         win.attributes('-topmost', True)
         if sys.platform == 'win32':
             win.attributes('-transparentcolor', BG)
-        pill_w = 300
-        pill_h = 170 if is_live else 130
-        # Position top-right of main window
+        pill_w = 320
+        pill_h = 340 if is_live else 310
         self.update_idletasks()
         px = self.winfo_x() + self.winfo_width() - pill_w - 20
         py = self.winfo_y() + 60
         win.geometry(f"{pill_w}x{pill_h}+{px}+{py}")
 
-        # ── Drag logic ───────────────────────────────────────────────────
+        # ── Drag (native Win32) ───────────────────────────────────────────
         _drag = {'x': 0, 'y': 0}
 
         def _drag_start(e):
-            _drag['x'] = e.x_root - win.winfo_x()
-            _drag['y'] = e.y_root - win.winfo_y()
+            try:
+                import ctypes
+                hwnd = ctypes.windll.user32.GetParent(win.winfo_id()) or win.winfo_id()
+                ctypes.windll.user32.ReleaseCapture()
+                ctypes.windll.user32.PostMessageW(hwnd, 0xA1, 0x2, 0)
+            except Exception:
+                _drag['x'] = e.x_root - win.winfo_x()
+                _drag['y'] = e.y_root - win.winfo_y()
+                _drag['fb'] = True
 
         def _drag_move(e):
-            win.geometry(f"+{e.x_root - _drag['x']}+{e.y_root - _drag['y']}")
+            if _drag.get('fb'):
+                win.geometry(f"+{e.x_root - _drag['x']}+{e.y_root - _drag['y']}")
 
-        # ── Pill card ────────────────────────────────────────────────────
-        pill = ctk.CTkFrame(win, fg_color=CARD, corner_radius=20,
+        # ── Pill — auto-sizes to content, window matches ─────────────────
+        pill = ctk.CTkFrame(win, fg_color=CARD, corner_radius=16,
                             border_width=1, border_color=SEP)
-        pill.place(x=0, y=0, width=pill_w, height=pill_h)
-        pill.bind('<ButtonPress-1>', _drag_start)
-        pill.bind('<B1-Motion>',     _drag_move)
+        pill.pack(fill='both', expand=True)
 
-        # Thin accent line along top of pill
-        accent_bar = tk.Canvas(pill, width=pill_w, height=3, bg=CARD,
-                               highlightthickness=0)
-        accent_bar.pack(fill='x', pady=(0, 0))
-        accent_bar.bind('<ButtonPress-1>', _drag_start)
-        accent_bar.bind('<B1-Motion>',     _drag_move)
+        def _bind_drag(w):
+            w.bind('<ButtonPress-1>', _drag_start)
+            w.bind('<B1-Motion>',     _drag_move)
+
+        _bind_drag(pill)
+
+        # ── Top strip: accent bar + header row ────────────────────────────
+        # 2px accent bar
+        accent_bar = tk.Canvas(pill, width=pill_w, height=2,
+                               bg=CARD, highlightthickness=0)
+        accent_bar.pack(fill='x')
+        _bind_drag(accent_bar)
 
         def _draw_accent_bar(*_):
             accent_bar.delete('all')
             bw = accent_bar.winfo_width() or pill_w
-            r  = 20
-            accent_bar.create_rectangle(r, 0, bw - r, 3, fill=ACCENT, outline='')
-            accent_bar.create_oval(r - r, 0, r + r, 3 * 2, fill=ACCENT, outline='')
-            accent_bar.create_oval(bw - r - r, 0, bw, 3 * 2, fill=ACCENT, outline='')
-
+            accent_bar.create_rectangle(0, 0, bw, 2, fill=ACCENT, outline='')
         accent_bar.bind('<Configure>', _draw_accent_bar)
 
-        # Top row: logo + close
-        top_row = tk.Frame(pill, bg=CARD)
-        top_row.pack(fill='x', padx=14, pady=(6, 0))
-        top_row.bind('<ButtonPress-1>', _drag_start)
-        top_row.bind('<B1-Motion>',     _drag_move)
+        # Header: bullseye + DARTVOICE + mic dot + — + ✕
+        hdr = tk.Frame(pill, bg=CARD)
+        hdr.pack(fill='x', padx=10, pady=(4, 0))
+        _bind_drag(hdr)
 
-        lc = tk.Canvas(top_row, width=16, height=16, bg=CARD, highlightthickness=0)
+        lc = tk.Canvas(hdr, width=12, height=12, bg=CARD, highlightthickness=0)
         lc.pack(side='left')
-        lc.bind('<ButtonPress-1>', _drag_start)
-        lc.bind('<B1-Motion>',     _drag_move)
-        self._draw_bullseye(lc, 8, 8, [6, 4, 2, 1])
+        _bind_drag(lc)
+        self._draw_bullseye(lc, 6, 6, [5, 3, 2, 1])
 
-        logo_lbl = tk.Label(top_row, text="  DARTVOICE", bg=CARD, fg=FG,
-                            font=("Uber Move Bold", 10, "bold"))
-        logo_lbl.pack(side='left')
-        logo_lbl.bind('<ButtonPress-1>', _drag_start)
-        logo_lbl.bind('<B1-Motion>',     _drag_move)
+        tk.Label(hdr, text=" DARTVOICE", bg=CARD, fg=FG,
+                 font=("Uber Move Bold", 8, "bold")).pack(side='left')
 
-        close_btn = tk.Label(top_row, text="✕", bg=CARD, fg=FG2,
-                             font=("Rubik", 10), cursor='hand2')
-        close_btn.pack(side='right', padx=(0, 2))
+        close_btn = tk.Label(hdr, text="✕", bg=CARD, fg=FG2,
+                             font=("Rubik", 8), cursor='hand2')
+        close_btn.pack(side='right')
         close_btn.bind('<Button-1>', lambda e: win.destroy())
         close_btn.bind('<Enter>',    lambda e: close_btn.config(fg=FG))
         close_btn.bind('<Leave>',    lambda e: close_btn.config(fg=FG2))
 
-        # ── Score display canvas ──────────────────────────────────────────
-        score_c = tk.Canvas(pill, width=pill_w - 28, height=72,
-                            bg=CARD, highlightthickness=0)
-        score_c.pack(padx=14, pady=(2, 0))
-        score_c.bind('<ButtonPress-1>', _drag_start)
-        score_c.bind('<B1-Motion>',     _drag_move)
+        # Collapse / expand toggle
+        _collapsed    = [False]
+        _full_height  = [pill_h]
+        _body_widgets = []   # filled below — toggled on collapse
+
+        min_btn = tk.Label(hdr, text="—", bg=CARD, fg=FG2,
+                           font=("Rubik", 8), cursor='hand2')
+        min_btn.pack(side='right', padx=(0, 4))
+
+        def _toggle_collapse():
+            if _collapsed[0]:
+                _collapsed[0] = False
+                min_btn.config(text="—")
+                _restore_body()
+                win.geometry(f"{win.winfo_width()}x{_full_height[0]}")
+            else:
+                _collapsed[0] = True
+                _full_height[0] = win.winfo_height()
+                min_btn.config(text="□")
+                _hide_body()
+                win.geometry(f"{win.winfo_width()}x34")
+
+        min_btn.bind('<Button-1>', lambda e: _toggle_collapse())
+        min_btn.bind('<Enter>',    lambda e: min_btn.config(fg=FG))
+        min_btn.bind('<Leave>',    lambda e: min_btn.config(fg=FG2))
+
+        # Mic status dot (right of header)
+        mic_c = tk.Canvas(hdr, width=10, height=10, bg=CARD, highlightthickness=0)
+        mic_c.pack(side='right', padx=(0, 4))
+        _bind_drag(mic_c)
+
+        def _redraw_mic_dot(*_):
+            mic_c.delete('all')
+            col = ACCENT if self._active else FG3
+            mic_c.create_oval(1, 1, 9, 9, fill=col, outline='')
+
+        self._active_pip_cb = _redraw_mic_dot
+        _redraw_mic_dot()
+
+        # ── Score canvas (dominant centre) ───────────────────────────────
+        score_c = tk.Canvas(pill, height=70, bg=CARD, highlightthickness=0)
+        score_c.pack(fill='x', padx=10, pady=(2, 0))
+        _bind_drag(score_c)
 
         def _redraw_pip(*_):
             score_c.delete('all')
-            w   = score_c.winfo_width()  or (pill_w - 28)
-            h   = score_c.winfo_height() or 72
+            w = score_c.winfo_width()  or (pill_w - 20)
+            h = score_c.winfo_height() or 70
             val = self._remaining_str.get() if is_live else self._score_str.get()
             if not val:
                 score_c.create_text(w // 2, h // 2, text="—",
@@ -2643,39 +2943,22 @@ class DartVoiceApp(ctk.CTk):
                                     fill=FG3, anchor='center')
                 return
             is_180 = (val == '180' and not is_live)
-            # Soft radial glow when active
-            if self._active:
-                ah = ACCENT.lstrip('#')
-                ar, ag, ab = int(ah[0:2],16), int(ah[2:4],16), int(ah[4:6],16)
-                ch_hex = CARD.lstrip('#')
-                cr2, cg2, cb2 = int(ch_hex[0:2],16), int(ch_hex[2:4],16), int(ch_hex[4:6],16)
-                for gf, alpha in ((0.9, 0.05), (0.6, 0.10), (0.35, 0.15)):
-                    gw2 = w * gf
-                    _c = '#{:02X}{:02X}{:02X}'.format(
-                        int(ar*alpha + cr2*(1-alpha)),
-                        int(ag*alpha + cg2*(1-alpha)),
-                        int(ab*alpha + cb2*(1-alpha)),
-                    )
-                    score_c.create_oval(w/2-gw2/2, h/2-gw2/4,
-                                        w/2+gw2/2, h/2+gw2/4,
-                                        fill=_c, outline='')
-            max_w = w - 16
-            size  = 48
-            while size > 16:
+            max_w = w - 8
+            size  = 44
+            while size > 14:
                 fnt = ("Uber Move Bold", size, "bold")
-                tid = score_c.create_text(-1000, -1000, text=val, font=fnt)
+                tid = score_c.create_text(-999, -999, text=val, font=fnt)
                 tw  = score_c.bbox(tid)[2] - score_c.bbox(tid)[0]
                 score_c.delete(tid)
-                if tw <= max_w:
-                    break
+                if tw <= max_w: break
                 size -= 2
             fnt = ("Uber Move Bold", size, "bold")
             cy2 = h // 2
             if self._active:
-                for off, gc in zip((3, 2, 1), _glow_layers(ACCENT)[2:]):
+                for off, gc in zip((2, 1), _glow_layers(ACCENT)[3:]):
                     for ox, oy in [(-off,0),(off,0),(0,-off),(0,off)]:
-                        score_c.create_text(w//2+ox, cy2+oy, text=val, font=fnt,
-                                            fill=gc, anchor='center')
+                        score_c.create_text(w//2+ox, cy2+oy, text=val,
+                                            font=fnt, fill=gc, anchor='center')
             score_c.create_text(w//2, cy2, text=val, font=fnt,
                                 fill=ACCENT if is_180 else FG, anchor='center')
 
@@ -2683,80 +2966,211 @@ class DartVoiceApp(ctk.CTk):
         self._remaining_str.trace_add('write', _redraw_pip)
         _redraw_pip()
 
-        # ── Bottom row: avg | mic indicator | darts ───────────────────────
-        bot = tk.Frame(pill, bg=CARD)
-        bot.pack(fill='x', padx=14, pady=(4, 0))
-        bot.bind('<ButtonPress-1>', _drag_start)
-        bot.bind('<B1-Motion>',     _drag_move)
+        # ── Equalizer animation ───────────────────────────────────────────
+        import math as _math
+        eq_c = tk.Canvas(pill, height=18, bg=CARD, highlightthickness=0)
+        eq_c.pack(fill='x', padx=10, pady=(3, 0))
+        _bind_drag(eq_c)
 
-        # Avg
+        _EQ_BARS    = 9
+        _EQ_BAR_W   = 4
+        _EQ_GAP     = 3
+        _EQ_OFFSETS = [i * (_math.pi * 2 / _EQ_BARS) for i in range(_EQ_BARS)]
+        _eq_phase   = [0.0]
+        _eq_job     = [None]
+
+        def _draw_eq(*_):
+            eq_c.delete('all')
+            cw = eq_c.winfo_width()  or (pill_w - 20)
+            ch = eq_c.winfo_height() or 18
+            total = _EQ_BARS * _EQ_BAR_W + (_EQ_BARS - 1) * _EQ_GAP
+            x0 = (cw - total) // 2
+            for i in range(_EQ_BARS):
+                x = x0 + i * (_EQ_BAR_W + _EQ_GAP)
+                if self._active:
+                    h = int(3 + 13 * (0.5 + 0.5 * _math.sin(
+                        _eq_phase[0] + _EQ_OFFSETS[i])))
+                    col = ACCENT
+                else:
+                    h = 3
+                    col = FG3
+                eq_c.create_rectangle(x, ch - 1 - h, x + _EQ_BAR_W,
+                                      ch - 1, fill=col, outline='')
+
+        def _eq_tick():
+            if not win.winfo_exists(): return
+            _eq_phase[0] = (_eq_phase[0] + 0.28) % (_math.pi * 2)
+            _draw_eq()
+            if self._active:
+                _eq_job[0] = win.after(55, _eq_tick)
+
+        def _eq_start():
+            if _eq_job[0]: win.after_cancel(_eq_job[0])
+            _eq_job[0] = None
+            _eq_tick()
+
+        def _eq_stop():
+            if _eq_job[0]: win.after_cancel(_eq_job[0])
+            _eq_job[0] = None
+            _draw_eq()
+
+        _draw_eq()
+        if self._active:
+            win.after(100, _eq_start)
+
+        # ── Stats row: AVG  ·  DARTS ─────────────────────────────────────
+        bot = tk.Frame(pill, bg=CARD)
+        bot.pack(fill='x', padx=12, pady=(4, 0))
+        _bind_drag(bot)
+
         avg_f = tk.Frame(bot, bg=CARD)
         avg_f.pack(side='left')
-        tk.Label(avg_f, text="AVG", bg=CARD, fg=FG2,
-                 font=("Rubik", 7, "bold")).pack(anchor='w')
-        avg_val = tk.Label(avg_f, bg=CARD, fg=FG, font=("Uber Move Bold", 15, "bold"))
+        tk.Label(avg_f, text="AVG", bg=CARD, fg=FG3,
+                 font=("Rubik", 6, "bold")).pack(anchor='w')
+        avg_val = tk.Label(avg_f, bg=CARD, fg=FG2, font=("Uber Move Bold", 11, "bold"))
         avg_val.pack(anchor='w')
 
-        def _sync_avg(*_):
-            avg_val.config(text=self._avg_str.get())
-        self._avg_str.trace_add('write', _sync_avg)
-        _sync_avg()
+        def _sync_avg(*_): avg_val.config(text=self._avg_str.get())
+        self._avg_str.trace_add('write', _sync_avg); _sync_avg()
 
-        # Mic pulse indicator (centre)
-        mic_c = tk.Canvas(bot, width=32, height=32, bg=CARD, highlightthickness=0)
-        mic_c.pack(side='left', expand=True)
-        mic_c.bind('<ButtonPress-1>', _drag_start)
-        mic_c.bind('<B1-Motion>',     _drag_move)
-
-        def _redraw_mic_dot(*_):
-            mic_c.delete('all')
-            col = ACCENT if self._active else FG3
-            mic_c.create_oval(10, 10, 22, 22, fill=col, outline='')
-            if self._active:
-                mic_c.create_oval(7, 7, 25, 25, outline=ACCENT_DIM, width=1)
-
-        self._active_pip_cb = _redraw_mic_dot
-        _redraw_mic_dot()
-
-        # Darts
         drt_f = tk.Frame(bot, bg=CARD)
         drt_f.pack(side='right')
-        tk.Label(drt_f, text="DARTS", bg=CARD, fg=FG2,
-                 font=("Rubik", 7, "bold")).pack(anchor='e')
-        drt_val = tk.Label(drt_f, bg=CARD, fg=FG, font=("Uber Move Bold", 15, "bold"))
+        tk.Label(drt_f, text="DARTS", bg=CARD, fg=FG3,
+                 font=("Rubik", 6, "bold")).pack(anchor='e')
+        drt_val = tk.Label(drt_f, bg=CARD, fg=FG2, font=("Uber Move Bold", 11, "bold"))
         drt_val.pack(anchor='e')
 
-        def _sync_darts(*_):
-            drt_val.config(text=self._darts_str.get())
-        self._darts_str.trace_add('write', _sync_darts)
-        _sync_darts()
+        def _sync_darts(*_): drt_val.config(text=self._darts_str.get())
+        self._darts_str.trace_add('write', _sync_darts); _sync_darts()
 
-        # ── Checkout row (live X01 only) ──────────────────────────────────
+        # ── Checkout hint (live X01 only) ─────────────────────────────────
         if is_live:
-            co_f = tk.Frame(pill, bg=CARD2)
-            co_f.pack(fill='x', padx=14, pady=(6, 0))
-            co_f.bind('<ButtonPress-1>', _drag_start)
-            co_f.bind('<B1-Motion>',     _drag_move)
-            co_lbl = tk.Label(co_f, bg=CARD2, fg=ACCENT,
-                              font=("Uber Move Bold", 11, "bold"),
-                              anchor='center', pady=4)
-            co_lbl.pack(fill='x')
-            co_lbl.bind('<ButtonPress-1>', _drag_start)
-            co_lbl.bind('<B1-Motion>',     _drag_move)
+            co_sep = tk.Frame(pill, bg=SEP, height=1)
+            co_sep.pack(fill='x', padx=10, pady=(2, 0))
+            co_f = tk.Frame(pill, bg=CARD)
+            co_f.pack(fill='x', padx=10, pady=(3, 0))
+            _bind_drag(co_f)
+            tk.Label(co_f, text="CHECKOUT", bg=CARD, fg=FG3,
+                     font=("Rubik", 6, "bold")).pack(side='left')
+            co_lbl = tk.Label(co_f, bg=CARD, fg=ACCENT,
+                              font=("Uber Move Bold", 11, "bold"))
+            co_lbl.pack(side='right')
+            _bind_drag(co_lbl)
 
-            def _sync_co(*_):
-                co_lbl.config(text=self._checkout_str.get() or "—")
-            self._checkout_str.trace_add('write', _sync_co)
-            _sync_co()
+            def _sync_co(*_): co_lbl.config(text=self._checkout_str.get() or "—")
+            self._checkout_str.trace_add('write', _sync_co); _sync_co()
 
-        # Hook _set_active via a wrapper stored on the instance so PiP updates
+        # ── Action row: Listen + Calibrate ───────────────────────────────
+        btn_sep = tk.Frame(pill, bg=SEP, height=1)
+        btn_sep.pack(fill='x', padx=10, pady=(5, 0))
+
+        action_row = tk.Frame(pill, bg=CARD)
+        action_row.pack(fill='x', padx=10, pady=(4, 0))
+
+        listen_btn = tk.Label(
+            action_row,
+            text="◼  STOP" if self._active else "▶  START",
+            bg=STOP_BG if self._active else ACCENT,
+            fg=ACCENT   if self._active else PRI_FG,
+            font=("Uber Move Bold", 8, "bold"),
+            cursor='hand2', pady=6,
+        )
+        listen_btn.pack(side='left', fill='x', expand=True, padx=(0, 4))
+
+        cal_btn = tk.Label(
+            action_row,
+            text="⊕ CALIBRATE",
+            bg=CARD, fg=FG2,
+            font=("Rubik", 7, "bold"),
+            cursor='hand2', pady=6,
+            relief='flat',
+        )
+        cal_btn.pack(side='left')
+        cal_btn.bind('<Button-1>', lambda e: (win.withdraw(),
+                                              self.after(50, lambda: (self._calibrate_x01(),
+                                              win.deiconify()))))
+        cal_btn.bind('<Enter>',    lambda e: cal_btn.config(fg=ACCENT))
+        cal_btn.bind('<Leave>',    lambda e: cal_btn.config(fg=FG2))
+
+        def _on_listen_click(e):
+            self.after(0, self._toggle)
+        listen_btn.bind('<Button-1>', _on_listen_click)
+
+        def _update_listen_btn():
+            if not win.winfo_exists(): return
+            if self._active:
+                listen_btn.config(text="◼  STOP", bg=STOP_BG, fg=ACCENT)
+            else:
+                listen_btn.config(text="▶  START", bg=ACCENT, fg=PRI_FG)
+
+        # ── Diagonal resize grip — placed at corner, always visible ─────────
+        _GRIP = 22
+        grip = tk.Canvas(pill, width=_GRIP, height=_GRIP, bg=CARD,
+                         highlightthickness=0, cursor='size_nw_se')
+        grip.place(relx=1.0, rely=1.0, anchor='se')
+
+        def _draw_grip(col):
+            grip.delete('all')
+            # Solid diagonal triangle
+            grip.create_polygon(
+                _GRIP, 0, _GRIP, _GRIP, 0, _GRIP,
+                fill=col, outline='')
+            # Two accent lines for visual clarity
+            grip.create_line(_GRIP-4, _GRIP, _GRIP, _GRIP-4, fill=CARD, width=1)
+            grip.create_line(_GRIP-9, _GRIP, _GRIP, _GRIP-9, fill=CARD, width=1)
+
+        _draw_grip(FG3)
+        grip.bind('<Enter>', lambda e: _draw_grip(ACCENT))
+        grip.bind('<Leave>', lambda e: _draw_grip(FG3))
+
+        _rsz = {}
+        def _rsz_press(e):
+            _rsz['x'] = e.x_root; _rsz['y'] = e.y_root
+            _rsz['w'] = win.winfo_width(); _rsz['h'] = win.winfo_height()
+        def _rsz_drag(e):
+            nw = max(200, _rsz['w'] + e.x_root - _rsz['x'])
+            nh = max(80,  _rsz['h'] + e.y_root - _rsz['y'])
+            win.geometry(f"{nw}x{nh}")   # pill fills via pack(fill='both')
+            if not _collapsed[0]:
+                _full_height[0] = nh
+        grip.bind('<ButtonPress-1>', _rsz_press)
+        grip.bind('<B1-Motion>',     _rsz_drag)
+
+        # ── Body widget list (for collapse/expand) ────────────────────────
+        _body_widgets.extend([score_c, eq_c, bot, btn_sep, action_row])
+
+        def _hide_body():
+            for w in _body_widgets:
+                w.pack_forget()
+            if is_live:
+                try: co_sep.pack_forget(); co_f.pack_forget()
+                except Exception: pass
+
+        def _restore_body():
+            score_c.pack(fill='x', padx=10, pady=(2, 0))
+            eq_c.pack(fill='x', padx=10, pady=(3, 0))
+            bot.pack(fill='x', padx=12, pady=(4, 0))
+            if is_live:
+                co_sep.pack(fill='x', padx=10, pady=(2, 0))
+                co_f.pack(fill='x', padx=10, pady=(3, 0))
+            btn_sep.pack(fill='x', padx=10, pady=(5, 0))
+            action_row.pack(fill='x', padx=10, pady=(4, 0))
+
+        _full_height[0] = pill_h
+
+        # ── Hook _set_active so PiP stays in sync ─────────────────────────
         _prev_set_active = self._set_active
 
         def _pip_set_active(active):
             _prev_set_active(active)
-            if win.winfo_exists():
-                _redraw_mic_dot()
-                _redraw_pip()
+            if not win.winfo_exists(): return
+            _redraw_mic_dot()
+            _redraw_pip()
+            _update_listen_btn()
+            if active:
+                _eq_start()
+            else:
+                _eq_stop()
 
         self._set_active = _pip_set_active
 
@@ -2805,11 +3219,11 @@ class DartVoiceApp(ctk.CTk):
         alive = (self._listener and self._listener.is_alive()) or \
                 (self._video_scorer and self._video_scorer.is_alive())
         if hasattr(self, '_dot'):
-            if alive:
-                self._dot.configure(text_color=ACCENT if int(time.time()*2)%2==0 else ACCENT_DIM)
-            else:
-                self._dot.configure(text_color=FG3)
-        self.after(500, self._pulse)
+            col = (ACCENT if int(time.time()*2)%2==0 else ACCENT_DIM) if alive else FG3
+            if getattr(self, '_dot_col', None) != col:
+                self._dot.configure(text_color=col)
+                self._dot_col = col
+        self.after(600, self._pulse)
 
     def _save_mode(self, v):
         self.cfg['game_mode'] = v
@@ -2895,6 +3309,7 @@ class DartVoiceApp(ctk.CTk):
         ov.place(x=0, y=0, relwidth=1.0, relheight=1.0)
         ov.lift()
         self._sw_overlay = ov
+        ov.update_idletasks()   # paint dim overlay before building content
 
         def _close():
             if ov.winfo_exists():
@@ -2911,6 +3326,7 @@ class DartVoiceApp(ctk.CTk):
                              width=860, height=540)
         modal.pack_propagate(False)
         modal.place(relx=0.5, rely=0.5, anchor='center')
+        modal.update_idletasks()   # paint modal shell before building tabs
         modal.bind('<Button-1>', lambda e: 'break')
 
         # Footer (packed first so it anchors to bottom)
@@ -2957,13 +3373,23 @@ class DartVoiceApp(ctk.CTk):
                     text_color=FG  if name == tab_name else FG2,
                 )
 
+        _builders  = {}  # tab_name -> build function, called once on first visit
+        _built     = set()
+
+        def _switch_lazy(tab_name):
+            if tab_name not in _built:
+                _built.add(tab_name)
+                if tab_name in _builders:
+                    _builders[tab_name]()
+            _switch(tab_name)
+
         def _make_tab(name, label):
             btn = ctk.CTkButton(
                 sidebar, text=f"  {label}",
                 font=("Rubik", 12, "bold"),
                 fg_color='transparent', hover_color=CARD2,
                 text_color=FG2, anchor='w', height=38, corner_radius=8,
-                command=lambda n=name: _switch(n),
+                command=lambda n=name: _switch_lazy(n),
             )
             btn.pack(fill='x', padx=8, pady=1)
             _tab_btns[name] = btn
@@ -3053,23 +3479,9 @@ class DartVoiceApp(ctk.CTk):
         ctk.CTkLabel(mic_tile, text="🎙  MICROPHONE", text_color=FG2,
                      font=("Rubik", 8, "bold")).pack(anchor='w', padx=12, pady=(10, 2))
 
-        qs_mic_labels    = ['Default']
-        qs_mic_index_map = {0: None}
-        try:
-            import pyaudio as _pa_qs
-            _pa2 = _pa_qs.PyAudio()
-            for _i2 in range(_pa2.get_device_count()):
-                _inf2 = _pa2.get_device_info_by_index(_i2)
-                if _inf2.get('maxInputChannels', 0) < 1:
-                    continue
-                _raw2 = _inf2['name']
-                try: _raw2 = _raw2.encode('latin-1').decode('utf-8')
-                except (UnicodeEncodeError, UnicodeDecodeError): pass
-                qs_mic_labels.append(_raw2)
-                qs_mic_index_map[len(qs_mic_labels) - 1] = _i2
-            _pa2.terminate()
-        except Exception:
-            pass
+        # Use pre-scanned mic list (populated at startup in background thread)
+        _mic_cache = self._cached_mic_list or (['Default'], {0: None})
+        qs_mic_labels, qs_mic_index_map = _mic_cache[0][:], dict(_mic_cache[1])
 
         _qs_cur_lbl = 'Default'
         for _li2, _di2 in qs_mic_index_map.items():
@@ -3148,25 +3560,8 @@ class DartVoiceApp(ctk.CTk):
 
         _section(p_audio, "MICROPHONE DEVICE")
 
-        mic_labels    = ['Default']
-        mic_index_map = {0: None}
-        try:
-            import pyaudio
-            _pa = pyaudio.PyAudio()
-            for _i in range(_pa.get_device_count()):
-                _info = _pa.get_device_info_by_index(_i)
-                if _info.get('maxInputChannels', 0) < 1:
-                    continue
-                _raw = _info['name']
-                try:
-                    _raw = _raw.encode('latin-1').decode('utf-8')
-                except (UnicodeEncodeError, UnicodeDecodeError):
-                    pass
-                mic_labels.append(_raw)
-                mic_index_map[len(mic_labels) - 1] = _i
-            _pa.terminate()
-        except Exception:
-            pass
+        _mic_cache2 = self._cached_mic_list or (['Default'], {0: None})
+        mic_labels, mic_index_map = _mic_cache2[0][:], dict(_mic_cache2[1])
 
         cur_mic_idx   = self.cfg.get('mic_index')
         cur_mic_label = 'Default'
@@ -3272,274 +3667,273 @@ class DartVoiceApp(ctk.CTk):
         _option_menu(p_audio, sv, ['Lightning', 'Fast', 'Normal', 'Slow'],
                      lambda v: self._save_setting('speed', v))
 
-        # ══════════════════════════ APPEARANCE TAB ═══════════════════════
-        _section(p_appear, "COLOUR THEME")
-
-        theme_names   = list(THEMES.keys())
-        current_theme = self.cfg.get('theme', 'Littler')
-        self._theme_indicators = {}
-
-        theme_frame = ctk.CTkFrame(p_appear, fg_color='transparent')
-        theme_frame.pack(fill='x', padx=24, pady=(0, 4))
-
-        def _effective_accent(name):
-            t = THEMES[name]
-            return self.cfg.get('custom_accent', '#FFFFFF') if t.get('_custom') else t['accent']
-
-        def _redraw_dots(active_name):
-            for sn, (dc, lbl) in self._theme_indicators.items():
-                sel = (sn == active_name)
-                dc.delete('ring')
-                dc.create_oval(2, 2, 22, 22,
-                               fill=_effective_accent(sn),
-                               outline=FG if sel else SEP,
-                               width=2, tags='ring')
-                lbl.configure(text_color=FG if sel else FG3)
-
-        def _pick(n):
-            if THEMES[n].get('_custom'):
-                _close()
-                from tkinter import colorchooser
-                result = colorchooser.askcolor(
-                    color=self.cfg.get('custom_accent', '#FFFFFF'),
-                    title='Pick your accent colour', parent=self)
-                if result[1] is None:
-                    self.after(60, self._open_settings); return
-                chosen = result[1].upper()
-                self._save_setting('custom_accent', chosen)
-                THEMES['Custom']['accent'] = chosen
-                _apply_theme('Custom', chosen)
-                self._save_setting('theme', 'Custom')
-                self._rebuild_ui()
-                self.after(60, self._open_settings)
-                return
-            _apply_theme(n)
-            self._save_setting('theme', n)
-            _redraw_dots(n)
-            self._rebuild_ui()
-            _close()
-            self.after(80, self._open_settings)
-
-        cols = 3
-        for i, name in enumerate(theme_names):
-            t       = THEMES[name]
-            col_idx = i % cols
-            row_idx = i // cols
-            swatch  = ctk.CTkFrame(theme_frame, fg_color='transparent',
-                                   width=88, height=62, cursor='hand2')
-            swatch.grid(row=row_idx, column=col_idx, padx=4, pady=4, sticky='nsew')
-            swatch.grid_propagate(False)
-            theme_frame.grid_columnconfigure(col_idx, weight=1)
-            dot_c = tk.Canvas(swatch, width=24, height=24, bg=BG, highlightthickness=0)
-            dot_c.pack(pady=(6, 0))
-            sel = (name == current_theme)
-            dot_c.create_oval(2, 2, 22, 22,
-                              fill=_effective_accent(name),
-                              outline=FG if sel else SEP,
-                              width=2, tags='ring')
-            surname = t['player'].split()[-1] if not t.get('_custom') else 'Custom'
-            lbl = ctk.CTkLabel(swatch, text=surname,
-                               text_color=FG if sel else FG3,
-                               font=("Rubik", 8))
-            lbl.pack(pady=(1, 0))
-            self._theme_indicators[name] = (dot_c, lbl)
-            for w in (swatch, dot_c, lbl):
-                w.bind('<Button-1>', lambda e, n=name: _pick(n))
-
         # ══════════════════════════ GAMEPLAY TAB ═════════════════════════
-        _section(p_gameplay, "X01 GAME TRACKING")
+        def _build_gameplay():
+            _section(p_gameplay, "X01 GAME TRACKING")
 
-        pd_var = ctk.BooleanVar(value=self.cfg.get('per_dart_mode', False))
-        _switch_row(p_gameplay, "Per-dart scoring",
-                    "Say each dart individually",
-                    pd_var,
-                    lambda: self._save_setting('per_dart_mode', pd_var.get()))
+            pd_var = ctk.BooleanVar(value=self.cfg.get('per_dart_mode', False))
+            _switch_row(p_gameplay, "Per-dart scoring",
+                        "Say each dart individually",
+                        pd_var,
+                        lambda: self._save_setting('per_dart_mode', pd_var.get()))
 
-        lc_var = ctk.BooleanVar(value=self.cfg.get('live_checkout', False))
+            lc_var = ctk.BooleanVar(value=self.cfg.get('live_checkout', False))
 
-        def _toggle_live_checkout():
-            self._save_setting('live_checkout', lc_var.get())
-            self._x01_remaining = None
-            self._update_remaining_display()
-            self._rebuild_ui()
-            _close()
-            self.after(80, self._open_settings)
+            def _toggle_live_checkout():
+                self._save_setting('live_checkout', lc_var.get())
+                self._x01_remaining = None
+                self._update_remaining_display()
+                self._rebuild_ui()
+                _close()
+                self.after(80, self._open_settings)
 
-        _switch_row(p_gameplay, "Live checkout tracking",
-                    "Show remaining + route",
-                    lc_var, _toggle_live_checkout)
+            _switch_row(p_gameplay, "Live checkout tracking",
+                        "Show remaining + route",
+                        lc_var, _toggle_live_checkout)
 
-        _section(p_gameplay, "STARTING SCORE")
-        start_var = ctk.StringVar(value=str(self.cfg.get('x01_start', 501)))
-        _option_menu(p_gameplay, start_var, ['501', '301', '701', '170'],
-                     lambda v: self._save_setting('x01_start', int(v)))
+            _section(p_gameplay, "STARTING SCORE")
+            start_var = ctk.StringVar(value=str(self.cfg.get('x01_start', 501)))
+            _option_menu(p_gameplay, start_var, ['501', '301', '701', '170'],
+                         lambda v: self._save_setting('x01_start', int(v)))
 
-        ctk.CTkLabel(p_gameplay,
-                     text='Say "new leg" at any time to reset the counter.',
-                     text_color=FG3, font=("Rubik", 9), justify='left'
-                     ).pack(anchor='w', padx=24, pady=(0, 6))
+            ctk.CTkLabel(p_gameplay,
+                         text='Say "new leg" at any time to reset the counter.',
+                         text_color=FG3, font=("Rubik", 9), justify='left'
+                         ).pack(anchor='w', padx=24, pady=(0, 6))
 
-        _section(p_gameplay, "CALIBRATION")
-        _action_btn(p_gameplay, "Calibrate X01 Box",       self._calibrate_x01)
-        _action_btn(p_gameplay, "Calibrate Cricket Grid",   self._calibrate_cricket)
+            _section(p_gameplay, "CALIBRATION")
+            _action_btn(p_gameplay, "Calibrate X01 Box",       self._calibrate_x01)
+            _action_btn(p_gameplay, "Calibrate Cricket Grid",   self._calibrate_cricket)
 
-        _section(p_gameplay, "CRICKET GRID FINE-TUNING")
+            _section(p_gameplay, "CRICKET GRID FINE-TUNING")
 
-        cas_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_auto_submit', True))
-        _switch_row(p_gameplay, "Auto-submit after entering darts", '',
-                    cas_var2,
-                    lambda: self._save_setting('cricket_auto_submit', cas_var2.get()))
+            cas_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_auto_submit', True))
+            _switch_row(p_gameplay, "Auto-submit after entering darts", '',
+                        cas_var2,
+                        lambda: self._save_setting('cricket_auto_submit', cas_var2.get()))
 
-        cib_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_include_bull', True))
-        _switch_row(p_gameplay, "Include Bull row (7 rows)", '',
-                    cib_var2,
-                    lambda: self._save_setting('cricket_include_bull', cib_var2.get()))
+            cib_var2 = ctk.BooleanVar(value=self.cfg.get('cricket_include_bull', True))
+            _switch_row(p_gameplay, "Include Bull row (7 rows)", '',
+                        cib_var2,
+                        lambda: self._save_setting('cricket_include_bull', cib_var2.get()))
 
-        cox_v = ctk.IntVar(value=self.cfg.get('cricket_offset_x', 0))
-        coy_v = ctk.IntVar(value=self.cfg.get('cricket_offset_y', 0))
-        ccd_v = ctk.IntVar(value=self.cfg.get('cricket_click_delay', 0))
-        _slider_row(p_gameplay, "Grid offset X (pixels)",  cox_v, -50,  50,  100, 'px', 'cricket_offset_x')
-        _slider_row(p_gameplay, "Grid offset Y (pixels)",  coy_v, -50,  50,  100, 'px', 'cricket_offset_y')
-        _slider_row(p_gameplay, "Extra click delay (ms)",  ccd_v,   0, 500,   50, 'ms', 'cricket_click_delay')
+            cox_v = ctk.IntVar(value=self.cfg.get('cricket_offset_x', 0))
+            coy_v = ctk.IntVar(value=self.cfg.get('cricket_offset_y', 0))
+            ccd_v = ctk.IntVar(value=self.cfg.get('cricket_click_delay', 0))
+            _slider_row(p_gameplay, "Grid offset X (pixels)",  cox_v, -50,  50,  100, 'px', 'cricket_offset_x')
+            _slider_row(p_gameplay, "Grid offset Y (pixels)",  coy_v, -50,  50,  100, 'px', 'cricket_offset_y')
+            _slider_row(p_gameplay, "Extra click delay (ms)",  ccd_v,   0, 500,   50, 'ms', 'cricket_click_delay')
 
-        ctk.CTkLabel(p_gameplay,
-                     text='Adjust offsets if clicks land slightly off.\n'
-                          'Increase delay if your scoring app misses clicks.',
-                     text_color=FG3, font=("Rubik", 9), justify='left'
-                     ).pack(anchor='w', padx=24, pady=(4, 16))
+            ctk.CTkLabel(p_gameplay,
+                         text='Adjust offsets if clicks land slightly off.\n'
+                              'Increase delay if your scoring app misses clicks.',
+                         text_color=FG3, font=("Rubik", 9), justify='left'
+                         ).pack(anchor='w', padx=24, pady=(4, 16))
+
+        _builders['gameplay'] = _build_gameplay
 
         # ══════════════════════════ VIDEO SCORING TAB ════════════════════
-        _section(p_video, "VIDEO SCORING")
+        def _build_video():
+            _section(p_video, "VIDEO SCORING")
 
-        vv = ctk.BooleanVar(value=self.cfg.get('video_scoring', False))
-        _switch_row(p_video, "Use screen-capture instead of mic", '',
-                    vv,
-                    lambda: self._save_setting('video_scoring', vv.get()))
+            vv = ctk.BooleanVar(value=self.cfg.get('video_scoring', False))
+            _switch_row(p_video, "Use screen-capture instead of mic", '',
+                        vv,
+                        lambda: self._save_setting('video_scoring', vv.get()))
 
-        region = self.cfg.get('video_region', {})
-        region_lbl_text = (f"Region: {region['w']}x{region['h']} at ({region['x']},{region['y']})"
-                           if region.get('w') else "No region selected")
-        region_info = ctk.CTkLabel(p_video, text=region_lbl_text,
-                                   text_color=FG2, font=("Rubik", 9))
-        region_info.pack(anchor='w', padx=24, pady=(0, 4))
+            region = self.cfg.get('video_region', {})
+            region_lbl_text = (f"Region: {region['w']}x{region['h']} at ({region['x']},{region['y']})"
+                               if region.get('w') else "No region selected")
+            region_info = ctk.CTkLabel(p_video, text=region_lbl_text,
+                                       text_color=FG2, font=("Rubik", 9))
+            region_info.pack(anchor='w', padx=24, pady=(0, 4))
 
-        def _select_region():
-            self._calibrate_video_region()
-            def _poll():
-                r = self.cfg.get('video_region', {})
-                if r.get('w'):
-                    region_info.configure(
-                        text=f"Region: {r['w']}x{r['h']} at ({r['x']},{r['y']})")
-            ov.after(500, _poll)
+            def _select_region():
+                self._calibrate_video_region()
+                def _poll():
+                    r = self.cfg.get('video_region', {})
+                    if r.get('w'):
+                        region_info.configure(
+                            text=f"Region: {r['w']}x{r['h']} at ({r['x']},{r['y']})")
+                ov.after(500, _poll)
 
-        _action_btn(p_video, "Select Camera Region  (drag)", _select_region)
-        _action_btn(p_video, "Calibrate Board in Video",      self._calibrate_video_board)
-        _action_btn(p_video, "Show Video Debug",              self._open_video_debug)
+            _action_btn(p_video, "Select Camera Region  (drag)", _select_region)
+            _action_btn(p_video, "Calibrate Board in Video",      self._calibrate_video_board)
+            _action_btn(p_video, "Show Video Debug",              self._open_video_debug)
 
-        cal = self.cfg.get('video_board_cal', {})
-        cal_text = (f"Board calibrated  v={cal['r_v']:.0f}  h={cal['r_h']:.0f}  "
-                    f"rot={cal.get('rot', 0):.1f}") if cal.get('r_v') else "Board not calibrated"
-        ctk.CTkLabel(p_video, text=cal_text, text_color=FG2,
-                     font=("Rubik", 9)).pack(anchor='w', padx=24, pady=(0, 6))
+            cal = self.cfg.get('video_board_cal', {})
+            cal_text = (f"Board calibrated  v={cal['r_v']:.0f}  h={cal['r_h']:.0f}  "
+                        f"rot={cal.get('rot', 0):.1f}") if cal.get('r_v') else "Board not calibrated"
+            ctk.CTkLabel(p_video, text=cal_text, text_color=FG2,
+                         font=("Rubik", 9)).pack(anchor='w', padx=24, pady=(0, 6))
 
-        _section(p_video, "DEVELOPER")
-        try:
-            from billing import is_admin_unlocked, admin_unlock, admin_lock
-            _is_admin = is_admin_unlocked()
-        except ImportError:
-            _is_admin = False
-
-        admin_status_var = ctk.StringVar(
-            value="Admin mode: ON" if _is_admin else "Admin mode: OFF")
-        ctk.CTkLabel(p_video, textvariable=admin_status_var,
-                     text_color=FG3, font=("Rubik", 9)
-                     ).pack(anchor='w', padx=24, pady=(0, 4))
-
-        admin_entry = ctk.CTkEntry(p_video, placeholder_text="Enter admin passcode",
-                                   show='*', fg_color=BG, border_color=SEP,
-                                   text_color=FG, font=("Rubik", 11), height=34,
-                                   corner_radius=8)
-        admin_entry.pack(fill='x', padx=24, pady=(0, 6))
-
-        def _toggle_admin():
+            _section(p_video, "DEVELOPER")
             try:
                 from billing import is_admin_unlocked, admin_unlock, admin_lock
+                _is_admin = is_admin_unlocked()
             except ImportError:
-                return
-            if is_admin_unlocked():
-                admin_lock()
-                admin_status_var.set("Admin mode: OFF")
-                admin_entry.delete(0, 'end')
-            else:
-                code = admin_entry.get().strip()
-                if admin_unlock(code):
-                    admin_status_var.set("Admin mode: ON")
+                _is_admin = False
+
+            admin_status_var = ctk.StringVar(
+                value="Admin mode: ON" if _is_admin else "Admin mode: OFF")
+            ctk.CTkLabel(p_video, textvariable=admin_status_var,
+                         text_color=FG3, font=("Rubik", 9)
+                         ).pack(anchor='w', padx=24, pady=(0, 4))
+
+            admin_entry = ctk.CTkEntry(p_video, placeholder_text="Enter admin passcode",
+                                       show='*', fg_color=BG, border_color=SEP,
+                                       text_color=FG, font=("Rubik", 11), height=34,
+                                       corner_radius=8)
+            admin_entry.pack(fill='x', padx=24, pady=(0, 6))
+
+            def _toggle_admin():
+                try:
+                    from billing import is_admin_unlocked, admin_unlock, admin_lock
+                except ImportError:
+                    return
+                if is_admin_unlocked():
+                    admin_lock()
+                    admin_status_var.set("Admin mode: OFF")
                     admin_entry.delete(0, 'end')
                 else:
-                    admin_status_var.set("Wrong passcode")
+                    code = admin_entry.get().strip()
+                    if admin_unlock(code):
+                        admin_status_var.set("Admin mode: ON")
+                        admin_entry.delete(0, 'end')
+                    else:
+                        admin_status_var.set("Wrong passcode")
 
-        ctk.CTkButton(p_video, text="Toggle Admin Mode",
-                      fg_color=CARD2, hover_color=SEP, text_color=FG2,
-                      height=32, corner_radius=8, border_width=1, border_color=SEP,
-                      font=("Rubik", 10, "bold"),
-                      command=_toggle_admin,
-                      ).pack(fill='x', padx=24, pady=(0, 16))
+            ctk.CTkButton(p_video, text="Toggle Admin Mode",
+                          fg_color=CARD2, hover_color=SEP, text_color=FG2,
+                          height=32, corner_radius=8, border_width=1, border_color=SEP,
+                          font=("Rubik", 10, "bold"),
+                          command=_toggle_admin,
+                          ).pack(fill='x', padx=24, pady=(0, 16))
 
-        # ══════════════════════ GHOST MODE (Appearance tab) ═════════════
-        _section(p_appear, "GHOST MODE")
+        _builders['video'] = _build_video
 
-        aot_var = ctk.BooleanVar(value=self.cfg.get('always_on_top', True))
+        # ══════════════════════ APPEARANCE TAB (full) ════════════════════
+        def _build_appear():
+            _section(p_appear, "COLOUR THEME")
 
-        def _toggle_aot():
-            v = aot_var.get()
-            self._save_setting('always_on_top', v)
-            self.attributes('-topmost', v)
+            theme_names   = list(THEMES.keys())
+            current_theme = self.cfg.get('theme', 'Littler')
+            self._theme_indicators = {}
 
-        _switch_row(p_appear, "Always on Top",
-                    "Keep DartVoice above all other windows",
-                    aot_var, _toggle_aot)
+            theme_frame = ctk.CTkFrame(p_appear, fg_color='transparent')
+            theme_frame.pack(fill='x', padx=24, pady=(0, 4))
 
-        _section(p_appear, "WINDOW OPACITY")
-        op_var = ctk.DoubleVar(value=self.cfg.get('ghost_opacity', 1.0))
-        op_lbl = ctk.CTkLabel(p_appear, text=f"{int(op_var.get()*100)}%",
-                              text_color=FG, font=("Rubik", 11, "bold"))
-        op_lbl.pack(anchor='e', padx=24)
-        ctk.CTkSlider(
-            p_appear, from_=0.3, to=1.0, variable=op_var,
-            fg_color=SEP, progress_color=ACCENT,
-            button_color=ACCENT, button_hover_color=PRI_HOV,
-            command=lambda v, ol=op_lbl: [
-                self._save_setting('ghost_opacity', round(float(v), 2)),
-                self.attributes('-alpha', float(v)),
-                ol.configure(text=f"{int(float(v)*100)}%"),
-            ],
-        ).pack(fill='x', padx=24, pady=(0, 4))
-        ctk.CTkLabel(p_appear,
-                     text="Drag left to see through the window (\"Ghost Mode\").",
-                     text_color=FG3, font=("Rubik", 9), justify='left'
-                     ).pack(anchor='w', padx=24, pady=(0, 16))
+            def _effective_accent(name):
+                t = THEMES[name]
+                return self.cfg.get('custom_accent', '#FFFFFF') if t.get('_custom') else t['accent']
+
+            def _redraw_dots(active_name):
+                for sn, (dc, lbl) in self._theme_indicators.items():
+                    sel = (sn == active_name)
+                    dc.delete('ring')
+                    dc.create_oval(2, 2, 22, 22,
+                                   fill=_effective_accent(sn),
+                                   outline=FG if sel else SEP,
+                                   width=2, tags='ring')
+                    lbl.configure(text_color=FG if sel else FG3)
+
+            def _pick(n):
+                if THEMES[n].get('_custom'):
+                    _close()
+                    from tkinter import colorchooser
+                    result = colorchooser.askcolor(
+                        color=self.cfg.get('custom_accent', '#FFFFFF'),
+                        title='Pick your accent colour', parent=self)
+                    if result[1] is None:
+                        self.after(60, self._open_settings); return
+                    chosen = result[1].upper()
+                    self._save_setting('custom_accent', chosen)
+                    THEMES['Custom']['accent'] = chosen
+                    _apply_theme('Custom', chosen)
+                    self._save_setting('theme', 'Custom')
+                    self._rebuild_ui()
+                    self.after(60, self._open_settings)
+                    return
+                _apply_theme(n)
+                self._save_setting('theme', n)
+                _redraw_dots(n)
+                self._rebuild_ui()
+                _close()
+                self.after(80, self._open_settings)
+
+            cols = 3
+            for i, name in enumerate(theme_names):
+                t       = THEMES[name]
+                col_idx = i % cols
+                row_idx = i // cols
+                swatch  = ctk.CTkFrame(theme_frame, fg_color='transparent',
+                                       width=88, height=62, cursor='hand2')
+                swatch.grid(row=row_idx, column=col_idx, padx=4, pady=4, sticky='nsew')
+                swatch.grid_propagate(False)
+                theme_frame.grid_columnconfigure(col_idx, weight=1)
+                dot_c = tk.Canvas(swatch, width=24, height=24, bg=BG, highlightthickness=0)
+                dot_c.pack(pady=(6, 0))
+                sel = (name == current_theme)
+                dot_c.create_oval(2, 2, 22, 22,
+                                  fill=_effective_accent(name),
+                                  outline=FG if sel else SEP,
+                                  width=2, tags='ring')
+                surname = t['player'].split()[-1] if not t.get('_custom') else 'Custom'
+                lbl = ctk.CTkLabel(swatch, text=surname,
+                                   text_color=FG if sel else FG3,
+                                   font=("Rubik", 8))
+                lbl.pack(pady=(1, 0))
+                self._theme_indicators[name] = (dot_c, lbl)
+                for w in (swatch, dot_c, lbl):
+                    w.bind('<Button-1>', lambda e, n=name: _pick(n))
+
+            _section(p_appear, "GHOST MODE")
+
+            aot_var = ctk.BooleanVar(value=self.cfg.get('always_on_top', True))
+
+            def _toggle_aot():
+                v = aot_var.get()
+                self._save_setting('always_on_top', v)
+                self.attributes('-topmost', v)
+
+            _switch_row(p_appear, "Always on Top",
+                        "Keep DartVoice above all other windows",
+                        aot_var, _toggle_aot)
+
+            _section(p_appear, "WINDOW OPACITY")
+            op_var = ctk.DoubleVar(value=self.cfg.get('ghost_opacity', 1.0))
+            op_lbl = ctk.CTkLabel(p_appear, text=f"{int(op_var.get()*100)}%",
+                                  text_color=FG, font=("Rubik", 11, "bold"))
+            op_lbl.pack(anchor='e', padx=24)
+            ctk.CTkSlider(
+                p_appear, from_=0.3, to=1.0, variable=op_var,
+                fg_color=SEP, progress_color=ACCENT,
+                button_color=ACCENT, button_hover_color=PRI_HOV,
+                command=lambda v, ol=op_lbl: [
+                    self._save_setting('ghost_opacity', round(float(v), 2)),
+                    self.attributes('-alpha', float(v)),
+                    ol.configure(text=f"{int(float(v)*100)}%"),
+                ],
+            ).pack(fill='x', padx=24, pady=(0, 4))
+            ctk.CTkLabel(p_appear,
+                         text="Drag left to see through the window (\"Ghost Mode\").",
+                         text_color=FG3, font=("Rubik", 9), justify='left'
+                         ).pack(anchor='w', padx=24, pady=(0, 16))
+
+        _builders['appear'] = _build_appear
 
         # ── Activate first tab ────────────────────────────────────────────
-        _switch('audio')
+        _switch_lazy('audio')
 
     # ── Mic selector ─────────────────────────────────────────────────────────
     def _select_mic(self):
-        import pyaudio
-        pa = pyaudio.PyAudio()
-
-        # Build list: (index, clean_name)
-        mic_data = []
-        for i in range(pa.get_device_count()):
-            info = pa.get_device_info_by_index(i)
-            if info.get('maxInputChannels', 0) < 1:
-                continue
-            raw = info['name']
-            try:                                   # fix pyaudio latin-1/utf-8 mismatch
-                raw = raw.encode('latin-1').decode('utf-8')
-            except (UnicodeEncodeError, UnicodeDecodeError):
-                pass
-            mic_data.append((i, raw))
-        pa.terminate()
+        # Use cached mic list to avoid blocking the UI thread
+        _mc = self._cached_mic_list or (['Default'], {0: None})
+        _labels, _idx_map = _mc
+        # Build (device_index, name) pairs matching the cache
+        mic_data = [(v, _labels[k]) for k, v in _idx_map.items() if v is not None]
+        if not mic_data:
+            mic_data = [(None, 'Default')]
 
         win = ctk.CTkToplevel(self)
         win.title("Select Microphone")
