@@ -55,17 +55,6 @@ jobs:
           path: ~/.gradle
           key: gradle-${{ runner.os }}
 
-      # Swap the "vosk" recipe placeholder for the pre-built arm64 wheel.
-      # The p4a vosk recipe is unreliable; this is the approach that works.
-      - name: Inject Vosk arm64 wheel into buildozer.spec
-        working-directory: autoscore
-        run: |
-          wget -q \
-            https://github.com/alphacep/vosk-api/releases/download/v0.3.45/vosk-0.3.45-cp311-cp311-linux_aarch64.whl
-          # Replace bare "vosk" with the local wheel path (word-boundary safe)
-          sed -i 's|\bvosk\b|./vosk-0.3.45-cp311-cp311-linux_aarch64.whl|' buildozer.spec
-          echo "=== requirements line after patch ==="
-          grep '^requirements' buildozer.spec
 
       - name: Build debug APK
         working-directory: autoscore
