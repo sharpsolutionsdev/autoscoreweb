@@ -11,7 +11,7 @@ source.dir          = .
 source.include_exts = py,json,ttf,otf
 
 # Bundle the Vosk model inside the APK (extracted to writable storage on first run)
-source.include_patterns = vosk-model-small-en-us/*
+source.include_patterns = vosk-model-small-en-us/*,vosk-model-small-en-us/am/*,vosk-model-small-en-us/graph/*,vosk-model-small-en-us/graph/phones/*,vosk-model-small-en-us/conf/*,vosk-model-small-en-us/ivector/*
 
 # Background service (service/main.py runs as a separate Android process)
 services = DartVoice:./service/main.py:foreground
@@ -20,7 +20,7 @@ services = DartVoice:./service/main.py:foreground
 # vosk — the p4a recipe downloads libvosk.so automatically for arm64
 # If the standard recipe is unavailable in your p4a version, see the
 # manual wheel instructions at the bottom of this file.
-requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,vosk
+requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,vosk,supabase,httpx
 
 # Orientation & display
 orientation = portrait

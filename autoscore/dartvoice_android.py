@@ -856,26 +856,30 @@ class SettingsOverlay(FloatLayout):
                     Color(*accent_col[:3], 0.55)
                     card._bdr = RoundedRectangle(pos=card.pos, size=card.size,
                                                  radius=[dp(12)])
-            card.bind(
-                pos=lambda w, *_: (setattr(w._bg,  'pos', w.pos),
-                                   setattr(w._bg,  'size', w.size),
-                                   setattr(w._bdr, 'pos', w.pos) if hasattr(w, '_bdr') else None,
-                                   setattr(w._bdr, 'size', w.size) if hasattr(w, '_bdr') else None),
-                size=lambda w, *_: (setattr(w._bg,  'pos', w.pos),
-                                    setattr(w._bg,  'size', w.size),
-                                    setattr(w._bdr, 'pos', w.pos) if hasattr(w, '_bdr') else None,
-                                    setattr(w._bdr, 'size', w.size) if hasattr(w, '_bdr') else None),
-            )
+
+            def _make_upd(c):
+                def _upd(w, v):
+                    c._bg.pos  = c.pos
+                    c._bg.size = c.size
+                    if hasattr(c, '_bdr'):
+                        c._bdr.pos  = c.pos
+                        c._bdr.size = c.size
+                return _upd
+            _upd = _make_upd(card)
+            card.bind(pos=_upd, size=_upd)
 
             # Accent dot
             dot_wrap = Widget(size_hint=(None, None), size=(dp(28), dp(28)))
             with dot_wrap.canvas:
                 Color(*accent_col)
                 dot_wrap._dot = Ellipse(pos=(0, 0), size=(dp(28), dp(28)))
-            dot_wrap.bind(
-                pos=lambda w, *_: setattr(w._dot, 'pos', (w.center_x - dp(14), w.center_y - dp(14))),
-                size=lambda w, *_: setattr(w._dot, 'size', w.size),
-            )
+
+            def _make_dot_upd(d):
+                def _upd(w, v):
+                    d._dot.pos  = (d.center_x - dp(14), d.center_y - dp(14))
+                    d._dot.size = d.size
+                return _upd
+            dot_wrap.bind(pos=_make_dot_upd(dot_wrap), size=_make_dot_upd(dot_wrap))
             card.add_widget(dot_wrap)
 
             # Text column
@@ -893,10 +897,11 @@ class SettingsOverlay(FloatLayout):
             ))
             card.add_widget(txt)
 
-            # Tap handler
-            touch_btn = Button(size_hint=(1, 1), background_normal='',
-                               background_color=(0, 0, 0, 0),
+            # Tap handler — FloatLayout overlay so it covers the whole card
+            touch_btn = Button(size_hint=(None, None), size=card.size,
+                               background_normal='', background_color=(0, 0, 0, 0),
                                on_press=lambda *_, n=t_name: self._pick_theme(n))
+            card.bind(size=lambda w, v, b=touch_btn: setattr(b, 'size', v))
             card.add_widget(touch_btn)
             theme_grid.add_widget(card)
 
