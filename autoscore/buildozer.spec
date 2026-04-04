@@ -39,7 +39,7 @@ android.permissions = \
 
 # API targets
 android.api    = 34
-android.minapi = 26
+android.minapi = 24
 
 # Architectures
 android.archs = arm64-v8a
@@ -50,9 +50,6 @@ android.accept_sdk_license = True
 
 # Bootstrap
 p4a.bootstrap = sdl2
-
-# Hook to patch AndroidManifest for Picture-in-Picture support
-p4a.hook = p4a_hook.py
 
 # Uncomment to use a specific python-for-android branch that includes the
 # vosk recipe (recommended if your version doesn't have it):
