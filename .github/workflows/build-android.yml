@@ -8,6 +8,7 @@ on:
       - 'autoscore/buildozer.spec'
       - 'autoscore/billing.py'
       - 'autoscore/service/main.py'
+      - 'autoscore/gen_icon.py'
       - '.github/workflows/build-android.yml'
   workflow_dispatch:
 
@@ -57,6 +58,12 @@ jobs:
           path: ~/.gradle
           key: gradle-${{ runner.os }}
 
+
+      - name: Generate app icon
+        working-directory: autoscore
+        run: |
+          python3 -m pip install Pillow
+          python3 gen_icon.py
 
       - name: Build debug APK
         working-directory: autoscore

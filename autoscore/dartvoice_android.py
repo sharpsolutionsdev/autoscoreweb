@@ -1680,8 +1680,11 @@ class DartVoiceLayout(FloatLayout):
         self.add_widget(self.history_box)
 
         # ── Bottom deck (44% screen, rounded top card) ────────────────────
+        # Extra bottom padding on Android to clear the system navigation bar
+        _nav_pad = dp(48) if ANDROID else 0
         deck = BoxLayout(
-            orientation='vertical', spacing=dp(12), padding=dp(16),
+            orientation='vertical', spacing=dp(12),
+            padding=[dp(16), dp(16), dp(16), dp(16) + _nav_pad],
             size_hint=(1, DECK_FRAC), pos_hint={'x': 0, 'y': 0},
         )
         with deck.canvas.before:
@@ -1977,6 +1980,22 @@ class DartVoiceLayout(FloatLayout):
 
     def _start_listening(self):
         if ANDROID:
+            # Ensure mic permission is granted before starting
+            try:
+                from android.permissions import request_permissions, Permission, check_permission  # type: ignore
+                if not check_permission(Permission.RECORD_AUDIO):
+                    request_permissions(
+                        [Permission.RECORD_AUDIO],
+                        callback=lambda perms, results: (
+                            Clock.schedule_once(lambda dt: self._start_listening())
+                            if results and results[0] else
+                            Clock.schedule_once(lambda dt: self._set_status('Mic permission denied'))
+                        ),
+                    )
+                    self._set_status('Requesting mic permission…')
+                    return
+            except Exception:
+                pass
             # Use the background service; it writes to dv_scores.json
             _start_foreground_service()
             self._poll_ev = Clock.schedule_interval(self._poll_service, 0.5)
@@ -2313,11 +2332,18 @@ def _stop_foreground_service():
 class DartVoiceAndroidApp(App):
     def build(self):
         if ANDROID:
-            from android.permissions import request_permissions, Permission  # type: ignore
-            request_permissions([Permission.RECORD_AUDIO])
-            _start_foreground_service()
+            self._request_mic_permission()
         Window.clearcolor = BG
         return DartVoiceLayout()
+
+    def _request_mic_permission(self):
+        """Request RECORD_AUDIO at startup so the permission dialog shows immediately."""
+        try:
+            from android.permissions import request_permissions, Permission, check_permission  # type: ignore
+            if not check_permission(Permission.RECORD_AUDIO):
+                request_permissions([Permission.RECORD_AUDIO])
+        except Exception:
+            pass
 
     def on_pause(self):
         if ANDROID:

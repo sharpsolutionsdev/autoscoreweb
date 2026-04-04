@@ -8,7 +8,7 @@ version        = 1.7
 
 # Source
 source.dir          = .
-source.include_exts = py,json,ttf,otf
+source.include_exts = py,json,ttf,otf,png
 
 # Bundle the Vosk model inside the APK (extracted to writable storage on first run)
 source.include_patterns = vosk-model-small-en-us/*,vosk-model-small-en-us/am/*,vosk-model-small-en-us/graph/*,vosk-model-small-en-us/graph/phones/*,vosk-model-small-en-us/conf/*,vosk-model-small-en-us/ivector/*
@@ -26,8 +26,8 @@ requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,vosk,supabase,httpx
 orientation = portrait
 fullscreen  = 0
 
-# Icons (optional — replace with your own 512×512 PNG)
-# icon.filename      = icon.png
+# Icons
+icon.filename      = icon.png
 # presplash.filename = presplash.png
 
 # Android permissions
@@ -35,7 +35,8 @@ android.permissions = \
     RECORD_AUDIO, \
     FOREGROUND_SERVICE, \
     FOREGROUND_SERVICE_MICROPHONE, \
-    WAKE_LOCK
+    WAKE_LOCK, \
+    INTERNET
 
 # API targets
 android.api    = 34
