@@ -246,23 +246,56 @@ def _ensure_model():
     # Android path
     from android.storage import app_storage_path  # type: ignore
     dest = os.path.join(app_storage_path(), MODEL_NAME)
-    if os.path.isdir(dest):
+
+    # Check for marker file to confirm a complete extraction
+    marker = os.path.join(dest, '.extracted')
+    if os.path.isdir(dest) and os.path.exists(marker):
         return dest
 
-    # Extract from APK assets
+    # Also check if the model already exists beside the script (p4a copies
+    # source tree into the APK's private area, so it may exist directly)
+    _here = os.path.dirname(os.path.abspath(__file__))
+    local = os.path.join(_here, MODEL_NAME)
+    if os.path.isdir(local):
+        # Vosk often needs writable path on Android, so symlink / copy
+        if not os.path.isdir(dest):
+            import shutil
+            try:
+                shutil.copytree(local, dest)
+                open(marker, 'w').write('ok')
+                return dest
+            except Exception:
+                pass
+        return local  # fallback: use the bundled dir directly
+
+    # Extract from APK zip (assets/ or private/ prefix)
     try:
         import zipfile
         from android import mActivity  # type: ignore
 
         apk_path = mActivity.getPackageCodePath()
         with zipfile.ZipFile(apk_path, 'r') as z:
-            members = [m for m in z.namelist()
-                       if m.startswith(f'assets/{MODEL_NAME}/')]
+            # Try multiple possible prefixes used by different p4a bootstraps
+            prefixes = [
+                f'assets/{MODEL_NAME}/',
+                f'assets/private/{MODEL_NAME}/',
+                f'private/{MODEL_NAME}/',
+                f'{MODEL_NAME}/',
+            ]
+            members = []
+            used_prefix = ''
+            for prefix in prefixes:
+                candidates = [m for m in z.namelist() if m.startswith(prefix)]
+                if candidates:
+                    members = candidates
+                    used_prefix = prefix
+                    break
+
             if not members:
                 return None
             os.makedirs(dest, exist_ok=True)
             for member in members:
-                rel = member[len(f'assets/{MODEL_NAME}/'):]
+                rel = member[len(used_prefix):]
                 if not rel:
                     continue
                 target = os.path.join(dest, rel)
@@ -270,8 +303,9 @@ def _ensure_model():
                     os.makedirs(target, exist_ok=True)
                 else:
                     os.makedirs(os.path.dirname(target), exist_ok=True)
-                    with z.open(member) as src, open(target, 'wb') as dst:
-                        dst.write(src.read())
+                    with z.open(member) as src_f, open(target, 'wb') as dst_f:
+                        dst_f.write(src_f.read())
+            open(marker, 'w').write('ok')
         return dest
     except Exception as e:
         return None
@@ -1654,21 +1688,29 @@ class DartVoiceLayout(FloatLayout):
     def _billing_gate(self):
         try:
             from billing import billing_status, check_subscription_async
-        except ImportError:
+        except Exception:
+            # billing module unavailable (no Supabase on Android) — skip paywall
+            self.status_lbl.text = 'Ready'
             return
 
         try:
             bs = billing_status()
         except Exception:
+            self.status_lbl.text = 'Ready'
             return
+
         # Background server verification regardless of local state
-        check_subscription_async(self._on_billing_checked)
+        try:
+            check_subscription_async(self._on_billing_checked)
+        except Exception:
+            pass
 
-        if bs['subscribed']:
+        if bs.get('admin') or bs.get('subscribed'):
             return
 
-        if bs['demo_active']:
-            mins = int(bs['demo_secs'] // 60)
+        if bs.get('demo_active'):
+            secs = bs.get('demo_secs', 0)
+            mins = int(secs // 60)
             self.status_lbl.text = (
                 f"Demo — {mins} min{'s' if mins != 1 else ''} remaining"
             )
@@ -1678,24 +1720,24 @@ class DartVoiceLayout(FloatLayout):
         self._show_paywall()
 
     def _on_billing_checked(self, subscribed: bool, account=None):
-        if subscribed:
-            Clock.schedule_once(
-                lambda dt: setattr(self.status_lbl, 'text', 'Ready')
-            )
-            # Remove paywall overlay if it's showing
-            if hasattr(self, '_paywall_overlay') and \
-               self._paywall_overlay.parent:
-                Clock.schedule_once(
-                    lambda dt: self._remove_paywall()
-                )
-            return
         try:
+            if subscribed:
+                Clock.schedule_once(
+                    lambda dt: setattr(self.status_lbl, 'text', 'Ready')
+                )
+                # Remove paywall overlay if it's showing
+                if hasattr(self, '_paywall_overlay') and \
+                   self._paywall_overlay.parent:
+                    Clock.schedule_once(
+                        lambda dt: self._remove_paywall()
+                    )
+                return
             from billing import billing_status
-        except ImportError:
-            return
-        bs = billing_status()
-        if bs['locked']:
-            Clock.schedule_once(lambda dt: self._show_paywall())
+            bs = billing_status()
+            if bs.get('locked'):
+                Clock.schedule_once(lambda dt: self._show_paywall())
+        except Exception:
+            pass
 
     def _apply_theme_cb(self, theme_name, custom_hex='#FFFFFF'):
         _apply_theme(theme_name, custom_hex)
@@ -2725,15 +2767,17 @@ class DartVoiceLayout(FloatLayout):
             self.checkout_lbl.text = ''
         self.avg_lbl.text    = 'Avg —'
         self.darts_lbl.text  = 'Darts 0'
-        self.history_box.clear_widgets()
-        if hasattr(self, 'cricket_grid'):
-            self.cricket_grid._mark_lbls = {tgt: lbl for tgt, lbl in self.cricket_grid._mark_lbls.items()}
-            for tgt, lbl in self.cricket_grid._mark_lbls.items():
-                lbl.text = self.cricket_grid._mark_text(tgt)
-                lbl.color = self.cricket_grid._mark_color(tgt)
+        if hasattr(self, 'last_lbl'):
+            self.last_lbl.text = '—'
         if hasattr(self, 'history_box'):
             self.history_box.clear_widgets()
-            self._update_history([])
+        if hasattr(self, 'cricket_grid'):
+            try:
+                for tgt, lbl in self.cricket_grid._mark_lbls.items():
+                    lbl.text = self.cricket_grid._mark_text(tgt)
+                    lbl.color = self.cricket_grid._mark_color(tgt)
+            except Exception:
+                pass
         self._set_status('Ready')
 
 

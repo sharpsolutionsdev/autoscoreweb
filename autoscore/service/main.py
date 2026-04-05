@@ -41,7 +41,20 @@ except ImportError:
     def parse_score(text): return None
     def parse_cricket_darts(text): return []
     def parse_single_dart(text): return None
-    def _ensure_model(): return MODEL_PATH if os.path.isdir(MODEL_PATH) else None
+    def _ensure_model():
+        # Check writable storage first
+        if os.path.isdir(MODEL_PATH):
+            return MODEL_PATH
+        # Check beside this script (p4a copies source into private/)
+        _local = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', MODEL_NAME)
+        if os.path.isdir(_local):
+            import shutil
+            try:
+                shutil.copytree(_local, MODEL_PATH)
+                return MODEL_PATH
+            except Exception:
+                return _local
+        return None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Shared state file helpers

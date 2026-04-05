@@ -4,7 +4,7 @@
 title          = DartVoice
 package.name   = dartvoice
 package.domain = com.dartvoice
-version        = 1.7
+version        = 1.8
 
 # Source
 source.dir          = .
