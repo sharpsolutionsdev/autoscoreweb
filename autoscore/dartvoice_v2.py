@@ -23,6 +23,7 @@ def config_path():
 # ─────────────────────────────────────────────────────────────────────────────
 # Font loading  (must run before any widget is created)
 # ─────────────────────────────────────────────────────────────────────────────
+
 def _load_fonts():
     try:
         import ctypes

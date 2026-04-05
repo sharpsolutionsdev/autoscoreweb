@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "DartVoice Launchpad",
+  "version": "1.0",
+  "description": "Voice-control any browser dart scorer. Start scoring without clicking.",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_title": "Launch DartVoice",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["<all_urls>"]
+}

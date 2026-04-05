@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -38,6 +47,37 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
         .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.02em; text-transform: uppercase; }
+
+
+        /* ── Graphic Animations ── */
+        @keyframes floatSlow {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(15px, -25px) scale(1.05); }
+            66% { transform: translate(-10px, 15px) scale(0.95); }
+        }
+        .animate-float-slow { animation: floatSlow 12s ease-in-out infinite; }
+        
+        @keyframes scanline {
+            0% { transform: translateY(-200%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(200%); opacity: 0; }
+        }
+        .data-stream {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, transparent, rgba(204,11,32,0.2) 50%, transparent);
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            z-index: 10;
+        }
+        
+        /* Premium reflections */
+        .glass-glare {
+            position: absolute; inset: 0;
+            background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.03) 25%, transparent 30%);
+            pointer-events: none;
+            z-index: 5;
+        }
 
         /* Scroll reveal */
         .reveal {
@@ -139,7 +179,7 @@
             </div>
             <div class="hidden sm:flex items-center gap-3">
                 <a href="login.html" class="text-sm font-semibold text-muted hover:text-chalk transition">Sign In</a>
-                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)" class="bg-brand hover:bg-red-600 transition px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
+                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)" class="bg-brand hover:bg-red-600 transition px-5 py-2.5 sm:px-4 sm:py-2 rounded-lg text-sm font-semibold min-h-[44px] sm:min-h-0 text-white">Start Free Trial</a>
             </div>
             <button id="mob-btn-nav"
                     class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/5 transition">
@@ -174,7 +214,7 @@
 
     <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <header class="pt-28 pb-14 border-b border-wire/60"
-            style="background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(204,11,32,0.08) 0%, transparent 70%)">
+            style="background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(204,11,32,0.08) 0%, transparent 70%); animation: floatSlow 15s ease-in-out infinite;">
         <div class="max-w-3xl mx-auto px-6">
             <p class="text-brand text-xs font-semibold tracking-widest uppercase mb-3">Setup Guide</p>
             <h1 class="display text-4xl sm:text-5xl mb-3">CALIBRATION &amp; VOICE COMMANDS</h1>
@@ -189,23 +229,119 @@
             <div class="h-0.5 w-full bg-brand"></div>
             <div class="p-6">
                 <h2 class="font-semibold mb-4 text-xs uppercase tracking-widest text-muted">Contents</h2>
-                <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
-                    <a href="#first-launch"      class="toc-link text-sm text-muted hover:text-brand">1. First Launch</a>
-                    <a href="#voice-commands"    class="toc-link text-sm text-muted hover:text-brand">5. Voice Commands</a>
-                    <a href="#x01-calibration"   class="toc-link text-sm text-muted hover:text-brand">2. X01 Calibration</a>
-                    <a href="#cricket-commands"  class="toc-link text-sm text-muted hover:text-brand">6. Cricket Voice Commands</a>
-                    <a href="#cricket-calibration" class="toc-link text-sm text-muted hover:text-brand">3. Cricket Calibration</a>
-                    <a href="#cricket-settings"  class="toc-link text-sm text-muted hover:text-brand">7. Cricket Settings</a>
-                    <a href="#mic-setup"         class="toc-link text-sm text-muted hover:text-brand">4. Microphone Setup</a>
-                    <a href="#troubleshooting"   class="toc-link text-sm text-muted hover:text-brand">8. Troubleshooting</a>
-                    <a href="#android"           class="toc-link text-sm text-muted hover:text-brand">9. Android</a>
+                                <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
+                    <a href="#install-app"       class="toc-link text-sm text-muted hover:text-brand">1. Install App</a>
+                    <a href="#first-launch"      class="toc-link text-sm text-muted hover:text-brand">2. First Launch</a>
+                    <a href="#x01-calibration"   class="toc-link text-sm text-muted hover:text-brand">3. X01 Calibration</a>
+                    <a href="#cricket-calibration" class="toc-link text-sm text-muted hover:text-brand">4. Cricket Calibration</a>
+                    <a href="#mic-setup"         class="toc-link text-sm text-muted hover:text-brand">5. Microphone Setup</a>
+                    <a href="#voice-commands"    class="toc-link text-sm text-muted hover:text-brand">6. Voice Commands</a>
+                    <a href="#cricket-commands"  class="toc-link text-sm text-muted hover:text-brand">7. Cricket Commands</a>
+                    <a href="#cricket-settings"  class="toc-link text-sm text-muted hover:text-brand">8. Cricket Settings</a>
+                    <a href="#troubleshooting"   class="toc-link text-sm text-muted hover:text-brand">9. Troubleshooting</a>
                 </div>
             </div>
         </div>
 
-        <!-- ━━━ 1. FIRST LAUNCH ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        
+        
+        <!-- ━━━ 1. INSTALL APP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="install-app" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">1. INSTALL APP</h2>
+            <p class="text-sm text-muted mb-6 leading-relaxed">Follow the instructions for your platform below.</p>
+
+        <section id="install-windows" class="mb-16 reveal">
+            <h3 class="font-semibold text-chalk mt-8 mb-4">Windows</h3>
+            <div class="space-y-4 mb-8">
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">1</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Download the Installer</p>
+                            <p class="text-xs text-muted leading-relaxed">From your <a href="dartvoice-dashboard.html" class="text-brand hover:underline">dashboard</a>, click the Windows download button to get <strong class="text-chalk">DartVoice_Setup.exe</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">2</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Run the Setup File</p>
+                            <p class="text-xs text-muted leading-relaxed">Double click the downloaded file. Windows SmartScreen may show a warning — click <strong class="text-chalk">More Info</strong> and then <strong class="text-chalk">Run Anyway</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        <section id="install-android" class="mb-16 reveal">
+            <h3 class="font-semibold text-chalk mt-8 mb-4">Android</h3>
+            <div class="space-y-4 mb-8">
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">1</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Download the APK</p>
+                            <p class="text-xs text-muted leading-relaxed">On your phone, log into your <a href="dartvoice-dashboard.html" class="text-brand hover:underline">dashboard</a> and tap the Android download button for <strong class="text-chalk">DartVoice.apk</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">2</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Install the file</p>
+                            <p class="text-xs text-muted leading-relaxed">Tap the downloaded notification. If your browser asks for permission to "Install unknown apps", tap <strong class="text-chalk">Allow</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">3</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Grant Permissions</p>
+                            <p class="text-xs text-muted leading-relaxed">When you first open DartVoice on Android, it will request microphone permissions. Tap <strong class="text-chalk">Allow</strong> so it can hear your scores.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        <section id="install-extension" class="mb-16 reveal">
+            <h3 class="font-semibold text-chalk mt-8 mb-4">Chrome Extension</h3>
+            <div class="space-y-4 mb-8">
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">1</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Get it from the Web Store</p>
+                            <p class="text-xs text-muted leading-relaxed">Click the Chrome Extension button on your <a href="dartvoice-dashboard.html" class="text-brand hover:underline">dashboard</a> to go to our official listing, then click <strong class="text-chalk">Add to Chrome</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card border border-wire rounded-xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">2</div>
+                        <div>
+                            <p class="text-sm font-medium text-chalk mb-1">Pin it to your toolbar</p>
+                            <p class="text-xs text-muted leading-relaxed">Click the puzzle piece icon in the top right of Chrome, find DartVoice, and click the pin icon so it's always accessible.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        </section>
+
+
+
+
+        
+
+        
+
+        <!-- ━━━ 2. FIRST LAUNCH ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="first-launch" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">1. FIRST LAUNCH</h2>
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">2. FIRST LAUNCH</h2>
             <div class="space-y-4 text-sm text-muted leading-relaxed">
                 <p>After installing DartVoice, launch the app. You'll see the main Command Center window with a large <strong class="text-chalk">Start Listening</strong> button.</p>
                 <p>Before you can start scoring, you need to do two things:</p>
@@ -214,16 +350,22 @@
                     <li><strong>Calibrate</strong> DartVoice to your scoring software (X01 or Cricket)</li>
                 </ol>
                 <p>Open <strong class="text-chalk">Settings</strong> (gear icon, top right) to access both. Calibration only needs to be done once — your settings are saved automatically.</p>
+
                 <div class="callout rounded-lg px-4 py-3 mt-4">
+                    <p class="text-brand text-xs font-semibold uppercase tracking-wider mb-1">Recommended Software</p>
+                    <p class="text-sm text-muted">DartVoice is optimized to seamlessly automate <a href="https://dartcounter.net" target="_blank" rel="noopener noreferrer" class="text-chalk hover:text-brand transition font-medium underline">Target Dart Counter</a>. While it works with others, we recommend having Dart Counter open before moving to the next step!</p>
+                </div>
+
+                <div class="callout-info rounded-lg px-4 py-3 mt-4">
                     <p class="text-brand text-xs font-semibold uppercase tracking-wider mb-1">Important</p>
                     <p class="text-sm text-muted">Make sure your dartboard scoring software (e.g. Target Dart Counter, Nakka, Pro Darter, DartConnect) is open and visible on screen <em>before</em> you calibrate. DartVoice needs to know where to click.</p>
                 </div>
             </div>
         </section>
 
-        <!-- ━━━ 2. X01 CALIBRATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <!-- ━━━ 3. X01 CALIBRATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="x01-calibration" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">2. X01 CALIBRATION</h2>
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">3. X01 CALIBRATION</h2>
             <p class="text-sm text-muted mb-6 leading-relaxed">X01 calibration is a single click. You're telling DartVoice where the score input box is on your scoring software.</p>
 
             <div class="space-y-5">
@@ -251,7 +393,9 @@
             </div>
 
             <!-- Visual mockup -->
-            <div class="mockup-chrome rounded-xl overflow-hidden mt-8">
+            <div class="mockup-chrome rounded-xl overflow-hidden mt-8 relative shadow-2xl">
+                <div class="glass-glare" style="z-index:100;"></div>
+                <div class="data-stream" style="animation-duration: 6s; opacity: 0.3; z-index:100;"></div>
                 <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-wire">
                     <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/30"></div>
@@ -285,9 +429,9 @@
             <p class="text-muted2 text-xs mt-3">That's it for X01. One click and you're done.</p>
         </section>
 
-        <!-- ━━━ 3. CRICKET CALIBRATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <!-- ━━━ 4. CRICKET CALIBRATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="cricket-calibration" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">3. CRICKET CALIBRATION</h2>
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">4. CRICKET CALIBRATION</h2>
             <p class="text-sm text-muted mb-6 leading-relaxed">Cricket requires 3 clicks to map out the scoring grid. DartVoice calculates all 21 cell positions from just two reference points plus the submit button.</p>
 
             <div class="space-y-5">
@@ -315,7 +459,9 @@
             </div>
 
             <!-- Cricket grid mockup -->
-            <div class="mockup-chrome rounded-xl overflow-hidden mt-8">
+            <div class="mockup-chrome rounded-xl overflow-hidden mt-8 relative shadow-2xl">
+                <div class="glass-glare" style="z-index:100;"></div>
+                <div class="data-stream" style="animation-duration: 6s; opacity: 0.3; z-index:100;"></div>
                 <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-wire">
                     <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/30"></div>
@@ -377,9 +523,9 @@
             </div>
         </section>
 
-        <!-- ━━━ 4. MICROPHONE SETUP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <!-- ━━━ 5. MICROPHONE SETUP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="mic-setup" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">4. MICROPHONE SETUP</h2>
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">5. MICROPHONE SETUP</h2>
             <div class="space-y-4 text-sm text-muted leading-relaxed">
                 <p>Go to <strong class="text-chalk">Settings &rarr; Microphone &rarr; Select Microphone</strong>. DartVoice will list all available input devices on your system.</p>
                 <p>Pick the mic you want to use. A good quality headset mic or a lapel mic works best — it reduces background noise and lets you speak at a normal volume.</p>
@@ -390,9 +536,9 @@
             </div>
         </section>
 
-        <!-- ━━━ 5. X01 VOICE COMMANDS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <!-- ━━━ 6. X01 VOICE COMMANDS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="voice-commands" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">5. X01 VOICE COMMANDS</h2>
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">6. X01 VOICE COMMANDS</h2>
             <p class="text-sm text-muted mb-6 leading-relaxed">With the trigger word <code class="voice-cmd px-1.5 py-0.5 rounded text-xs">"score"</code>, just say your total. DartVoice accepts natural speech.</p>
 
             <div class="bg-card border border-wire rounded-2xl overflow-hidden">
@@ -431,9 +577,9 @@
             </div>
         </section>
 
-        <!-- ━━━ 6. CRICKET VOICE COMMANDS ━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <!-- ━━━ 7. CRICKET VOICE COMMANDS ━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="cricket-commands" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">6. CRICKET VOICE COMMANDS</h2>
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">7. CRICKET VOICE COMMANDS</h2>
             <p class="text-sm text-muted mb-6 leading-relaxed">In Cricket mode, say the modifier (single/double/treble) followed by the target number. You can call 1 to 3 darts at once.</p>
 
             <div class="bg-card border border-wire rounded-2xl overflow-hidden">
@@ -452,9 +598,9 @@
             </div>
         </section>
 
-        <!-- ━━━ 7. CRICKET SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <!-- ━━━ 8. CRICKET SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="cricket-settings" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">7. CRICKET SETTINGS</h2>
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">8. CRICKET SETTINGS</h2>
             <p class="text-sm text-muted mb-6 leading-relaxed">These settings are found in <strong class="text-chalk">Settings &rarr; Cricket Settings</strong> and let you fine-tune how Cricket mode works.</p>
 
             <div class="space-y-3">
@@ -497,9 +643,9 @@
             </div>
         </section>
 
-        <!-- ━━━ 8. TROUBLESHOOTING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-        <section id="troubleshooting" class="mb-8 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">8. TROUBLESHOOTING</h2>
+        <!-- ━━━ 9. TROUBLESHOOTING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="troubleshooting" class="mb-16 reveal">
+            <h2 class="section-title display text-2xl sm:text-3xl mb-6">9. TROUBLESHOOTING</h2>
 
             <div class="space-y-3">
                 <div class="bg-card border border-wire rounded-xl p-5">
@@ -531,69 +677,7 @@
             </div>
         </section>
 
-        <!-- ━━━ 9. ANDROID ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-        <section id="android" class="mb-16 reveal">
-            <h2 class="section-title display text-2xl sm:text-3xl mb-6">9. ANDROID</h2>
-            <p class="text-sm text-muted mb-6 leading-relaxed">DartVoice runs on Android as a native app. Prop your phone up next to the board and call your scores — no PC required.</p>
 
-            <div class="space-y-4 mb-8">
-                <div class="bg-card border border-wire rounded-xl p-5">
-                    <div class="flex items-start gap-4">
-                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">1</div>
-                        <div>
-                            <p class="text-sm font-medium text-chalk mb-1">Download the APK</p>
-                            <p class="text-xs text-muted leading-relaxed">From your <a href="dartvoice-dashboard.html" class="text-brand hover:underline">dashboard</a>, tap the Android download button. Your browser will download <strong class="text-chalk">DartVoice.apk</strong>.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-card border border-wire rounded-xl p-5">
-                    <div class="flex items-start gap-4">
-                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">2</div>
-                        <div>
-                            <p class="text-sm font-medium text-chalk mb-1">Enable installation from unknown sources</p>
-                            <p class="text-xs text-muted leading-relaxed">Go to <strong class="text-chalk">Settings → Security</strong> (or <strong class="text-chalk">Settings → Apps → Special app access → Install unknown apps</strong> on Android 8+) and allow your browser to install apps.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-card border border-wire rounded-xl p-5">
-                    <div class="flex items-start gap-4">
-                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">3</div>
-                        <div>
-                            <p class="text-sm font-medium text-chalk mb-1">Open the downloaded file</p>
-                            <p class="text-xs text-muted leading-relaxed">Tap the <strong class="text-chalk">DartVoice.apk</strong> notification or find it in your Downloads folder, then tap <strong class="text-chalk">Install</strong> and <strong class="text-chalk">Open</strong>.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-card border border-wire rounded-xl p-5">
-                    <div class="flex items-start gap-4">
-                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">4</div>
-                        <div>
-                            <p class="text-sm font-medium text-chalk mb-1">Grant microphone permission</p>
-                            <p class="text-xs text-muted leading-relaxed">On first launch DartVoice will request microphone access. Tap <strong class="text-chalk">Allow</strong> — this is required for voice scoring.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-card border border-wire rounded-xl p-5">
-                    <div class="flex items-start gap-4">
-                        <div class="step-badge w-9 h-9 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center shrink-0 text-sm">5</div>
-                        <div>
-                            <p class="text-sm font-medium text-chalk mb-1">Sign in with your account</p>
-                            <p class="text-xs text-muted leading-relaxed">Enter your email to receive a sign-in code, then enter it in the app. Your active subscription is verified automatically.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-card border border-wire rounded-xl p-5">
-                <p class="text-sm font-medium text-chalk mb-3">Android tips</p>
-                <ul class="text-xs text-muted space-y-2 leading-relaxed">
-                    <li>&bull; <strong class="text-chalk">Offline recognition</strong> — the Vosk speech model is bundled in the APK, so no internet is needed for voice scoring once installed.</li>
-                    <li>&bull; <strong class="text-chalk">Background service</strong> — DartVoice runs a foreground service to keep listening active. You'll see a persistent notification while scoring is on.</li>
-                    <li>&bull; <strong class="text-chalk">Shared subscription</strong> — Windows and Android share one account. Active sessions are limited to one device at a time.</li>
-                    <li>&bull; <strong class="text-chalk">Updates</strong> — re-download the APK from your dashboard to get the latest version.</li>
-                </ul>
-            </div>
-        </section>
 
     </div>
 
