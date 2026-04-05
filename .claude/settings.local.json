@@ -20,7 +20,11 @@
       "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/service/main.py', doraise=True\\); print\\('service/main.py OK'\\)\")",
       "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/billing.py', doraise=True\\); print\\('billing.py OK'\\)\")",
       "Bash(python -c \"import yaml; yaml.safe_load\\(open\\('.github/workflows/build-android.yml'\\)\\); print\\('YAML OK'\\)\")",
-      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/main.py', doraise=True\\); print\\('main.py OK'\\)\")"
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/main.py', doraise=True\\); print\\('main.py OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/dartvoice_android.py', doraise=True\\); print\\('android OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/main.py', doraise=True\\); print\\('main OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/billing.py', doraise=True\\); print\\('billing OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/service/main.py', doraise=True\\); print\\('service OK'\\)\")"
     ]
   }
 }

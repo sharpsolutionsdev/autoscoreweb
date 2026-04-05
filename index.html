@@ -263,6 +263,124 @@
             opacity: 0.04;
             pointer-events: none;
         }
+
+        /* ── Deep Dive visual demos ── */
+        @keyframes cycleFade {
+            0%, 14%  { opacity: 1; transform: translateY(0); }
+            18%, 96% { opacity: 0; transform: translateY(-6px); }
+            100%     { opacity: 0; transform: translateY(6px); }
+        }
+        .phrase-cycle { position: relative; height: 2em; }
+        .phrase-cycle > span {
+            position: absolute; left: 0; top: 0; white-space: nowrap;
+            opacity: 0; animation: cycleFade 12s infinite;
+        }
+        .phrase-cycle > span:nth-child(1) { animation-delay: 0s; }
+        .phrase-cycle > span:nth-child(2) { animation-delay: 2s; }
+        .phrase-cycle > span:nth-child(3) { animation-delay: 4s; }
+        .phrase-cycle > span:nth-child(4) { animation-delay: 6s; }
+        .phrase-cycle > span:nth-child(5) { animation-delay: 8s; }
+        .phrase-cycle > span:nth-child(6) { animation-delay: 10s; }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(204,11,32,0.08), inset 0 0 15px rgba(204,11,32,0.03); }
+            50%      { box-shadow: 0 0 40px rgba(204,11,32,0.25), 0 0 80px rgba(204,11,32,0.08), inset 0 0 30px rgba(204,11,32,0.06); }
+        }
+        .pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
+
+        @keyframes recPulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.2; }
+        }
+        .rec-dot { animation: recPulse 1.2s ease-in-out infinite; }
+
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-6px); }
+        }
+        .float-y { animation: floatY 4s ease-in-out infinite; }
+
+        @keyframes gradientShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-shift {
+            background-size: 200% 200%;
+            animation: gradientShift 6s ease infinite;
+        }
+
+        @keyframes checkoutCycle {
+            0%, 28%  { opacity: 1; }
+            33%, 95% { opacity: 0; }
+            100%     { opacity: 0; }
+        }
+        .checkout-cycle { position: relative; }
+        .checkout-cycle > div {
+            position: absolute; inset: 0;
+            opacity: 0; animation: checkoutCycle 9s infinite;
+        }
+        .checkout-cycle > div:nth-child(1) { animation-delay: 0s; }
+        .checkout-cycle > div:nth-child(2) { animation-delay: 3s; }
+        .checkout-cycle > div:nth-child(3) { animation-delay: 6s; }
+
+        @keyframes waveBar {
+            0%, 100% { transform: scaleY(0.25); }
+            50%      { transform: scaleY(1); }
+        }
+        .wave-bar { transform-origin: bottom; border-radius: 2px; }
+
+        @keyframes colorRotate {
+            0%, 16%   { opacity: 1; transform: scale(1); }
+            20%, 96%  { opacity: 0.3; transform: scale(0.85); }
+            100%      { opacity: 0.3; transform: scale(0.85); }
+        }
+
+        .bento-card {
+            background: #111114;
+            border: 1px solid #252530;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .bento-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(ellipse at top left, rgba(204,11,32,0.06) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .bento-card:hover { border-color: rgba(204,11,32,0.3); transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 32px rgba(204,11,32,0.06); }
+        .bento-card:hover::before { opacity: 1; }
+
+        .demo-screen {
+            background: #0C0C0E;
+            border: 1px solid #1E1E28;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .demo-screen::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 28px;
+            background: linear-gradient(180deg, rgba(204,11,32,0.04) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        @keyframes dartboardSpin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .board-spin { animation: dartboardSpin 60s linear infinite; }
+
+        @keyframes pipBounce {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25%      { transform: translate(-3px, -2px) scale(1.01); }
+            75%      { transform: translate(2px, -1px) scale(0.99); }
+        }
+        .pip-float { animation: pipBounce 5s ease-in-out infinite; }
     </style>
 </head>
 <body class="antialiased overflow-x-hidden noise grid-bg-soft">
@@ -667,6 +785,349 @@
                 </div>
 
             </div>
+        </div>
+    </section>
+
+    <!-- ━━━ DEEP DIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="deep-dive" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="text-center mb-16 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Pro Capabilities</p>
+                <h2 class="display text-4xl sm:text-5xl lg:text-6xl mb-5 text-chalk">WAY MORE THAN<br>A SCOREBOARD</h2>
+                <p class="text-muted max-w-xl mx-auto text-sm sm:text-base leading-relaxed">DartVoice isn't just listening — it's understanding. Here's what's under the hood.</p>
+            </div>
+
+            <!-- ── ROW 1: Natural Language — full width hero ── -->
+            <div class="bento-card rounded-2xl p-6 sm:p-8 lg:p-10 mb-4 reveal">
+                <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </div>
+                            <p class="text-brand text-[10px] font-bold tracking-[0.25em] uppercase">Natural Language</p>
+                        </div>
+                        <h3 class="display text-2xl sm:text-3xl text-chalk mb-4">IT SPEAKS DARTS<br>LIKE YOU DO</h3>
+                        <p class="text-muted text-sm sm:text-base leading-relaxed mb-5">In Per-Dart and Cricket modes, DartVoice understands exactly how real players call their scores. No rigid syntax. No menus. Just talk naturally.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Per-Dart Mode</span>
+                            <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Cricket Mode</span>
+                        </div>
+                    </div>
+                    <!-- Visual: cycling phrase demo -->
+                    <div class="demo-screen p-5 sm:p-6">
+                        <div class="flex items-center gap-2 mb-5">
+                            <div class="w-2 h-2 rounded-full bg-brand rec-dot"></div>
+                            <span class="text-[10px] text-muted font-medium tracking-wider uppercase">Listening</span>
+                            <div class="flex gap-[3px] ml-auto items-end h-4">
+                                <div class="w-[3px] h-full bg-brand rounded-sm wave-bar" style="animation: waveBar 0.7s 0.0s ease-in-out infinite;"></div>
+                                <div class="w-[3px] h-full bg-brand rounded-sm wave-bar" style="animation: waveBar 0.7s 0.15s ease-in-out infinite;"></div>
+                                <div class="w-[3px] h-full bg-brand rounded-sm wave-bar" style="animation: waveBar 0.7s 0.3s ease-in-out infinite;"></div>
+                                <div class="w-[3px] h-full bg-brand rounded-sm wave-bar" style="animation: waveBar 0.7s 0.1s ease-in-out infinite;"></div>
+                                <div class="w-[3px] h-full bg-brand rounded-sm wave-bar" style="animation: waveBar 0.7s 0.25s ease-in-out infinite;"></div>
+                            </div>
+                        </div>
+                        <!-- Cycling speech bubbles -->
+                        <div class="phrase-cycle mb-5" style="height: 3.2em;">
+                            <span class="display text-2xl sm:text-3xl text-chalk" style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Triple 17"</span>
+                            <span class="display text-2xl sm:text-3xl text-chalk" style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Treble 17"</span>
+                            <span class="display text-2xl sm:text-3xl text-chalk" style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"T17"</span>
+                            <span class="display text-2xl sm:text-3xl text-chalk" style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Fifty-one"</span>
+                            <span class="display text-2xl sm:text-3xl text-chalk" style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Bull"</span>
+                            <span class="display text-2xl sm:text-3xl text-chalk" style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Fifty"</span>
+                        </div>
+                        <!-- Result arrow -->
+                        <div class="flex items-center gap-3 pt-3" style="border-top: 1px solid #1E1E28;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#CC0B20" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"/></svg>
+                            <div>
+                                <span class="text-[10px] text-muted uppercase tracking-wider">Parsed as</span>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="display text-lg neon-score" style="color: #CC0B20;">T17 = 51</span>
+                                    <svg viewBox="0 0 20 20" width="16" height="16" fill="#22c55e"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ROW 2: Flexible Scoring + Trigger Words ── -->
+            <div class="grid lg:grid-cols-2 gap-4 mb-4">
+
+                <!-- Flexible Scoring -->
+                <div class="bento-card rounded-2xl p-6 sm:p-8 reveal">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h14"/></svg>
+                        </div>
+                        <p class="text-brand text-[10px] font-bold tracking-[0.25em] uppercase">Scoring Styles</p>
+                    </div>
+                    <h3 class="display text-xl sm:text-2xl text-chalk mb-3">YOUR THROW, YOUR RULES</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-5">Call the visit total yourself, or let the app do the math. Two modes, one tap to switch.</p>
+                    <!-- Visual: Two mini mode cards -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="demo-screen p-4 text-center float-y">
+                            <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">Per Visit</span>
+                            <div class="display text-3xl neon-score mt-2" style="color:#CC0B20;">140</div>
+                            <div class="text-[10px] text-muted mt-2">"One-forty!"</div>
+                        </div>
+                        <div class="demo-screen p-4 text-center float-y" style="animation-delay: 0.5s;">
+                            <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">Per Dart</span>
+                            <div class="flex justify-center gap-1.5 mt-2">
+                                <span class="display text-lg" style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">T20</span>
+                                <span class="text-wire">·</span>
+                                <span class="display text-lg" style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">T20</span>
+                                <span class="text-wire">·</span>
+                                <span class="display text-lg" style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">T20</span>
+                            </div>
+                            <div class="text-[10px] text-muted mt-2">= 180</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trigger Words -->
+                <div class="bento-card rounded-2xl p-6 sm:p-8 reveal">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                        </div>
+                        <p class="text-brand text-[10px] font-bold tracking-[0.25em] uppercase">Smart Listening</p>
+                    </div>
+                    <h3 class="display text-xl sm:text-2xl text-chalk mb-3">WAKE WORD OR ALWAYS ON</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-5">Set a custom trigger like your own Alexa — or turn it off. DartVoice only reacts to numbers, so background chatter is completely ignored.</p>
+                    <!-- Visual: Waveform + trigger word demo -->
+                    <div class="demo-screen p-4">
+                        <!-- Waveform visualization -->
+                        <div class="flex items-end justify-center gap-[4px] h-10 mb-4">
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.00s ease-in-out infinite; opacity:0.4;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.08s ease-in-out infinite; opacity:0.5;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.16s ease-in-out infinite; opacity:0.7;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.05s ease-in-out infinite; opacity:0.9;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.22s ease-in-out infinite; opacity:1;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.12s ease-in-out infinite; opacity:0.9;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.28s ease-in-out infinite; opacity:0.7;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.18s ease-in-out infinite; opacity:0.5;"></div>
+                            <div class="w-[4px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.10s ease-in-out infinite; opacity:0.35;"></div>
+                            <div class="w-[4px] bg-muted-2 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.3s ease-in-out infinite; opacity:0.15;"></div>
+                            <div class="w-[4px] bg-muted-2 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.1s ease-in-out infinite; opacity:0.1;"></div>
+                            <div class="w-[4px] bg-muted-2 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.4s ease-in-out infinite; opacity:0.12;"></div>
+                            <div class="w-[4px] bg-muted-2 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.2s ease-in-out infinite; opacity:0.08;"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px]">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-block px-2 py-0.5 rounded font-mono font-bold" style="background: rgba(204,11,32,0.15); color: #CC0B20; border: 1px solid rgba(204,11,32,0.25);">"Score"</span>
+                                <span class="text-chalk font-semibold">140</span>
+                                <svg viewBox="0 0 20 20" width="14" height="14" fill="#22c55e"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z"/></svg>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-muted">"nice shot mate"</span>
+                                <svg viewBox="0 0 20 20" width="14" height="14" fill="#4A4A5A"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H5a1 1 0 0 1 0-2h10a1 1 0 0 1 0 2z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ROW 3: Live Checkouts — full width hero ── -->
+            <div class="bento-card rounded-2xl p-6 sm:p-8 lg:p-10 mb-4 reveal pulse-glow" style="border-color: rgba(204,11,32,0.2);">
+                <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                    <!-- Visual: Animated checkout display -->
+                    <div class="demo-screen p-5 sm:p-6 order-2 lg:order-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                <span class="text-[10px] text-brand uppercase tracking-wider font-bold">Checkout Guide</span>
+                            </div>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:#CC0B20;">LIVE</span>
+                        </div>
+                        <!-- Cycling checkout suggestions -->
+                        <div class="checkout-cycle" style="height: 110px;">
+                            <div class="flex flex-col gap-2">
+                                <div class="text-[10px] text-muted uppercase tracking-wider mb-1">Remaining: <span class="text-chalk font-bold">170</span></div>
+                                <div class="flex gap-2">
+                                    <span class="display text-lg px-3 py-1.5 rounded-lg" style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                                    <span class="display text-lg px-3 py-1.5 rounded-lg" style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                                    <span class="display text-lg px-3 py-1.5 rounded-lg" style="background: rgba(204,11,32,0.15); color:#CC0B20; border: 1px solid rgba(204,11,32,0.3);">BULL</span>
+                                </div>
+                                <div class="text-[10px] text-muted">60 + 60 + 50 = 170</div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <div class="text-[10px] text-muted uppercase tracking-wider mb-1">After T20: <span class="text-chalk font-bold">110</span></div>
+                                <div class="flex gap-2">
+                                    <span class="display text-lg px-3 py-1.5 rounded-lg" style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                                    <span class="display text-lg px-3 py-1.5 rounded-lg" style="background: rgba(204,11,32,0.15); color:#CC0B20; border: 1px solid rgba(204,11,32,0.3);">BULL</span>
+                                </div>
+                                <div class="text-[10px] text-muted">60 + 50 = 110</div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <div class="text-[10px] text-muted uppercase tracking-wider mb-1">After T20 T20: <span class="text-chalk font-bold">50</span></div>
+                                <div class="flex gap-2">
+                                    <span class="display text-xl px-4 py-2 rounded-lg neon-score" style="background: rgba(204,11,32,0.15); color:#CC0B20; border: 1px solid rgba(204,11,32,0.4);">BULL</span>
+                                </div>
+                                <div class="text-[10px] text-chalk font-semibold">Game shot!</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Text -->
+                    <div class="order-1 lg:order-2">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.25)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            </div>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:#CC0B20;">DYNAMIC</span>
+                        </div>
+                        <h3 class="display text-2xl sm:text-3xl text-chalk mb-4">CHECKOUTS THAT THINK<br>WITH EVERY DART</h3>
+                        <p class="text-muted text-sm sm:text-base leading-relaxed">Checkout advice isn't static — it recalculates after every single dart in Per-Dart mode. Throw your first dart, and the suggestion updates instantly for what's left. The board path is always live.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ROW 4: Companion Mode + Game Modes + Recording ── -->
+            <div class="grid lg:grid-cols-3 gap-4 mb-4">
+
+                <!-- Companion Pop-Up Mode -->
+                <div class="bento-card rounded-2xl p-6 reveal">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold mb-2 text-chalk">Companion Pop-Up</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Runs as a floating window on top of DartCounter or any app. Voice-score without ever switching screens.</p>
+                    <!-- Visual: PiP mockup -->
+                    <div class="relative" style="height: 120px;">
+                        <div class="absolute inset-0 rounded-lg" style="background: #18181C; border: 1px solid #252530;">
+                            <div class="p-3">
+                                <div class="flex gap-1.5 mb-2">
+                                    <div class="w-1.5 h-1.5 rounded-full" style="background:#4A4A5A;"></div>
+                                    <div class="w-1.5 h-1.5 rounded-full" style="background:#4A4A5A;"></div>
+                                    <div class="w-1.5 h-1.5 rounded-full" style="background:#4A4A5A;"></div>
+                                </div>
+                                <div class="h-2 rounded" style="background:#252530; width:60%;"></div>
+                                <div class="h-2 rounded mt-1.5" style="background:#252530; width:40%;"></div>
+                                <div class="h-2 rounded mt-1.5" style="background:#252530; width:50%;"></div>
+                            </div>
+                        </div>
+                        <!-- PiP window -->
+                        <div class="absolute bottom-2 right-2 w-24 rounded-lg p-2 pip-float" style="background: #111114; border: 1px solid rgba(204,11,32,0.3); box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 16px rgba(204,11,32,0.1);">
+                            <div class="text-[8px] text-brand font-bold mb-1">DARTVOICE</div>
+                            <div class="display text-sm neon-score" style="color:#CC0B20;">501</div>
+                            <div class="flex gap-[2px] mt-1 items-end h-2">
+                                <div class="w-[2px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.0s ease-in-out infinite;"></div>
+                                <div class="w-[2px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.1s ease-in-out infinite;"></div>
+                                <div class="w-[2px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.6s 0.2s ease-in-out infinite;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Game Modes -->
+                <div class="bento-card rounded-2xl p-6 reveal">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                                <circle cx="12" cy="12" r="9" stroke="#CC0B20" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="5" stroke="#CC0B20" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="2" fill="#CC0B20"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold mb-2 text-chalk">Every Game Mode</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Any X01 variant plus full Cricket. Real-time averages tracked for every player, every leg.</p>
+                    <!-- Visual: Game mode badges -->
+                    <div class="demo-screen p-4">
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div class="text-center p-2 rounded-lg" style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15);">
+                                <div class="display text-sm" style="color:#CC0B20;">301</div>
+                            </div>
+                            <div class="text-center p-2 rounded-lg" style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.25);">
+                                <div class="display text-sm neon-score" style="color:#CC0B20;">501</div>
+                            </div>
+                            <div class="text-center p-2 rounded-lg" style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15);">
+                                <div class="display text-sm" style="color:#CC0B20;">701</div>
+                            </div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg" style="background: rgba(204,11,32,0.06); border: 1px solid rgba(204,11,32,0.12);">
+                            <div class="display text-sm" style="color:#CC0B20;">CRICKET</div>
+                        </div>
+                        <div class="flex justify-between mt-3 text-[10px]">
+                            <span class="text-muted">Session Avg</span>
+                            <span class="text-chalk font-bold">58.4</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Match Recording -->
+                <div class="bento-card rounded-2xl p-6 reveal" style="border-color: rgba(204,11,32,0.2);">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.25)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="#CC0B20"/></svg>
+                        </div>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:#CC0B20;">NEW</span>
+                    </div>
+                    <h3 class="font-semibold mb-2 text-chalk">Match Recording</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Screen-record your sessions and save them. Review, share highlights, or keep that 9-darter forever.</p>
+                    <!-- Visual: Recording screen mockup -->
+                    <div class="demo-screen p-4 relative">
+                        <!-- REC indicator -->
+                        <div class="flex items-center gap-1.5 absolute top-3 right-3">
+                            <div class="w-2 h-2 rounded-full bg-red-500 rec-dot"></div>
+                            <span class="text-[9px] text-red-400 font-bold tracking-wider">REC</span>
+                        </div>
+                        <div class="text-[10px] text-muted mb-3 uppercase tracking-wider">Recording</div>
+                        <div class="flex items-baseline gap-2 mb-1">
+                            <span class="display text-3xl neon-score" style="color:#CC0B20;">180</span>
+                        </div>
+                        <div class="flex items-center gap-3 mt-3 pt-3" style="border-top: 1px solid #1E1E28;">
+                            <div class="flex -space-x-1">
+                                <div class="w-4 h-4 rounded-full" style="background: #CC0B20;"></div>
+                                <div class="w-4 h-4 rounded-full" style="background: #252530; border: 1px solid #1E1E28;"></div>
+                            </div>
+                            <span class="text-[10px] text-muted">Leg 3 · 12:47</span>
+                            <div class="ml-auto w-4 h-4 rounded" style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.2);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ROW 5: Custom Themes — accent strip ── -->
+            <div class="bento-card rounded-2xl p-6 sm:p-8 reveal">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-6">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08z"/></svg>
+                            </div>
+                        </div>
+                        <h3 class="display text-xl sm:text-2xl text-chalk mb-2">MAKE IT YOURS</h3>
+                        <p class="text-muted text-sm leading-relaxed">Pick your own color themes. Match your setup, your team's colours, or your mood.</p>
+                    </div>
+                    <!-- Visual: Animated color swatches -->
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl float-y" style="background: linear-gradient(135deg, #CC0B20, #e60d24); box-shadow: 0 4px 20px rgba(204,11,32,0.4);"></div>
+                            <span class="text-[9px] text-muted">Crimson</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl float-y" style="background: linear-gradient(135deg, #0B7CCC, #0D9BE6); box-shadow: 0 4px 20px rgba(11,124,204,0.3); animation-delay: 0.3s;"></div>
+                            <span class="text-[9px] text-muted">Ocean</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl float-y" style="background: linear-gradient(135deg, #0BCC5E, #0DE660); box-shadow: 0 4px 20px rgba(11,204,94,0.3); animation-delay: 0.6s;"></div>
+                            <span class="text-[9px] text-muted">Neon</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl float-y" style="background: linear-gradient(135deg, #CC8C0B, #E6A00D); box-shadow: 0 4px 20px rgba(204,140,11,0.3); animation-delay: 0.9s;"></div>
+                            <span class="text-[9px] text-muted">Gold</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl float-y" style="background: linear-gradient(135deg, #8C0BCC, #A00DE6); box-shadow: 0 4px 20px rgba(140,11,204,0.3); animation-delay: 1.2s;"></div>
+                            <span class="text-[9px] text-muted">Purple</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </section>
 

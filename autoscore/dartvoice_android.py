@@ -1621,9 +1621,35 @@ class DartVoiceLayout(FloatLayout):
         self._status_ev     = None
         self._current_darts = []      # per-dart accumulation
         self._x01_remaining = None    # live checkout tracking
+        self._pip_mode      = False
+        self._pip_dot       = None
 
-        self._build()
+        try:
+            self._build()
+        except Exception:
+            import traceback
+            self._show_crash(traceback.format_exc())
+            return
         Clock.schedule_once(lambda dt: self._billing_gate(), 0.5)
+
+    def _show_crash(self, msg):
+        """Show a visible crash screen so the error is readable on the phone."""
+        self.clear_widgets()
+        with self.canvas.before:
+            Color(0.05, 0.05, 0.07, 1)
+            RoundedRectangle(pos=self.pos, size=self.size, radius=[0])
+        box = BoxLayout(orientation='vertical', padding=dp(24), spacing=dp(12))
+        box.add_widget(Label(text='DARTVOICE CRASH', font_size=sp(20),
+                             bold=True, color=(1, 0.2, 0.2, 1),
+                             size_hint_y=None, height=dp(40)))
+        err = Label(text=msg, font_size=sp(10),
+                    color=(0.9, 0.9, 0.9, 1), halign='left', valign='top')
+        err.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        box.add_widget(err)
+        self.add_widget(box)
+        # Also dump to stderr for logcat
+        import sys
+        print('DARTVOICE CRASH:\n' + msg, file=sys.stderr, flush=True)
 
     def _billing_gate(self):
         try:
@@ -2034,8 +2060,6 @@ class DartVoiceLayout(FloatLayout):
         self._refresh_mode_ui()
 
         # ── PiP mode detection ────────────────────────────────────────────
-        self._pip_mode = False
-        self._pip_dot = None
         Window.bind(size=lambda *_: Clock.schedule_once(
             lambda dt: self._check_pip_mode(), 0.1))
 
@@ -2797,7 +2821,33 @@ class DartVoiceAndroidApp(App):
         if ANDROID:
             self._request_mic_permission()
         Window.clearcolor = BG
-        return DartVoiceLayout()
+        try:
+            return DartVoiceLayout()
+        except Exception:
+            import traceback
+            return self._crash_layout(traceback.format_exc())
+
+    def _crash_layout(self, msg):
+        """Visible crash screen so the error is readable on the phone."""
+        import sys
+        print('DARTVOICE CRASH:\n' + msg, file=sys.stderr, flush=True)
+        root = FloatLayout()
+        with root.canvas.before:
+            Color(0.05, 0.05, 0.07, 1)
+            root._bg = RoundedRectangle(pos=root.pos, size=root.size, radius=[0])
+        root.bind(pos=lambda *_: setattr(root._bg, 'pos', root.pos),
+                  size=lambda *_: setattr(root._bg, 'size', root.size))
+        box = BoxLayout(orientation='vertical', padding=dp(24), spacing=dp(12),
+                        size_hint=(1, 1))
+        box.add_widget(Label(text='DARTVOICE CRASH', font_size=sp(20),
+                             bold=True, color=(1, 0.2, 0.2, 1),
+                             size_hint_y=None, height=dp(40)))
+        err = Label(text=msg, font_size=sp(9),
+                    color=(0.9, 0.9, 0.9, 1), halign='left', valign='top')
+        err.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        box.add_widget(err)
+        root.add_widget(box)
+        return root
 
     def _request_mic_permission(self):
         """Request RECORD_AUDIO at startup so the permission dialog shows immediately."""
