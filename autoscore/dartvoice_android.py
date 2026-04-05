@@ -2674,7 +2674,7 @@ class LoginScreen(FloatLayout):
 
         # Token input
         self.token_input = TextInput(
-            placeholder_text="Enter Registration Token",
+            hint_text="Enter Registration Token",
             size_hint=(0.8, None), height=dp(50),
             pos_hint={'center_x': 0.5, 'center_y': 0.6},
             background_color=CARD, foreground_color=FG,
