@@ -10,7 +10,16 @@
       "Bash(python3 -c \":*)",
       "Bash(python -c \"import ast; ast.parse\\(open\\(''dartvoice_v2.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''OK''\\)\")",
       "Bash(grep -v \"^\\\\s*//\")",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(python -c ':*)",
+      "Bash(python gen_icon.py)",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/dartvoice_android.py', doraise=True\\); print\\('OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/dartvoice_android.py', doraise=True\\); print\\('Android OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/service/main.py', doraise=True\\); print\\('Service OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/dartvoice_android.py', doraise=True\\); print\\('dartvoice_android.py OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/service/main.py', doraise=True\\); print\\('service/main.py OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/billing.py', doraise=True\\); print\\('billing.py OK'\\)\")",
+      "Bash(python -c \"import yaml; yaml.safe_load\\(open\\('.github/workflows/build-android.yml'\\)\\); print\\('YAML OK'\\)\")"
     ]
   }
 }

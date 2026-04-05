@@ -24,29 +24,37 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.slider import Slider
 from kivy.uix.widget import Widget
 from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.utils import platform as kivy_platform
 from kivy.metrics import dp, sp
-from kivy.graphics import Color, RoundedRectangle, Ellipse, Line
+from kivy.graphics import Color, Rectangle, RoundedRectangle, Ellipse, Line
 from kivy.animation import Animation
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Palette (matches desktop app)
 # ─────────────────────────────────────────────────────────────────────────────
-BG   = (0.031, 0.031, 0.039, 1)
-CARD = (0.067, 0.067, 0.078, 1)
-FG   = (0.941, 0.941, 0.961, 1)
-FG2  = (0.431, 0.431, 0.510, 1)
-SEP  = (0.145, 0.145, 0.188, 1)
+BG   = (0.031, 0.031, 0.039, 1)      # #08080A
+CARD = (0.067, 0.067, 0.078, 1)      # #111114
+CARD2= (0.094, 0.094, 0.110, 1)      # #18181C
+FG   = (0.941, 0.941, 0.961, 1)      # #F0F0F5
+FG2  = (0.431, 0.431, 0.510, 1)      # #6E6E82
+FG3  = (0.180, 0.180, 0.227, 1)      # #2E2E3A
+SEP  = (0.145, 0.145, 0.188, 1)      # #252530
 
 # Theme-driven globals (updated by _apply_theme)
 ACCENT     = (0.800, 0.043, 0.125, 1)
 ACCENT_DIM = (0.533, 0.027, 0.078, 1)
+ACCENT_GLO = (1.000, 0.125, 0.251, 1)
+PRI_HOV    = (0.878, 0.063, 0.188, 1)
+PRI_FG     = (1, 1, 1, 1)
 STOP_BG    = (0.102, 0.024, 0.031, 1)
+STOP_HOV   = (0.067, 0.016, 0.024, 1)
 STOP_BDR   = (0.227, 0.063, 0.094, 1)
+WIRE_HINT  = (0.110, 0.031, 0.055, 1)
 
 def hex_to_kivy(h):
     h = h.lstrip('#')
@@ -56,54 +64,132 @@ def hex_to_kivy(h):
 # Player themes  (mirrors Windows app exactly)
 # ─────────────────────────────────────────────────────────────────────────────
 THEMES = {
-    'Littler':       {'player': 'Luke Littler',          'nickname': 'The Nuke',
-                      'accent': '#CC0B20', 'accent_dim': '#880714',
-                      'stop_bg': '#1A0608', 'stop_bdr': '#3A1018'},
-    'Anderson':      {'player': 'Gary Anderson',         'nickname': 'The Flying Scotsman',
-                      'accent': '#0074D9', 'accent_dim': '#004A8C',
-                      'stop_bg': '#080E1A', 'stop_bdr': '#12223A'},
-    'van Gerwen':    {'player': 'Michael van Gerwen',    'nickname': 'MvG',
-                      'accent': '#00B140', 'accent_dim': '#006B26',
-                      'stop_bg': '#081408', 'stop_bdr': '#102A14'},
-    'Wright':        {'player': 'Peter Wright',          'nickname': 'Snakebite',
-                      'accent': '#9B30FF', 'accent_dim': '#5E1AAA',
-                      'stop_bg': '#120A1C', 'stop_bdr': '#26143C'},
-    'van Barneveld': {'player': 'Raymond van Barneveld', 'nickname': 'Barney',
-                      'accent': '#FF6200', 'accent_dim': '#A33D00',
-                      'stop_bg': '#1A0E04', 'stop_bdr': '#3A1E08'},
-    'Taylor':        {'player': 'Phil Taylor',           'nickname': 'The Power',
-                      'accent': '#D4A017', 'accent_dim': '#8C6A0A',
-                      'stop_bg': '#1A1606', 'stop_bdr': '#3A2E0C'},
-    'Price':         {'player': 'Gerwyn Price',          'nickname': 'The Iceman',
-                      'accent': '#D0E8FF', 'accent_dim': '#6080A0',
-                      'stop_bg': '#0C1218', 'stop_bdr': '#1E2E3C',
-                      '_light': True},
-    'Sherrock':      {'player': 'Fallon Sherrock',       'nickname': 'Queen of the Palace',
-                      'accent': '#E8007A', 'accent_dim': '#960050',
-                      'stop_bg': '#1A0410', 'stop_bdr': '#3A0C28'},
-    'Custom':        {'player': 'Your Colour',           'nickname': 'Pick any accent',
-                      'accent': '#FFFFFF', 'accent_dim': '#888888',
-                      'stop_bg': '#111114', 'stop_bdr': '#282830',
-                      '_custom': True},
+    'Littler': {
+        'player': 'Luke Littler', 'nickname': 'The Nuke',
+        'accent': '#CC0B20', 'accent_dim': '#880714', 'accent_glo': '#FF2040',
+        'pri_hov': '#E01030',
+        'stop_bg': '#1A0608', 'stop_hov': '#110406', 'stop_bdr': '#3A1018',
+        'wire_hint': '#1C080E',
+    },
+    'Anderson': {
+        'player': 'Gary Anderson', 'nickname': 'The Flying Scotsman',
+        'accent': '#0074D9', 'accent_dim': '#004A8C', 'accent_glo': '#3FA8FF',
+        'pri_hov': '#1A8AFF',
+        'stop_bg': '#080E1A', 'stop_hov': '#060A12', 'stop_bdr': '#12223A',
+        'wire_hint': '#0A1020',
+    },
+    'van Gerwen': {
+        'player': 'Michael van Gerwen', 'nickname': 'MvG',
+        'accent': '#00B140', 'accent_dim': '#006B26', 'accent_glo': '#22E860',
+        'pri_hov': '#00CC4A',
+        'stop_bg': '#081408', 'stop_hov': '#060E06', 'stop_bdr': '#102A14',
+        'wire_hint': '#091608',
+    },
+    'Wright': {
+        'player': 'Peter Wright', 'nickname': 'Snakebite',
+        'accent': '#9B30FF', 'accent_dim': '#5E1AAA', 'accent_glo': '#C070FF',
+        'pri_hov': '#AF50FF',
+        'stop_bg': '#120A1C', 'stop_hov': '#0C0614', 'stop_bdr': '#26143C',
+        'wire_hint': '#140A1E',
+    },
+    'van Barneveld': {
+        'player': 'Raymond van Barneveld', 'nickname': 'Barney',
+        'accent': '#FF6200', 'accent_dim': '#A33D00', 'accent_glo': '#FF8E3A',
+        'pri_hov': '#FF7418',
+        'stop_bg': '#1A0E04', 'stop_hov': '#120A04', 'stop_bdr': '#3A1E08',
+        'wire_hint': '#1C1006',
+    },
+    'Taylor': {
+        'player': 'Phil Taylor', 'nickname': 'The Power',
+        'accent': '#D4A017', 'accent_dim': '#8C6A0A', 'accent_glo': '#FFD040',
+        'pri_hov': '#E8B820',
+        'stop_bg': '#1A1606', 'stop_hov': '#121004', 'stop_bdr': '#3A2E0C',
+        'wire_hint': '#1C1A08',
+    },
+    'Price': {
+        'player': 'Gerwyn Price', 'nickname': 'The Iceman',
+        'accent': '#D0E8FF', 'accent_dim': '#6080A0', 'accent_glo': '#FFFFFF',
+        'pri_hov': '#E8F4FF', 'pri_fg': '#06060A',
+        'stop_bg': '#0C1218', 'stop_hov': '#080C10', 'stop_bdr': '#1E2E3C',
+        'wire_hint': '#0E1620',
+    },
+    'Sherrock': {
+        'player': 'Fallon Sherrock', 'nickname': 'Queen of the Palace',
+        'accent': '#E8007A', 'accent_dim': '#960050', 'accent_glo': '#FF40A8',
+        'pri_hov': '#FF1A90',
+        'stop_bg': '#1A0410', 'stop_hov': '#12040C', 'stop_bdr': '#3A0C28',
+        'wire_hint': '#1C0614',
+    },
+    'Custom': {
+        'player': 'Your Colour', 'nickname': 'Pick any accent',
+        'accent': '#FFFFFF', 'accent_dim': '#888888', 'accent_glo': '#FFFFFF',
+        'pri_hov': '#DDDDDD', 'pri_fg': '#06060A',
+        'stop_bg': '#111114', 'stop_hov': '#0C0C10', 'stop_bdr': '#282830',
+        'wire_hint': '#141418',
+        '_custom': True,
+    },
 }
+
+def _derive_shades(hex_accent):
+    """Derive all theme colours from a single hex accent for the Custom theme."""
+    import colorsys
+    h = hex_accent.lstrip('#')
+    r, g, b = (int(h[i:i+2], 16) / 255 for i in (0, 2, 4))
+    hh, s, v = colorsys.rgb_to_hsv(r, g, b)
+    def _to_hex(rr, gg, bb):
+        return '#{:02X}{:02X}{:02X}'.format(
+            max(0, min(255, int(rr * 255))),
+            max(0, min(255, int(gg * 255))),
+            max(0, min(255, int(bb * 255))),
+        )
+    dim  = _to_hex(*colorsys.hsv_to_rgb(hh, s, v * 0.55))
+    glow = _to_hex(*colorsys.hsv_to_rgb(hh, max(0, s - 0.15), min(1, v * 1.25)))
+    hov  = _to_hex(*colorsys.hsv_to_rgb(hh, s, min(1, v * 1.12)))
+    stop = _to_hex(*[c * 0.07 + rr * 0.03 for c, rr in zip((r, g, b), (1, 0, 0))])
+    wire = _to_hex(*[c * 0.09 for c in (r, g, b)])
+    bdr  = _to_hex(*[c * 0.22 for c in (r, g, b)])
+    pri_fg = '#06060A' if v > 0.80 and s < 0.25 else '#FFFFFF'
+    return {
+        'accent': hex_accent, 'accent_dim': dim, 'accent_glo': glow,
+        'pri_hov': hov, 'pri_fg': pri_fg,
+        'stop_bg': stop, 'stop_hov': stop, 'stop_bdr': bdr,
+        'wire_hint': wire,
+    }
+
+def _glow_layers(accent_rgba):
+    """Return 5 Kivy RGBA colours from darkest-glow to brightest-glow."""
+    r, g, b = accent_rgba[0], accent_rgba[1], accent_rgba[2]
+    return [
+        (max(0.004, r * s), max(0.004, g * s), max(0.004, b * s), 1)
+        for s in (0.27, 0.44, 0.67, 0.83, 1.0)
+    ]
 
 def _apply_theme(name, custom_hex='#FFFFFF'):
     """Update global theme colours. Call before building/rebuilding UI."""
-    global ACCENT, ACCENT_DIM, STOP_BG, STOP_BDR
+    global ACCENT, ACCENT_DIM, ACCENT_GLO, PRI_HOV, PRI_FG
+    global STOP_BG, STOP_HOV, STOP_BDR, WIRE_HINT
     t = THEMES.get(name, THEMES['Littler'])
     if t.get('_custom'):
-        ACCENT     = hex_to_kivy(custom_hex)
-        # Derive dim + tints from the custom hex
-        h = custom_hex.lstrip('#')
-        r, g, b = (int(h[i:i+2], 16) / 255 for i in (0, 2, 4))
-        ACCENT_DIM = (r * 0.55, g * 0.55, b * 0.55, 1)
-        STOP_BG    = (r * 0.10, g * 0.10, b * 0.10, 1)
-        STOP_BDR   = (r * 0.22, g * 0.22, b * 0.22, 1)
+        shades = _derive_shades(custom_hex)
+        ACCENT     = hex_to_kivy(shades['accent'])
+        ACCENT_DIM = hex_to_kivy(shades['accent_dim'])
+        ACCENT_GLO = hex_to_kivy(shades['accent_glo'])
+        PRI_HOV    = hex_to_kivy(shades['pri_hov'])
+        PRI_FG     = hex_to_kivy(shades['pri_fg'])
+        STOP_BG    = hex_to_kivy(shades['stop_bg'])
+        STOP_HOV   = hex_to_kivy(shades['stop_hov'])
+        STOP_BDR   = hex_to_kivy(shades['stop_bdr'])
+        WIRE_HINT  = hex_to_kivy(shades['wire_hint'])
     else:
         ACCENT     = hex_to_kivy(t['accent'])
         ACCENT_DIM = hex_to_kivy(t['accent_dim'])
+        ACCENT_GLO = hex_to_kivy(t['accent_glo'])
+        PRI_HOV    = hex_to_kivy(t['pri_hov'])
+        PRI_FG     = hex_to_kivy(t.get('pri_fg', '#FFFFFF'))
         STOP_BG    = hex_to_kivy(t['stop_bg'])
+        STOP_HOV   = hex_to_kivy(t['stop_hov'])
         STOP_BDR   = hex_to_kivy(t['stop_bdr'])
+        WIRE_HINT  = hex_to_kivy(t['wire_hint'])
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Config
@@ -194,12 +280,9 @@ def _ensure_model():
 # ─────────────────────────────────────────────────────────────────────────────
 # Score parsers (same logic as desktop)
 # ─────────────────────────────────────────────────────────────────────────────
-_ONES = {
-    'zero':0,'oh':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,
-    'seven':7,'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,
-    'thirteen':13,'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,
-    'eighteen':18,'nineteen':19,
-}
+_ONES = {'zero':0,'oh':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,'thirteen':13,'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,'eighteen':18,'nineteen':19,
+         'for':4,'fore':4,'far':4,'fur':4,'foe':4,'ford':4,'fort':4,'floor':4,'poor':4,'war':4,
+         'hero':0,'nero':0,'arrow':0,'era':0}
 _TENS = {
     'twenty':20,'thirty':30,'forty':40,'fifty':50,
     'sixty':60,'seventy':70,'eighty':80,'ninety':90,
@@ -296,9 +379,11 @@ def parse_single_dart(text):
             if mc == 'd': return (num * 2, f"D{num}")
             return (num, str(num))
     if t in ('bull', 'bullseye', 'bulls', 'double bull', 'double bullseye', 'fifty',
-             "bull's eye", 'bulls eye', 'double twenty five', 'inner bull'):
+             'bull\'s eye', 'bulls eye', 'double twenty five', 'double twenty-five',
+             'double outer bull', 'inner bull', 'fifty points'):
         return (50, 'Bull')
-    if t in ('outer bull', 'twenty five', 'twenty-five', 'half bull', 'single bull'):
+    if t in ('outer bull', 'twenty five', 'twenty-five', 'half bull', 'single bull',
+             'single twenty five', 'green bull', 'twenty-five points'):
         return (25, '25')
     if t in ('miss', 'missed', 'zero', 'nothing', 'none', 'no score',
              'outside', 'bounce out', 'bounce', 'bounced out'):
@@ -600,6 +685,14 @@ class SpeechListener(threading.Thread):
             after = text.replace(trigger, '').strip()
 
         mode = self.cfg.get('game_mode', 'X01')
+
+        # "enter" command — submit accumulated darts early in per-dart mode
+        if after == 'enter' or text.strip() == 'enter':
+            if self.on_status: self.on_status("Enter pressed")
+            if self.cfg.get('per_dart_mode', False):
+                self.on_score(('dart_submit',))
+            return
+
         if mode == 'Cricket':
             darts = parse_cricket_darts(after)
             if darts:
@@ -635,7 +728,7 @@ def _accent_btn(text, on_press):
     btn = Button(
         text=text, font_size=sp(13), bold=True,
         background_normal='', background_color=(0, 0, 0, 0),
-        color=FG, size_hint_y=None, height=dp(52),
+        color=PRI_FG, size_hint_y=None, height=dp(52),
     )
     with btn.canvas.before:
         Color(*ACCENT)
@@ -722,34 +815,57 @@ class CricketGrid(GridLayout):
 # KvToggle — custom sliding toggle switch
 # ─────────────────────────────────────────────────────────────────────────────
 class KvToggle(Widget):
-    """A compact iOS-style toggle: rounded track + animated knob."""
+    """iOS-style toggle switch with smooth knob + track animation."""
     active = False
 
     def __init__(self, active=False, on_change=None, **kwargs):
         kwargs.setdefault('size_hint', (None, None))
         kwargs.setdefault('size', (dp(48), dp(28)))
         super().__init__(**kwargs)
-        self.active   = active
+        self.active     = active
         self._on_change = on_change
         self._track_ci  = None
-        self._knob_ci   = None
+        self._knob_rr   = None
+        # Animated properties
+        self._knob_x    = 0.0
+        self._track_r   = 0.0
+        self._track_g   = 0.0
+        self._track_b   = 0.0
         self.bind(pos=self._redraw, size=self._redraw)
-        Clock.schedule_once(lambda *_: self._redraw(), 0)
+        Clock.schedule_once(lambda *_: self._snap_state(), 0)
+
+    def _snap_state(self):
+        """Set initial state without animation."""
+        col = ACCENT if self.active else SEP
+        self._track_r, self._track_g, self._track_b = col[0], col[1], col[2]
+        self._knob_x = float((self.x + self.width - dp(26)) if self.active
+                             else (self.x + dp(2)))
+        self._redraw()
 
     def _redraw(self, *_):
         self.canvas.clear()
-        track_color = ACCENT if self.active else SEP
-        knob_x = (self.x + self.width - dp(26)) if self.active else (self.x + dp(2))
+        knob_x = self._knob_x if self._knob_x else (
+            (self.x + self.width - dp(26)) if self.active else (self.x + dp(2)))
         with self.canvas:
-            self._track_ci = Color(*track_color)
+            self._track_ci = Color(self._track_r, self._track_g, self._track_b, 1)
             RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(14)])
             Color(1, 1, 1, 1)
-            RoundedRectangle(pos=(knob_x, self.y + dp(2)),
-                             size=(dp(24), dp(24)), radius=[dp(12)])
+            self._knob_rr = RoundedRectangle(
+                pos=(knob_x, self.y + dp(2)),
+                size=(dp(24), dp(24)), radius=[dp(12)])
 
     def _animate_to(self, new_active):
         self.active = new_active
-        self._redraw()
+        col = ACCENT if new_active else SEP
+        target_x = float((self.x + self.width - dp(26)) if new_active
+                         else (self.x + dp(2)))
+        anim = Animation(
+            _knob_x=target_x,
+            _track_r=col[0], _track_g=col[1], _track_b=col[2],
+            duration=0.2, transition='out_quad',
+        )
+        anim.bind(on_progress=lambda *_: self._redraw())
+        anim.start(self)
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -800,104 +916,118 @@ class SettingsOverlay(FloatLayout):
                           on_press=lambda *_: self._close())
         self.add_widget(backdrop)
 
-        # Panel card — bottom 70% of screen
+        # Panel card — bottom 72% of screen, rounded top
         panel = FloatLayout(size_hint=(1, 0.72), pos_hint={'x': 0, 'y': 0})
         with panel.canvas.before:
+            Color(*SEP)
+            panel._bdr = RoundedRectangle(pos=panel.pos, size=panel.size,
+                                          radius=[dp(20), dp(20), 0, 0])
             Color(*CARD)
-            panel._bg = RoundedRectangle(pos=panel.pos, size=panel.size,
-                                         radius=[dp(20), dp(20), 0, 0])
-        panel.bind(pos=lambda *_: setattr(panel._bg, 'pos', panel.pos),
-                   size=lambda *_: setattr(panel._bg, 'size', panel.size))
+            panel._bg = RoundedRectangle(
+                pos=(panel.x + dp(1), panel.y),
+                size=(panel.width - dp(2), panel.height - dp(1)),
+                radius=[dp(19), dp(19), 0, 0])
+        def _upd_panel(*_):
+            panel._bdr.pos  = panel.pos;  panel._bdr.size = panel.size
+            p = dp(1)
+            panel._bg.pos   = (panel.x + p, panel.y)
+            panel._bg.size  = (panel.width - p*2, panel.height - p)
+        panel.bind(pos=_upd_panel, size=_upd_panel)
         self.add_widget(panel)
 
         scroll = ScrollView(size_hint=(1, 1), do_scroll_x=False)
         panel.add_widget(scroll)
 
         content = BoxLayout(orientation='vertical', size_hint_y=None,
-                            padding=[dp(20), dp(12), dp(20), dp(24)],
+                            padding=[dp(24), dp(12), dp(24), dp(24)],
                             spacing=dp(6))
         content.bind(minimum_height=content.setter('height'))
         scroll.add_widget(content)
 
         # ── Header ────────────────────────────────────────────────────────────
         hdr = BoxLayout(size_hint_y=None, height=dp(48))
-        hdr.add_widget(Label(text='Settings', font_size=sp(18), bold=True,
+        hdr.add_widget(Label(text='Settings', font_size=sp(17), bold=True,
                              color=FG, halign='left', valign='middle',
                              size_hint_x=1, text_size=(None, None)))
-        close_btn = Button(text='✕', font_size=sp(16),
-                           size_hint=(None, None), size=(dp(36), dp(36)),
+        close_btn = Button(text='✕', font_size=sp(14),
+                           size_hint=(None, None), size=(dp(32), dp(32)),
                            background_normal='', background_color=(0, 0, 0, 0),
                            color=FG2, on_press=lambda *_: self._close())
+        with close_btn.canvas.before:
+            Color(*CARD2)
+            close_btn._bg = RoundedRectangle(pos=close_btn.pos,
+                                             size=close_btn.size, radius=[dp(8)])
+        close_btn.bind(pos=lambda *_: setattr(close_btn._bg, 'pos', close_btn.pos),
+                       size=lambda *_: setattr(close_btn._bg, 'size', close_btn.size))
         hdr.add_widget(close_btn)
         content.add_widget(hdr)
 
         # ── Section: Player Theme ─────────────────────────────────────────────
-        content.add_widget(self._section_label('PLAYER THEME'))
+        content.add_widget(self._section_label('COLOUR THEME'))
 
         active_theme = self._cfg.get('theme', 'Littler')
-        theme_grid = GridLayout(cols=2, size_hint_y=None, spacing=dp(8))
+        theme_grid = GridLayout(cols=3, size_hint_y=None, spacing=dp(8))
         theme_grid.bind(minimum_height=theme_grid.setter('height'))
 
         for t_name, t_data in THEMES.items():
             is_selected = (t_name == active_theme)
             accent_col  = hex_to_kivy(t_data['accent'])
+            surname = t_data['player'].split()[-1] if not t_data.get('_custom') else 'Custom'
 
-            card = BoxLayout(orientation='horizontal', size_hint_y=None,
-                             height=dp(58), padding=[dp(10), dp(8), dp(10), dp(8)],
-                             spacing=dp(10))
+            card = BoxLayout(orientation='vertical', size_hint_y=None,
+                             height=dp(72), padding=[dp(6), dp(8), dp(6), dp(4)],
+                             spacing=dp(4))
             with card.canvas.before:
-                if is_selected:
-                    Color(*accent_col[:3], 0.18)
-                else:
-                    Color(*CARD)
+                Color(*BG)
                 card._bg = RoundedRectangle(pos=card.pos, size=card.size,
-                                            radius=[dp(12)])
+                                            radius=[dp(10)])
                 if is_selected:
                     Color(*accent_col[:3], 0.55)
-                    card._bdr = RoundedRectangle(pos=card.pos, size=card.size,
-                                                 radius=[dp(12)])
+                else:
+                    Color(*SEP)
+                card._bdr = RoundedRectangle(pos=card.pos, size=card.size,
+                                             radius=[dp(10)])
 
             def _make_upd(c):
                 def _upd(w, v):
-                    c._bg.pos  = c.pos
-                    c._bg.size = c.size
-                    if hasattr(c, '_bdr'):
-                        c._bdr.pos  = c.pos
-                        c._bdr.size = c.size
+                    c._bg.pos  = (c.x + dp(1), c.y + dp(1))
+                    c._bg.size = (c.width - dp(2), c.height - dp(2))
+                    c._bdr.pos  = c.pos
+                    c._bdr.size = c.size
                 return _upd
             _upd = _make_upd(card)
             card.bind(pos=_upd, size=_upd)
 
-            # Accent dot
-            dot_wrap = Widget(size_hint=(None, None), size=(dp(28), dp(28)))
+            # Accent dot (centred)
+            dot_wrap = Widget(size_hint=(1, None), height=dp(28))
             with dot_wrap.canvas:
+                if is_selected:
+                    Color(*FG)
+                else:
+                    Color(*SEP)
+                dot_wrap._ring = Ellipse(pos=(0, 0), size=(dp(26), dp(26)))
                 Color(*accent_col)
-                dot_wrap._dot = Ellipse(pos=(0, 0), size=(dp(28), dp(28)))
+                dot_wrap._dot = Ellipse(pos=(0, 0), size=(dp(22), dp(22)))
 
             def _make_dot_upd(d):
-                def _upd(w, v):
-                    d._dot.pos  = (d.center_x - dp(14), d.center_y - dp(14))
-                    d._dot.size = d.size
+                def _upd(*_):
+                    d._ring.pos = (d.center_x - dp(13), d.center_y - dp(13))
+                    d._ring.size = (dp(26), dp(26))
+                    d._dot.pos  = (d.center_x - dp(11), d.center_y - dp(11))
+                    d._dot.size = (dp(22), dp(22))
                 return _upd
             dot_wrap.bind(pos=_make_dot_upd(dot_wrap), size=_make_dot_upd(dot_wrap))
             card.add_widget(dot_wrap)
 
-            # Text column
-            txt = BoxLayout(orientation='vertical', size_hint_x=1)
-            txt.add_widget(Label(
-                text=t_data['player'], font_size=sp(12), bold=True,
-                color=accent_col if is_selected else FG,
-                halign='left', valign='middle',
-                size_hint_y=None, height=dp(22), text_size=(None, None),
+            # Surname label
+            card.add_widget(Label(
+                text=surname, font_size=sp(8), bold=False,
+                color=FG if is_selected else FG3,
+                halign='center', valign='middle',
+                size_hint_y=None, height=dp(16),
             ))
-            txt.add_widget(Label(
-                text=t_data['nickname'], font_size=sp(10),
-                color=FG2, halign='left', valign='top',
-                size_hint_y=None, height=dp(16), text_size=(None, None),
-            ))
-            card.add_widget(txt)
 
-            # Tap handler — FloatLayout overlay so it covers the whole card
+            # Tap handler
             touch_btn = Button(size_hint=(None, None), size=card.size,
                                background_normal='', background_color=(0, 0, 0, 0),
                                on_press=lambda *_, n=t_name: self._pick_theme(n))
@@ -907,23 +1037,23 @@ class SettingsOverlay(FloatLayout):
 
         content.add_widget(theme_grid)
 
-        # Custom hex row (shown always; only meaningful when Custom theme active)
+        # Custom hex row
         content.add_widget(self._section_label('CUSTOM COLOUR'))
-        hex_row = BoxLayout(size_hint_y=None, height=dp(48), spacing=dp(8))
+        hex_row = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(8))
         self._hex_input = TextInput(
             hint_text='Hex colour  e.g. #E8007A',
             text=self._cfg.get('custom_accent', ''),
-            font_size=sp(13), multiline=False,
+            font_size=sp(12), multiline=False,
             background_normal='', background_color=(*BG[:3], 1),
             foreground_color=FG, hint_text_color=FG2,
             cursor_color=ACCENT[:3] + (1,),
             size_hint_x=1,
         )
         hex_row.add_widget(self._hex_input)
-        apply_btn = Button(text='Apply', font_size=sp(13), bold=True,
+        apply_btn = Button(text='Apply', font_size=sp(11), bold=True,
                            size_hint=(None, 1), width=dp(70),
                            background_normal='', background_color=(0, 0, 0, 0),
-                           color=FG, on_press=lambda *_: self._on_apply_custom())
+                           color=PRI_FG, on_press=lambda *_: self._on_apply_custom())
         with apply_btn.canvas.before:
             Color(*ACCENT)
             apply_btn._bg = RoundedRectangle(pos=apply_btn.pos,
@@ -935,54 +1065,66 @@ class SettingsOverlay(FloatLayout):
         hex_row.add_widget(apply_btn)
         content.add_widget(hex_row)
 
-        # ── Section: Voice Settings ───────────────────────────────────────────
+        # ── Section: Voice ────────────────────────────────────────────────────
         content.add_widget(self._section_label('VOICE'))
 
-        va_card = BoxLayout(orientation='vertical', size_hint_y=None,
-                            padding=[dp(14), dp(10)], spacing=dp(2))
-        va_card.bind(minimum_height=va_card.setter('height'))
-        _card_bg(va_card)
+        content.add_widget(self._switch_row(
+            'Read back scores (TTS)', '',
+            self._cfg.get('voice_confirm', True),
+            lambda v: self._save('voice_confirm', v)))
+        content.add_widget(self._switch_row(
+            'Announce session average', 'X01 mode',
+            self._cfg.get('voice_stats', True),
+            lambda v: self._save('voice_stats', v)))
 
-        self._tog_voice = KvToggle(
-            active=self._cfg.get('voice_assist', True),
-            on_change=lambda v: self._save('voice_assist', v),
-        )
-        va_card.add_widget(self._toggle_row('Voice Assist',
-                                            'Read back scores aloud',
-                                            self._tog_voice))
+        # ── Voice volume slider ───────────────────────────────────────────────
+        content.add_widget(self._section_label('VOICE VOLUME'))
+        vol = self._cfg.get('voice_volume', 0.9)
+        self._vol_lbl = Label(text=f'{int(vol * 100)}%', font_size=sp(11),
+                              bold=True, color=FG, size_hint_y=None, height=dp(22),
+                              halign='right', valign='middle')
+        self._vol_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        content.add_widget(self._vol_lbl)
+        content.add_widget(self._slider(
+            val=vol, min_val=0.1, max_val=1.0,
+            on_change=lambda v: self._on_slider('voice_volume', v,
+                                                self._vol_lbl, '%', 100)))
 
-        self._tog_trigger = KvToggle(
-            active=self._cfg.get('require_trigger', True),
-            on_change=lambda v: self._save('require_trigger', v),
-        )
-        va_card.add_widget(self._toggle_row('Require Trigger Word',
-                                            'Only score when trigger is spoken',
-                                            self._tog_trigger))
+        # ── Speech speed slider ───────────────────────────────────────────────
+        content.add_widget(self._section_label('SPEECH SPEED'))
+        rate = self._cfg.get('voice_rate', 170)
+        self._rate_lbl = Label(text=f'{int(rate)} wpm', font_size=sp(11),
+                               bold=True, color=FG, size_hint_y=None, height=dp(22),
+                               halign='right', valign='middle')
+        self._rate_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        content.add_widget(self._rate_lbl)
+        content.add_widget(self._slider(
+            val=rate, min_val=100, max_val=250,
+            on_change=lambda v: self._on_slider('voice_rate', v,
+                                                self._rate_lbl, 'wpm', 1)))
 
-        self._tog_per_dart = KvToggle(
-            active=self._cfg.get('per_dart_mode', False),
-            on_change=lambda v: self._save('per_dart_mode', v),
-        )
-        va_card.add_widget(self._toggle_row('Per Dart Mode',
-                                            'Say each dart individually',
-                                            self._tog_per_dart))
+        # ── Section: Gameplay ─────────────────────────────────────────────────
+        content.add_widget(self._section_label('GAMEPLAY'))
 
-        self._tog_live_co = KvToggle(
-            active=self._cfg.get('live_checkout', False),
-            on_change=lambda v: self._save('live_checkout', v),
-        )
-        va_card.add_widget(self._toggle_row('Live Checkout',
-                                            'Track remaining & show checkout route',
-                                            self._tog_live_co))
+        content.add_widget(self._switch_row(
+            'Per-dart scoring', 'Say each dart individually',
+            self._cfg.get('per_dart_mode', False),
+            lambda v: self._save('per_dart_mode', v)))
+        content.add_widget(self._switch_row(
+            'Live checkout tracking', 'Show remaining + checkout route',
+            self._cfg.get('live_checkout', False),
+            lambda v: self._save('live_checkout', v)))
+        content.add_widget(self._switch_row(
+            'Require trigger word', 'Only score when trigger is spoken',
+            self._cfg.get('require_trigger', True),
+            lambda v: self._save('require_trigger', v)))
 
-        content.add_widget(va_card)
-
-        # Trigger word input
+        # ── Trigger word input ────────────────────────────────────────────────
         content.add_widget(self._section_label('TRIGGER WORD'))
         tw_input = TextInput(
             text=self._cfg.get('trigger', 'score'),
-            hint_text='e.g. score', font_size=sp(14), multiline=False,
-            size_hint_y=None, height=dp(48),
+            hint_text='e.g. score', font_size=sp(12), multiline=False,
+            size_hint_y=None, height=dp(44),
             background_normal='', background_color=(*BG[:3], 1),
             foreground_color=FG, hint_text_color=FG2,
             cursor_color=ACCENT[:3] + (1,),
@@ -990,31 +1132,96 @@ class SettingsOverlay(FloatLayout):
         tw_input.bind(text=lambda inst, v: self._save('trigger', v.strip() or 'score'))
         content.add_widget(tw_input)
 
+        # ── Cancel word input ─────────────────────────────────────────────────
+        content.add_widget(self._section_label('CANCEL WORD'))
+        cw_sub = Label(text='Say to undo last dart / score', font_size=sp(9),
+                       color=FG2, size_hint_y=None, height=dp(18),
+                       halign='left', valign='middle')
+        cw_sub.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        content.add_widget(cw_sub)
+        cw_input = TextInput(
+            text=self._cfg.get('cancel_word', 'wait'),
+            hint_text='e.g. wait', font_size=sp(12), multiline=False,
+            size_hint_y=None, height=dp(44),
+            background_normal='', background_color=(*BG[:3], 1),
+            foreground_color=FG, hint_text_color=FG2,
+            cursor_color=ACCENT[:3] + (1,),
+        )
+        cw_input.bind(text=lambda inst, v: self._save('cancel_word', v.strip() or 'wait'))
+        content.add_widget(cw_input)
+
         # Bottom padding
         content.add_widget(Widget(size_hint_y=None, height=dp(20)))
 
     # ── helpers ───────────────────────────────────────────────────────────────
     def _section_label(self, text):
-        lbl = Label(text=text, font_size=sp(10), bold=True, color=FG2,
-                    size_hint_y=None, height=dp(32),
-                    halign='left', valign='bottom')
-        lbl.bind(size=lambda inst, v: setattr(inst, 'text_size', (v[0], None)))
-        return lbl
-
-    def _toggle_row(self, title, subtitle, toggle_widget):
-        row = BoxLayout(size_hint_y=None, height=dp(52))
-        text_col = BoxLayout(orientation='vertical', size_hint_x=1)
-        text_col.add_widget(Label(text=title, font_size=sp(14), color=FG,
-                                  halign='left', valign='middle',
-                                  size_hint_y=None, height=dp(26),
-                                  text_size=(None, None)))
-        text_col.add_widget(Label(text=subtitle, font_size=sp(11), color=FG2,
-                                  halign='left', valign='top',
-                                  size_hint_y=None, height=dp(18),
-                                  text_size=(None, None)))
-        row.add_widget(text_col)
-        row.add_widget(toggle_widget)
+        """Section header with accent bar (matches Windows _section helper)."""
+        row = BoxLayout(size_hint_y=None, height=dp(32), spacing=dp(8),
+                        padding=[0, dp(10), 0, dp(2)])
+        # Accent bar
+        bar = Widget(size_hint=(None, None), size=(dp(3), dp(14)))
+        with bar.canvas:
+            Color(*ACCENT)
+            bar._rr = RoundedRectangle(pos=bar.pos, size=bar.size, radius=[dp(2)])
+        bar.bind(pos=lambda *_: setattr(bar._rr, 'pos', bar.pos),
+                 size=lambda *_: setattr(bar._rr, 'size', bar.size))
+        row.add_widget(bar)
+        lbl = Label(text=text, font_size=sp(8), bold=True, color=FG2,
+                    halign='left', valign='middle', size_hint_x=1)
+        lbl.bind(size=lambda inst, v: setattr(inst, 'text_size', v))
+        row.add_widget(lbl)
         return row
+
+    def _switch_row(self, label, sublabel, initial, on_change):
+        """Bordered toggle-switch row (matches Windows _switch_row)."""
+        row = BoxLayout(size_hint_y=None, height=dp(58),
+                        padding=[dp(14), dp(10), dp(14), dp(10)])
+        with row.canvas.before:
+            Color(*SEP)
+            row._bdr = RoundedRectangle(pos=row.pos, size=row.size, radius=[dp(10)])
+            Color(*BG)
+            row._bg = RoundedRectangle(
+                pos=(row.x + dp(1), row.y + dp(1)),
+                size=(row.width - dp(2), row.height - dp(2)),
+                radius=[dp(9)])
+        def _upd(w, *_):
+            w._bdr.pos = w.pos; w._bdr.size = w.size
+            w._bg.pos  = (w.x + dp(1), w.y + dp(1))
+            w._bg.size = (w.width - dp(2), w.height - dp(2))
+        row.bind(pos=_upd, size=_upd)
+
+        text_col = BoxLayout(orientation='vertical', size_hint_x=1)
+        title_lbl = Label(text=label, font_size=sp(12), bold=True, color=FG,
+                          halign='left', valign='middle',
+                          size_hint_y=None, height=dp(22))
+        title_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        text_col.add_widget(title_lbl)
+        if sublabel:
+            sub_lbl = Label(text=sublabel, font_size=sp(9), color=FG2,
+                            halign='left', valign='top',
+                            size_hint_y=None, height=dp(16))
+            sub_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+            text_col.add_widget(sub_lbl)
+        row.add_widget(text_col)
+        row.add_widget(KvToggle(active=initial, on_change=on_change))
+        return row
+
+    def _slider(self, val, min_val, max_val, on_change):
+        """Horizontal slider styled to match Windows sliders."""
+        sl = Slider(min=min_val, max=max_val, value=val,
+                    size_hint_y=None, height=dp(36),
+                    cursor_size=(dp(22), dp(22)))
+        # Style the slider via canvas
+        sl.background_color = (*SEP[:3], 1)
+        sl.cursor_image = ''
+        sl.bind(value=lambda inst, v: on_change(v))
+        return sl
+
+    def _on_slider(self, key, value, lbl, unit, scale):
+        """Update label + save config on slider change."""
+        display = int(value * scale)
+        lbl.text = f'{display} {unit}' if unit != '%' else f'{display}%'
+        self._save(key, round(value, 2) if scale > 1 else int(value))
 
     def _save(self, key, value):
         self._cfg[key] = value
@@ -1111,66 +1318,78 @@ class PaywallOverlay(FloatLayout):
             card._glow.pos     = (card.center_x - dp(130), card.top - dp(60))
         card.bind(pos=_upd_card, size=_upd_card)
 
-        # Mic ring icon (bullseye-style)
-        icon_wrap = Widget(size_hint_y=None, height=dp(56))
-        with icon_wrap.canvas:
-            # Outer ring
-            Color(ar * 0.15, ag * 0.01, ab * 0.03, 1)
-            icon_wrap._ring2 = Ellipse(size=(dp(52), dp(52)), pos=(0, 0))
-            # Inner ring
-            Color(*ACCENT)
-            icon_wrap._ring1 = Ellipse(size=(dp(36), dp(36)), pos=(0, 0))
-            # Centre
-            Color(*CARD)
-            icon_wrap._dot = Ellipse(size=(dp(18), dp(18)), pos=(0, 0))
-        def _upd_icon(*_):
-            cx, cy = icon_wrap.center_x, icon_wrap.center_y
-            for el, d in [(icon_wrap._ring2, 52), (icon_wrap._ring1, 36), (icon_wrap._dot, 18)]:
-                r = dp(d) / 2
-                el.pos = (cx - r, cy - r)
-        icon_wrap.bind(pos=_upd_icon, size=_upd_icon)
+        # Lock icon (matches Windows lock circle)
+        icon_wrap = Widget(size_hint_y=None, height=dp(72))
+        def _draw_lock(w, *_):
+            w.canvas.clear()
+            cx, cy = w.center_x, w.center_y
+            r = dp(36)
+            with w.canvas:
+                # Circle background
+                Color(*ACCENT)
+                Ellipse(pos=(cx - r, cy - r), size=(r * 2, r * 2))
+                # Shackle (arc)
+                Color(1, 1, 1, 1)
+                Line(ellipse=(cx - dp(10), cy - dp(2), dp(20), dp(20), 0, 180),
+                     width=dp(2.5), cap='round')
+                # Body
+                Rectangle(pos=(cx - dp(14), cy - dp(12)),
+                          size=(dp(28), dp(18)))
+                # Keyhole
+                Color(*ACCENT)
+                Ellipse(pos=(cx - dp(4), cy - dp(6)), size=(dp(8), dp(8)))
+                Rectangle(pos=(cx - dp(2), cy - dp(8)),
+                           size=(dp(4), dp(6)))
+        icon_wrap.bind(pos=_draw_lock, size=_draw_lock)
         card.add_widget(icon_wrap)
 
         # Title
         card.add_widget(Label(
-            text='DARTVOICE PRO',
-            font_size=sp(20), bold=True, color=FG,
-            size_hint_y=None, height=dp(28),
+            text='Free Preview Ended.',
+            font_size=sp(22), bold=True, color=FG,
+            size_hint_y=None, height=dp(32),
             halign='center', valign='middle',
         ))
 
         # Description
         card.add_widget(Label(
             text=(
-                'Experience completely unrestricted\nvoice scoring.\n\n'
-                'Start your 7-day free trial today.\n'
-                'Auto-bills \u00a36.99/month. Cancel any time.'
+                'Hope you enjoyed the warm-up.\n'
+                'Start your 7-Day Free Trial to keep scoring.\n'
+                'Auto-bills \u00a36.99/mo after trial. Cancel anytime.'
             ),
-            font_size=sp(12), color=FG2,
+            font_size=sp(10), color=FG2,
             halign='center', valign='middle',
-            size_hint_y=None, height=dp(110),
+            size_hint_y=None, height=dp(72),
         ))
 
         # Subscribe button
         self._sub_btn = _accent_btn(
-            'START 7-DAY FREE TRIAL  \u2192  \u00a36.99/mo', self._open_checkout
+            'Start 7-Day Free Trial', self._open_checkout
         )
         card.add_widget(self._sub_btn)
 
+        # Secondary CTA
+        signin_btn = _ghost_btn(
+            "I've already subscribed \u2014 Sign In", self._show_signin
+        )
+        card.add_widget(signin_btn)
+
         # Status label
         self._status_lbl = Label(
-            text='', font_size=sp(11), color=FG2,
-            size_hint_y=None, height=dp(20),
+            text='', font_size=sp(10), color=FG2,
+            size_hint_y=None, height=dp(18),
         )
         card.add_widget(self._status_lbl)
 
-        # "Already paid" ghost button
-        already_btn = _ghost_btn("I've already paid — check now", self._check_now)
-        card.add_widget(already_btn)
-
-        # Sign-in link
-        signin_btn = _ghost_btn("Already have an account? Sign In", self._show_signin)
-        card.add_widget(signin_btn)
+        # Security note
+        sec_lbl = Label(
+            text='\U0001f512  Secured via Stripe & Supabase',
+            font_size=sp(9), color=FG3,
+            size_hint_y=None, height=dp(20),
+            halign='center', valign='middle',
+        )
+        card.add_widget(sec_lbl)
 
         self._card = card
         self.add_widget(card)
@@ -1214,7 +1433,7 @@ class PaywallOverlay(FloatLayout):
                     'Not activated yet — retry or check your email.'
                 ))
                 Clock.schedule_once(lambda dt: setattr(
-                    self._sub_btn, 'text', 'START 7-DAY FREE TRIAL  \u2192  \u00a36.99/mo'
+                    self._sub_btn, 'text', 'Start 7-Day Free Trial'
                 ))
 
         check_subscription_async(_got)
@@ -1262,11 +1481,11 @@ class PaywallOverlay(FloatLayout):
 
         self._si_email = TextInput(
             hint_text='your@email.com',
-            font_size=sp(14), multiline=False,
-            background_color=(0.1, 0.1, 0.12, 1),
-            foreground_color=FG,
-            cursor_color=ACCENT,
-            size_hint_y=None, height=dp(46),
+            font_size=sp(13), multiline=False,
+            background_normal='', background_color=(*BG[:3], 1),
+            foreground_color=FG, hint_text_color=FG2,
+            cursor_color=ACCENT[:3] + (1,),
+            size_hint_y=None, height=dp(50),
         )
         panel.add_widget(self._si_email)
 
@@ -1275,14 +1494,14 @@ class PaywallOverlay(FloatLayout):
 
         # OTP step (hidden initially)
         self._si_code = TextInput(
-            hint_text='6-digit code',
-            font_size=sp(22), multiline=False,
+            hint_text='0 0 0 0 0 0',
+            font_size=sp(28), multiline=False,
             halign='center',
-            background_color=(0.1, 0.1, 0.12, 1),
-            foreground_color=FG,
-            cursor_color=ACCENT,
+            background_normal='', background_color=(*BG[:3], 1),
+            foreground_color=FG, hint_text_color=FG2,
+            cursor_color=ACCENT[:3] + (1,),
             input_filter='int',
-            size_hint_y=None, height=dp(54),
+            size_hint_y=None, height=dp(64),
             opacity=0, disabled=True,
         )
         panel.add_widget(self._si_code)
@@ -1293,7 +1512,7 @@ class PaywallOverlay(FloatLayout):
         panel.add_widget(self._si_verify_btn)
 
         self._si_msg = Label(
-            text='', font_size=sp(11), color=(0.87, 0.33, 0.33, 1),
+            text='', font_size=sp(10), color=(1.0, 0.333, 0.333, 1),
             size_hint_y=None, height=dp(20),
             halign='center', valign='middle',
         )
@@ -1541,6 +1760,7 @@ class DartVoiceLayout(FloatLayout):
                                                  size=accent_bar.size, radius=[0])
         accent_bar.bind(pos=lambda *_: setattr(accent_bar._rect, 'pos', accent_bar.pos),
                         size=lambda *_: setattr(accent_bar._rect, 'size', accent_bar.size))
+        self._accent_bar = accent_bar
         self.add_widget(accent_bar)
 
         # ── Header nav bar ────────────────────────────────────────────────
@@ -1586,6 +1806,7 @@ class DartVoiceLayout(FloatLayout):
         )
         self.mode_spinner.bind(text=self._on_mode_change)
         hdr.add_widget(self.mode_spinner)
+        self._hdr = hdr
         self.add_widget(hdr)
 
         # ── Top stage: score display ──────────────────────────────────────
@@ -1600,18 +1821,6 @@ class DartVoiceLayout(FloatLayout):
             top_stage.height = self.height - ACCENT_H - HDR_H - deck_h
         self.bind(size=_pos_stage, pos=_pos_stage)
 
-        # Subtle radial glow from top (matches HTML radial-gradient)
-        with top_stage.canvas.before:
-            Color(ACCENT[0], ACCENT[1], ACCENT[2], 0.07)
-            top_stage._glow = Ellipse(pos=(0, 0), size=(1, 1))
-        def _upd_glow(*_):
-            rw = top_stage.width * 0.9
-            rh = rw * 0.55
-            top_stage._glow.pos  = (top_stage.x + top_stage.width/2 - rw/2,
-                                     top_stage.top - rh * 0.8)
-            top_stage._glow.size = (rw, rh)
-        top_stage.bind(pos=_upd_glow, size=_upd_glow)
-
         self.maximum_lbl = Label(text='', font_size=sp(9), bold=True, color=ACCENT,
                                   halign='center', valign='middle',
                                   size_hint=(1, None), height=dp(18))
@@ -1625,12 +1834,35 @@ class DartVoiceLayout(FloatLayout):
         )
         top_stage.add_widget(self._score_area_lbl)
 
+        # Score area: FloatLayout with glow widget + score label layered
+        self._score_float = FloatLayout(size_hint=(1, 1))
+
+        # Glow canvas widget (radial glow + corner brackets)
+        self._glow_widget = Widget(size_hint=(1, 1))
+        self._score_float.add_widget(self._glow_widget)
+
+        # Glow text label (translucent accent behind main score)
+        self._glow_lbl = Label(
+            text='', font_size=sp(76), bold=True,
+            color=(0, 0, 0, 0),
+            halign='center', valign='middle',
+            size_hint=(1, 1),
+        )
+        self._score_float.add_widget(self._glow_lbl)
+
         self.score_lbl = Label(
             text=str(self.state.remaining), font_size=sp(76), bold=True,
             color=FG, halign='center', valign='middle',
             size_hint=(1, 1),
         )
-        top_stage.add_widget(self.score_lbl)
+        self._score_float.add_widget(self.score_lbl)
+        top_stage.add_widget(self._score_float)
+
+        # Bind glow redraw to layout changes and score updates
+        self._glow_widget.bind(pos=lambda *_: self._redraw_score_glow(),
+                               size=lambda *_: self._redraw_score_glow())
+        self.score_lbl.bind(text=lambda *_: self._redraw_score_glow(),
+                            font_size=lambda *_: self._redraw_score_glow())
 
         # Per-dart slot display (hidden when not in per-dart mode)
         self.dart_row_lbl = Label(
@@ -1652,11 +1884,8 @@ class DartVoiceLayout(FloatLayout):
                                  halign='center', valign='middle',
                                  size_hint=(1, None), height=dp(26))
         top_stage.add_widget(self.status_lbl)
+        self._top_stage = top_stage
         self.add_widget(top_stage)
-
-        # Compatibility: _set_toggle_style checks these attributes
-        self._score_wrap        = top_stage
-        self._draw_score_canvas = lambda w, *_: None
 
         # ── Cricket grid (hidden initially, overlays top stage) ───────────
         self.cricket_card = BoxLayout(
@@ -1799,9 +2028,16 @@ class DartVoiceLayout(FloatLayout):
 
         btn_row.add_widget(_icon_area('rotate-ccw', self._reset))
         deck.add_widget(btn_row)
+        self._deck = deck
         self.add_widget(deck)
 
         self._refresh_mode_ui()
+
+        # ── PiP mode detection ────────────────────────────────────────────
+        self._pip_mode = False
+        self._pip_dot = None
+        Window.bind(size=lambda *_: Clock.schedule_once(
+            lambda dt: self._check_pip_mode(), 0.1))
 
     # ── Icon widget factory ───────────────────────────────────────────────────
     def _create_icon_widget(self, icon_name, color=None, size=None):
@@ -1894,6 +2130,173 @@ class DartVoiceLayout(FloatLayout):
         else:
             self._start_listening()
 
+    def _redraw_score_glow(self):
+        """Redraw radial background glow, corner brackets, and text glow
+        behind the score label — mirrors the Windows _redraw_score canvas."""
+        gw = self._glow_widget
+        gw.canvas.clear()
+
+        if not gw.width or not gw.height:
+            return
+
+        x0, y0 = gw.x, gw.y
+        x1, y1 = gw.right, gw.top
+        w, h = gw.width, gw.height
+
+        with gw.canvas:
+            # ── Radial background glow (only when listening) ──────────────
+            if self._active:
+                ar, ag, ab = ACCENT[0], ACCENT[1], ACCENT[2]
+                bgr, bgg, bgb = BG[0], BG[1], BG[2]
+                for wf, hf, alpha in [(0.9, 1.6, 0.06),
+                                      (0.65, 1.1, 0.10),
+                                      (0.42, 0.7, 0.13)]:
+                    ew = w * wf
+                    eh = h * hf
+                    Color(ar * alpha + bgr * (1 - alpha),
+                          ag * alpha + bgg * (1 - alpha),
+                          ab * alpha + bgb * (1 - alpha), 1)
+                    Ellipse(pos=(gw.center_x - ew / 2, gw.center_y - eh / 2),
+                            size=(ew, eh))
+
+            # ── Corner brackets ───────────────────────────────────────────
+            arm = dp(14)
+            lw = dp(1.5)
+            col = ACCENT if self._active else SEP
+            Color(*col)
+            Line(points=[x0, y0 + arm, x0, y0, x0 + arm, y0],
+                 width=lw, cap='round')
+            Line(points=[x1 - arm, y0, x1, y0, x1, y0 + arm],
+                 width=lw, cap='round')
+            Line(points=[x0, y1 - arm, x0, y1, x0 + arm, y1],
+                 width=lw, cap='round')
+            Line(points=[x1 - arm, y1, x1, y1, x1, y1 - arm],
+                 width=lw, cap='round')
+
+        # ── Text glow label ───────────────────────────────────────────────
+        if hasattr(self, '_glow_lbl'):
+            self._glow_lbl.text = self.score_lbl.text
+            self._glow_lbl.font_size = self.score_lbl.font_size
+            if self._active:
+                self._glow_lbl.color = (*ACCENT_GLO[:3], 0.35)
+            else:
+                self._glow_lbl.color = (0, 0, 0, 0)
+
+    # ── PiP mode (compact pill) ─────────────────────────────────────────────
+    def _check_pip_mode(self):
+        """Detect Picture-in-Picture by window size and toggle layout."""
+        w, h = Window.size
+        is_pip = w < dp(300) and h < dp(400)
+        if is_pip and not self._pip_mode:
+            self._enter_pip()
+        elif not is_pip and self._pip_mode:
+            self._exit_pip()
+
+    def _enter_pip(self):
+        """Switch to compact pill layout: score + darts + checkout + dot."""
+        self._pip_mode = True
+        # Hide everything except the score stage
+        for w in (self._accent_bar, self._hdr, self._deck,
+                  self.cricket_card, self.history_box):
+            w.opacity = 0
+            w.size_hint_y = None
+            w.height = 0
+
+        # Reconfigure top_stage to fill entire screen
+        self._top_stage.y = 0
+        self._top_stage.height = self.height
+        self._top_stage.padding = [dp(8), dp(4), dp(8), dp(4)]
+        self._top_stage.spacing = dp(2)
+
+        # Enlarge score and show dart row always in per-dart mode
+        self.score_lbl.font_size = sp(52)
+        if self.cfg.get('per_dart_mode', False):
+            self.dart_row_lbl.opacity = 1
+
+        # Show checkout hint
+        if self.cfg.get('live_checkout', False):
+            self.checkout_lbl.font_size = sp(11)
+
+        # Shrink or hide non-essential labels
+        if hasattr(self, '_score_area_lbl'):
+            self._score_area_lbl.height = 0
+            self._score_area_lbl.opacity = 0
+        self.maximum_lbl.height = 0
+        self.maximum_lbl.opacity = 0
+
+        # Add status dot
+        if not self._pip_dot:
+            self._pip_dot = Widget(size_hint=(None, None),
+                                   size=(dp(10), dp(10)))
+            def _draw_dot(w, *_):
+                w.canvas.clear()
+                col = ACCENT if self._active else FG3
+                with w.canvas:
+                    Color(*col)
+                    Ellipse(pos=w.pos, size=w.size)
+            self._pip_dot.bind(pos=_draw_dot, size=_draw_dot)
+            self._pip_dot._draw = _draw_dot
+        self._pip_dot.pos = (self.width - dp(18), self.height - dp(18))
+        self.add_widget(self._pip_dot)
+
+        # Compact status label
+        self.status_lbl.font_size = sp(9)
+        self.status_lbl.height = dp(14)
+
+    def _exit_pip(self):
+        """Restore full layout from PiP mode."""
+        self._pip_mode = False
+        ACCENT_H = dp(3)
+        HDR_H    = dp(52)
+        DECK_FRAC = 0.44
+
+        # Restore hidden widgets
+        for w in (self._accent_bar, self._hdr, self._deck,
+                  self.cricket_card, self.history_box):
+            w.opacity = 1
+            w.size_hint_y = None  # keep explicit
+
+        self._accent_bar.height = ACCENT_H
+        self._hdr.height = HDR_H
+        self._deck.size_hint_y = DECK_FRAC
+
+        # Restore cricket card height based on mode
+        mode = self.cfg.get('game_mode', 'X01')
+        if mode == 'Cricket':
+            self.cricket_card.height = dp(260)
+            self.cricket_card.opacity = 1
+        else:
+            self.cricket_card.height = 0
+            self.cricket_card.opacity = 0
+
+        self.history_box.size = (0, 0)
+        self.history_box.opacity = 0
+
+        # Restore top_stage positioning
+        self._top_stage.padding = [dp(24), dp(8), dp(24), dp(8)]
+        self._top_stage.spacing = dp(6)
+
+        # Restore score sizing
+        self._refresh_mode_ui()
+
+        # Restore labels
+        if hasattr(self, '_score_area_lbl'):
+            self._score_area_lbl.height = dp(20)
+            self._score_area_lbl.opacity = 1
+        self.maximum_lbl.height = dp(18)
+        self.maximum_lbl.opacity = 1
+        self.status_lbl.font_size = sp(11)
+        self.status_lbl.height = dp(26)
+
+        # Remove PiP dot
+        if self._pip_dot and self._pip_dot.parent:
+            self.remove_widget(self._pip_dot)
+
+    def _redraw_pip_dot(self):
+        """Refresh the PiP status dot color."""
+        if self._pip_dot and hasattr(self._pip_dot, '_draw'):
+            self._pip_dot._draw(self._pip_dot)
+
     def _set_toggle_style(self, active):
         """Animate the toggle button background into the new active/inactive state."""
         btn = self.toggle_btn
@@ -1903,7 +2306,7 @@ class DartVoiceLayout(FloatLayout):
             target_fg = ACCENT
         else:
             target_bg = ACCENT
-            target_fg = FG
+            target_fg = PRI_FG
 
         # Build the canvas instruction objects (or reuse if already present)
         if not hasattr(btn, '_anim_color_instr'):
@@ -1974,9 +2377,12 @@ class DartVoiceLayout(FloatLayout):
             Animation(opacity=1 if active else 0,
                       duration=0.2, transition='out_quad').start(self._mic_icon)
 
-        # Trigger score wrap redraw
-        if hasattr(self, '_draw_score_canvas') and hasattr(self, '_score_wrap'):
-            self._draw_score_canvas(self._score_wrap)
+        # Redraw score glow (radial bg + brackets + text shadow)
+        if hasattr(self, '_glow_widget'):
+            self._redraw_score_glow()
+        # Redraw PiP status dot
+        if self._pip_mode:
+            self._redraw_pip_dot()
 
     def _start_listening(self):
         if ANDROID:
@@ -2070,11 +2476,26 @@ class DartVoiceLayout(FloatLayout):
 
             # Consume all pending events
             open(score_file, 'w').write('[]')
-            for ev in events:
+            for ev_wrap in events:
+                ev = ev_wrap.get('data', ev_wrap)
+                # Action events (cancel, new_leg, dart_submit)
+                action = ev.get('action')
+                if action == 'cancel':
+                    self._on_cancel(); continue
+                if action == 'new_leg':
+                    self._on_new_leg(); continue
+                if action == 'dart_submit':
+                    self._on_score(('dart_submit',)); continue
+                # Cricket
                 if ev.get('mode') == 'Cricket':
                     darts = [tuple(d) for d in ev.get('darts', [])]
                     if darts:
                         self._apply_cricket(darts)
+                # X01 per-dart
+                elif ev.get('mode') == 'X01' and 'dart' in ev:
+                    dart_val, dart_disp = ev['dart']
+                    self._on_score(('dart', dart_val, dart_disp))
+                # X01 standard
                 elif ev.get('mode') == 'X01':
                     score = ev.get('score')
                     if score is not None:
@@ -2105,34 +2526,63 @@ class DartVoiceLayout(FloatLayout):
         mode = self.cfg.get('game_mode', 'X01')
         if mode == 'Cricket':
             Clock.schedule_once(lambda dt: self._apply_cricket(data))
-        elif isinstance(data, tuple) and data[0] == 'dart':
+            return
+        # X01 per-dart: submit signal
+        if isinstance(data, tuple) and data[0] == 'dart_submit':
+            if self._current_darts:
+                Clock.schedule_once(lambda dt: self._submit_current_visit())
+            return
+        # X01 per-dart: single dart
+        if isinstance(data, tuple) and data[0] == 'dart':
             _, dart_val, dart_disp = data
             Clock.schedule_once(lambda dt: self._apply_dart(dart_val, dart_disp))
-        else:
-            Clock.schedule_once(lambda dt: self._apply_x01(data))
+            return
+        # X01 standard (total score)
+        Clock.schedule_once(lambda dt: self._apply_x01(data))
 
     def _on_cancel(self):
-        """Undo the last per-dart entry, or (in 3-dart mode) the last visit."""
+        """Undo the last dart (per-dart mode) or last visit (standard mode)."""
         def _do(dt):
             if self.cfg.get('per_dart_mode', False) and self._current_darts:
-                removed_val, _ = self._current_darts.pop()
+                removed_val, removed_disp = self._current_darts.pop()
                 if self.cfg.get('live_checkout', False) and self._x01_remaining is not None:
                     self._x01_remaining += removed_val
                 self._update_dart_display()
                 self._update_checkout_display()
-                self._set_status('Cancelled')
+                self._set_status(f"Cancelled: {removed_disp}")
             elif self.state.scores:
-                last = self.state.scores.pop()
-                self.state.remaining += last
+                removed = self.state.scores.pop()
+                self.state.remaining += removed
                 if self.cfg.get('live_checkout', False):
                     self._x01_remaining = self.state.remaining
                 self.score_lbl.text = str(self.state.remaining)
                 self._update_checkout_display()
-                self._set_status('Undone')
+                if self.state.scores:
+                    avg   = sum(self.state.scores) / len(self.state.scores)
+                    darts = len(self.state.scores) * 3
+                    self.avg_lbl.text   = f'Avg {avg:.1f}'
+                    self.darts_lbl.text = f'Darts {darts}'
+                else:
+                    self.avg_lbl.text   = 'Avg —'
+                    self.darts_lbl.text = 'Darts 0'
+                self._set_status(f"Undid {removed}")
+            else:
+                self._set_status("Nothing to cancel")
         Clock.schedule_once(_do)
 
     def _on_new_leg(self):
-        Clock.schedule_once(lambda dt: self._reset())
+        def _do(dt):
+            start = self.cfg.get('x01_start', 501)
+            self.state.remaining = start
+            self._x01_remaining = start
+            self._current_darts = []
+            self.score_lbl.text = str(start)
+            if self.cfg.get('per_dart_mode', False) and hasattr(self, 'dart_row_lbl'):
+                self.dart_row_lbl.text    = ''
+                self.dart_row_lbl.opacity = 0
+            self._update_checkout_display()
+            self._set_status(f"New leg — {start} remaining")
+        Clock.schedule_once(_do)
 
     def _apply_dart(self, dart_val, dart_disp):
         """Accept one dart in per-dart mode."""
@@ -2141,7 +2591,8 @@ class DartVoiceLayout(FloatLayout):
             self._x01_remaining -= dart_val
         self._update_dart_display()
         self._update_checkout_display()
-        speak(dart_disp, self.cfg)
+        if self.cfg.get('voice_confirm', True):
+            speak(dart_disp, self.cfg)
         if len(self._current_darts) >= 3:
             self._submit_current_visit()
 
@@ -2150,9 +2601,13 @@ class DartVoiceLayout(FloatLayout):
         if not self._current_darts:
             return
         total = sum(v for v, _ in self._current_darts)
-        disps = [d for _, d in self._current_darts]
         self._current_darts = []
         self._apply_x01(total)
+        if self.cfg.get('voice_confirm', True):
+            speak(str(total), self.cfg)
+        if self.cfg.get('voice_stats', True) and len(self.state.scores) >= 3:
+            avg = sum(self.state.scores) / len(self.state.scores)
+            speak(f"Average {avg:.0f}", self.cfg)
 
     def _update_dart_display(self):
         """Show current dart slots (e.g. 'T19  15  —') in per-dart mode."""
@@ -2200,14 +2655,19 @@ class DartVoiceLayout(FloatLayout):
         self._add_history(self.state.history[-1] if self.state.history else '')
         if result == 'bust':
             self._set_status('BUST!')
-            speak('Bust', self.cfg)
+            if self.cfg.get('voice_confirm', True):
+                speak('Bust', self.cfg)
         elif result == 'win':
             self._set_status('GAME SHOT!')
-            speak('Game shot!', self.cfg)
+            if self.cfg.get('voice_confirm', True):
+                speak('Game shot!', self.cfg)
         else:
             self._set_status(f'Score: {score}')
-            if not self.cfg.get('per_dart_mode', False):
+            if self.cfg.get('voice_confirm', True) and not self.cfg.get('per_dart_mode', False):
                 speak(str(score), self.cfg)
+            if self.cfg.get('voice_stats', True) and len(self.state.scores) >= 3 and not self.cfg.get('per_dart_mode', False):
+                avg = sum(self.state.scores) / len(self.state.scores)
+                speak(f"Average {avg:.0f}", self.cfg)
 
     def _apply_cricket(self, darts):
         results = self.state.apply_cricket(darts)
@@ -2361,6 +2821,7 @@ class DartVoiceAndroidApp(App):
         return True
 
     def on_resume(self):
+        # PiP exit is handled by Window.size binding in DartVoiceLayout
         pass
 
 

@@ -265,9 +265,36 @@ def _cricket_speech(darts):
     return ', '.join(parts)
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Vosk speech correction — common misrecognitions for short words
+# ─────────────────────────────────────────────────────────────────────────────
+_VOSK_CORRECTIONS = {
+    # "four" misheard as:
+    'for': 'four', 'fore': 'four', 'far': 'four', 'fur': 'four',
+    'fall': 'four', 'foe': 'four', 'ford': 'four', 'fort': 'four',
+    'floor': 'four', 'poor': 'four', 'war': 'four',
+    # "zero" misheard as:
+    'the row': 'zero', 'hero': 'zero', 'nero': 'zero',
+    'arrow': 'zero', 'era': 'zero', 'z row': 'zero',
+    'see row': 'zero', 'a row': 'zero',
+}
+
+def _fix_vosk(text):
+    """Apply Vosk misrecognition corrections to raw transcript."""
+    t = text.lower().strip()
+    if t in _VOSK_CORRECTIONS:
+        return _VOSK_CORRECTIONS[t]
+    # Also check if the score portion (after trigger removal) matches
+    for bad, good in _VOSK_CORRECTIONS.items():
+        if t.endswith(' ' + bad):
+            return t[: -len(bad)] + good
+    return t
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Parsers
 # ─────────────────────────────────────────────────────────────────────────────
-_ONES = {'zero':0,'oh':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,'thirteen':13,'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,'eighteen':18,'nineteen':19}
+_ONES = {'zero':0,'oh':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,'thirteen':13,'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,'eighteen':18,'nineteen':19,
+         'for':4,'fore':4,'far':4,'fur':4,'foe':4,'ford':4,'fort':4,'floor':4,'poor':4,'war':4,
+         'hero':0,'nero':0,'arrow':0,'era':0}
 _TENS = {'twenty':20,'thirty':30,'forty':40,'fifty':50,'sixty':60,'seventy':70,'eighty':80,'ninety':90}
 
 def parse_score(text):
@@ -1136,7 +1163,7 @@ class SpeechListener(threading.Thread):
         stream.stop_stream(); stream.close(); pa.terminate()
 
     def _process(self, text):
-        text = text.lower().strip()
+        text = _fix_vosk(text)
 
         # ── Cancel word (no trigger required) ─────────────────────────────
         cancel = self.cfg.get('cancel_word', 'wait').lower().strip()
@@ -1156,9 +1183,9 @@ class SpeechListener(threading.Thread):
         require = self.cfg.get('require_trigger', True)
         if require:
             if trigger not in text: return
-            after = text.split(trigger, 1)[-1].strip()
+            after = _fix_vosk(text.split(trigger, 1)[-1].strip())
         else:
-            after = text.replace(trigger, '').strip()
+            after = _fix_vosk(text.replace(trigger, '').strip())
 
         mode = self.cfg.get('game_mode', 'X01')
 

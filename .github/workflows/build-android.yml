@@ -9,6 +9,7 @@ on:
       - 'autoscore/billing.py'
       - 'autoscore/service/main.py'
       - 'autoscore/gen_icon.py'
+      - 'autoscore/vosk-model-small-en-us/**'
       - '.github/workflows/build-android.yml'
   workflow_dispatch:
 
@@ -58,12 +59,18 @@ jobs:
           path: ~/.gradle
           key: gradle-${{ runner.os }}
 
-
       - name: Generate app icon
         working-directory: autoscore
         run: |
           python3 -m pip install Pillow
           python3 gen_icon.py
+
+      - name: Verify Vosk model bundled
+        working-directory: autoscore
+        run: |
+          test -f vosk-model-small-en-us/am/final.mdl \
+            || { echo "ERROR: Vosk model not found — check repo LFS or submodule"; exit 1; }
+          echo "Vosk model OK ($(find vosk-model-small-en-us -type f | wc -l) files)"
 
       - name: Build debug APK
         working-directory: autoscore

@@ -8,19 +8,24 @@ version        = 1.7
 
 # Source
 source.dir          = .
-source.include_exts = py,json,ttf,otf,png
+# CRITICAL: include every file extension used by the Vosk model, fonts, and app
+source.include_exts = py,json,ttf,otf,png,mdl,fst,conf,mat,int,dubm,ie,stats,txt
 
 # Bundle the Vosk model inside the APK (extracted to writable storage on first run)
 source.include_patterns = vosk-model-small-en-us/*,vosk-model-small-en-us/am/*,vosk-model-small-en-us/graph/*,vosk-model-small-en-us/graph/phones/*,vosk-model-small-en-us/conf/*,vosk-model-small-en-us/ivector/*
+
+# Exclude build artifacts, Windows-only files, and dev tooling
+source.exclude_dirs  = bin,build,dist,__pycache__,.buildozer,.git,billing_server
+source.exclude_patterns = dartvoice_v2.py,DartVoice.spec,gen_icon.py,p4a_hook.py
 
 # Background service (service/main.py runs as a separate Android process)
 services = DartVoice:./service/main.py:foreground
 
 # Requirements
 # vosk — the p4a recipe downloads libvosk.so automatically for arm64
-# If the standard recipe is unavailable in your p4a version, see the
-# manual wheel instructions at the bottom of this file.
-requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,vosk,supabase,httpx
+# plyer — for vibrator/haptic feedback on score confirm
+# supabase + httpx — for billing/subscription check
+requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,plyer,vosk,supabase,httpx,requests
 
 # Orientation & display
 orientation = portrait
@@ -36,7 +41,8 @@ android.permissions = \
     FOREGROUND_SERVICE, \
     FOREGROUND_SERVICE_MICROPHONE, \
     WAKE_LOCK, \
-    INTERNET
+    INTERNET, \
+    VIBRATE
 
 # API targets
 android.api    = 34

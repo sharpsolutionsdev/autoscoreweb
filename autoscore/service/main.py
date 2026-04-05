@@ -34,11 +34,13 @@ CONFIG_FILE = os.path.join(app_storage_path(), 'dartvoice_config.json')
 
 # ── Reuse parsers from main app ───────────────────────────────────────────
 try:
-    from dartvoice_android import parse_score, parse_cricket_darts, _ensure_model
+    from dartvoice_android import (parse_score, parse_cricket_darts,
+                                   parse_single_dart, _ensure_model)
 except ImportError:
     # Fallback: define minimal versions inline
     def parse_score(text): return None
     def parse_cricket_darts(text): return []
+    def parse_single_dart(text): return None
     def _ensure_model(): return MODEL_PATH if os.path.isdir(MODEL_PATH) else None
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -194,6 +196,22 @@ def _listen_loop():
 
 
 def _process(text, cfg):
+    text = text.lower().strip()
+
+    # Cancel word (no trigger required)
+    cancel = cfg.get('cancel_word', 'wait').lower().strip()
+    if cancel and text == cancel:
+        _push_score({'action': 'cancel'})
+        _post_status('Cancelled')
+        return
+
+    # New leg / reset (no trigger required)
+    if any(p in text for p in ('new leg', 'new game', 'next leg', 'reset leg',
+                               'reset game', 'restart leg')):
+        _push_score({'action': 'new_leg'})
+        _post_status('New leg')
+        return
+
     trigger = cfg.get('trigger', 'score').lower()
     require = cfg.get('require_trigger', True)
     if require:
@@ -204,11 +222,24 @@ def _process(text, cfg):
         after = text.replace(trigger, '').strip()
 
     mode = cfg.get('game_mode', 'X01')
+
+    # "enter" command — submit accumulated darts early
+    if after == 'enter' or text.strip() == 'enter':
+        if cfg.get('per_dart_mode', False):
+            _push_score({'action': 'dart_submit'})
+            _post_status('Enter pressed')
+        return
+
     if mode == 'Cricket':
         darts = parse_cricket_darts(after)
         if darts:
             _push_score({'mode': 'Cricket', 'darts': darts})
             _post_status('Darts recorded')
+    elif cfg.get('per_dart_mode', False):
+        dart = parse_single_dart(after)
+        if dart is not None:
+            _push_score({'mode': 'X01', 'dart': list(dart)})
+            _post_status(f'Dart: {dart[1]}')
     else:
         score = parse_score(after)
         if score is not None and 0 <= score <= 180:
