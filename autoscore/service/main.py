@@ -144,9 +144,9 @@ def _listen_loop():
         return
 
     try:
-        import vosk
-        model = vosk.Model(model_path)
-        rec   = vosk.KaldiRecognizer(model, 16000)
+        from vosk_android import Model, KaldiRecognizer
+        model = Model(model_path)
+        rec   = KaldiRecognizer(model, 16000)
     except Exception as e:
         _post_status(f'Vosk error: {e}')
         return

@@ -602,9 +602,12 @@ class SpeechListener(threading.Thread):
 
     def run(self):
         try:
-            import vosk
-            model = vosk.Model(self.model_path)
-            rec   = vosk.KaldiRecognizer(model, 16000)
+            if ANDROID:
+                from vosk_android import Model, KaldiRecognizer
+            else:
+                from vosk import Model, KaldiRecognizer
+            model = Model(self.model_path)
+            rec   = KaldiRecognizer(model, 16000)
         except Exception as e:
             self.on_status(f'Model error: {e}')
             return
