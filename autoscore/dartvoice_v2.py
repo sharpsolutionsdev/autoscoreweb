@@ -1312,47 +1312,68 @@ class DartVoiceApp(ctk.CTk):
         self._show_splash()
 
     def _show_splash(self):
-        """Animated splash that dissolves into the main UI after ~1.4 s."""
+        """Animated Discord-style splash screen."""
         splash = tk.Frame(self, bg=BG)
         splash.place(x=0, y=0, relwidth=1, relheight=1)
         splash.lift()
 
-        # Bullseye SVG-style canvas drawn with primitives
-        c = tk.Canvas(splash, bg=BG, highlightthickness=0, width=80, height=80)
-        c.place(relx=0.5, rely=0.42, anchor='center')
-        _r = [36, 27, 18, 9]
-        _cols = [SEP, SEP, ACCENT_DIM, ACCENT]
-        for r2, col in zip(_r, _cols):
-            c.create_oval(40-r2, 40-r2, 40+r2, 40+r2, outline=col, width=2)
-        # Dart wire: diagonal line from upper-right
-        c.create_line(60, 16, 40, 40, fill=FG, width=3, capstyle='round')
-        c.create_oval(37, 37, 43, 43, fill=ACCENT, outline='')
+        # Canvas for animated spinning spinner & pulsing logo
+        c = tk.Canvas(splash, bg=BG, highlightthickness=0, width=120, height=120)
+        c.place(relx=0.5, rely=0.45, anchor='center')
+        
+        # Center logo
+        logo_arc = c.create_arc(20, 20, 100, 100, start=0, extent=270, 
+                                style=tk.ARC, outline=ACCENT_DIM, width=4)
+        logo_arc2 = c.create_arc(35, 35, 85, 85, start=90, extent=270, 
+                                 style=tk.ARC, outline=ACCENT, width=4)
+        center_dot = c.create_oval(55, 55, 65, 65, fill=FG, outline='')
 
         name_lbl = tk.Label(splash, text="DARTVOICE", bg=BG, fg=FG,
-                            font=("Uber Move Bold", 22, "bold"))
-        name_lbl.place(relx=0.5, rely=0.56, anchor='center')
+                            font=("Uber Move Bold", 26, "bold"))
+        name_lbl.place(relx=0.5, rely=0.62, anchor='center')
 
-        tag_lbl = tk.Label(splash, text="Voice-activated scoring", bg=BG, fg=FG2,
-                           font=("Rubik", 10))
-        tag_lbl.place(relx=0.5, rely=0.63, anchor='center')
+        import random
+        phrases = [
+            "Warming up the microphone...",
+            "Sharpening the darts...",
+            "Calculating checkouts...",
+            "Chalking the oche...",
+            "Pinging the servers...",
+            "Loading bullseye...",
+            "Throwing practice darts..."
+        ]
+        tag_lbl = tk.Label(splash, text=random.choice(phrases), bg=BG, fg=FG2,
+                           font=("Rubik", 12))
+        tag_lbl.place(relx=0.5, rely=0.69, anchor='center')
 
-        # Animated loading bar
-        bar_bg = tk.Frame(splash, bg=SEP, height=2, width=160)
-        bar_bg.place(relx=0.5, rely=0.72, anchor='center')
-        bar_fill = tk.Frame(bar_bg, bg=ACCENT, height=2, width=0)
-        bar_fill.place(x=0, y=0)
-
-        def _animate_bar(step=0):
-            if step > 40:
+        def _animate_splash(step=0, start1=0, start2=90, scale=1.0, scale_d=0.03):
+            if step > 65:  # ~1.8 seconds
                 self._build_ui()
                 splash.destroy()
                 self._pulse()
                 self.after(100, self._billing_gate)
                 return
-            bar_fill.config(width=int(160 * step / 40))
-            self.after(28, lambda: _animate_bar(step + 1))
+            
+            # Rotate arcs
+            start1 = (start1 - 8) % 360
+            start2 = (start2 + 12) % 360
+            c.itemconfig(logo_arc, start=start1)
+            c.itemconfig(logo_arc2, start=start2)
+            
+            # Pulse the center dot
+            if scale > 1.3: scale_d = -0.05
+            elif scale < 0.7: scale_d = 0.05
+            scale += scale_d
+            s_diff = 4 * scale
+            c.coords(center_dot, 60-s_diff, 60-s_diff, 60+s_diff, 60+s_diff)
+            
+            # Update phrase
+            if step % 22 == 0:
+                tag_lbl.config(text=random.choice(phrases))
 
-        self.after(120, lambda: _animate_bar(0))
+            self.after(28, lambda: _animate_splash(step + 1, start1, start2, scale, scale_d))
+
+        self.after(120, lambda: _animate_splash(0))
 
     # ── Billing gate (called 200ms after launch) ──────────────────────────────
     def _billing_gate(self):
