@@ -1860,35 +1860,13 @@ class DartVoiceLayout(FloatLayout):
         )
         top_stage.add_widget(self._score_area_lbl)
 
-        # Score area: FloatLayout with glow widget + score label layered
-        self._score_float = FloatLayout(size_hint=(1, 1))
-
-        # Glow canvas widget (radial glow + corner brackets)
-        self._glow_widget = Widget(size_hint=(1, 1))
-        self._score_float.add_widget(self._glow_widget)
-
-        # Glow text label (translucent accent behind main score)
-        self._glow_lbl = Label(
-            text='', font_size=sp(76), bold=True,
-            color=(0, 0, 0, 0),
-            halign='center', valign='middle',
-            size_hint=(1, 1),
-        )
-        self._score_float.add_widget(self._glow_lbl)
-
+        # Score label (main display)
         self.score_lbl = Label(
             text=str(self.state.remaining), font_size=sp(76), bold=True,
             color=FG, halign='center', valign='middle',
             size_hint=(1, 1),
         )
-        self._score_float.add_widget(self.score_lbl)
-        top_stage.add_widget(self._score_float)
-
-        # Bind glow redraw to layout changes and score updates
-        self._glow_widget.bind(pos=lambda *_: self._redraw_score_glow(),
-                               size=lambda *_: self._redraw_score_glow())
-        self.score_lbl.bind(text=lambda *_: self._redraw_score_glow(),
-                            font_size=lambda *_: self._redraw_score_glow())
+        top_stage.add_widget(self.score_lbl)
 
         # Per-dart slot display (hidden when not in per-dart mode)
         self.dart_row_lbl = Label(
@@ -1997,62 +1975,51 @@ class DartVoiceLayout(FloatLayout):
         stats_grid.add_widget(last_card)
         deck.add_widget(stats_grid)
 
-        # ── Button row: [Settings icon] [Listen btn] [Undo icon] ─────────
+        # ── Button row: [Settings] [Listen btn] [Undo] ─────────────────
         btn_row = BoxLayout(orientation='horizontal', spacing=dp(12),
                             size_hint_y=None, height=dp(62))
 
-        def _icon_area(icon_name, on_press_cb):
-            """Square icon button using FloatLayout (icon widget + transparent Button)."""
-            area = FloatLayout(size_hint=(None, 1), width=dp(62))
-            with area.canvas.before:
+        def _icon_btn(label_text, on_press_cb):
+            """Bordered icon button with text label (reliable on all devices)."""
+            btn = Button(
+                text=label_text, font_size=sp(9), bold=True,
+                size_hint=(None, 1), width=dp(62),
+                background_normal='', background_color=(0, 0, 0, 0),
+                color=FG2,
+                on_press=lambda *_: on_press_cb(),
+            )
+            with btn.canvas.before:
                 Color(*SEP)
-                area._bdr = RoundedRectangle(pos=area.pos, size=area.size, radius=[dp(14)])
+                btn._bdr = RoundedRectangle(pos=btn.pos, size=btn.size,
+                                            radius=[dp(14)])
                 Color(*BG)
-                area._bg = RoundedRectangle(
-                    pos=(area.x + dp(1), area.y + dp(1)),
-                    size=(area.width - dp(2), area.height - dp(2)),
+                btn._bg = RoundedRectangle(
+                    pos=(btn.x + dp(1), btn.y + dp(1)),
+                    size=(btn.width - dp(2), btn.height - dp(2)),
                     radius=[dp(13)])
-            def _upd(w, *_):
-                w._bdr.pos = w.pos;  w._bdr.size = w.size
-                w._bg.pos  = (w.x + dp(1), w.y + dp(1))
-                w._bg.size = (w.width - dp(2), w.height - dp(2))
-            area.bind(pos=_upd, size=_upd)
+            def _make_upd(b):
+                def _upd(*_):
+                    b._bdr.pos = b.pos;  b._bdr.size = b.size
+                    b._bg.pos  = (b.x + dp(1), b.y + dp(1))
+                    b._bg.size = (b.width - dp(2), b.height - dp(2))
+                return _upd
+            btn.bind(pos=_make_upd(btn), size=_make_upd(btn))
+            return btn
 
-            icon_w = self._create_icon_widget(icon_name, FG2, dp(22))
-            icon_w.size_hint = (None, None)
-            icon_w.size = (dp(40), dp(40))
-            icon_w.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
-            area.add_widget(icon_w)
+        btn_row.add_widget(_icon_btn('\u2699', self._show_settings))
 
-            touch_btn = Button(size_hint=(1, 1), background_normal='',
-                               background_color=(0, 0, 0, 0),
-                               on_press=lambda *_: on_press_cb())
-            area.add_widget(touch_btn)
-            return area
-
-        btn_row.add_widget(_icon_area('settings', self._show_settings))
-
-        # Center: Toggle listen button + floating mic icon overlay
-        toggle_wrap = FloatLayout()
+        # Center: Toggle listen button
         self.toggle_btn = Button(
             text='START LISTENING', font_size=sp(13), bold=True,
             size_hint=(1, 1),
             background_normal='', background_color=(0, 0, 0, 0),
             color=FG, on_press=lambda *_: self._toggle(),
         )
-        toggle_wrap.add_widget(self.toggle_btn)
-
-        self._mic_icon = self._create_icon_widget('mic', FG, dp(20))
-        self._mic_icon.size_hint = (None, None)
-        self._mic_icon.size = (dp(28), dp(28))
-        self._mic_icon.pos_hint = {'center_x': 0.18, 'center_y': 0.5}
-        self._mic_icon.opacity = 0  # shown only when active
-        toggle_wrap.add_widget(self._mic_icon)
 
         self._set_toggle_style(active=False)
-        btn_row.add_widget(toggle_wrap)
+        btn_row.add_widget(self.toggle_btn)
 
-        btn_row.add_widget(_icon_area('rotate-ccw', self._reset))
+        btn_row.add_widget(_icon_btn('\u21ba', self._reset))
         deck.add_widget(btn_row)
         self._deck = deck
         self.add_widget(deck)
@@ -2818,14 +2785,17 @@ def _stop_foreground_service():
 # ─────────────────────────────────────────────────────────────────────────────
 class DartVoiceAndroidApp(App):
     def build(self):
-        if ANDROID:
-            self._request_mic_permission()
         Window.clearcolor = BG
         try:
             return DartVoiceLayout()
         except Exception:
             import traceback
             return self._crash_layout(traceback.format_exc())
+
+    def on_start(self):
+        """Called after window is shown — Activity is fully ready for permissions."""
+        if ANDROID:
+            Clock.schedule_once(lambda dt: self._request_mic_permission(), 0.5)
 
     def _crash_layout(self, msg):
         """Visible crash screen so the error is readable on the phone."""

@@ -381,6 +381,50 @@
             75%      { transform: translate(2px, -1px) scale(0.99); }
         }
         .pip-float { animation: pipBounce 5s ease-in-out infinite; }
+
+        @keyframes cursorBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        .cursor-blink { animation: cursorBlink 1s step-end infinite; }
+
+        @keyframes progressFill {
+            0%   { width: 0; }
+            60%  { width: 100%; }
+            100% { width: 100%; }
+        }
+        .progress-fill { animation: progressFill 3s ease-in-out infinite; }
+
+        @keyframes stepConnect {
+            0%, 40%  { width: 0; }
+            60%, 100% { width: 100%; }
+        }
+
+        @keyframes subtractScore {
+            0%, 30%   { opacity: 1; }
+            35%, 65%  { opacity: 0; }
+            70%, 100% { opacity: 1; }
+        }
+        .score-subtract > div {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; animation: subtractScore 6s infinite;
+        }
+        .score-subtract > div:nth-child(1) { animation-delay: 0s; }
+        .score-subtract > div:nth-child(2) { animation-delay: 2s; }
+        .score-subtract > div:nth-child(3) { animation-delay: 4s; }
+
+        @keyframes orbitDot {
+            from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+            to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+        }
+        .orbit-dot { animation: orbitDot 8s linear infinite; }
+
+        @keyframes expandRing {
+            0%   { transform: scale(0.8); opacity: 0.6; }
+            50%  { transform: scale(1.2); opacity: 0; }
+            100% { transform: scale(0.8); opacity: 0; }
+        }
     </style>
 </head>
 <body class="antialiased overflow-x-hidden noise grid-bg-soft">
@@ -451,7 +495,7 @@
 
         <!-- Dartboard decorative BG -->
         <div class="board-deco" style="right:-120px; top:50%; transform:translateY(-50%);">
-            <svg viewBox="0 0 500 500" width="560" height="560" class="text-wire">
+            <svg viewBox="0 0 500 500" width="560" height="560" class="text-wire board-spin">
                 <circle cx="250" cy="250" r="240" stroke="#252530" stroke-width="3" fill="none"/>
                 <circle cx="250" cy="250" r="210" stroke="#252530" stroke-width="3" fill="none"/>
                 <circle cx="250" cy="250" r="145" stroke="#252530" stroke-width="3" fill="none"/>
@@ -689,99 +733,213 @@
 
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
+                <!-- Voice Recognition -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Hub mic icon -->
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                             <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                            <line x1="12" y1="19" x2="12" y2="22"/>
-                            <line x1="8"  y1="22" x2="16" y2="22"/>
+                            <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Voice Recognition</h3>
-                    <p class="text-muted text-sm leading-relaxed">Just say your score out loud. DartVoice picks it up instantly with offline recognition — no internet needed during play.</p>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Just say your score out loud. DartVoice picks it up instantly with offline recognition — no internet needed during play.</p>
+                    <div class="demo-screen p-3 flex items-center gap-3">
+                        <div class="flex items-end gap-[3px] h-5">
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.0s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.12s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.06s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.18s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.09s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.15s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.03s ease-in-out infinite;"></div>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-muted uppercase tracking-wider">Detected</span>
+                            <div class="display text-sm neon-score" style="color:#CC0B20;">"One-forty"</div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Automatic Scoring -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Hub stats/chart icon -->
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 3v18h18"/>
-                            <path d="m19 9-5 5-4-4-3 3"/>
+                            <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Automatic Scoring</h3>
-                    <p class="text-muted text-sm leading-relaxed">Scores are calculated, subtracted, and displayed in real-time. No more mental arithmetic or forgetting whose turn it is.</p>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Scores are calculated, subtracted, and displayed in real-time. No more mental arithmetic or forgetting whose turn it is.</p>
+                    <div class="demo-screen p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="text-center">
+                                <span class="text-[9px] text-muted uppercase tracking-wider">Was</span>
+                                <div class="display text-lg text-muted-2 line-through">501</div>
+                            </div>
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            <div class="text-center">
+                                <span class="text-[9px] text-brand uppercase tracking-wider font-bold">Now</span>
+                                <div class="display text-xl neon-score" style="color:#CC0B20;">361</div>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-[9px] text-muted uppercase tracking-wider">Scored</span>
+                                <div class="display text-lg text-chalk">140</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Checkout Suggestions -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Hub target icon -->
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <circle cx="12" cy="12" r="6"/>
-                            <circle cx="12" cy="12" r="2"/>
+                            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Checkout Suggestions</h3>
-                    <p class="text-muted text-sm leading-relaxed">DartVoice shows you exactly how to finish when you're on a checkout — doubles, trebles, and bull combinations.</p>
+                    <p class="text-muted text-sm leading-relaxed mb-4">DartVoice shows you exactly how to finish when you're on a checkout — doubles, trebles, and bull combinations.</p>
+                    <div class="demo-screen p-3">
+                        <div class="text-[9px] text-muted uppercase tracking-wider mb-2">Remaining: 96</div>
+                        <div class="flex gap-1.5">
+                            <span class="display text-xs px-2 py-1 rounded" style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                            <span class="text-muted-2 flex items-center">→</span>
+                            <span class="display text-xs px-2 py-1 rounded" style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">D18</span>
+                            <span class="ml-auto">
+                                <svg viewBox="0 0 20 20" width="14" height="14" fill="#22c55e"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z"/></svg>
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Target Dart Counter -->
                 <div class="feature-card rounded-2xl p-6 reveal" style="border-color: rgba(204,11,32,0.25);">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.3)">
-                        <!-- Dartboard/target icon -->
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-                            <circle cx="12" cy="12" r="9"  stroke="#CC0B20" stroke-width="2"/>
-                            <circle cx="12" cy="12" r="5"  stroke="#CC0B20" stroke-width="2"/>
-                            <circle cx="12" cy="12" r="2"  fill="#CC0B20"/>
-                            <line x1="12" y1="3"  x2="12" y2="1"  stroke="#CC0B20" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="12" cy="12" r="9" stroke="#CC0B20" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="5" stroke="#CC0B20" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="2" fill="#CC0B20"/>
+                            <line x1="12" y1="3" x2="12" y2="1" stroke="#CC0B20" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                     </div>
                     <div class="flex items-center gap-2 mb-2">
                         <h3 class="font-semibold text-chalk">Target Dart Counter</h3>
                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:#CC0B20;">COMPATIBLE</span>
                     </div>
-                    <p class="text-muted text-sm leading-relaxed">DartVoice works seamlessly alongside Target Dart Counter — just open both apps and call your scores. X01, Cricket, and 121 all supported.</p>
+                    <p class="text-muted text-sm leading-relaxed mb-4">DartVoice works seamlessly alongside Target Dart Counter — just open both apps and call your scores.</p>
+                    <!-- Two overlapping app mockups -->
+                    <div class="relative" style="height: 60px;">
+                        <div class="absolute left-0 top-0 demo-screen px-3 py-2 flex items-center gap-2" style="z-index:1;">
+                            <div class="w-5 h-5 rounded" style="background: #252530; border: 1px solid #3a3a4a;"></div>
+                            <span class="text-[10px] text-muted">Target DC</span>
+                        </div>
+                        <div class="absolute left-16 top-3 demo-screen px-3 py-2 flex items-center gap-2 pip-float" style="z-index:2; border-color: rgba(204,11,32,0.25); box-shadow: 0 4px 16px rgba(0,0,0,0.6);">
+                            <div class="w-5 h-5 rounded flex items-center justify-center" style="background: #CC0B20;">
+                                <svg viewBox="0 0 12 12" width="8" height="8" fill="white"><circle cx="6" cy="6" r="2"/></svg>
+                            </div>
+                            <span class="text-[10px] text-chalk font-semibold">DartVoice</span>
+                            <div class="flex gap-[2px] items-end h-3 ml-1">
+                                <div class="w-[2px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.5s 0.0s ease-in-out infinite;"></div>
+                                <div class="w-[2px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.5s 0.1s ease-in-out infinite;"></div>
+                                <div class="w-[2px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.5s 0.2s ease-in-out infinite;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Windows & Android -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Monitor icon -->
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="3" width="20" height="14" rx="2"/>
-                            <path d="M8 21h8M12 17v4"/>
+                            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Windows &amp; Android</h3>
-                    <p class="text-muted text-sm leading-relaxed">Run DartVoice on your PC next to the board, or prop up your Android phone. Works wherever you throw.</p>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Run DartVoice on your PC next to the board, or prop up your Android phone. Works wherever you throw.</p>
+                    <div class="demo-screen p-3 flex items-center justify-center gap-6">
+                        <!-- Windows -->
+                        <div class="flex flex-col items-center gap-1.5 float-y">
+                            <div class="w-12 h-8 rounded" style="background: #18181C; border: 1px solid #252530;">
+                                <div class="w-full h-full rounded flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="#6E6E82" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                                </div>
+                            </div>
+                            <span class="text-[8px] text-muted">Windows</span>
+                        </div>
+                        <span class="text-muted-2 text-[10px]">+</span>
+                        <!-- Android -->
+                        <div class="flex flex-col items-center gap-1.5 float-y" style="animation-delay: 0.4s;">
+                            <div class="w-6 h-10 rounded-lg" style="background: #18181C; border: 1px solid #252530;">
+                                <div class="w-full h-full rounded-lg flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 rounded-full" style="background: #CC0B20; box-shadow: 0 0 6px rgba(204,11,32,0.6);"></div>
+                                </div>
+                            </div>
+                            <span class="text-[8px] text-muted">Android</span>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Multiplayer -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Users icon -->
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Multiplayer</h3>
-                    <p class="text-muted text-sm leading-relaxed">Add up to 8 players. DartVoice tracks turns, scores, and averages for everyone automatically.</p>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Add up to 8 players. DartVoice tracks turns, scores, and averages for everyone automatically.</p>
+                    <div class="demo-screen p-3">
+                        <div class="flex items-center gap-2">
+                            <div class="flex -space-x-1.5">
+                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style="background:#CC0B20; border: 2px solid #0C0C0E; z-index:4;">P1</div>
+                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-chalk" style="background:#252530; border: 2px solid #0C0C0E; z-index:3;">P2</div>
+                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-chalk" style="background:#252530; border: 2px solid #0C0C0E; z-index:2;">P3</div>
+                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-chalk" style="background:#252530; border: 2px solid #0C0C0E; z-index:1;">P4</div>
+                            </div>
+                            <div class="flex-1 text-right">
+                                <div class="flex items-center justify-end gap-1">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-brand rec-dot"></div>
+                                    <span class="text-[9px] text-brand font-bold">P1's turn</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-[9px]">
+                            <span class="text-brand font-bold">301</span>
+                            <span class="text-muted">420</span>
+                            <span class="text-muted">501</span>
+                            <span class="text-muted">388</span>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Works Offline -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Wifi-off / offline icon -->
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-                            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-                            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-                            <circle cx="12" cy="20" r="1" fill="#CC0B20"/>
+                            <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#CC0B20"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Works Offline</h3>
-                    <p class="text-muted text-sm leading-relaxed">Voice recognition runs entirely on your device. No cloud, no latency, no connection needed during your game.</p>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Voice recognition runs entirely on your device. No cloud, no latency, no connection needed during your game.</p>
+                    <div class="demo-screen p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#4A4A5A" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+                                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+                                <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+                                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+                                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                                <line x1="12" y1="20" x2="12.01" y2="20"/>
+                            </svg>
+                            <span class="text-[10px] text-muted">No internet</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-chalk font-semibold">Still works</span>
+                            <svg viewBox="0 0 20 20" width="14" height="14" fill="#22c55e"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z"/></svg>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1142,49 +1300,108 @@
             <div class="grid lg:grid-cols-3 gap-5">
 
                 <!-- Step 1 -->
-                <div class="reveal rounded-2xl p-7 relative overflow-hidden" style="background: #111114; border: 1px solid #252530">
+                <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
                     <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none" style="color: rgba(204,11,32,0.08)">01</div>
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- User icon -->
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Sign Up &amp; Subscribe</h3>
-                    <p class="text-muted text-sm leading-relaxed relative z-10">Create your account with just your email. Try 10 minutes free, then start your 7-day trial — no card required upfront.</p>
+                    <p class="text-muted text-sm leading-relaxed relative z-10 mb-5">Create your account with just your email. Try 10 minutes free, then start your 7-day trial — no card required upfront.</p>
+                    <!-- Animated email input mockup -->
+                    <div class="demo-screen p-3 relative z-10">
+                        <div class="text-[9px] text-muted uppercase tracking-wider mb-2">Email</div>
+                        <div class="flex items-center gap-1 px-2 py-1.5 rounded-lg" style="background: #18181C; border: 1px solid #252530;">
+                            <span class="text-[11px] text-chalk/60 font-mono">you@email.com</span>
+                            <span class="w-[1px] h-3.5 bg-brand cursor-blink ml-0.5"></span>
+                        </div>
+                        <div class="mt-2.5 rounded-lg py-1.5 text-center text-[10px] font-bold text-white" style="background: #CC0B20; box-shadow: 0 0 12px rgba(204,11,32,0.3);">Start Free Trial</div>
+                    </div>
                 </div>
 
                 <!-- Step 2 -->
-                <div class="reveal rounded-2xl p-7 relative overflow-hidden" style="background: #111114; border: 1px solid #252530">
+                <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
                     <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none" style="color: rgba(204,11,32,0.08)">02</div>
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Hub download icon -->
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
+                            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Download &amp; Install</h3>
-                    <p class="text-muted text-sm leading-relaxed relative z-10">Grab the installer for Windows or the APK for Android from your dashboard. Installation takes under a minute.</p>
+                    <p class="text-muted text-sm leading-relaxed relative z-10 mb-5">Grab the installer for Windows or the APK for Android from your dashboard. Installation takes under a minute.</p>
+                    <!-- Animated download progress -->
+                    <div class="demo-screen p-3 relative z-10">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[10px] text-chalk font-semibold">DartVoice.exe</span>
+                            <span class="text-[9px] text-brand font-bold">Installing...</span>
+                        </div>
+                        <div class="h-2 rounded-full overflow-hidden" style="background: #252530;">
+                            <div class="h-full rounded-full progress-fill" style="background: linear-gradient(90deg, #CC0B20, #e60d24);"></div>
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex gap-2">
+                                <span class="flex items-center gap-1 text-[9px] text-muted">
+                                    <svg class="w-3 h-3" fill="#6E6E82" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                                    .exe
+                                </span>
+                                <span class="flex items-center gap-1 text-[9px] text-muted">
+                                    <svg class="w-3 h-3" fill="#6E6E82" viewBox="0 0 24 24"><path d="M17.523 15.341a4.91 4.91 0 01-2.536.703c-2.765 0-5.023-2.257-5.023-5.044s2.258-5.044 5.023-5.044c1.367 0 2.612.535 3.524 1.408l1.716-1.716A7.444 7.444 0 0015 4C10.86 4 7.5 7.358 7.5 11.5s3.36 7.5 7.5 7.5c2.143 0 4.09-.897 5.488-2.347l-2.965-1.312z"/></svg>
+                                    .apk
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Step 3 -->
-                <div class="reveal rounded-2xl p-7 relative overflow-hidden" style="background: #111114; border: 1px solid #252530">
+                <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
                     <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none" style="color: rgba(204,11,32,0.08)">03</div>
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10" style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <!-- Hub mic icon -->
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                             <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                            <line x1="12" y1="19" x2="12" y2="22"/>
-                            <line x1="8"  y1="22" x2="16" y2="22"/>
+                            <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
                         </svg>
                     </div>
                     <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Throw &amp; Call</h3>
-                    <p class="text-muted text-sm leading-relaxed relative z-10">Launch the app, set up your game, and start throwing. Just call your scores aloud — DartVoice does the rest.</p>
+                    <p class="text-muted text-sm leading-relaxed relative z-10 mb-5">Launch the app, set up your game, and start throwing. Just call your scores aloud — DartVoice does the rest.</p>
+                    <!-- Animated live scoring mockup -->
+                    <div class="demo-screen p-3 relative z-10">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-brand rec-dot"></div>
+                            <span class="text-[9px] text-brand font-bold uppercase tracking-wider">Live</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-end gap-[3px] h-5">
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.0s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.1s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.2s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.05s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.15s ease-in-out infinite;"></div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] text-muted">"One hundred and forty"</div>
+                                <div class="display text-lg neon-score" style="color:#CC0B20;">→ 140</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+            </div>
+
+            <!-- Connecting flow arrows (desktop only) -->
+            <div class="hidden lg:flex justify-center mt-8 gap-2 reveal">
+                <div class="flex items-center gap-3 px-4 py-2 rounded-full" style="background: #111114; border: 1px solid #252530;">
+                    <span class="text-[10px] text-muted">Sign up</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <span class="text-[10px] text-muted">Install</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <span class="text-[10px] text-muted">Play</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <span class="text-[10px] text-brand font-bold">Under 2 minutes</span>
+                </div>
             </div>
         </div>
     </section>
@@ -1198,7 +1415,7 @@
                 <p class="text-muted text-sm">No tiers, no upsells. Everything included.</p>
             </div>
 
-            <!-- Competitor comparison row (from design hub social post 1) -->
+            <!-- Competitor comparison row -->
             <div class="reveal mb-8 flex gap-4 items-stretch">
                 <div class="flex-1 rounded-2xl p-5 text-center relative overflow-hidden opacity-60"
                      style="background: #111114; border: 1px solid #252530">
@@ -1210,15 +1427,37 @@
                     <p class="text-[9px] font-bold tracking-[0.2em] text-muted mb-2 uppercase">Target Omni</p>
                     <p class="display text-3xl not-italic text-muted-2 line-through">&pound;500</p>
                     <p class="text-[10px] text-muted-2 mt-1">Hardware required</p>
+                    <!-- Negative indicators -->
+                    <div class="flex flex-col gap-1 mt-3">
+                        <div class="flex items-center justify-center gap-1 text-[9px] text-muted-2">
+                            <svg viewBox="0 0 20 20" width="10" height="10" fill="#4A4A5A"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H5a1 1 0 0 1 0-2h10a1 1 0 0 1 0 2z"/></svg>
+                            Physical ring install
+                        </div>
+                        <div class="flex items-center justify-center gap-1 text-[9px] text-muted-2">
+                            <svg viewBox="0 0 20 20" width="10" height="10" fill="#4A4A5A"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H5a1 1 0 0 1 0-2h10a1 1 0 0 1 0 2z"/></svg>
+                            Upfront cost
+                        </div>
+                    </div>
                 </div>
                 <div class="flex items-center justify-center shrink-0">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-muted text-xs font-bold" style="background: #252530">VS</div>
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-muted text-xs font-bold pulse-glow" style="background: #1a1a20; border: 1px solid rgba(204,11,32,0.3);">VS</div>
                 </div>
-                <div class="flex-1 rounded-2xl p-5 text-center relative overflow-hidden"
-                     style="background: #111114; border: 2px solid #CC0B20; box-shadow: 0 0 30px rgba(204,11,32,0.15)">
+                <div class="flex-1 rounded-2xl p-5 text-center relative overflow-hidden pulse-glow"
+                     style="background: #111114; border: 2px solid #CC0B20;">
                     <p class="text-[9px] font-bold tracking-[0.2em] text-brand mb-2 uppercase">DartVoice</p>
-                    <p class="display text-3xl not-italic text-chalk">&pound;6.99<span class="text-sm text-muted font-normal not-italic">/mo</span></p>
+                    <p class="display text-3xl not-italic text-chalk neon-white">&pound;6.99<span class="text-sm text-muted font-normal not-italic">/mo</span></p>
                     <p class="text-[10px] text-muted mt-1">Uses your phone mic</p>
+                    <!-- Positive indicators -->
+                    <div class="flex flex-col gap-1 mt-3">
+                        <div class="flex items-center justify-center gap-1 text-[9px] text-chalk/70">
+                            <svg viewBox="0 0 20 20" width="10" height="10" fill="#22c55e"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z"/></svg>
+                            No hardware
+                        </div>
+                        <div class="flex items-center justify-center gap-1 text-[9px] text-chalk/70">
+                            <svg viewBox="0 0 20 20" width="10" height="10" fill="#22c55e"><path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z"/></svg>
+                            Cancel anytime
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1451,10 +1690,10 @@
     </section>
 
     <!-- ━━━ FINAL CTA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
-        <!-- Dartboard deco, left side -->
+    <section class="py-28 sm:py-40 relative overflow-hidden" style="border-top: 1px solid #252530">
+        <!-- Spinning dartboard deco, left side -->
         <div class="board-deco" style="left:-80px; top:50%; transform:translateY(-50%);">
-            <svg viewBox="0 0 400 400" width="400" height="400">
+            <svg viewBox="0 0 400 400" width="400" height="400" class="board-spin">
                 <circle cx="200" cy="200" r="190" stroke="#252530" stroke-width="2" fill="none"/>
                 <circle cx="200" cy="200" r="160" stroke="#252530" stroke-width="2" fill="none"/>
                 <circle cx="200" cy="200" r="110" stroke="#252530" stroke-width="2" fill="none"/>
@@ -1477,18 +1716,84 @@
             </svg>
         </div>
 
+        <!-- Right side spinning dartboard -->
+        <div class="board-deco" style="right:-120px; top:50%; transform:translateY(-50%);">
+            <svg viewBox="0 0 300 300" width="300" height="300" class="board-spin" style="animation-direction: reverse; animation-duration: 80s;">
+                <circle cx="150" cy="150" r="140" stroke="#252530" stroke-width="1.5" fill="none"/>
+                <circle cx="150" cy="150" r="110" stroke="#252530" stroke-width="1.5" fill="none"/>
+                <circle cx="150" cy="150" r="70"  stroke="#252530" stroke-width="1.5" fill="none"/>
+                <circle cx="150" cy="150" r="40"  stroke="#252530" stroke-width="1.5" fill="none"/>
+                <circle cx="150" cy="150" r="10"  fill="#CC0B20" opacity="0.3"/>
+                <g stroke="#252530" stroke-width="1">
+                    <line x1="150" y1="10" x2="150" y2="290"/>
+                    <line x1="150" y1="10" x2="150" y2="290" transform="rotate(36 150 150)"/>
+                    <line x1="150" y1="10" x2="150" y2="290" transform="rotate(72 150 150)"/>
+                    <line x1="150" y1="10" x2="150" y2="290" transform="rotate(108 150 150)"/>
+                    <line x1="150" y1="10" x2="150" y2="290" transform="rotate(144 150 150)"/>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Center glow -->
+        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(204,11,32,0.06) 0%, transparent 70%);"></div>
+
+        <!-- Floating score cards -->
+        <div class="absolute top-12 left-[8%] hidden lg:block float-y" style="animation-delay: 0.5s; opacity: 0.5;">
+            <div class="demo-screen px-3 py-2 rounded-lg">
+                <div class="display text-sm neon-score" style="color:#CC0B20;">T20</div>
+            </div>
+        </div>
+        <div class="absolute top-20 right-[10%] hidden lg:block float-y" style="animation-delay: 1.2s; opacity: 0.4;">
+            <div class="demo-screen px-3 py-2 rounded-lg">
+                <div class="display text-sm neon-score" style="color:#CC0B20;">180</div>
+            </div>
+        </div>
+        <div class="absolute bottom-16 left-[12%] hidden lg:block float-y" style="animation-delay: 0.8s; opacity: 0.35;">
+            <div class="demo-screen px-3 py-2 rounded-lg">
+                <div class="display text-sm neon-score" style="color:#CC0B20;">BULL</div>
+            </div>
+        </div>
+        <div class="absolute bottom-24 right-[8%] hidden lg:block float-y" style="animation-delay: 1.5s; opacity: 0.45;">
+            <div class="demo-screen px-3 py-2 rounded-lg flex items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-brand rec-dot"></div>
+                <span class="text-[9px] text-muted">Listening</span>
+            </div>
+        </div>
+
         <div class="max-w-3xl mx-auto px-5 text-center reveal relative">
-            <h2 class="display text-5xl sm:text-6xl lg:text-7xl mb-5 text-chalk leading-[0.9]">
-                READY TO<br><span class="text-brand" style="text-shadow: 0 0 40px rgba(204,11,32,0.5)">STEP UP?</span>
+            <!-- Animated ring pulse behind heading -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                <div class="w-48 h-48 rounded-full border border-brand/10" style="animation: expandRing 3s ease-out infinite;"></div>
+                <div class="absolute inset-0 w-48 h-48 rounded-full border border-brand/10" style="animation: expandRing 3s 1s ease-out infinite;"></div>
+                <div class="absolute inset-0 w-48 h-48 rounded-full border border-brand/10" style="animation: expandRing 3s 2s ease-out infinite;"></div>
+            </div>
+
+            <h2 class="display text-5xl sm:text-6xl lg:text-7xl mb-5 text-chalk leading-[0.9] relative">
+                READY TO<br><span class="text-brand" style="text-shadow: 0 0 40px rgba(204,11,32,0.5), 0 0 80px rgba(204,11,32,0.2)">STEP UP?</span>
             </h2>
-            <p class="text-muted text-base sm:text-lg mb-10 max-w-lg mx-auto leading-relaxed">
+            <p class="text-muted text-base sm:text-lg mb-10 max-w-lg mx-auto leading-relaxed relative">
                 Join the players who've ditched the chalkboard. Start your free trial and see what hands-free scoring feels like.
             </p>
             <a href="dartvoice-dashboard.html"
-               class="btn-brand inline-block px-10 py-4 rounded-xl font-semibold text-base text-white relative z-10">
+               class="btn-brand inline-block px-10 py-4 rounded-xl font-semibold text-base text-white relative z-10" style="box-shadow: 0 0 40px rgba(204,11,32,0.3), 0 0 80px rgba(204,11,32,0.1);">
                 Start Your Free Trial
             </a>
-            <p class="text-muted-2 text-xs mt-4">10 min demo &middot; 7 days free &middot; &pound;6.99/mo after &middot; Cancel anytime</p>
+            <p class="text-muted-2 text-xs mt-4 relative">10 min demo &middot; 7 days free &middot; &pound;6.99/mo after &middot; Cancel anytime</p>
+
+            <!-- Animated waveform under CTA -->
+            <div class="flex justify-center items-end gap-[4px] h-4 mt-6 relative">
+                <div class="w-[3px] bg-brand/30 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.0s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/30 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.1s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/40 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.2s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/50 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.05s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/60 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.15s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/70 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.25s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/60 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.12s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/50 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.22s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/40 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.08s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/30 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.18s ease-in-out infinite;"></div>
+                <div class="w-[3px] bg-brand/30 rounded-sm wave-bar" style="height:100%; animation: waveBar 0.8s 0.28s ease-in-out infinite;"></div>
+            </div>
         </div>
     </section>
 
