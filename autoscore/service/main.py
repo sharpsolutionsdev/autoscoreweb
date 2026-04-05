@@ -32,29 +32,16 @@ MODEL_NAME  = 'vosk-model-small-en-us'
 MODEL_PATH  = os.path.join(app_storage_path(), MODEL_NAME)
 CONFIG_FILE = os.path.join(app_storage_path(), 'dartvoice_config.json')
 
-# ── Reuse parsers from main app ───────────────────────────────────────────
+# ── Reuse logic from shared module ─────────────────────────────────────────
 try:
-    from dartvoice_android import (parse_score, parse_cricket_darts,
-                                   parse_single_dart, _ensure_model)
+    from shared import (parse_score, parse_cricket_darts,
+                        parse_single_dart, _ensure_model)
 except ImportError:
-    # Fallback: define minimal versions inline
+    # This shouldn't happen if shared.py is bundled, but just in case:
     def parse_score(text): return None
     def parse_cricket_darts(text): return []
     def parse_single_dart(text): return None
-    def _ensure_model():
-        # Check writable storage first
-        if os.path.isdir(MODEL_PATH):
-            return MODEL_PATH
-        # Check beside this script (p4a copies source into private/)
-        _local = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', MODEL_NAME)
-        if os.path.isdir(_local):
-            import shutil
-            try:
-                shutil.copytree(_local, MODEL_PATH)
-                return MODEL_PATH
-            except Exception:
-                return _local
-        return None
+    def _ensure_model(): return None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Shared state file helpers

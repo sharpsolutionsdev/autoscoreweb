@@ -1313,68 +1313,66 @@ class DartVoiceApp(ctk.CTk):
         self._show_splash()
 
     def _show_splash(self):
-        """Animated Discord-style splash screen."""
+        """Premium Discord-style loading overlay for Windows."""
         splash = tk.Frame(self, bg=BG)
         splash.place(x=0, y=0, relwidth=1, relheight=1)
         splash.lift()
 
-        # Canvas for animated spinning spinner & pulsing logo
-        c = tk.Canvas(splash, bg=BG, highlightthickness=0, width=120, height=120)
-        c.place(relx=0.5, rely=0.45, anchor='center')
+        # Canvas for animated logo
+        c = tk.Canvas(splash, bg=BG, highlightthickness=0, width=160, height=160)
+        c.place(relx=0.5, rely=0.42, anchor='center')
         
-        # Center logo
-        logo_arc = c.create_arc(20, 20, 100, 100, start=0, extent=270, 
-                                style=tk.ARC, outline=ACCENT_DIM, width=4)
-        logo_arc2 = c.create_arc(35, 35, 85, 85, start=90, extent=270, 
-                                 style=tk.ARC, outline=ACCENT, width=4)
-        center_dot = c.create_oval(55, 55, 65, 65, fill=FG, outline='')
+        # Concentric rings (matches app logo exactly)
+        def _draw_static(cx, cy):
+            rings = [(52, "#222228"), (36, ACCENT), (24, "#222228"), (14, ACCENT), (6, FG)]
+            for r, col in rings:
+                c.create_oval(cx-r, cy-r, cx+r, cy+r, fill=col, outline="")
+        _draw_static(80, 80)
+
+        # Pulsating circle overlay (the 'glow')
+        glow = c.create_oval(80-48, 80-48, 80+48, 80+48, fill=ACCENT, stipple='gray50', outline="")
+        c.tag_lower(glow)
 
         name_lbl = tk.Label(splash, text="DARTVOICE", bg=BG, fg=FG,
-                            font=("Uber Move Bold", 26, "bold"))
-        name_lbl.place(relx=0.5, rely=0.62, anchor='center')
+                            font=("Uber Move Bold", 28, "bold"))
+        name_lbl.place(relx=0.5, rely=0.64, anchor='center')
 
-        import random
         phrases = [
-            "Warming up the microphone...",
-            "Sharpening the darts...",
-            "Calculating checkouts...",
-            "Chalking the oche...",
-            "Pinging the servers...",
-            "Loading bullseye...",
-            "Throwing practice darts..."
+            "Calibrating the dartboard...",
+            "Polishing the darts...",
+            "Tuning the voice recognition...",
+            "Loading checkout table...",
+            "Setting up the oche...",
+            "Almost ready to score!"
         ]
-        tag_lbl = tk.Label(splash, text=random.choice(phrases), bg=BG, fg=FG2,
-                           font=("Rubik", 12))
-        tag_lbl.place(relx=0.5, rely=0.69, anchor='center')
+        tag_lbl = tk.Label(splash, text=phrases[0], bg=BG, fg=FG2,
+                           font=("Rubik", 13))
+        tag_lbl.place(relx=0.5, rely=0.72, anchor='center')
 
-        def _animate_splash(step=0, start1=0, start2=90, scale=1.0, scale_d=0.03):
-            if step > 65:  # ~1.8 seconds
+        def _animate_splash(step=0, scale=1.0, scale_d=0.04):
+            if step > 90:  # ~3 seconds
                 self._build_ui()
                 splash.destroy()
                 self._pulse()
                 self.after(100, self._billing_gate)
                 return
             
-            # Rotate arcs
-            start1 = (start1 - 8) % 360
-            start2 = (start2 + 12) % 360
-            c.itemconfig(logo_arc, start=start1)
-            c.itemconfig(logo_arc2, start=start2)
-            
-            # Pulse the center dot
-            if scale > 1.3: scale_d = -0.05
-            elif scale < 0.7: scale_d = 0.05
+            # Pulse the glow ring
+            if scale > 1.2: scale_d = -0.04
+            elif scale < 0.8: scale_d = 0.04
             scale += scale_d
-            s_diff = 4 * scale
-            c.coords(center_dot, 60-s_diff, 60-s_diff, 60+s_diff, 60+s_diff)
+            s_diff = 60 * scale
+            c.coords(glow, 80-s_diff, 80-s_diff, 80+s_diff, 80+s_diff)
             
-            # Update phrase
-            if step % 22 == 0:
+            # Update phrase every ~1 second
+            if step % 28 == 0:
+                import random
                 tag_lbl.config(text=random.choice(phrases))
 
-            self.after(28, lambda: _animate_splash(step + 1, start1, start2, scale, scale_d))
+            self.after(33, lambda: _animate_splash(step + 1, scale, scale_d))
 
         self.after(120, lambda: _animate_splash(0))
+
 
     # ── Billing gate (called 200ms after launch) ──────────────────────────────
     def _billing_gate(self):

@@ -1,186 +1,84 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="x-apple-disable-message-reformatting">
-    <title>Welcome to DartVoice</title>
-    <!--[if mso]>
-    <noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
-    <![endif]-->
+    <title>Welcome to DartVoice Pro</title>
     <style>
-        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
-        body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-        @media screen and (max-width: 600px) {
-            .email-wrapper { width: 100% !important; }
-            .body-cell { padding: 28px 20px !important; }
-            .hero-cell { padding: 36px 20px 28px !important; }
-            .btn-cell { padding: 0 20px 28px !important; }
-        }
+        body { margin: 0; padding: 0; background-color: #050505; font-family: 'Rubik', -apple-system, sans-serif; }
+        .wrapper { width: 100%; max-width: 600px; margin: 40px auto; background-color: #0A0A0C; border: 1px solid #1A1A20; border-radius: 32px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
+        .hero { padding: 60px 40px 40px; text-align: center; background: radial-gradient(circle at top, #1A0608 0%, #0A0A0C 100%); }
+        .logo { margin-bottom: 32px; }
+        h1 { color: #F0F0F5; font-size: 36px; margin: 0 0 12px; font-weight: 800; letter-spacing: -1px; }
+        p { color: #8A8A9A; font-size: 16px; line-height: 1.6; margin: 0; }
+        .badge { display: inline-block; padding: 8px 16px; background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.2); border-radius: 100px; color: #CC0B20; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 20px; }
+        .steps { padding: 40px; }
+        .step { display: flex; align-items: flex-start; margin-bottom: 32px; }
+        .step-icon { width: 44px; height: 44px; background: #111114; border: 1px solid #1F1F24; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .step-content { margin-left: 20px; }
+        .step-title { color: #F0F0F5; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+        .step-text { color: #6E6E82; font-size: 14px; line-height: 1.5; }
+        .btn { display: block; background: #CC0B20; color: #FFFFFF; text-decoration: none; padding: 18px 40px; border-radius: 16px; font-weight: 700; font-size: 16px; text-align: center; margin: 0 40px 40px; box-shadow: 0 10px 30px rgba(204,11,32,0.3); }
+        .footer { padding: 40px; background: #08080A; border-top: 1px solid #1A1A20; text-align: center; }
+        .footer-text { font-size: 12px; color: #4A4A5A; }
+        .accent-bar { height: 4px; background: #CC0B20; }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background-color:#08080A;">
+<body>
+    <div class="wrapper">
+        <div class="accent-bar"></div>
+        <div class="hero">
+            <div class="logo">
+                <svg width="48" height="48" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="18" cy="18" r="14" stroke="#CC0B20" stroke-width="3"/>
+                    <circle cx="18" cy="18" r="8" stroke="#CC0B20" stroke-width="2"/>
+                    <circle cx="18" cy="18" r="3" fill="#F0F0F5"/>
+                </svg>
+            </div>
+            <h1>The oche is yours.</h1>
+            <p>Welcome to DartVoice, {{first_name}}. Your 7-day Pro trial is now active across all platforms.</p>
+            <div class="badge">Pro Trial Active &bull; Day 1</div>
+        </div>
 
-<!-- Preheader -->
-<div style="display:none;font-size:1px;color:#08080A;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
-    Your 7-day free trial has started. Download DartVoice and start scoring by voice today.
-</div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CC0B20" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-title">Get the Android MVP</div>
+                    <div class="step-text">Run DartVoice in the background of target apps. Enable PiP mode to see your scores anywhere.</div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CC0B20" stroke-width="2"><path d="M20 16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9z"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-title">DartVoice for Windows</div>
+                    <div class="step-text">Zero-latency voice scoring on your PC. Works with all major web scorers and Target Dart Counter.</div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CC0B20" stroke-width="2"><path d="M12 2v20"/><path d="m5 9 7-7 7 7"/><path d="m5 15 7 7 7-7"/></svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-title">One-Time Calibration</div>
+                    <div class="step-text">Use our Visual Calibration tool to teach DartVoice where to "click" so you can keep throwing.</div>
+                </div>
+            </div>
+        </div>
 
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#08080A;">
-<tr><td align="center" style="padding:40px 20px;">
+        <a href="https://dartvoice.com/dartvoice-dashboard.html" class="btn">Access Pro Dashboard</a>
 
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" class="email-wrapper"
-           style="background-color:#111114;border-radius:24px;border:1px solid #252530;overflow:hidden;">
-
-        <!-- Red bar -->
-        <tr><td height="2" style="background-color:#CC0B20;font-size:0;line-height:0;">&nbsp;</td></tr>
-
-        <!-- Hero -->
-        <tr><td class="hero-cell" align="center"
-                style="padding:44px 40px 32px;background:linear-gradient(160deg,#111114 0%,#14141a 100%);">
-            <!-- Logo -->
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
-            <tr>
-                <td width="34" height="34" style="background-color:#CC0B20;border-radius:8px;text-align:center;vertical-align:middle;">
-                    <span style="color:white;font-size:15px;font-weight:bold;line-height:34px;">&#9673;</span>
-                </td>
-                <td width="10">&nbsp;</td>
-                <td style="font-family:'Rubik',Arial,sans-serif;font-size:17px;font-weight:700;color:#F0F0F5;letter-spacing:3px;text-transform:uppercase;">DARTVOICE</td>
-            </tr>
-            </table>
-
-            <h1 style="margin:0 0 10px;font-family:'Rubik',Arial,sans-serif;font-size:32px;font-weight:700;color:#F0F0F5;letter-spacing:-0.5px;">
-                Welcome aboard, {{first_name}}!
-            </h1>
-            <p style="margin:0;font-family:'Rubik',Arial,sans-serif;font-size:15px;color:#6E6E82;line-height:1.6;">
-                Your 7-day free trial has started. Let's get you scoring by voice.
+        <div class="footer">
+            <p class="footer-text">
+                &copy; 2026 DartVoice &bull; Built for the love of the game.<br>
+                <a href="{{unsubscribe_url}}" style="color: #6E6E82; text-decoration: underline;">Unsubscribe</a> &bull; 
+                <a href="https://dartvoice.com/support" style="color: #6E6E82; text-decoration: underline;">Support</a>
             </p>
-        </td></tr>
-
-        <!-- Trial badge -->
-        <tr><td style="padding:0 40px 28px;" align="center">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-            <tr>
-                <td style="background-color:#08080A;border:1px solid #252530;border-radius:100px;padding:10px 20px;">
-                    <span style="font-family:'Rubik',Arial,sans-serif;font-size:12px;font-weight:600;color:#F0F0F5;letter-spacing:0.5px;">
-                        &#9679;&nbsp; <span style="color:#CC0B20;">7-day free trial</span> &nbsp;active
-                    </span>
-                </td>
-            </tr>
-            </table>
-        </td></tr>
-
-        <!-- Steps -->
-        <tr><td class="body-cell" style="padding:0 40px 32px;font-family:'Rubik',Arial,sans-serif;">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-
-                <!-- Step 1 -->
-                <tr><td style="padding-bottom:16px;">
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                    <tr>
-                        <td width="36" valign="top">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                            <tr><td width="28" height="28"
-                                    style="background-color:rgba(204,11,32,0.12);border:1px solid rgba(204,11,32,0.2);border-radius:6px;text-align:center;vertical-align:middle;font-family:'Rubik',Arial,sans-serif;font-size:13px;font-weight:700;color:#CC0B20;">1</td></tr>
-                            </table>
-                        </td>
-                        <td style="padding-left:12px;vertical-align:top;">
-                            <p style="margin:0 0 3px;font-size:13px;font-weight:600;color:#F0F0F5;">Download DartVoice</p>
-                            <p style="margin:0;font-size:12px;color:#6E6E82;line-height:1.5;">Get the Windows or Android app from your dashboard.</p>
-                        </td>
-                    </tr>
-                    </table>
-                </td></tr>
-
-                <!-- Step 2 -->
-                <tr><td style="padding-bottom:16px;">
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                    <tr>
-                        <td width="36" valign="top">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                            <tr><td width="28" height="28"
-                                    style="background-color:rgba(204,11,32,0.12);border:1px solid rgba(204,11,32,0.2);border-radius:6px;text-align:center;vertical-align:middle;font-family:'Rubik',Arial,sans-serif;font-size:13px;font-weight:700;color:#CC0B20;">2</td></tr>
-                            </table>
-                        </td>
-                        <td style="padding-left:12px;vertical-align:top;">
-                            <p style="margin:0 0 3px;font-size:13px;font-weight:600;color:#F0F0F5;">Select your microphone</p>
-                            <p style="margin:0;font-size:12px;color:#6E6E82;line-height:1.5;">Open Settings and pick your input device. A headset mic works best.</p>
-                        </td>
-                    </tr>
-                    </table>
-                </td></tr>
-
-                <!-- Step 3 -->
-                <tr><td>
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                    <tr>
-                        <td width="36" valign="top">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                            <tr><td width="28" height="28"
-                                    style="background-color:rgba(204,11,32,0.12);border:1px solid rgba(204,11,32,0.2);border-radius:6px;text-align:center;vertical-align:middle;font-family:'Rubik',Arial,sans-serif;font-size:13px;font-weight:700;color:#CC0B20;">3</td></tr>
-                            </table>
-                        </td>
-                        <td style="padding-left:12px;vertical-align:top;">
-                            <p style="margin:0 0 3px;font-size:13px;font-weight:600;color:#F0F0F5;">Calibrate &amp; play</p>
-                            <p style="margin:0;font-size:12px;color:#6E6E82;line-height:1.5;">Run the calibration wizard once, then just say your scores out loud.</p>
-                        </td>
-                    </tr>
-                    </table>
-                </td></tr>
-
-            </table>
-        </td></tr>
-
-        <!-- CTA button -->
-        <tr><td class="btn-cell" align="center" style="padding:0 40px 36px;">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-            <tr><td align="center" style="background-color:#CC0B20;border-radius:14px;">
-                <a href="https://dartvoice.com/dartvoice-dashboard.html"
-                   style="display:inline-block;padding:14px 36px;font-family:'Rubik',Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">
-                    Go to Dashboard &rarr;
-                </a>
-            </td></tr>
-            </table>
-        </td></tr>
-
-        <!-- Quick tip callout -->
-        <tr><td style="padding:0 40px 32px;font-family:'Rubik',Arial,sans-serif;">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-            <tr><td style="background-color:#18181C;border-left:3px solid #CC0B20;border-radius:0 8px 8px 0;padding:14px 16px;">
-                <p style="margin:0 0 3px;font-size:11px;font-weight:600;color:#CC0B20;text-transform:uppercase;letter-spacing:1.5px;">Quick tip</p>
-                <p style="margin:0;font-size:12px;color:#6E6E82;line-height:1.6;">
-                    DartVoice works with <strong style="color:#F0F0F5;">Target Dart Counter, X01, Cricket</strong> and more. Check the <a href="https://dartvoice.com/guide.html" style="color:#CC0B20;text-decoration:underline;">setup guide</a> to calibrate in under 2 minutes.
-                </p>
-            </td></tr>
-            </table>
-        </td></tr>
-
-        <!-- Divider -->
-        <tr><td style="padding:0 40px;"><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td height="1" style="background-color:#252530;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>
-
-        <!-- Footer -->
-        <tr><td style="padding:24px 40px;font-family:'Rubik',Arial,sans-serif;">
-            <p style="margin:0 0 6px;font-size:11px;color:#4A4A5A;line-height:1.5;">
-                You're receiving this because you signed up at dartvoice.com. Your trial runs until {{trial_end_date}}.
-            </p>
-            <p style="margin:0;font-size:11px;color:#4A4A5A;">
-                &copy; 2026 DartVoice &nbsp;&bull;&nbsp;
-                <a href="https://dartvoice.com/terms.html" style="color:#4A4A5A;text-decoration:underline;">Terms</a>
-                &nbsp;&bull;&nbsp;
-                <a href="{{unsubscribe_url}}" style="color:#4A4A5A;text-decoration:underline;">Unsubscribe</a>
-                &nbsp;&bull;&nbsp;
-                <a href="mailto:support@dartvoice.com" style="color:#4A4A5A;text-decoration:underline;">Support</a>
-            </p>
-        </td></tr>
-
-    </table>
-
-</td></tr>
-</table>
-
+        </div>
+    </div>
 </body>
 </html>

@@ -108,7 +108,7 @@ class Model:
             raise Exception(f"Failed to create Vosk model from {model_path}")
 
     def __del__(self):
-        if self._handle:
+        if hasattr(self, '_handle') and self._handle:
             try:
                 _load_libvosk().vosk_model_free(self._handle)
             except Exception:
@@ -146,7 +146,7 @@ class KaldiRecognizer:
         return lib.vosk_recognizer_final_result(self._handle).decode('utf-8')
 
     def __del__(self):
-        if self._handle:
+        if hasattr(self, '_handle') and self._handle:
             try:
                 _load_libvosk().vosk_recognizer_free(self._handle)
             except Exception:

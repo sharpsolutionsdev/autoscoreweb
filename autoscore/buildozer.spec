@@ -4,7 +4,7 @@
 title          = DartVoice
 package.name   = dartvoice
 package.domain = com.dartvoice
-version        = 1.9
+version        = 2.0
 
 # Source
 source.dir          = .
@@ -27,7 +27,7 @@ services = DartVoice:./service/main.py:foreground
 # NOTE: supabase is NOT listed here because pydantic-core (Rust extension)
 #       cannot be cross-compiled for Android.  billing.py gracefully falls
 #       back to offline-only mode when supabase is unavailable.
-requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,plyer,vosk
+requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,plyer,vosk,requests,certifi
 
 # Orientation & display
 orientation = portrait
@@ -39,7 +39,7 @@ presplash.filename = icon.png
 presplash.color = #08080A
 
 # Android permissions
-android.permissions = RECORD_AUDIO, FOREGROUND_SERVICE, FOREGROUND_SERVICE_MICROPHONE, WAKE_LOCK, INTERNET, VIBRATE
+android.permissions = RECORD_AUDIO, FOREGROUND_SERVICE, FOREGROUND_SERVICE_MICROPHONE, WAKE_LOCK, INTERNET, VIBRATE, SYSTEM_ALERT_WINDOW
 
 # API targets
 android.api    = 34

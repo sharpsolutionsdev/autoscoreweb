@@ -1647,54 +1647,33 @@
                     </div>
                 </div>
 
-                <!-- Windows & Android -->
-                <div class="feature-card rounded-2xl p-6 reveal">
+                <!-- Android Mobile MVP -->
+                <div class="feature-card rounded-2xl p-6 reveal pulse-glow" style="border-color: rgba(204,11,32,0.3); background: linear-gradient(145deg, #111114, #1A0608);">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                        style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.3)">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="3" width="20" height="14" rx="2" />
-                            <path d="M8 21h8M12 17v4" />
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                            <line x1="12" y1="18" x2="12.01" y2="18" />
                         </svg>
                     </div>
-                    <h3 class="font-semibold mb-2 text-chalk">Windows, Android & Chrome</h3>
-                    <p class="text-muted text-sm leading-relaxed mb-4">Run DartVoice natively on your PC, prop up your
-                        Android, or install the Chrome Extension to run it inside any web scorer.</p>
-                    <div class="demo-screen p-3 flex items-center justify-center gap-3">
-                        <!-- Windows -->
-                        <div class="flex flex-col items-center gap-1.5 float-y">
-                            <div class="w-10 h-8 rounded" style="background: #18181C; border: 1px solid #252530;">
-                                <div class="w-full h-full rounded flex items-center justify-center">
-                                    <svg class="w-3 h-3" fill="#6E6E82" viewBox="0 0 24 24">
-                                        <path
-                                            d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <span class="text-[8px] text-muted">Windows</span>
+                    <div class="flex items-center gap-2 mb-2">
+                        <h3 class="font-semibold text-chalk">Android Native MVP</h3>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                            style="background: #CC0B20; color: white;">NEW</span>
+                    </div>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Run the full DartVoice engine in the background. Use <strong>Visual Calibration</strong> to tap targets on other apps, and <strong>PiP Mode</strong> to keep scoring visible while you play.</p>
+                    <div class="demo-screen p-3 flex flex-col gap-2">
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-muted font-medium uppercase tracking-wider">Background Listen</span>
+                            <span class="text-brand font-bold">ACTIVE</span>
                         </div>
-                        <span class="text-muted-2 text-[10px]">+</span>
-                        <!-- Android -->
-                        <div class="flex flex-col items-center gap-1.5 float-y" style="animation-delay: 0.4s;">
-                            <div class="w-5 h-8 rounded-lg" style="background: #18181C; border: 1px solid #252530;">
-                                <div class="w-full h-full rounded-lg flex items-center justify-center">
-                                    <div class="w-1 h-1 rounded-full"
-                                        style="background: #CC0B20; box-shadow: 0 0 6px rgba(204,11,32,0.6);"></div>
-                                </div>
-                            </div>
-                            <span class="text-[8px] text-muted">Android</span>
+                        <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-brand animate-pulse" style="width: 70%"></div>
                         </div>
-                        <span class="text-muted-2 text-[10px]">+</span>
-                        <!-- Chrome -->
-                        <div class="flex flex-col items-center gap-1.5 float-y" style="animation-delay: 0.8s;">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center"
-                                style="background: #18181C; border: 1px solid #252530;">
-                                <svg class="w-3 h-3" fill="#6E6E82" viewBox="0 0 24 24">
-                                    <path
-                                        d="M12 0C8.74 0 5.8 1.3 3.65 3.42l8.36 14.5A8 8 0 0 0 12 0zm0 0l5.88 10.2A8.01 8.01 0 0 0 12.02 4a8 8 0 0 0-3.37.74L12 0zm0 24c-3.1 0-5.93-1.15-8.08-3.04L10 14.89c-.6.38-1.28.61-2.02.61a3.98 3.98 0 0 1-3.66-2.4L0 12a12 12 0 0 0 12 12zm0 0l3.96-6.86A8 8 0 0 0 12 20a8.03 8.03 0 0 0-2.88-2.61L12 24z" />
-                                </svg>
-                            </div>
-                            <span class="text-[8px] text-muted">Web Ext</span>
+                        <div class="flex gap-2 mt-1">
+                            <div class="flex-1 py-1 rounded border border-wire text-center text-[9px] text-muted-2">Calibration</div>
+                            <div class="flex-1 py-1 rounded border border-brand/30 text-center text-[9px] text-brand">PiP Mode</div>
                         </div>
                     </div>
                 </div>
