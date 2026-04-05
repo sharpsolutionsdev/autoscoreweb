@@ -5,6 +5,13 @@ import os, sys, json, re, threading, time
 # ─────────────────────────────────────────────────────────────────────────────
 ANDROID = sys.platform == 'linux' and 'ANDROID_ARGUMENT' in os.environ
 
+if ANDROID:
+    try:
+        import certifi
+        os.environ['SSL_CERT_FILE'] = certifi.where()
+    except ImportError:
+        pass
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Config
 # ─────────────────────────────────────────────────────────────────────────────
@@ -60,8 +67,11 @@ def _ensure_model():
         return local if os.path.isdir(local) else None
 
     # Android path
-    from android.storage import app_storage_path  # type: ignore
-    dest = os.path.join(app_storage_path(), MODEL_NAME)
+    try:
+        from android.storage import app_storage_path  # type: ignore
+        dest = os.path.join(app_storage_path(), MODEL_NAME)
+    except ImportError:
+        return None
 
     # Check for marker file to confirm a complete extraction
     marker = os.path.join(dest, '.extracted')
@@ -87,9 +97,21 @@ def _ensure_model():
     # Extract from APK zip (assets/ or private/ prefix)
     try:
         import zipfile
-        from android import mActivity  # type: ignore
+        apk_path = None
+        try:
+            from android import mActivity  # type: ignore
+            if mActivity:
+                apk_path = mActivity.getPackageCodePath()
+            else:
+                from jnius import autoclass  # type: ignore
+                service = autoclass('org.kivy.android.PythonService').mService
+                apk_path = service.getPackageCodePath()
+        except Exception:
+            pass
 
-        apk_path = mActivity.getPackageCodePath()
+        if not apk_path:
+            return None
+
         with zipfile.ZipFile(apk_path, 'r') as z:
             # Try multiple possible prefixes used by different p4a bootstraps
             prefixes = [

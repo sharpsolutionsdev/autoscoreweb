@@ -4,7 +4,12 @@ Standalone darts scorer with voice recognition (Vosk) and TTS.
 Build with Buildozer:  buildozer android debug deploy run
 """
 
-import os, sys, json, threading, re, time, requests, certifi
+import os, sys, json, threading, re, time
+try:
+    import requests, certifi
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+except ImportError:
+    pass
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Platform detection
@@ -2660,8 +2665,7 @@ class LoginScreen(FloatLayout):
         # Header
         self.add_widget(Label(
             text="SIGN IN", font_size=sp(14), color=ACCENT, bold=True,
-            pos_hint={'center_x': 0.5, 'center_y': 0.8},
-            letter_spacing=2
+            pos_hint={'center_x': 0.5, 'center_y': 0.8}
         ))
         self.add_widget(Label(
             text="Sync your profile and settings", font_size=sp(16), color=FG,
