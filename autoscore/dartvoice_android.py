@@ -1750,26 +1750,7 @@ class DartVoiceLayout(FloatLayout):
 
         # ── Dartboard wire background (subtle overlay) ────────────────────
         def _draw_wire(*_):
-            if not self.width or not self.height:
-                return
-            cw, ch = self.width, self.height
-            cx = cw / 2
-            cy = ch + dp(40)
-            self.canvas.after.clear()
-            with self.canvas.after:
-                wire_col = (0.075, 0.075, 0.09, 1)
-                for r in (dp(80), dp(140), dp(200), dp(270), dp(360), dp(460), dp(570)):
-                    Color(*wire_col)
-                    pts = []
-                    for i in range(65):
-                        a = math.radians(i * 360 / 64)
-                        pts += [cx + r * math.cos(a), cy + r * math.sin(a)]
-                    Line(points=pts, width=dp(0.6))
-                for i in range(20):
-                    ang = math.radians(i * 18)
-                    Line(points=[cx, cy,
-                                 cx + dp(570) * math.cos(ang),
-                                 cy + dp(570) * math.sin(ang)], width=dp(0.5))
+            pass  # Removed wire background for a sleeker look
         self.bind(size=_draw_wire, pos=_draw_wire)
 
         # ── Layout constants ──────────────────────────────────────────────
@@ -2409,19 +2390,20 @@ class DartVoiceLayout(FloatLayout):
             )
             self._listener.start()
         self._active = True
-        self.toggle_btn.text = 'STOP LISTENING'
         self._set_toggle_style(active=True)
         # Initialise live checkout on first start
         if self.cfg.get('live_checkout', False) and self._x01_remaining is None:
             self._x01_remaining = self.cfg.get('x01_start', 501)
             self._update_checkout_display()
-        # Pulse mic icon while listening
-        if hasattr(self, '_mic_icon'):
-            self._mic_icon.opacity = 1
-            _mic_anim = (Animation(opacity=0.3, duration=0.7) +
-                         Animation(opacity=1.0, duration=0.7))
-            _mic_anim.repeat = True
-            _mic_anim.start(self._mic_icon)
+            
+        def animate_dots(dt):
+            dots = self.toggle_btn.text.count('.')
+            if dots >= 3:
+                self.toggle_btn.text = 'LISTENING'
+            else:
+                self.toggle_btn.text += '.'
+        self.toggle_btn.text = 'LISTENING'
+        self._listen_anim_ev = Clock.schedule_interval(animate_dots, 0.4)
 
     def _stop_listening(self):
         if ANDROID:
@@ -2434,13 +2416,12 @@ class DartVoiceLayout(FloatLayout):
                 self._listener.stop()
                 self._listener = None
         self._active = False
+        if hasattr(self, '_listen_anim_ev') and self._listen_anim_ev:
+            self._listen_anim_ev.cancel()
+            self._listen_anim_ev = None
         self.toggle_btn.text = 'START LISTENING'
         self._set_toggle_style(active=False)
         self._set_status('Stopped')
-        # Stop mic pulse animation
-        if hasattr(self, '_mic_icon'):
-            Animation.cancel_all(self._mic_icon)
-            self._mic_icon.opacity = 0
 
     # ── Service score polling (Android only) ──────────────────────────────────
     def _poll_service(self, dt):
