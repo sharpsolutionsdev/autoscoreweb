@@ -24,8 +24,10 @@ services = DartVoice:./service/main.py:foreground
 # Requirements
 # vosk — the p4a recipe downloads libvosk.so automatically for arm64
 # plyer — for vibrator/haptic feedback on score confirm
-# supabase + httpx — for billing/subscription check
-requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,plyer,vosk,supabase,httpx,requests
+# NOTE: supabase is NOT listed here because pydantic-core (Rust extension)
+#       cannot be cross-compiled for Android.  billing.py gracefully falls
+#       back to offline-only mode when supabase is unavailable.
+requirements = python3==3.11.0,kivy==2.3.0,pyjnius,android,plyer,vosk
 
 # Orientation & display
 orientation = portrait

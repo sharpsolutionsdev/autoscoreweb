@@ -2186,6 +2186,9 @@ class DartVoiceLayout(FloatLayout):
     def _check_pip_mode(self):
         """Detect Picture-in-Picture by window size and toggle layout."""
         w, h = Window.size
+        # Ignore zero-size events during init (Android hasn't sized the window yet)
+        if w <= 0 or h <= 0:
+            return
         is_pip = w < dp(300) and h < dp(400)
         if is_pip and not self._pip_mode:
             self._enter_pip()

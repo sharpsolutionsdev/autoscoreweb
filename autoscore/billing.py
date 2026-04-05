@@ -30,10 +30,12 @@ Required env vars (baked into the app at build time):
 import os, json, time, uuid, hashlib, threading
 
 # ── Supabase client (graceful fallback) ───────────────────────────────────────
+# Catch Exception (not just ImportError) because pydantic-core can throw
+# OSError / RuntimeError when its compiled .so is missing or wrong-arch.
 try:
     from supabase import create_client, Client as _SBClient
     _SB_OK = True
-except ImportError:
+except Exception:
     _SBClient = None
     _SB_OK    = False
 
