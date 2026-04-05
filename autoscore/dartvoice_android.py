@@ -1960,20 +1960,20 @@ class DartVoiceLayout(FloatLayout):
         btn_row = BoxLayout(orientation='horizontal', spacing=dp(12),
                             size_hint_y=None, height=dp(62))
 
-        def _icon_btn(label_text, on_press_cb):
-            """Bordered icon button with text label (reliable on all devices)."""
+        def _text_btn(label_text, on_press_cb):
+            """Bordered text button (reliable on Android)."""
             btn = Button(
-                text=label_text, font_size=sp(9), bold=True,
+                text=label_text, font_size=sp(12), bold=True,
                 size_hint=(None, 1), width=dp(62),
                 background_normal='', background_color=(0, 0, 0, 0),
-                color=FG2,
+                color=FG,
                 on_press=lambda *_: on_press_cb(),
             )
             with btn.canvas.before:
                 Color(*SEP)
                 btn._bdr = RoundedRectangle(pos=btn.pos, size=btn.size,
                                             radius=[dp(14)])
-                Color(*BG)
+                Color(0.094, 0.094, 0.110, 1)  # CARD2
                 btn._bg = RoundedRectangle(
                     pos=(btn.x + dp(1), btn.y + dp(1)),
                     size=(btn.width - dp(2), btn.height - dp(2)),
@@ -1987,7 +1987,7 @@ class DartVoiceLayout(FloatLayout):
             btn.bind(pos=_make_upd(btn), size=_make_upd(btn))
             return btn
 
-        btn_row.add_widget(_icon_btn('\u2699', self._show_settings))
+        btn_row.add_widget(_text_btn('SET', self._show_settings))
 
         # Center: Toggle listen button
         self.toggle_btn = Button(
@@ -2000,7 +2000,7 @@ class DartVoiceLayout(FloatLayout):
         self._set_toggle_style(active=False)
         btn_row.add_widget(self.toggle_btn)
 
-        btn_row.add_widget(_icon_btn('\u21ba', self._reset))
+        btn_row.add_widget(_text_btn('RST', self._reset))
         deck.add_widget(btn_row)
         self._deck = deck
         self.add_widget(deck)
@@ -2370,7 +2370,7 @@ class DartVoiceLayout(FloatLayout):
                         callback=lambda perms, results: (
                             Clock.schedule_once(lambda dt: self._start_listening())
                             if results and results[0] else
-                            Clock.schedule_once(lambda dt: self._set_status('Mic permission denied'))
+                            Clock.schedule_once(lambda dt: self._set_status('Mic permission denied. Please check Android Settings.'))
                         ),
                     )
                     self._set_status('Requesting mic permission…')
@@ -2727,7 +2727,13 @@ class DartVoiceLayout(FloatLayout):
         self.darts_lbl.text  = 'Darts 0'
         self.history_box.clear_widgets()
         if hasattr(self, 'cricket_grid'):
-            self.cricket_grid.refresh()
+            self.cricket_grid._mark_lbls = {tgt: lbl for tgt, lbl in self.cricket_grid._mark_lbls.items()}
+            for tgt, lbl in self.cricket_grid._mark_lbls.items():
+                lbl.text = self.cricket_grid._mark_text(tgt)
+                lbl.color = self.cricket_grid._mark_color(tgt)
+        if hasattr(self, 'history_box'):
+            self.history_box.clear_widgets()
+            self._update_history([])
         self._set_status('Ready')
 
 

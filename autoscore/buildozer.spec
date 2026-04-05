@@ -35,16 +35,11 @@ fullscreen  = 0
 
 # Icons
 icon.filename      = icon.png
-# presplash.filename = presplash.png
+presplash.filename = icon.png
+presplash.color = #08080A
 
 # Android permissions
-android.permissions = \
-    RECORD_AUDIO, \
-    FOREGROUND_SERVICE, \
-    FOREGROUND_SERVICE_MICROPHONE, \
-    WAKE_LOCK, \
-    INTERNET, \
-    VIBRATE
+android.permissions = RECORD_AUDIO, FOREGROUND_SERVICE, FOREGROUND_SERVICE_MICROPHONE, WAKE_LOCK, INTERNET, VIBRATE
 
 # API targets
 android.api    = 34
