@@ -200,10 +200,12 @@ def _apply_theme(name, custom_hex='#FFFFFF'):
 try:
     from shared import (load_config, save_config, _ensure_model,
                         parse_score, parse_cricket_darts, parse_single_dart,
-                        checkout_hint, GameState, speak, ANDROID)
+                        checkout_hint, GameState, speak, ANDROID,
+                        CRICKET_TARGETS, MOD_HITS)
 except ImportError:
     # This should only happen during development/testing
-    pass
+    CRICKET_TARGETS = ['20', '19', '18', '17', '16', '15', 'b']
+    MOD_HITS = {'s': 1, 'd': 2, 't': 3}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Visual Calibration Overlay
@@ -2594,16 +2596,24 @@ class LoadingScreen(FloatLayout):
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=self._update_bg, pos=self._update_bg)
 
+        # App name (above logo)
+        self.title_lbl = Label(
+            text='DARTVOICE', font_size=sp(24), bold=True, color=FG,
+            pos_hint={'center_x': 0.5, 'center_y': 0.62},
+            halign='center',
+        )
+        self.add_widget(self.title_lbl)
+
         # Centered logo
-        self.logo_wrap = Widget(size_hint=(None, None), size=(dp(80), dp(80)),
-                                 pos_hint={'center_x': 0.5, 'center_y': 0.6})
+        self.logo_wrap = Widget(size_hint=(None, None), size=(dp(100), dp(100)),
+                                 pos_hint={'center_x': 0.5, 'center_y': 0.48})
         self.add_widget(self.logo_wrap)
         self._init_logo()
 
         # Tagline
         self.msg = Label(
             text=self.taglines[0], font_size=sp(13), color=FG2,
-            pos_hint={'center_x': 0.5, 'center_y': 0.45},
+            pos_hint={'center_x': 0.5, 'center_y': 0.33},
             halign='center',
         )
         self.add_widget(self.msg)
@@ -2629,11 +2639,21 @@ class LoadingScreen(FloatLayout):
             w.canvas.clear()
             cx, cy = w.center_x, w.center_y
             with w.canvas:
-                for r, col in [(dp(40), (0.2,0.2,0.24,1)), (dp(26), ACCENT),
-                               (dp(18), (0.2,0.2,0.24,1)), (dp(10), ACCENT),
-                               (dp(4), (0.94,0.94,0.96,1))]:
-                    Color(*col)
-                    Ellipse(pos=(cx-r, cy-r), size=(r*2, r*2))
+                # Outer dark ring
+                Color(0.2, 0.2, 0.24, 1)
+                Ellipse(pos=(cx-dp(48), cy-dp(48)), size=(dp(96), dp(96)))
+                # Accent ring
+                Color(*ACCENT)
+                Ellipse(pos=(cx-dp(34), cy-dp(34)), size=(dp(68), dp(68)))
+                # Inner dark ring
+                Color(0.2, 0.2, 0.24, 1)
+                Ellipse(pos=(cx-dp(22), cy-dp(22)), size=(dp(44), dp(44)))
+                # Inner accent ring
+                Color(*ACCENT)
+                Ellipse(pos=(cx-dp(14), cy-dp(14)), size=(dp(28), dp(28)))
+                # Bullseye dot
+                Color(0.94, 0.94, 0.96, 1)
+                Ellipse(pos=(cx-dp(5), cy-dp(5)), size=(dp(10), dp(10)))
         self.logo_wrap.bind(pos=_draw, size=_draw)
 
     def _cycle_message(self, dt):
@@ -2724,7 +2744,7 @@ class DartVoiceAndroidApp(App):
     def build(self):
         Window.clearcolor = BG
         self.root = FloatLayout()
-        self.config_path = os.path.join(App().user_data_dir, 'dartvoice_config.json')
+        self.config_path = os.path.join(self.user_data_dir, 'dartvoice_config.json')
         
         # We start with the loading screen
         self._loading = LoadingScreen(on_complete=self.check_auth)
@@ -2759,7 +2779,7 @@ class DartVoiceAndroidApp(App):
         self.show_main()
 
     def show_main(self):
-        self.root.remove_widget(self._loading)
+        self.root.clear_widgets()
         try:
             self._main = DartVoiceLayout()
             self.root.add_widget(self._main)
