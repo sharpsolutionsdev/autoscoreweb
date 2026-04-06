@@ -1040,31 +1040,35 @@
         <!-- Mobile dropdown -->
         <div id="mob-menu" class="mobile-menu sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
             <div class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-1">
-                <a href="#features"
+                <a href="#features" onclick="closeMobMenu()"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Features</a>
-                <a href="#how-it-works"
-                    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">How
-                    It Works</a>
-                <a href="#pricing"
+                <a href="#how-it-works" onclick="closeMobMenu()"
+                    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">How It Works</a>
+                <a href="#pricing" onclick="closeMobMenu()"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
                 <a href="guide.html"
-                    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup
-                    Guide</a>
+                    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
                 <a href="referral.html"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
                 </a>
                 <div class="border-t border-wire/50 mt-1 pt-3 grid grid-cols-2 gap-2">
                     <a href="login.html"
-                        class="btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk">Sign
-                        In</a>
+                        class="btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk">Sign In</a>
                     <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
-                        class="btn-brand px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Free
-                        Trial</a>
+                        class="btn-brand px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Free Trial</a>
                 </div>
             </div>
         </div>
     </nav>
+    <script>
+        function closeMobMenu() {
+            const menu = document.getElementById('mob-menu');
+            const btn  = document.getElementById('mob-btn');
+            if (menu) menu.classList.remove('open');
+            if (btn)  btn.classList.remove('open');
+        }
+    </script>
 
     <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section class="hero-glow pt-28 pb-16 sm:pt-36 sm:pb-24 relative overflow-hidden">
@@ -2363,15 +2367,15 @@
 
     <!-- ━━━ PRICING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section id="pricing" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
-        <div class="max-w-2xl mx-auto px-5">
+        <div class="max-w-5xl mx-auto px-5">
             <div class="text-center mb-12 reveal">
                 <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Pricing</p>
-                <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl  mb-4 text-chalk">SIMPLE. ONE PLAN.</h2>
-                <p class="text-muted text-sm">No tiers, no upsells. Everything included.</p>
+                <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 text-chalk">CHOOSE YOUR PLAN.</h2>
+                <p class="text-muted text-sm">Everything included on every plan. Just pick your billing cycle.</p>
             </div>
 
             <!-- Competitor comparison row -->
-            <div class="reveal mb-8 flex gap-4 items-stretch">
+            <div class="reveal mb-10 flex flex-col sm:flex-row gap-4 items-stretch max-w-2xl mx-auto">
                 <div class="flex-1 rounded-2xl p-5 text-center relative overflow-hidden opacity-60"
                     style="background: #111114; border: 1px solid #252530">
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
@@ -2383,47 +2387,41 @@
                     <p class="text-[9px] font-bold tracking-[0.2em] text-muted mb-2 uppercase">Target Omni</p>
                     <p class="display text-3xl not-italic text-muted-2 line-through">&pound;500</p>
                     <p class="text-[10px] text-muted-2 mt-1">Hardware required</p>
-                    <!-- Negative indicators -->
                     <div class="flex flex-col gap-1 mt-3">
                         <div class="flex items-center justify-center gap-1 text-[9px] text-muted-2">
                             <svg viewBox="0 0 20 20" width="10" height="10" fill="#4A4A5A">
-                                <path
-                                    d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H5a1 1 0 0 1 0-2h10a1 1 0 0 1 0 2z" />
+                                <path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H5a1 1 0 0 1 0-2h10a1 1 0 0 1 0 2z" />
                             </svg>
                             Physical ring install
                         </div>
                         <div class="flex items-center justify-center gap-1 text-[9px] text-muted-2">
                             <svg viewBox="0 0 20 20" width="10" height="10" fill="#4A4A5A">
-                                <path
-                                    d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H5a1 1 0 0 1 0-2h10a1 1 0 0 1 0 2z" />
+                                <path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H5a1 1 0 0 1 0-2h10a1 1 0 0 1 0 2z" />
                             </svg>
                             Upfront cost
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center justify-center shrink-0">
+                <div class="flex items-center justify-center shrink-0 sm:shrink-0">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center text-muted text-xs font-bold pulse-glow"
                         style="background: #1a1a20; border: 1px solid rgba(204,11,32,0.3);">VS</div>
                 </div>
                 <div class="flex-1 rounded-2xl p-5 text-center relative overflow-hidden pulse-glow"
                     style="background: #111114; border: 2px solid #CC0B20;">
                     <p class="text-[9px] font-bold tracking-[0.2em] text-brand mb-2 uppercase">DartVoice</p>
-                    <p class="display text-3xl not-italic text-chalk neon-white">&pound;6.99<span
+                    <p class="display text-3xl not-italic text-chalk neon-white">FROM &pound;5<span
                             class="text-sm text-muted font-normal not-italic">/mo</span></p>
                     <p class="text-[10px] text-muted mt-1">Uses your phone mic</p>
-                    <!-- Positive indicators -->
                     <div class="flex flex-col gap-1 mt-3">
                         <div class="flex items-center justify-center gap-1 text-[9px] text-chalk/70">
                             <svg viewBox="0 0 20 20" width="10" height="10" fill="#22c55e">
-                                <path
-                                    d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z" />
+                                <path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z" />
                             </svg>
                             No hardware
                         </div>
                         <div class="flex items-center justify-center gap-1 text-[9px] text-chalk/70">
                             <svg viewBox="0 0 20 20" width="10" height="10" fill="#22c55e">
-                                <path
-                                    d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z" />
+                                <path d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z" />
                             </svg>
                             Cancel anytime
                         </div>
@@ -2431,105 +2429,222 @@
                 </div>
             </div>
 
-            <!-- Price card -->
-            <div class="price-card rounded-3xl p-8 sm:p-10 text-left reveal">
-                <div class="flex items-baseline gap-2 mb-1">
-                    <span
-                        class="display text-5xl sm:text-6xl md:text-7xl lg:text-8xl  not-italic text-chalk">&pound;6.99</span>
-                    <span class="text-muted text-sm">/month</span>
-                </div>
-                <p class="text-muted text-sm mb-8">Cancel anytime. No contracts. No hidden fees.</p>
+            <!-- ── 3-Column pricing cards ── -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 reveal">
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-8">
-                    <!-- Feature rows with hub-style checkmarks -->
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
+                <!-- PLAN 1: Monthly -->
+                <div class="price-card rounded-3xl p-7 sm:p-8 text-left flex flex-col relative group transition-all duration-300 hover:border-brand/40 hover:translate-y-[-4px]" id="plan-monthly">
+                    <div class="mb-6">
+                        <p class="text-[9px] font-bold tracking-[0.3em] text-muted uppercase mb-4">Monthly</p>
+                        <div class="flex items-baseline gap-1.5 mb-1">
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk">&pound;6.99</span>
+                            <span class="text-muted text-sm">/mo</span>
                         </div>
-                        <span class="text-chalk/80">7-day free trial</span>
+                        <p class="text-muted-2 text-xs">Billed monthly &middot; Cancel anytime</p>
                     </div>
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
+
+                    <!-- Feature list -->
+                    <div class="space-y-2.5 mb-8 flex-1">
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">7-day free trial</span>
                         </div>
-                        <span class="text-chalk/80">Voice-controlled scoring</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">Voice-controlled scoring</span>
                         </div>
-                        <span class="text-chalk/80">Windows, Android & Web Extension</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">All platforms &amp; game modes</span>
                         </div>
-                        <span class="text-chalk/80">501, 301, Cricket &amp; more</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">Live checkout suggestions</span>
                         </div>
-                        <span class="text-chalk/80">Live checkout suggestions</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">All future updates</span>
                         </div>
-                        <span class="text-chalk/80">Up to 8 players</span>
                     </div>
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        </div>
-                        <span class="text-chalk/80">No £500 hardware ring</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                            style="background: rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="3"
-                                fill="none">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        </div>
-                        <span class="text-chalk/80">All future updates</span>
-                    </div>
+
+                    <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
+                        class="btn-outline block text-center py-3 rounded-xl font-semibold text-sm text-chalk relative z-10">
+                        Start Free Trial
+                    </a>
+                    <p class="text-muted-2 text-[10px] text-center mt-2">Cancel before day 7 to pay nothing</p>
                 </div>
 
-                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
-                    class="btn-brand block text-center py-3.5 rounded-xl font-semibold text-white relative z-10">
-                    Start 7-Day Free Trial
-                </a>
-                <p class="text-muted-2 text-xs text-center mt-3">Start free &mdash; cancel before day 7 to pay nothing
-                </p>
+                <!-- PLAN 2: 6-Month (MOST POPULAR) -->
+                <div class="price-card rounded-3xl p-7 sm:p-8 text-left flex flex-col relative group transition-all duration-300 hover:translate-y-[-4px]" id="plan-6month"
+                    style="border: 2px solid #CC0B20; box-shadow: 0 0 40px rgba(204,11,32,0.15), 0 0 80px rgba(204,11,32,0.05);">
+                    <!-- Popular badge -->
+                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20">
+                        <div class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase text-white"
+                            style="background: linear-gradient(135deg, #CC0B20 0%, #e60d24 100%); box-shadow: 0 4px 20px rgba(204,11,32,0.5);">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            Most Popular
+                        </div>
+                    </div>
+
+                    <div class="mb-6 mt-2">
+                        <p class="text-[9px] font-bold tracking-[0.3em] text-brand uppercase mb-4">6-Month</p>
+                        <div class="flex items-baseline gap-1.5 mb-1">
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk neon-white">&pound;34.99</span>
+                            <span class="text-muted text-sm">/6mo</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-muted-2 text-xs">That&rsquo;s &pound;5.83/mo</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold"
+                                style="background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.2);">SAVE 17%</span>
+                        </div>
+                        <p class="text-muted-2 text-[10px] mt-1">Billed every 6 months &middot; Recurring</p>
+                    </div>
+
+                    <!-- Feature list -->
+                    <div class="space-y-2.5 mb-8 flex-1">
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/80">7-day free trial</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/80">Voice-controlled scoring</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/80">All platforms &amp; game modes</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/80">Live checkout suggestions</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/80">All future updates</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(34,197,94,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#22c55e" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/80 font-semibold">Save &pound;6.95 vs monthly</span>
+                        </div>
+                    </div>
+
+                    <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
+                        class="btn-brand block text-center py-3.5 rounded-xl font-semibold text-sm text-white relative z-10"
+                        style="box-shadow: 0 0 25px rgba(204,11,32,0.35);">
+                        Start 7-Day Free Trial
+                    </a>
+                    <p class="text-muted-2 text-[10px] text-center mt-2">Then &pound;34.99 every 6 months</p>
+                </div>
+
+                <!-- PLAN 3: 12-Month (BEST VALUE) -->
+                <div class="price-card rounded-3xl p-7 sm:p-8 text-left flex flex-col relative group transition-all duration-300 hover:border-brand/40 hover:translate-y-[-4px]" id="plan-12month">
+                    <!-- Best value badge -->
+                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20">
+                        <div class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase"
+                            style="background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); box-shadow: 0 4px 16px rgba(34,197,94,0.15);">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            Best Value
+                        </div>
+                    </div>
+
+                    <div class="mb-6 mt-2">
+                        <p class="text-[9px] font-bold tracking-[0.3em] text-muted uppercase mb-4">12-Month</p>
+                        <div class="flex items-baseline gap-1.5 mb-1">
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk">&pound;59.99</span>
+                            <span class="text-muted text-sm">/yr</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-muted-2 text-xs">That&rsquo;s &pound;5.00/mo</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold"
+                                style="background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.2);">SAVE 28%</span>
+                        </div>
+                        <p class="text-muted-2 text-[10px] mt-1">Billed every 12 months &middot; Recurring</p>
+                    </div>
+
+                    <!-- Feature list -->
+                    <div class="space-y-2.5 mb-8 flex-1">
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">7-day free trial</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">Voice-controlled scoring</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">All platforms &amp; game modes</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">Live checkout suggestions</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/70">All future updates</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(34,197,94,0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#22c55e" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                            <span class="text-chalk/80 font-semibold">Save &pound;23.89 vs monthly</span>
+                        </div>
+                    </div>
+
+                    <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
+                        class="btn-brand block text-center py-3 rounded-xl font-semibold text-sm text-white relative z-10">
+                        Start 7-Day Free Trial
+                    </a>
+                    <p class="text-muted-2 text-[10px] text-center mt-2">Then &pound;59.99 every 12 months</p>
+                </div>
+
+            </div>
+
+            <!-- Shared note -->
+            <div class="text-center mt-8 reveal">
+                <p class="text-muted-2 text-xs">All plans include a 7-day free trial &middot; Cancel anytime &middot; No contracts &middot; No hardware required</p>
+                <div class="flex items-center justify-center gap-4 mt-4">
+                    <div class="flex items-center gap-1.5 text-muted-2 text-[10px]">
+                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#4A4A5A" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Secured by Stripe
+                    </div>
+                    <div class="flex items-center gap-1.5 text-muted-2 text-[10px]">
+                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="#4A4A5A" stroke-width="2" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        Visa, Mastercard, Amex
+                    </div>
+                </div>
             </div>
         </div>
     </section>

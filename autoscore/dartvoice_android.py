@@ -208,30 +208,147 @@ except ImportError:
     MOD_HITS = {'s': 1, 'd': 2, 't': 3}
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Visual Calibration Overlay
+# In-game Score Toast — animated floating popup on score
+# ─────────────────────────────────────────────────────────────────────────────
+class ScoreToast(Label):
+    """Animated floating score popup. Fades up and out like a game HUD."""
+
+    def __init__(self, text, is_max=False, **kwargs):
+        kwargs.setdefault('font_size', sp(42 if is_max else 34))
+        kwargs.setdefault('bold', True)
+        kwargs.setdefault('color', (*ACCENT[:3], 1) if is_max else (*FG[:3], 1))
+        kwargs.setdefault('halign', 'center')
+        kwargs.setdefault('valign', 'middle')
+        kwargs.setdefault('size_hint', (None, None))
+        kwargs.setdefault('size', (dp(200), dp(60)))
+        kwargs.setdefault('opacity', 0)
+        super().__init__(text=text, **kwargs)
+        # Glow behind text
+        with self.canvas.before:
+            ar, ag, ab = ACCENT[0], ACCENT[1], ACCENT[2]
+            Color(ar * 0.15, ag * 0.15, ab * 0.15, 0.6 if is_max else 0.3)
+            self._glow = Ellipse(pos=self.pos, size=(dp(200), dp(60)))
+        self.bind(pos=lambda *_: setattr(self._glow, 'pos',
+                  (self.center_x - dp(100), self.center_y - dp(30))),
+                  size=lambda *_: setattr(self._glow, 'size', (dp(200), dp(60))))
+
+    def show(self, parent, center_x, start_y):
+        """Add to parent, animate up + fade in then fade out and remove."""
+        self.pos = (center_x - dp(100), start_y)
+        parent.add_widget(self)
+        # Phase 1: fade in + float up
+        a1 = Animation(opacity=1, y=start_y + dp(40), duration=0.35,
+                        transition='out_quad')
+        # Phase 2: hold
+        a2 = Animation(duration=0.6)
+        # Phase 3: fade out + continue floating
+        a3 = Animation(opacity=0, y=start_y + dp(80), duration=0.5,
+                        transition='in_quad')
+        a3.bind(on_complete=lambda *_: parent.remove_widget(self)
+                if self.parent else None)
+        (a1 + a2 + a3).start(self)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Visual Calibration Overlay (premium dark theme)
 # ─────────────────────────────────────────────────────────────────────────────
 class CalibrationOverlay(FloatLayout):
     def __init__(self, on_calibrated, **kwargs):
         super().__init__(**kwargs)
         self.on_calibrated = on_calibrated
+        self._crosshair = None
+
+        # Dark scrim background
         with self.canvas.before:
-            Color(0, 0, 0, 0.7)
+            Color(0.02, 0.02, 0.03, 0.92)
             self.rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=self._update_rect, pos=self._update_rect)
 
-        self.label = Label(
-            text="[b]Visual Calibration[/b]\n\nTap the screen where your\ndarts app entrance is.",
-            markup=True, halign='center', pos_hint={'center_x': 0.5, 'center_y': 0.6}
-        )
-        self.add_widget(self.label)
-        
-        self.btn_cancel = Button(
-            text="Cancel", size_hint=(0.4, 0.1),
-            pos_hint={'center_x': 0.5, 'center_y': 0.2},
-            background_color=STOP_BG
-        )
-        self.btn_cancel.bind(on_release=self.remove_self)
-        self.add_widget(self.btn_cancel)
+        # Pulsing crosshair indicator (centred)
+        self._crosshair = Widget(size_hint=(None, None), size=(dp(80), dp(80)),
+                                  pos_hint={'center_x': 0.5, 'center_y': 0.55})
+        def _draw_xhair(w, *_):
+            w.canvas.clear()
+            cx, cy = w.center_x, w.center_y
+            with w.canvas:
+                # Outer ring glow
+                Color(*ACCENT[:3], 0.15)
+                Ellipse(pos=(cx - dp(38), cy - dp(38)), size=(dp(76), dp(76)))
+                # Outer ring
+                Color(*ACCENT[:3], 0.7)
+                Line(ellipse=(cx - dp(28), cy - dp(28), dp(56), dp(56)),
+                     width=dp(1.5))
+                # Crosshair lines
+                Color(*ACCENT[:3], 0.5)
+                Line(points=[cx - dp(18), cy, cx - dp(8), cy], width=dp(1.2))
+                Line(points=[cx + dp(8), cy, cx + dp(18), cy], width=dp(1.2))
+                Line(points=[cx, cy - dp(18), cx, cy - dp(8)], width=dp(1.2))
+                Line(points=[cx, cy + dp(8), cx, cy + dp(18)], width=dp(1.2))
+                # Centre dot
+                Color(*ACCENT)
+                Ellipse(pos=(cx - dp(3), cy - dp(3)), size=(dp(6), dp(6)))
+        self._crosshair.bind(pos=_draw_xhair, size=_draw_xhair)
+        self.add_widget(self._crosshair)
+        # Pulse animation
+        _pulse = Animation(opacity=0.5, duration=1.0, transition='in_out_sine') + \
+                 Animation(opacity=1.0, duration=1.0, transition='in_out_sine')
+        _pulse.repeat = True
+        _pulse.start(self._crosshair)
+
+        # Instruction card
+        instr_card = BoxLayout(orientation='vertical', size_hint=(0.85, None),
+                               height=dp(100), spacing=dp(6),
+                               padding=[dp(20), dp(14), dp(20), dp(14)],
+                               pos_hint={'center_x': 0.5, 'center_y': 0.8})
+        with instr_card.canvas.before:
+            Color(*CARD)
+            instr_card._bg = RoundedRectangle(pos=instr_card.pos,
+                                               size=instr_card.size, radius=[dp(16)])
+            Color(*ACCENT[:3], 0.35)
+            instr_card._bdr = RoundedRectangle(pos=instr_card.pos,
+                                                size=instr_card.size, radius=[dp(16)])
+        def _upd_ic(*_):
+            instr_card._bdr.pos = instr_card.pos
+            instr_card._bdr.size = instr_card.size
+            instr_card._bg.pos = (instr_card.x + dp(1), instr_card.y + dp(1))
+            instr_card._bg.size = (instr_card.width - dp(2), instr_card.height - dp(2))
+        instr_card.bind(pos=_upd_ic, size=_upd_ic)
+
+        title = Label(text='VISUAL CALIBRATION', font_size=sp(13), bold=True,
+                      color=ACCENT, halign='center', valign='middle',
+                      size_hint_y=None, height=dp(24))
+        instr_card.add_widget(title)
+        desc = Label(text='Tap the exact screen location where\nyour darts app score input area is.',
+                     font_size=sp(11), color=FG2, halign='center', valign='middle',
+                     size_hint_y=None, height=dp(44))
+        desc.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        instr_card.add_widget(desc)
+        self.add_widget(instr_card)
+
+        # Cancel button (styled to match app)
+        cancel_btn = Button(text='CANCEL', font_size=sp(12), bold=True,
+                            size_hint=(0.45, None), height=dp(46),
+                            pos_hint={'center_x': 0.5, 'center_y': 0.15},
+                            background_normal='', background_color=(0, 0, 0, 0),
+                            color=FG2)
+        with cancel_btn.canvas.before:
+            Color(*SEP)
+            cancel_btn._bdr = RoundedRectangle(pos=cancel_btn.pos,
+                                                size=cancel_btn.size, radius=[dp(12)])
+            Color(*CARD)
+            cancel_btn._bg = RoundedRectangle(
+                pos=(cancel_btn.x + dp(1), cancel_btn.y + dp(1)),
+                size=(cancel_btn.width - dp(2), cancel_btn.height - dp(2)),
+                radius=[dp(11)])
+        def _upd_cb(*_):
+            cancel_btn._bdr.pos = cancel_btn.pos
+            cancel_btn._bdr.size = cancel_btn.size
+            cancel_btn._bg.pos = (cancel_btn.x + dp(1), cancel_btn.y + dp(1))
+            cancel_btn._bg.size = (cancel_btn.width - dp(2), cancel_btn.height - dp(2))
+        cancel_btn.bind(pos=_upd_cb, size=_upd_cb)
+        cancel_btn.bind(on_release=self.remove_self)
+        self.btn_cancel = cancel_btn
+        self.add_widget(cancel_btn)
 
     def _update_rect(self, *args):
         self.rect.pos = self.pos
@@ -240,9 +357,8 @@ class CalibrationOverlay(FloatLayout):
     def on_touch_down(self, touch):
         if self.btn_cancel.collide_point(*touch.pos):
             return super().on_touch_down(touch)
-            
-        # Calibrate
-        x, y = touch.sx, touch.sy  # normalized coordinates 0-1
+        # Calibrate at touch position
+        x, y = touch.sx, touch.sy
         self.on_calibrated(x, y)
         self.remove_self()
         return True
@@ -619,22 +735,30 @@ class SettingsOverlay(FloatLayout):
     def _build(self):
         # Dim backdrop (tappable to close)
         backdrop = Button(size_hint=(1, 1), background_normal='',
-                          background_color=(0, 0, 0, 0.55),
+                          background_color=(0, 0, 0, 0.6),
                           on_press=lambda *_: self._close())
         self.add_widget(backdrop)
 
-        # Panel card — bottom 72% of screen, rounded top
-        panel = FloatLayout(size_hint=(1, 0.72), pos_hint={'x': 0, 'y': 0})
+        # Panel card — bottom 78% of screen, rounded top with accent glow
+        panel = FloatLayout(size_hint=(1, 0.78), pos_hint={'x': 0, 'y': 0})
         with panel.canvas.before:
+            # Top accent glow strip
+            Color(*ACCENT[:3], 0.12)
+            panel._glow = RoundedRectangle(pos=panel.pos, size=panel.size,
+                                            radius=[dp(22), dp(22), 0, 0])
+            # Border
             Color(*SEP)
             panel._bdr = RoundedRectangle(pos=panel.pos, size=panel.size,
-                                          radius=[dp(20), dp(20), 0, 0])
+                                          radius=[dp(22), dp(22), 0, 0])
+            # Fill
             Color(*CARD)
             panel._bg = RoundedRectangle(
                 pos=(panel.x + dp(1), panel.y),
                 size=(panel.width - dp(2), panel.height - dp(1)),
-                radius=[dp(19), dp(19), 0, 0])
+                radius=[dp(21), dp(21), 0, 0])
         def _upd_panel(*_):
+            panel._glow.pos = (panel.x, panel.top - dp(3))
+            panel._glow.size = (panel.width, dp(3))
             panel._bdr.pos  = panel.pos;  panel._bdr.size = panel.size
             p = dp(1)
             panel._bg.pos   = (panel.x + p, panel.y)
@@ -646,26 +770,56 @@ class SettingsOverlay(FloatLayout):
         panel.add_widget(scroll)
 
         content = BoxLayout(orientation='vertical', size_hint_y=None,
-                            padding=[dp(24), dp(12), dp(24), dp(24)],
+                            padding=[dp(24), dp(8), dp(24), dp(28)],
                             spacing=dp(6))
         content.bind(minimum_height=content.setter('height'))
         scroll.add_widget(content)
 
+        # ── Drag handle indicator ─────────────────────────────────────────────
+        handle_wrap = Widget(size_hint=(1, None), height=dp(20))
+        with handle_wrap.canvas:
+            Color(*FG3)
+            handle_wrap._pill = RoundedRectangle(
+                pos=(0, 0), size=(dp(36), dp(4)), radius=[dp(2)])
+        def _upd_handle(*_):
+            handle_wrap._pill.pos = (handle_wrap.center_x - dp(18),
+                                     handle_wrap.center_y - dp(2))
+        handle_wrap.bind(pos=_upd_handle, size=_upd_handle)
+        content.add_widget(handle_wrap)
+
         # ── Header ────────────────────────────────────────────────────────────
-        hdr = BoxLayout(size_hint_y=None, height=dp(48))
-        hdr.add_widget(Label(text='Settings', font_size=sp(17), bold=True,
+        hdr = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(8))
+        # Accent bar left of title
+        hdr_bar = Widget(size_hint=(None, None), size=(dp(3), dp(20)))
+        with hdr_bar.canvas:
+            Color(*ACCENT)
+            hdr_bar._rr = RoundedRectangle(pos=hdr_bar.pos, size=hdr_bar.size,
+                                            radius=[dp(2)])
+        hdr_bar.bind(pos=lambda *_: setattr(hdr_bar._rr, 'pos', hdr_bar.pos),
+                     size=lambda *_: setattr(hdr_bar._rr, 'size', hdr_bar.size))
+        hdr.add_widget(hdr_bar)
+        hdr.add_widget(Label(text='Settings', font_size=sp(18), bold=True,
                              color=FG, halign='left', valign='middle',
                              size_hint_x=1, text_size=(None, None)))
         close_btn = Button(text='✕', font_size=sp(14),
-                           size_hint=(None, None), size=(dp(32), dp(32)),
+                           size_hint=(None, None), size=(dp(34), dp(34)),
                            background_normal='', background_color=(0, 0, 0, 0),
                            color=FG2, on_press=lambda *_: self._close())
         with close_btn.canvas.before:
+            Color(*SEP)
+            close_btn._bdr = RoundedRectangle(pos=close_btn.pos,
+                                              size=close_btn.size, radius=[dp(10)])
             Color(*CARD2)
-            close_btn._bg = RoundedRectangle(pos=close_btn.pos,
-                                             size=close_btn.size, radius=[dp(8)])
-        close_btn.bind(pos=lambda *_: setattr(close_btn._bg, 'pos', close_btn.pos),
-                       size=lambda *_: setattr(close_btn._bg, 'size', close_btn.size))
+            close_btn._bg = RoundedRectangle(
+                pos=(close_btn.x + dp(1), close_btn.y + dp(1)),
+                size=(close_btn.width - dp(2), close_btn.height - dp(2)),
+                radius=[dp(9)])
+        def _upd_close(*_):
+            close_btn._bdr.pos = close_btn.pos
+            close_btn._bdr.size = close_btn.size
+            close_btn._bg.pos = (close_btn.x + dp(1), close_btn.y + dp(1))
+            close_btn._bg.size = (close_btn.width - dp(2), close_btn.height - dp(2))
+        close_btn.bind(pos=_upd_close, size=_upd_close)
         hdr.add_widget(close_btn)
         content.add_widget(hdr)
 
@@ -680,61 +834,103 @@ class SettingsOverlay(FloatLayout):
             is_selected = (t_name == active_theme)
             accent_col  = hex_to_kivy(t_data['accent'])
             surname = t_data['player'].split()[-1] if not t_data.get('_custom') else 'Custom'
+            nickname = t_data.get('nickname', '')
 
+            # ── Theme card (taller, richer design) ────────────────────────
             card = BoxLayout(orientation='vertical', size_hint_y=None,
-                             height=dp(72), padding=[dp(6), dp(8), dp(6), dp(4)],
-                             spacing=dp(4))
+                             height=dp(96), padding=[dp(6), dp(8), dp(6), dp(6)],
+                             spacing=dp(3))
             with card.canvas.before:
-                Color(*BG)
-                card._bg = RoundedRectangle(pos=card.pos, size=card.size,
-                                            radius=[dp(10)])
+                # Glow behind selected card
                 if is_selected:
-                    Color(*accent_col[:3], 0.55)
+                    Color(*accent_col[:3], 0.08)
+                    card._glow = RoundedRectangle(pos=card.pos, size=card.size,
+                                                   radius=[dp(14)])
+                else:
+                    Color(0, 0, 0, 0)
+                    card._glow = RoundedRectangle(pos=card.pos, size=card.size,
+                                                   radius=[dp(14)])
+                # Border (accent if selected, wire if not)
+                if is_selected:
+                    Color(*accent_col[:3], 0.7)
                 else:
                     Color(*SEP)
                 card._bdr = RoundedRectangle(pos=card.pos, size=card.size,
-                                             radius=[dp(10)])
+                                             radius=[dp(12)])
+                # Inner fill
+                Color(*BG)
+                card._bg = RoundedRectangle(pos=card.pos, size=card.size,
+                                            radius=[dp(11)])
 
             def _make_upd(c):
                 def _upd(w, v):
-                    c._bg.pos  = (c.x + dp(1), c.y + dp(1))
-                    c._bg.size = (c.width - dp(2), c.height - dp(2))
+                    c._glow.pos  = (c.x - dp(2), c.y - dp(2))
+                    c._glow.size = (c.width + dp(4), c.height + dp(4))
                     c._bdr.pos  = c.pos
                     c._bdr.size = c.size
+                    c._bg.pos  = (c.x + dp(1.5), c.y + dp(1.5))
+                    c._bg.size = (c.width - dp(3), c.height - dp(3))
                 return _upd
             _upd = _make_upd(card)
             card.bind(pos=_upd, size=_upd)
 
-            # Accent dot (centred)
-            dot_wrap = Widget(size_hint=(1, None), height=dp(28))
+            # ── Accent dot with ring + glow ────────────────────────────────
+            dot_wrap = Widget(size_hint=(1, None), height=dp(34))
             with dot_wrap.canvas:
+                # Outer glow (only selected)
                 if is_selected:
-                    Color(*FG)
+                    Color(*accent_col[:3], 0.25)
+                    dot_wrap._glow = Ellipse(pos=(0, 0), size=(dp(32), dp(32)))
+                else:
+                    Color(0, 0, 0, 0)
+                    dot_wrap._glow = Ellipse(pos=(0, 0), size=(dp(32), dp(32)))
+                # Ring
+                if is_selected:
+                    Color(*FG[:3], 0.9)
                 else:
                     Color(*SEP)
-                dot_wrap._ring = Ellipse(pos=(0, 0), size=(dp(26), dp(26)))
+                dot_wrap._ring = Ellipse(pos=(0, 0), size=(dp(28), dp(28)))
+                # Dot fill
                 Color(*accent_col)
                 dot_wrap._dot = Ellipse(pos=(0, 0), size=(dp(22), dp(22)))
+                # Inner highlight (glossy effect)
+                Color(1, 1, 1, 0.15 if is_selected else 0.08)
+                dot_wrap._hl = Ellipse(pos=(0, 0), size=(dp(10), dp(10)))
 
             def _make_dot_upd(d):
                 def _upd(*_):
-                    d._ring.pos = (d.center_x - dp(13), d.center_y - dp(13))
-                    d._ring.size = (dp(26), dp(26))
+                    d._glow.pos = (d.center_x - dp(16), d.center_y - dp(16))
+                    d._glow.size = (dp(32), dp(32))
+                    d._ring.pos = (d.center_x - dp(14), d.center_y - dp(14))
+                    d._ring.size = (dp(28), dp(28))
                     d._dot.pos  = (d.center_x - dp(11), d.center_y - dp(11))
                     d._dot.size = (dp(22), dp(22))
+                    d._hl.pos   = (d.center_x - dp(5), d.center_y + dp(2))
+                    d._hl.size  = (dp(10), dp(10))
                 return _upd
             dot_wrap.bind(pos=_make_dot_upd(dot_wrap), size=_make_dot_upd(dot_wrap))
             card.add_widget(dot_wrap)
 
-            # Surname label
+            # Surname label (larger, bolder when selected)
             card.add_widget(Label(
-                text=surname, font_size=sp(8), bold=False,
-                color=FG if is_selected else FG3,
+                text=surname, font_size=sp(10 if is_selected else 9),
+                bold=is_selected,
+                color=FG if is_selected else FG2,
                 halign='center', valign='middle',
                 size_hint_y=None, height=dp(16),
             ))
 
-            # Tap handler
+            # Nickname subtitle (dim)
+            nick_text = nickname[:12] + '…' if len(nickname) > 12 else nickname
+            card.add_widget(Label(
+                text=nick_text if nickname else '',
+                font_size=sp(7), bold=False,
+                color=(*accent_col[:3], 0.6) if is_selected else (*FG3[:3], 0.5),
+                halign='center', valign='middle',
+                size_hint_y=None, height=dp(12),
+            ))
+
+            # Tap handler (invisible overlay)
             touch_btn = Button(size_hint=(None, None), size=card.size,
                                background_normal='', background_color=(0, 0, 0, 0),
                                on_press=lambda *_, n=t_name: self._pick_theme(n))
@@ -744,21 +940,39 @@ class SettingsOverlay(FloatLayout):
 
         content.add_widget(theme_grid)
 
-        # Custom hex row
+        # Custom hex row (with bordered input card)
         content.add_widget(self._section_label('CUSTOM COLOUR'))
-        hex_row = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(8))
+        hex_row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(8))
+        # Bordered text input wrapper
+        hex_wrap = BoxLayout(size_hint_x=1)
+        with hex_wrap.canvas.before:
+            Color(*SEP)
+            hex_wrap._bdr = RoundedRectangle(pos=hex_wrap.pos, size=hex_wrap.size,
+                                              radius=[dp(10)])
+            Color(*BG)
+            hex_wrap._bg = RoundedRectangle(
+                pos=(hex_wrap.x + dp(1), hex_wrap.y + dp(1)),
+                size=(hex_wrap.width - dp(2), hex_wrap.height - dp(2)),
+                radius=[dp(9)])
+        def _upd_hex_wrap(*_):
+            hex_wrap._bdr.pos = hex_wrap.pos; hex_wrap._bdr.size = hex_wrap.size
+            hex_wrap._bg.pos = (hex_wrap.x + dp(1), hex_wrap.y + dp(1))
+            hex_wrap._bg.size = (hex_wrap.width - dp(2), hex_wrap.height - dp(2))
+        hex_wrap.bind(pos=_upd_hex_wrap, size=_upd_hex_wrap)
         self._hex_input = TextInput(
-            hint_text='Hex colour  e.g. #E8007A',
+            hint_text='  #E8007A',
             text=self._cfg.get('custom_accent', ''),
             font_size=sp(12), multiline=False,
-            background_normal='', background_color=(*BG[:3], 1),
-            foreground_color=FG, hint_text_color=FG2,
+            background_normal='', background_color=(0, 0, 0, 0),
+            foreground_color=FG, hint_text_color=FG3,
             cursor_color=ACCENT[:3] + (1,),
+            padding=[dp(12), dp(10), dp(12), dp(10)],
             size_hint_x=1,
         )
-        hex_row.add_widget(self._hex_input)
+        hex_wrap.add_widget(self._hex_input)
+        hex_row.add_widget(hex_wrap)
         apply_btn = Button(text='Apply', font_size=sp(11), bold=True,
-                           size_hint=(None, 1), width=dp(70),
+                           size_hint=(None, 1), width=dp(72),
                            background_normal='', background_color=(0, 0, 0, 0),
                            color=PRI_FG, on_press=lambda *_: self._on_apply_custom())
         with apply_btn.canvas.before:
@@ -771,6 +985,17 @@ class SettingsOverlay(FloatLayout):
         )
         hex_row.add_widget(apply_btn)
         content.add_widget(hex_row)
+
+        # ── Divider ───────────────────────────────────────────────────────────
+        _div1 = Widget(size_hint_y=None, height=dp(1))
+        with _div1.canvas:
+            Color(*SEP)
+            _div1._r = RoundedRectangle(pos=_div1.pos, size=_div1.size, radius=[0])
+        _div1.bind(pos=lambda *_: setattr(_div1._r, 'pos', _div1.pos),
+                   size=lambda *_: setattr(_div1._r, 'size', _div1.size))
+        content.add_widget(Widget(size_hint_y=None, height=dp(6)))
+        content.add_widget(_div1)
+        content.add_widget(Widget(size_hint_y=None, height=dp(2)))
 
         # ── Section: Voice ────────────────────────────────────────────────────
         content.add_widget(self._section_label('VOICE'))
@@ -810,37 +1035,87 @@ class SettingsOverlay(FloatLayout):
             on_change=lambda v: self._on_slider('voice_rate', v * 400,
                                                 self._rate_lbl, ' wpm', 1)))
 
+        # ── Divider ───────────────────────────────────────────────────────────
+        _div2 = Widget(size_hint_y=None, height=dp(1))
+        with _div2.canvas:
+            Color(*SEP)
+            _div2._r = RoundedRectangle(pos=_div2.pos, size=_div2.size, radius=[0])
+        _div2.bind(pos=lambda *_: setattr(_div2._r, 'pos', _div2.pos),
+                   size=lambda *_: setattr(_div2._r, 'size', _div2.size))
+        content.add_widget(Widget(size_hint_y=None, height=dp(6)))
+        content.add_widget(_div2)
+        content.add_widget(Widget(size_hint_y=None, height=dp(2)))
+
         # ── Section: Calibration ──────────────────────────────────────────────
         content.add_widget(self._section_label('VISUAL CALIBRATION'))
-        cal_btn = Button(text='Calibrate Input Location', font_size=sp(12), bold=True,
-                         size_hint_y=None, height=dp(50),
-                         background_normal='', background_color=(0, 0, 0, 0),
-                         color=FG, on_press=lambda *_: self._on_calibrate_req())
-        with cal_btn.canvas.before:
-            Color(*CARD2)
-            cal_btn._bg = RoundedRectangle(pos=cal_btn.pos, size=cal_btn.size,
-                                           radius=[dp(12)])
-        cal_btn.bind(pos=lambda *_: setattr(cal_btn._bg, 'pos', cal_btn.pos),
-                      size=lambda *_: setattr(cal_btn._bg, 'size', cal_btn.size))
-        content.add_widget(cal_btn)
-        
-        cal_x = self._cfg.get('calibrated_x')
-        cal_status = "Not Calibrated"
-        if cal_x is not None:
-            cal_y = self._cfg.get('calibrated_y')
-            cal_status = f"Calibrated ({cal_x:.2f}, {cal_y:.2f})"
-        content.add_widget(Label(text=cal_status, font_size=sp(9), color=FG2,
-                                 size_hint_y=None, height=dp(20)))
 
-        content.add_widget(Widget(size_hint_y=None, height=dp(40))) # spacer
-    
-    def _on_calibrate_req(self):
-        self._close()
-        # Find DartVoiceLayout and start calibration
-        if self.parent and hasattr(self.parent, '_start_calibration'):
-            self.parent._start_calibration()
-        elif self.parent and self.parent.parent and hasattr(self.parent.parent, '_start_calibration'):
-             self.parent.parent._start_calibration()
+        cal_x = self._cfg.get('calibrated_x')
+        is_calibrated = cal_x is not None
+
+        # Calibration row: [status dot] [button] [status text]
+        cal_row = BoxLayout(size_hint_y=None, height=dp(56), spacing=dp(10),
+                            padding=[dp(14), dp(8), dp(14), dp(8)])
+        with cal_row.canvas.before:
+            Color(*SEP)
+            cal_row._bdr = RoundedRectangle(pos=cal_row.pos, size=cal_row.size,
+                                             radius=[dp(12)])
+            Color(*BG)
+            cal_row._bg = RoundedRectangle(
+                pos=(cal_row.x + dp(1), cal_row.y + dp(1)),
+                size=(cal_row.width - dp(2), cal_row.height - dp(2)),
+                radius=[dp(11)])
+        def _upd_cal_row(w, *_):
+            w._bdr.pos = w.pos; w._bdr.size = w.size
+            w._bg.pos = (w.x + dp(1), w.y + dp(1))
+            w._bg.size = (w.width - dp(2), w.height - dp(2))
+        cal_row.bind(pos=_upd_cal_row, size=_upd_cal_row)
+
+        # Status indicator dot
+        dot = Widget(size_hint=(None, None), size=(dp(10), dp(10)))
+        dot_col = (0.13, 0.77, 0.37, 1) if is_calibrated else FG3
+        with dot.canvas:
+            Color(*dot_col)
+            dot._el = Ellipse(pos=dot.pos, size=dot.size)
+        dot.bind(pos=lambda *_: setattr(dot._el, 'pos', dot.pos),
+                 size=lambda *_: setattr(dot._el, 'size', dot.size))
+        cal_row.add_widget(dot)
+
+        # Info column
+        cal_info = BoxLayout(orientation='vertical', size_hint_x=1, spacing=dp(1))
+        cal_info.add_widget(Label(
+            text='\u2316  Calibrate Input Location', font_size=sp(12), bold=True,
+            color=FG, halign='left', valign='middle',
+            size_hint_y=None, height=dp(20))
+        )
+        if is_calibrated:
+            cal_y = self._cfg.get('calibrated_y')
+            cal_sub = f'Set to ({cal_x:.2f}, {cal_y:.2f})'
+        else:
+            cal_sub = 'Not configured \u2014 tap to set'
+        sub = Label(text=cal_sub, font_size=sp(9), color=FG2,
+                    halign='left', valign='middle',
+                    size_hint_y=None, height=dp(16))
+        sub.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        cal_info.add_widget(sub)
+        cal_row.add_widget(cal_info)
+
+        # Transparent tap overlay
+        cal_tap = Button(size_hint=(1, 1), background_normal='',
+                         background_color=(0, 0, 0, 0),
+                         on_press=lambda *_: self._on_calibrate_req())
+        cal_row.add_widget(cal_tap)
+        content.add_widget(cal_row)
+
+        # ── Divider ───────────────────────────────────────────────────────────
+        _div3 = Widget(size_hint_y=None, height=dp(1))
+        with _div3.canvas:
+            Color(*SEP)
+            _div3._r = RoundedRectangle(pos=_div3.pos, size=_div3.size, radius=[0])
+        _div3.bind(pos=lambda *_: setattr(_div3._r, 'pos', _div3.pos),
+                   size=lambda *_: setattr(_div3._r, 'size', _div3.size))
+        content.add_widget(Widget(size_hint_y=None, height=dp(6)))
+        content.add_widget(_div3)
+        content.add_widget(Widget(size_hint_y=None, height=dp(2)))
 
         # ── Section: Gameplay ─────────────────────────────────────────────────
         content.add_widget(self._section_label('GAMEPLAY'))
@@ -864,16 +1139,33 @@ class SettingsOverlay(FloatLayout):
 
         # ── Trigger word input ────────────────────────────────────────────────
         content.add_widget(self._section_label('TRIGGER WORD'))
+        tw_wrap = BoxLayout(size_hint_y=None, height=dp(46))
+        with tw_wrap.canvas.before:
+            Color(*SEP)
+            tw_wrap._bdr = RoundedRectangle(pos=tw_wrap.pos, size=tw_wrap.size,
+                                             radius=[dp(10)])
+            Color(*BG)
+            tw_wrap._bg = RoundedRectangle(
+                pos=(tw_wrap.x + dp(1), tw_wrap.y + dp(1)),
+                size=(tw_wrap.width - dp(2), tw_wrap.height - dp(2)),
+                radius=[dp(9)])
+        def _upd_tw(*_):
+            tw_wrap._bdr.pos = tw_wrap.pos; tw_wrap._bdr.size = tw_wrap.size
+            tw_wrap._bg.pos = (tw_wrap.x + dp(1), tw_wrap.y + dp(1))
+            tw_wrap._bg.size = (tw_wrap.width - dp(2), tw_wrap.height - dp(2))
+        tw_wrap.bind(pos=_upd_tw, size=_upd_tw)
         tw_input = TextInput(
             text=self._cfg.get('trigger', 'score'),
-            hint_text='e.g. score', font_size=sp(12), multiline=False,
-            size_hint_y=None, height=dp(44),
-            background_normal='', background_color=(*BG[:3], 1),
-            foreground_color=FG, hint_text_color=FG2,
+            hint_text='  e.g. score', font_size=sp(12), multiline=False,
+            background_normal='', background_color=(0, 0, 0, 0),
+            foreground_color=FG, hint_text_color=FG3,
             cursor_color=ACCENT[:3] + (1,),
+            padding=[dp(12), dp(10), dp(12), dp(10)],
+            size_hint=(1, 1),
         )
         tw_input.bind(text=lambda inst, v: self._save('trigger', v.strip() or 'score'))
-        content.add_widget(tw_input)
+        tw_wrap.add_widget(tw_input)
+        content.add_widget(tw_wrap)
 
         # ── Cancel word input ─────────────────────────────────────────────────
         content.add_widget(self._section_label('CANCEL WORD'))
@@ -882,19 +1174,45 @@ class SettingsOverlay(FloatLayout):
                        halign='left', valign='middle')
         cw_sub.bind(size=lambda i, v: setattr(i, 'text_size', v))
         content.add_widget(cw_sub)
+        cw_wrap = BoxLayout(size_hint_y=None, height=dp(46))
+        with cw_wrap.canvas.before:
+            Color(*SEP)
+            cw_wrap._bdr = RoundedRectangle(pos=cw_wrap.pos, size=cw_wrap.size,
+                                             radius=[dp(10)])
+            Color(*BG)
+            cw_wrap._bg = RoundedRectangle(
+                pos=(cw_wrap.x + dp(1), cw_wrap.y + dp(1)),
+                size=(cw_wrap.width - dp(2), cw_wrap.height - dp(2)),
+                radius=[dp(9)])
+        def _upd_cw(*_):
+            cw_wrap._bdr.pos = cw_wrap.pos; cw_wrap._bdr.size = cw_wrap.size
+            cw_wrap._bg.pos = (cw_wrap.x + dp(1), cw_wrap.y + dp(1))
+            cw_wrap._bg.size = (cw_wrap.width - dp(2), cw_wrap.height - dp(2))
+        cw_wrap.bind(pos=_upd_cw, size=_upd_cw)
         cw_input = TextInput(
             text=self._cfg.get('cancel_word', 'wait'),
-            hint_text='e.g. wait', font_size=sp(12), multiline=False,
-            size_hint_y=None, height=dp(44),
-            background_normal='', background_color=(*BG[:3], 1),
-            foreground_color=FG, hint_text_color=FG2,
+            hint_text='  e.g. wait', font_size=sp(12), multiline=False,
+            background_normal='', background_color=(0, 0, 0, 0),
+            foreground_color=FG, hint_text_color=FG3,
             cursor_color=ACCENT[:3] + (1,),
+            padding=[dp(12), dp(10), dp(12), dp(10)],
+            size_hint=(1, 1),
         )
         cw_input.bind(text=lambda inst, v: self._save('cancel_word', v.strip() or 'wait'))
-        content.add_widget(cw_input)
+        cw_wrap.add_widget(cw_input)
+        content.add_widget(cw_wrap)
 
         # Bottom padding
-        content.add_widget(Widget(size_hint_y=None, height=dp(20)))
+        content.add_widget(Widget(size_hint_y=None, height=dp(30)))
+
+    def _on_calibrate_req(self):
+        """Close settings and trigger visual calibration mode."""
+        self._close()
+        # Find DartVoiceLayout and start calibration
+        if self.parent and hasattr(self.parent, '_start_calibration'):
+            self.parent._start_calibration()
+        elif self.parent and self.parent.parent and hasattr(self.parent.parent, '_start_calibration'):
+            self.parent.parent._start_calibration()
 
     # ── helpers ───────────────────────────────────────────────────────────────
     def _section_label(self, text):
@@ -2433,6 +2751,8 @@ class DartVoiceLayout(FloatLayout):
             self.avg_lbl.text   = f'Avg {avg:.1f}'
             self.darts_lbl.text = f'Darts {darts}'
         self._add_history(self.state.history[-1] if self.state.history else '')
+        # ── In-game score toast popup ─────────────────────────────────────
+        self._show_score_toast(score, result)
         if result == 'bust':
             self._set_status('BUST!')
             if self.cfg.get('voice_confirm', True):
@@ -2504,6 +2824,24 @@ class DartVoiceLayout(FloatLayout):
 
         self.history_box.add_widget(sep,  index=0)
         self.history_box.add_widget(row,  index=0)  # newest at top
+
+    # ── In-game score toast ───────────────────────────────────────────────────
+    def _show_score_toast(self, score, result=None):
+        """Show a floating score popup in the top stage area."""
+        if result == 'bust':
+            text = 'BUST!'
+        elif result == 'win':
+            text = 'GAME SHOT!'
+        elif score == 180:
+            text = 'M A X I M U M'
+        else:
+            text = str(score)
+        is_max = (score == 180)
+        toast = ScoreToast(text=text, is_max=is_max)
+        # Position at centre of the top stage
+        start_y = self.height * 0.55
+        center_x = self.width / 2
+        toast.show(self, center_x, start_y)
 
     # ── Status ────────────────────────────────────────────────────────────────
     def _set_status(self, msg):
