@@ -2590,7 +2590,8 @@ class DartVoiceLayout(FloatLayout):
 
         while hasattr(self, '_vosk_stop') and not self._vosk_stop.is_set():
             try:
-                n = recorder.read(chunk, len(chunk))
+                # Need exactly three arguments for Java: read(byte[] audioData, int offsetInBytes, int sizeInBytes)
+                n = recorder.read(chunk, 0, len(chunk))
                 if n <= 0:
                     continue
                 data = bytes(chunk[:n])
@@ -3052,12 +3053,14 @@ class LoadingScreen(FloatLayout):
         Clock.schedule_once(lambda dt: self.on_complete(), 0.8)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Login Screen
+# Login / OTP Screen
 # ─────────────────────────────────────────────────────────────────────────────
 class LoginScreen(FloatLayout):
     def __init__(self, on_login, **kwargs):
         super().__init__(**kwargs)
         self.on_login = on_login
+        self._mode = 'email'  # 'email' or 'otp'
+        
         with self.canvas.before:
             Color(*BG)
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
@@ -3068,14 +3071,16 @@ class LoginScreen(FloatLayout):
             text="SIGN IN", font_size=sp(14), color=ACCENT, bold=True,
             pos_hint={'center_x': 0.5, 'center_y': 0.8}
         ))
-        self.add_widget(Label(
+        
+        self.msg_lbl = Label(
             text="Sync your profile and settings", font_size=sp(16), color=FG,
             pos_hint={'center_x': 0.5, 'center_y': 0.74}
-        ))
+        )
+        self.add_widget(self.msg_lbl)
 
-        # Token input
+        # Input
         self.token_input = TextInput(
-            hint_text="Enter Registration Token",
+            hint_text="Enter Email Address",
             size_hint=(0.8, None), height=dp(50),
             pos_hint={'center_x': 0.5, 'center_y': 0.6},
             background_color=CARD, foreground_color=FG,
@@ -3084,22 +3089,22 @@ class LoginScreen(FloatLayout):
         )
         self.add_widget(self.token_input)
 
-        # Join button
-        btn = Button(
-            text="CONTINUE", size_hint=(0.8, None), height=dp(54),
+        # Send/Verify button
+        self.action_btn = Button(
+            text="SEND CODE", size_hint=(0.8, None), height=dp(54),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
             background_color=(0,0,0,0), color=FG, bold=True
         )
-        with btn.canvas.before:
+        with self.action_btn.canvas.before:
             Color(*ACCENT)
-            self.btn_bg = RoundedRectangle(size=btn.size, pos=btn.pos, radius=[dp(12)])
-        btn.bind(pos=self._update_btn, size=self._update_btn)
-        btn.bind(on_release=self._do_login)
-        self.add_widget(btn)
+            self.btn_bg = RoundedRectangle(size=self.action_btn.size, pos=self.action_btn.pos, radius=[dp(12)])
+        self.action_btn.bind(pos=self._update_btn, size=self._update_btn)
+        self.action_btn.bind(on_release=self._do_action)
+        self.add_widget(self.action_btn)
 
         # Help / Link
         self.add_widget(Label(
-            text="Don't have a token? Get one at [color=CC0B20]dartvoice.com[/color]",
+            text="Don't have an account? Start a free trial at [color=CC0B20]dartvoice.com[/color]",
             markup=True, font_size=sp(12), color=FG2,
             pos_hint={'center_x': 0.5, 'center_y': 0.4}
         ))
@@ -3112,11 +3117,61 @@ class LoginScreen(FloatLayout):
         self.btn_bg.pos = instance.pos
         self.btn_bg.size = instance.size
 
-    def _do_login(self, *args):
-        token = self.token_input.text.strip()
-        if not token: return
-        # Simple local save for MVP (async validation can be added later)
-        self.on_login(token)
+    def _do_action(self, *args):
+        text = self.token_input.text.strip()
+        if not text: return
+        
+        from kivy.clock import Clock
+        
+        if self._mode == 'email':
+            self.msg_lbl.text = "Sending OTP..."
+            self.action_btn.disabled = True
+            
+            def _send_thread():
+                from billing import send_otp
+                success, msg = send_otp(text)
+                Clock.schedule_once(lambda dt: self._on_otp_sent(success, msg, text))
+                
+            import threading
+            threading.Thread(target=_send_thread, daemon=True).start()
+            
+        elif self._mode == 'otp':
+            self.msg_lbl.text = "Verifying..."
+            self.action_btn.disabled = True
+            
+            def _verify_thread():
+                from billing import verify_otp
+                success, msg = verify_otp(self._email, text)
+                Clock.schedule_once(lambda dt: self._on_otp_verified(success, msg))
+                
+            import threading
+            threading.Thread(target=_verify_thread, daemon=True).start()
+
+    def _on_otp_sent(self, success, msg, email):
+        self.action_btn.disabled = False
+        if success:
+            self._email = email
+            self._mode = 'otp'
+            self.token_input.text = ""
+            self.token_input.hint_text = "Enter 6-Digit Code"
+            self.action_btn.text = "VERIFY"
+            self.msg_lbl.text = "Code sent to your email!"
+        else:
+            self.msg_lbl.text = f"[color=CC0B20]{msg}[/color]"
+
+    def _on_otp_verified(self, success, msg):
+        self.action_btn.disabled = False
+        if success:
+            self.msg_lbl.text = "Authenticated!"
+            self.token_input.disabled = True
+            self.action_btn.disabled = True
+            from billing import get_account
+            account = get_account()
+            token = account.get('session_token', 'temp_token') if account else 'temp_token'
+            self.on_login(token)
+        else:
+            self.token_input.text = ""
+            self.msg_lbl.text = f"[color=CC0B20]{msg}[/color]"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # App entry point
@@ -3220,7 +3275,7 @@ class DartVoiceAndroidApp(App):
             except Exception:
                 pass
                 
-            if self._active:
+            if hasattr(self, '_main') and self._main and getattr(self._main, '_active', False):
                 self._show_floating_overlay()
         return True
 
