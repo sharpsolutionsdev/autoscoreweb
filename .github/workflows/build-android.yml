@@ -32,7 +32,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y \
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
             git zip unzip wget \
             openjdk-17-jdk \
             python3-pip python3-venv python3-setuptools \
