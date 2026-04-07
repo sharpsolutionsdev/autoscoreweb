@@ -18,8 +18,7 @@ source.include_patterns = vosk-model-small-en-us/*,vosk-model-small-en-us/am/*,v
 source.exclude_dirs  = bin,build,dist,__pycache__,.buildozer,.git,billing_server
 source.exclude_patterns = dartvoice_v2.py,DartVoice.spec,gen_icon.py,p4a_hook.py
 
-# Background service (service/main.py runs as a separate Android process)
-services = DartVoice:./service/main.py:foreground
+# Background service removed for in-process threaded listener
 
 # Requirements
 # vosk — the p4a recipe downloads libvosk.so automatically for arm64

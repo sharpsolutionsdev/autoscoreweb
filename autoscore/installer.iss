@@ -33,6 +33,7 @@ DisableProgramGroupPage=yes
 ; Output
 OutputDir=installer_output
 OutputBaseFilename=DartVoice_Setup_v{#AppVersion}
+SetupIconFile=dartvoice.ico
 
 ; Appearance
 WizardStyle=modern

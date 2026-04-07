@@ -103,7 +103,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,          # swap in 'dartvoice.ico' when you have one
+    icon='dartvoice.ico',     # swap in 'dartvoice.ico' when you have one
     version=None,
     # Application manifest — requests DPI awareness so text isn't blurry
     manifest='''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

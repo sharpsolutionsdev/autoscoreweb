@@ -2477,11 +2477,22 @@ class DartVoiceLayout(FloatLayout):
                     )
                     self._set_status('Requesting mic permission…')
                     return
+                from jnius import autoclass
+                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                Settings = autoclass('android.provider.Settings')
+                if not Settings.canDrawOverlays(PythonActivity.mActivity):
+                    Intent = autoclass('android.content.Intent')
+                    Uri = autoclass('android.net.Uri')
+                    intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + PythonActivity.mActivity.getPackageName()))
+                    PythonActivity.mActivity.startActivityForResult(intent, 5469)
+                    self._set_status('Please grant overlay permission and try again.')
+                    return
             except Exception:
                 pass
-            # Use the background service; it writes to dv_scores.json
-            _start_foreground_service()
-            self._poll_ev = Clock.schedule_interval(self._poll_service, 0.5)
+            import threading
+            self._vosk_stop = threading.Event()
+            self._vosk_thread = threading.Thread(target=self._vosk_loop, daemon=True)
+            self._vosk_thread.start()
         else:
             model_path = self._find_model()
             if not model_path:
@@ -2509,10 +2520,8 @@ class DartVoiceLayout(FloatLayout):
 
     def _stop_listening(self):
         if ANDROID:
-            _stop_foreground_service()
-            if hasattr(self, '_poll_ev') and self._poll_ev:
-                self._poll_ev.cancel()
-                self._poll_ev = None
+            if hasattr(self, '_vosk_stop') and self._vosk_stop:
+                self._vosk_stop.set()
         else:
             if self._listener:
                 self._listener.stop()
@@ -2525,68 +2534,130 @@ class DartVoiceLayout(FloatLayout):
         self._set_toggle_style(active=False)
         self._set_status('Stopped')
 
-    # ── Service score polling (Android only) ──────────────────────────────────
-    def _poll_service(self, dt):
-        """Read scores written by service/main.py and apply them to game state."""
-        if not ANDROID:
+    # ── threaded vosk listener ────────────────────────────────────────────────
+    def _vosk_loop(self):
+        from kivy.clock import mainthread
+        import json
+
+        @mainthread
+        def _post_status(msg):
+            self._set_status(msg)
+
+        @mainthread
+        def _handle_result(text):
+            self._process_text(text)
+
+        _post_status('Loading model…')
+        model_path = self._find_model()
+        if not model_path:
+            _post_status('Model not found')
             return
+
         try:
-            from android.storage import app_storage_path  # type: ignore
-            score_file  = os.path.join(app_storage_path(), 'dv_scores.json')
-            status_file = os.path.join(app_storage_path(), 'dv_status.txt')
+            from vosk_android import Model, KaldiRecognizer
+            model = Model(model_path)
+            rec   = KaldiRecognizer(model, 16000)
+        except Exception as e:
+            _post_status(f'Vosk error: {e}')
+            return
 
-            # Status
-            if os.path.exists(status_file):
-                with open(status_file) as f:
-                    msg = f.read().strip()
-                if msg:
-                    self.status_lbl.text = msg
-                    open(status_file, 'w').close()   # consume
+        try:
+            from jnius import autoclass  # type: ignore
+            AudioRecord   = autoclass('android.media.AudioRecord')
+            AudioFormat   = autoclass('android.media.AudioFormat')
+            MediaRecorder = autoclass('android.media.MediaRecorder$AudioSource')
+        except Exception as e:
+            _post_status(f'Audio init error: {e}')
+            return
 
-            # Scores
-            if not os.path.exists(score_file):
-                return
-            with open(score_file) as f:
-                events = json.load(f)
-            if not events:
-                return
+        RATE    = 16000
+        CHANNEL = AudioFormat.CHANNEL_IN_MONO
+        FORMAT  = AudioFormat.ENCODING_PCM_16BIT
+        BUF     = max(AudioRecord.getMinBufferSize(RATE, CHANNEL, FORMAT), 8000)
 
-            # Consume all pending events
-            open(score_file, 'w').write('[]')
-            for ev_wrap in events:
-                ev = ev_wrap.get('data', ev_wrap)
-                # Action events (cancel, new_leg, dart_submit)
-                action = ev.get('action')
-                if action == 'cancel':
-                    self._on_cancel(); continue
-                if action == 'new_leg':
-                    self._on_new_leg(); continue
-                if action == 'dart_submit':
-                    self._on_score(('dart_submit',)); continue
-                
-                # If we have calibrated coordinates, we would "simulate" a click here.
-                # For MVP, we at least update the internal scoreboard which is already done below.
-                # In future, this could trigger an Accessibility Service click.
-                if self.cfg.get('calibrated_x') is not None:
-                    # Logic to simulate click via ADB if dev mode used, or just log
-                    pass
+        try:
+            recorder = AudioRecord(
+                MediaRecorder.VOICE_RECOGNITION,
+                RATE, CHANNEL, FORMAT, BUF * 4,
+            )
+            recorder.startRecording()
+        except Exception as e:
+            _post_status(f'Mic error: {e}')
+            return
 
-                # Cricket
-                if ev.get('mode') == 'Cricket':
-                    darts = [tuple(d) for d in ev.get('darts', [])]
-                    if darts:
-                        self._apply_cricket(darts)
-                # X01 per-dart
-                elif ev.get('mode') == 'X01' and 'dart' in ev:
-                    dart_val, dart_disp = ev['dart']
-                    self._on_score(('dart', dart_val, dart_disp))
-                # X01 standard
-                elif ev.get('mode') == 'X01':
-                    score = ev.get('score')
-                    if score is not None:
-                        self._apply_x01(score)
+        _post_status('Listening')
+        chunk = bytearray(4096)
+
+        while hasattr(self, '_vosk_stop') and not self._vosk_stop.is_set():
+            try:
+                n = recorder.read(chunk, len(chunk))
+                if n <= 0:
+                    continue
+                data = bytes(chunk[:n])
+
+                if rec.AcceptWaveform(data):
+                    text = json.loads(rec.Result()).get('text', '').lower()
+                    if text: _handle_result(text)
+                else:
+                    partial = json.loads(rec.PartialResult()).get('partial', '')
+                    trigger = self.cfg.get('trigger', 'score').lower()
+                    if self.cfg.get('require_trigger', True) and partial and trigger in partial:
+                        _post_status('Trigger heard…')
+            except Exception:
+                continue
+
+        try:
+            recorder.stop()
+            recorder.release()
         except Exception:
             pass
+        _post_status('Stopped')
+
+    def _process_text(self, text):
+        text = text.lower().strip()
+        cfg = self.cfg
+
+        # Cancel word (no trigger required)
+        cancel = cfg.get('cancel_word', 'wait').lower().strip()
+        if cancel and text == cancel:
+            self._on_cancel()
+            return
+
+        # New leg / reset (no trigger required)
+        if any(p in text for p in ('new leg', 'new game', 'next leg', 'reset leg',
+                                   'reset game', 'restart leg')):
+            self._on_new_leg()
+            return
+
+        trigger = cfg.get('trigger', 'score').lower()
+        require = cfg.get('require_trigger', True)
+        if require:
+            if trigger not in text:
+                return
+            after = text.split(trigger, 1)[-1].strip()
+        else:
+            after = text.replace(trigger, '').strip()
+
+        mode = cfg.get('game_mode', 'X01')
+
+        # "enter" command — submit accumulated darts early
+        if after == 'enter' or text.strip() == 'enter':
+            if cfg.get('per_dart_mode', False):
+                self._on_score(('dart_submit',))
+            return
+
+        if mode == 'Cricket':
+            darts = parse_cricket_darts(after)
+            if darts:
+                self._on_score(darts)
+        elif cfg.get('per_dart_mode', False):
+            dart = parse_single_dart(after)
+            if dart is not None:
+                self._on_score(('dart', dart[0], dart[1]))
+        else:
+            score = parse_score(after)
+            if score is not None and 0 <= score <= 180:
+                self._on_score(score)
 
     def _start_calibration(self):
         if any(isinstance(c, CalibrationOverlay) for c in self.children):
@@ -2882,35 +2953,7 @@ class DartVoiceLayout(FloatLayout):
         self._set_status('Ready')
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Android foreground service helper
-# ─────────────────────────────────────────────────────────────────────────────
-_android_service = None   # global reference so we can stop it later
 
-def _start_foreground_service():
-    """
-    Launch the python-for-android background service (service/main.py).
-    The service writes scores to dv_scores.json; the UI polls that file.
-    """
-    global _android_service
-    if not ANDROID:
-        return
-    try:
-        from android import AndroidService  # type: ignore
-        _android_service = AndroidService('DartVoice', 'Listening for scores…')
-        _android_service.start('started')
-    except Exception:
-        pass
-
-def _stop_foreground_service():
-    global _android_service
-    if not ANDROID or _android_service is None:
-        return
-    try:
-        _android_service.stop()
-    except Exception:
-        pass
-    _android_service = None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Discord-style Loading Screen
@@ -3165,6 +3208,7 @@ class DartVoiceAndroidApp(App):
     def on_pause(self):
         if ANDROID:
             try:
+                # Fallback to PiP mode where available
                 from jnius import autoclass  # type: ignore
                 Build = autoclass('android.os.Build$VERSION')
                 if Build.SDK_INT >= 26:
@@ -3175,11 +3219,83 @@ class DartVoiceAndroidApp(App):
                     PythonActivity.mActivity.enterPictureInPictureMode(params)
             except Exception:
                 pass
+                
+            if self._active:
+                self._show_floating_overlay()
         return True
 
     def on_resume(self):
-        # PiP exit is handled by Window.size binding in DartVoiceLayout
+        if ANDROID:
+            self._hide_floating_overlay()
         pass
+
+    def _show_floating_overlay(self):
+        try:
+            from jnius import autoclass, PythonJavaClass, java_method
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            Context = autoclass('android.content.Context')
+            WindowManager = autoclass('android.view.WindowManager')
+            LayoutParams = autoclass('android.view.WindowManager$LayoutParams')
+            PixelFormat = autoclass('android.graphics.PixelFormat')
+            Button = autoclass('android.widget.Button')
+            Color = autoclass('android.graphics.Color')
+            
+            # Create our own listener class using PythonJavaClass
+            class OverlayClickListener(PythonJavaClass):
+                __javainterfaces__ = ['android/view/View$OnClickListener']
+                __javacontext__ = 'app'
+                
+                @java_method('(Landroid/view/View;)V')
+                def onClick(self, view):
+                    try:
+                        Intent = autoclass('android.content.Intent')
+                        ctx = PythonActivity.mActivity
+                        intent = Intent(ctx, PythonActivity)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK)
+                        ctx.startActivity(intent)
+                    except Exception as e:
+                        print("Overlay click err:", e)
+
+            if not hasattr(self, '_wm'):
+                self._wm = PythonActivity.mActivity.getSystemService(Context.WINDOW_SERVICE)
+                
+            self._overlay_btn = Button(PythonActivity.mActivity)
+            self._overlay_btn.setText("DartVoice: Listening")
+            self._overlay_btn.setBackgroundColor(Color.parseColor("#CC0B20"))
+            self._overlay_btn.setTextColor(Color.WHITE)
+            
+            # Retain a reference to prevent garbage collection
+            self._overlay_listener = OverlayClickListener()
+            self._overlay_btn.setOnClickListener(self._overlay_listener)
+
+            TYPE_APPLICATION_OVERLAY = 2038
+            FLAG_NOT_FOCUSABLE = 8
+            FLAG_NOT_TOUCH_MODAL = 32
+
+            params = LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT,
+                TYPE_APPLICATION_OVERLAY,
+                FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+            )
+            # Gravity.TOP | Gravity.LEFT
+            params.gravity = 51 
+            params.x = 0
+            params.y = 100
+
+            self._wm.addView(self._overlay_btn, params)
+        except Exception as e:
+            print("Failed to show overlay:", e)
+
+    def _hide_floating_overlay(self):
+        try:
+            if hasattr(self, '_wm') and hasattr(self, '_overlay_btn') and self._overlay_btn:
+                self._wm.removeView(self._overlay_btn)
+                self._overlay_btn = None
+                self._overlay_listener = None
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':
