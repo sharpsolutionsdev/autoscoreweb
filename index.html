@@ -1141,23 +1141,55 @@
                     </h1>
 
                     <p class="text-muted text-base sm:text-lg max-w-xl mb-8 fade-up-3 leading-relaxed">
-                        DartVoice listens to your voice and automatically tracks scores, calculates checkouts, and
-                        manages your entire game — hands&#8209;free.
+                        DartVoice listens to your voice, auto-tracks every throw, recalculates live checkouts, and lets
+                        you tailor trigger words and scoring style to your setup — fully hands&#8209;free.
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-3 fade-up-4 mb-5">
                         <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
                             class="btn-brand px-7 py-3.5 rounded-xl font-semibold text-base text-white text-center relative z-10">
-                            Start Free Trial
+                            Start 7-Day Free Trial
                         </a>
                         <a href="#how-it-works"
                             class="btn-outline px-7 py-3.5 rounded-xl font-semibold text-base text-chalk text-center">
-                            See How It Works
+                            Watch 10-min demo
                         </a>
                     </div>
 
                     <p class="text-muted-2 text-xs fade-up-5">10-min demo &middot; then 7-day free trial &middot;
                         &pound;6.99/mo after &middot; Cancel anytime</p>
+
+                    <div class="fade-up-5 mt-4 flex flex-wrap items-center gap-2.5">
+                        <span class="text-[10px] font-bold tracking-widest text-muted uppercase">Platforms</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold"
+                            style="background:#111114;border-color:#252530;color:#F0F0F5;">
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="#60a5fa">
+                                <path
+                                    d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.851" />
+                            </svg>
+                            Windows
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold"
+                            style="background:#111114;border-color:#252530;color:#F0F0F5;">
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="#4ade80">
+                                <path
+                                    d="M17.523 2.362l1.635-2.832a.341.341 0 00-.59-.34L16.9 2.072a10.16 10.16 0 00-4.9-1.205 10.16 10.16 0 00-4.9 1.205L5.432-.81a.341.341 0 00-.59.34L6.477 2.362A9.608 9.608 0 001.59 10.2h20.818a9.608 9.608 0 00-4.885-7.838zM7.296 7.2a1.08 1.08 0 110-2.16 1.08 1.08 0 010 2.16zm9.408 0a1.08 1.08 0 110-2.16 1.08 1.08 0 010 2.16zM1.44 11.4a1.44 1.44 0 00-1.44 1.44v7.2a1.44 1.44 0 002.88 0v-7.2a1.44 1.44 0 00-1.44-1.44zm2.16.72v9.36A2.16 2.16 0 005.76 23.64h1.08V17.4a1.08 1.08 0 012.16 0v6.24h6V17.4a1.08 1.08 0 012.16 0v6.24h1.08a2.16 2.16 0 002.16-2.16v-9.36zm18.96-.72a1.44 1.44 0 00-1.44 1.44v7.2a1.44 1.44 0 002.88 0v-7.2a1.44 1.44 0 00-1.44-1.44z" />
+                            </svg>
+                            Android
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold"
+                            style="background:#111114;border-color:#252530;color:#F0F0F5;">
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="#f59e0b">
+                                <circle cx="12" cy="12" r="4.5" fill="none" stroke="#f59e0b" stroke-width="2" />
+                                <path
+                                    d="M12 7.5A4.5 4.5 0 007.5 12H1.5A10.5 10.5 0 0112 1.5a10.47 10.47 0 018.544 4.404L17.022 11.1A4.49 4.49 0 0012 7.5z" />
+                                <path
+                                    d="M16.5 12a4.5 4.5 0 01-2.25 3.897l-3.522 6.1A10.5 10.5 0 011.5 12h6A4.5 4.5 0 0012 16.5l4.5-4.5z"
+                                    opacity=".7" />
+                            </svg>
+                            Chrome
+                        </span>
+                    </div>
 
                     <!-- Works With strip -->
                     <div class="fade-up-5 mt-6 flex flex-wrap items-center gap-2">
@@ -1186,8 +1218,8 @@
                     <!-- Stats strip -->
                     <div class="mt-10 pt-8 border-t border-wire/60 grid grid-cols-3 gap-6 fade-up-5">
                         <div>
-                            <p class="display text-3xl not-italic text-chalk">501</p>
-                            <p class="text-muted text-xs mt-0.5">Game modes</p>
+                            <p class="display text-3xl not-italic text-chalk">3</p>
+                            <p class="text-muted text-xs mt-0.5">Scoring modes</p>
                         </div>
                         <div>
                             <p class="display text-3xl not-italic text-chalk">8</p>
@@ -1835,12 +1867,12 @@
                         <p class="text-brand text-[10px] font-bold tracking-[0.25em] uppercase">Scoring Styles</p>
                     </div>
                     <h3 class="display text-xl sm:text-2xl text-chalk mb-3">YOUR THROW, YOUR RULES</h3>
-                    <p class="text-muted text-sm leading-relaxed mb-5">Call the visit total yourself, or let the app do
-                        the math. Two modes, one tap to switch.</p>
-                    <!-- Visual: Two mini mode cards -->
-                    <div class="grid grid-cols-2 gap-3">
+                    <p class="text-muted text-sm leading-relaxed mb-5">Pick the format that fits your match flow: Per
+                        Dart, 3-Dart totals, or Cricket calls. Switch any time without breaking the leg.</p>
+                    <!-- Visual: mode cards -->
+                    <div class="grid sm:grid-cols-3 gap-3">
                         <div class="demo-screen p-4 text-center float-y">
-                            <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">Per Visit</span>
+                            <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">3-Dart Mode</span>
                             <div class="display text-3xl neon-score mt-2" style="color:#CC0B20;">140</div>
                             <div class="text-[10px] text-muted mt-2">"One-forty!"</div>
                         </div>
@@ -1857,6 +1889,18 @@
                                     style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">T20</span>
                             </div>
                             <div class="text-[10px] text-muted mt-2">= 180</div>
+                        </div>
+                        <div class="demo-screen p-4 text-center float-y" style="animation-delay: 0.9s;">
+                            <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">Cricket</span>
+                            <div class="flex justify-center gap-1.5 mt-2">
+                                <span class="display text-base"
+                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">20</span>
+                                <span class="display text-base"
+                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">20</span>
+                                <span class="display text-base"
+                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">Bull</span>
+                            </div>
+                            <div class="text-[10px] text-muted mt-2">Marks auto-tracked</div>
                         </div>
                     </div>
                 </div>
@@ -2210,6 +2254,87 @@
                 </div>
             </div>
 
+        </div>
+    </section>
+
+    <!-- ━━━ SCORING MODES & LIVE FLOW ━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="scoring-modes" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="text-center mb-14 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Mode Breakdown</p>
+                <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-chalk mb-5">THREE MODES,<br>ONE LIVE
+                    FLOW</h2>
+                <p class="text-muted max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">Every mode includes live
+                    checkout logic, trigger controls, and ongoing improvements through regular updates.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-4 mb-4">
+                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:#CC0B20;">Per Dart
+                        Mode</p>
+                    <h3 class="display text-2xl text-chalk mb-3">SHOT BY SHOT</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Call each dart individually and get instant recalcs
+                        after every throw for the next best finish route.</p>
+                    <ul class="space-y-2 text-xs text-muted">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Live
+                            checkout refresh every dart</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Best for
+                            precision and practice legs</li>
+                    </ul>
+                </div>
+                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal" style="border-color: rgba(204,11,32,0.22);">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:#CC0B20;">3-Dart
+                        Mode</p>
+                    <h3 class="display text-2xl text-chalk mb-3">FAST VISIT SCORING</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Call your full visit total and keep play moving.
+                        DartVoice validates and applies totals in one action.</p>
+                    <ul class="space-y-2 text-xs text-muted">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Optimized
+                            for league pace</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Live
+                            checkout always visible between visits</li>
+                    </ul>
+                </div>
+                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:#CC0B20;">Cricket
+                        Mode</p>
+                    <h3 class="display text-2xl text-chalk mb-3">MARKS, NOT MATH</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Call numbers naturally and DartVoice tracks marks,
+                        closes targets, and updates pressure instantly.</p>
+                    <ul class="space-y-2 text-xs text-muted">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Supports
+                            common spoken Cricket calls</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Great
+                            for doubles and team games</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bento-card rounded-2xl p-6 sm:p-8 reveal">
+                <div class="grid md:grid-cols-[1fr_auto] gap-6 items-center">
+                    <div>
+                        <h3 class="display text-2xl sm:text-3xl text-chalk mb-3">CUSTOMISE. PLAY. IMPROVE.</h3>
+                        <p class="text-muted text-sm sm:text-base leading-relaxed mb-4">Set a custom trigger phrase (or run
+                            always-on), tailor your UI style, and stay current with constant support plus feature drops in
+                            every update.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Custom
+                                Trigger</span>
+                            <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Live
+                                Checkout Engine</span>
+                            <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Support
+                                & Updates</span>
+                        </div>
+                    </div>
+                    <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
+                        class="btn-brand px-7 py-3.5 rounded-xl font-semibold text-base text-white text-center whitespace-nowrap">
+                        Start Free Trial Now
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -2962,15 +3087,21 @@
                 READY TO<br><span class="text-brand"
                     style="text-shadow: 0 0 40px rgba(204,11,32,0.5), 0 0 80px rgba(204,11,32,0.2)">STEP UP?</span>
             </h2>
-            <p class="text-muted text-base sm:text-lg mb-10 max-w-lg mx-auto leading-relaxed relative">
-                Join the players who've ditched the chalkboard. Start your free trial and see what hands-free scoring
-                feels like.
+            <p class="text-muted text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed relative">
+                Launch with all three scoring modes, live checkouts, custom triggers, and continuous updates — built for
+                real match flow.
             </p>
-            <a href="dartvoice-dashboard.html"
-                class="btn-brand inline-block px-10 py-4 rounded-xl font-semibold text-base text-white relative z-10"
-                style="box-shadow: 0 0 40px rgba(204,11,32,0.3), 0 0 80px rgba(204,11,32,0.1);">
-                Start Your Free Trial
-            </a>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center relative z-10">
+                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" onclick="dvCheckout(event)"
+                    class="btn-brand inline-block px-10 py-4 rounded-xl font-semibold text-base text-white text-center"
+                    style="box-shadow: 0 0 40px rgba(204,11,32,0.3), 0 0 80px rgba(204,11,32,0.1);">
+                    Start 7-Day Free Trial
+                </a>
+                <a href="dartvoice-dashboard.html"
+                    class="btn-outline inline-block px-10 py-4 rounded-xl font-semibold text-base text-chalk text-center">
+                    Open Dashboard
+                </a>
+            </div>
             <p class="text-muted-2 text-xs mt-4 relative">10 min demo &middot; 7 days free &middot; &pound;6.99/mo after
                 &middot; Cancel anytime</p>
 
