@@ -496,8 +496,11 @@ class AndroidBrowser(BaseBrowser):
 
             runnable = JSRunnable(self.webview, script)
             PythonActivity.mActivity.runOnUiThread(runnable)
+        except ImportError as e:
+            print(f"AndroidBrowser eval_js unavailable: {e}")
         except Exception as e:
-            print(f"AndroidBrowser eval_js error: {e}")
+            preview = script.replace('\n', ' ')[:120]
+            print(f"AndroidBrowser eval_js error: {e}; script={preview!r}")
 class IOSBrowser(BaseBrowser):
     def __init__(self, webview_instance):
         self.webview = webview_instance
