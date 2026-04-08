@@ -1925,7 +1925,7 @@ class DartVoiceLayout(FloatLayout):
 
         # Score surface with ambient glow
         score_wrap = FloatLayout(size_hint=(1, 1))
-        score_glow_center_y = 0.49  # slight offset to create a soft text-shadow effect
+        glow_label_center_y = 0.49  # slight offset to create a soft text-shadow effect
         score_card = Widget(size_hint=(0.94, 0.94), pos_hint={'center_x': 0.5, 'center_y': 0.5})
         with score_card.canvas.before:
             Color(*ACCENT[:3], 0.05)
@@ -1961,7 +1961,7 @@ class DartVoiceLayout(FloatLayout):
         self._glow_lbl = Label(
             text=str(self.state.remaining), font_size=sp(76), bold=True,
             color=(0, 0, 0, 0), halign='center', valign='middle',
-            size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': score_glow_center_y},
+            size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': glow_label_center_y},
         )
         _bind_text_size(self._glow_lbl)
         score_wrap.add_widget(self._glow_lbl)
@@ -3144,7 +3144,7 @@ class LoadingScreen(FloatLayout):
         self.add_widget(self.hero_card)
 
         self.badge_lbl = Label(
-            text='VOICE SCORING | PREMIUM',
+            text='VOICE SCORING — PREMIUM',
             font_size=sp(10), bold=True, color=ACCENT,
             pos_hint={'center_x': 0.5, 'center_y': 0.66},
             halign='center', valign='middle',
@@ -3393,7 +3393,7 @@ class LoginScreen(FloatLayout):
         self.add_widget(self.action_btn)
 
         self.add_widget(Label(
-            text="Passwordless sign-in | Secure code delivery | No saved passwords",
+            text="Passwordless sign-in — Secure code delivery — No saved passwords",
             font_size=sp(11), color=FG3,
             pos_hint={'center_x': 0.5, 'center_y': 0.24},
             size_hint=(0.82, None), height=dp(18),
