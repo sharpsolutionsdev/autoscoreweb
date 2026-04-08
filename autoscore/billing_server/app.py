@@ -94,7 +94,48 @@ def _get_customer_email(customer_id: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route('/health')
 def health():
-    return jsonify({'ok': True})
+    """
+    Deep health check — verifies Stripe API access and Supabase DB connectivity.
+    Returns HTTP 200 with {'ok': True, 'checks': {...}} on success,
+    or HTTP 503 with details of what failed.
+    """
+    checks = {}
+    ok = True
+
+    # ── 1. Stripe connectivity ────────────────────────────────────────────────
+    try:
+        stripe.Account.retrieve()
+        checks['stripe'] = 'ok'
+    except stripe.AuthenticationError as e:
+        checks['stripe'] = f'auth_error: {e}'
+        ok = False
+    except Exception as e:
+        checks['stripe'] = f'error: {e}'
+        ok = False
+
+    # ── 2. Supabase DB connectivity (read-only — service key required) ────────
+    try:
+        # A lightweight count query — verifies the DB is reachable and
+        # the service key has access to the subscriptions table.
+        _sb.table('dartvoice_subscriptions').select('id', count='exact').limit(0).execute()
+        checks['supabase'] = 'ok'
+    except Exception as e:
+        checks['supabase'] = f'error: {e}'
+        ok = False
+
+    # ── 3. Stripe price configured ───────────────────────────────────────────
+    try:
+        stripe.Price.retrieve(_PRICE_ID)
+        checks['stripe_price'] = 'ok'
+    except stripe.InvalidRequestError:
+        checks['stripe_price'] = f'price_not_found: {_PRICE_ID}'
+        ok = False
+    except Exception as e:
+        checks['stripe_price'] = f'error: {e}'
+        ok = False
+
+    status_code = 200 if ok else 503
+    return jsonify({'ok': ok, 'checks': checks}), status_code
 
 
 @app.route('/checkout')
