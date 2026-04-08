@@ -547,6 +547,10 @@ def _sep_line(widget):
     widget.bind(pos=lambda *_: setattr(widget._sep_rect, 'pos', widget.pos),
                 size=lambda *a: setattr(widget._sep_rect, 'size', (a[1][0], dp(1))))
 
+def _bind_text_size(label):
+    label.bind(size=lambda i, v: setattr(i, 'text_size', v))
+    return label
+
 def _accent_btn(text, on_press):
     btn = Button(
         text=text, font_size=sp(13), bold=True,
@@ -1906,7 +1910,7 @@ class DartVoiceLayout(FloatLayout):
         self.maximum_lbl = Label(text='', font_size=sp(9), bold=True, color=ACCENT,
                                   halign='center', valign='middle',
                                   size_hint=(1, None), height=dp(18))
-        self.maximum_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.maximum_lbl)
         top_stage.add_widget(self.maximum_lbl)
 
         # Score area label (REMAINING or LAST SCORE depending on mode)
@@ -1915,7 +1919,7 @@ class DartVoiceLayout(FloatLayout):
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(20),
         )
-        self._score_area_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self._score_area_lbl)
         top_stage.add_widget(self._score_area_lbl)
 
         # Score surface with ambient glow
@@ -1957,7 +1961,7 @@ class DartVoiceLayout(FloatLayout):
             color=(0, 0, 0, 0), halign='center', valign='middle',
             size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.49},
         )
-        self._glow_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self._glow_lbl)
         score_wrap.add_widget(self._glow_lbl)
 
         self.score_lbl = Label(
@@ -1965,7 +1969,7 @@ class DartVoiceLayout(FloatLayout):
             color=FG, halign='center', valign='middle',
             size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5},
         )
-        self.score_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.score_lbl)
         self.score_lbl.bind(
             pos=lambda *_: self._redraw_score_glow(),
             size=lambda *_: self._redraw_score_glow(),
@@ -1981,7 +1985,7 @@ class DartVoiceLayout(FloatLayout):
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(32), opacity=0,
         )
-        self.dart_row_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.dart_row_lbl)
         top_stage.add_widget(self.dart_row_lbl)
 
         # Live checkout hint
@@ -1990,7 +1994,7 @@ class DartVoiceLayout(FloatLayout):
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(24),
         )
-        self.checkout_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.checkout_lbl)
         top_stage.add_widget(self.checkout_lbl)
 
         self.status_lbl = Label(
@@ -1998,7 +2002,7 @@ class DartVoiceLayout(FloatLayout):
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(30),
         )
-        self.status_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.status_lbl)
         with self.status_lbl.canvas.before:
             Color(*ACCENT[:3], 0.06)
             self.status_lbl._glow = RoundedRectangle(pos=self.status_lbl.pos, size=(0, 0), radius=[dp(14)])
@@ -2029,8 +2033,8 @@ class DartVoiceLayout(FloatLayout):
         top_stage.add_widget(self.status_lbl)
         self._top_stage = top_stage
         self.add_widget(top_stage)
-        Clock.schedule_once(lambda *_: self._redraw_score_glow(), 0)
-        Clock.schedule_once(lambda *_: _upd_status_pill(), 0)
+        Clock.schedule_once(self._redraw_score_glow, 0)
+        Clock.schedule_once(_upd_status_pill, 0)
 
         # ── Cricket grid (hidden initially, overlays top stage) ───────────
         self.cricket_card = BoxLayout(
@@ -3138,13 +3142,13 @@ class LoadingScreen(FloatLayout):
         self.add_widget(self.hero_card)
 
         self.badge_lbl = Label(
-            text='VOICE SCORING • PREMIUM',
+            text='VOICE SCORING | PREMIUM',
             font_size=sp(10), bold=True, color=ACCENT,
             pos_hint={'center_x': 0.5, 'center_y': 0.66},
             halign='center', valign='middle',
             size_hint=(0.8, None), height=dp(20),
         )
-        self.badge_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.badge_lbl)
         self.add_widget(self.badge_lbl)
 
         # App name (above logo)
@@ -3154,7 +3158,7 @@ class LoadingScreen(FloatLayout):
             halign='center', valign='middle',
             size_hint=(0.8, None), height=dp(32),
         )
-        self.title_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.title_lbl)
         self.add_widget(self.title_lbl)
 
         self.subtitle_lbl = Label(
@@ -3164,7 +3168,7 @@ class LoadingScreen(FloatLayout):
             halign='center', valign='middle',
             size_hint=(0.76, None), height=dp(22),
         )
-        self.subtitle_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.subtitle_lbl)
         self.add_widget(self.subtitle_lbl)
 
         # Centered logo
@@ -3180,7 +3184,7 @@ class LoadingScreen(FloatLayout):
             halign='center', valign='middle',
             size_hint=(0.76, None), height=dp(34),
         )
-        self.msg.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.msg)
         with self.msg.canvas.before:
             Color(*SEP)
             self.msg._bdr = RoundedRectangle(pos=self.msg.pos, size=(0, 0), radius=[dp(14)])
@@ -3191,13 +3195,13 @@ class LoadingScreen(FloatLayout):
         self.add_widget(self.msg)
 
         self.footer_lbl = Label(
-            text='Preparing your session and secure account checks',
+            text='Preparing your session and performing secure account checks',
             font_size=sp(11), color=FG3,
             pos_hint={'center_x': 0.5, 'center_y': 0.21},
             halign='center', valign='middle',
             size_hint=(0.8, None), height=dp(20),
         )
-        self.footer_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.footer_lbl)
         self.add_widget(self.footer_lbl)
 
         # Pulsating animation
@@ -3331,7 +3335,7 @@ class LoginScreen(FloatLayout):
             size_hint=(0.8, None), height=dp(28),
             halign='center', valign='middle',
         )
-        self.title_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.title_lbl)
         self.add_widget(self.title_lbl)
 
         self.msg_lbl = Label(
@@ -3341,7 +3345,7 @@ class LoginScreen(FloatLayout):
             size_hint=(0.78, None), height=dp(36),
             halign='center', valign='middle',
         )
-        self.msg_lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
+        _bind_text_size(self.msg_lbl)
         self.add_widget(self.msg_lbl)
 
         # Input
@@ -3387,7 +3391,7 @@ class LoginScreen(FloatLayout):
         self.add_widget(self.action_btn)
 
         self.add_widget(Label(
-            text="Passwordless sign-in • Secure code delivery • No saved passwords",
+            text="Passwordless sign-in | Secure code delivery | No saved passwords",
             font_size=sp(11), color=FG3,
             pos_hint={'center_x': 0.5, 'center_y': 0.24},
             size_hint=(0.82, None), height=dp(18),
