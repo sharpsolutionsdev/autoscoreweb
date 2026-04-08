@@ -1,3 +1,4 @@
+import logging
 import os, sys, json, re, threading, time
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -5,6 +6,7 @@ import os, sys, json, re, threading, time
 # ─────────────────────────────────────────────────────────────────────────────
 ANDROID = sys.platform == 'linux' and 'ANDROID_ARGUMENT' in os.environ
 IOS = sys.platform == 'ios' or sys.platform == 'darwin'
+logger = logging.getLogger(__name__)
 
 
 if ANDROID:
@@ -497,10 +499,10 @@ class AndroidBrowser(BaseBrowser):
             runnable = JSRunnable(self.webview, script)
             PythonActivity.mActivity.runOnUiThread(runnable)
         except ImportError as e:
-            print(f"AndroidBrowser eval_js unavailable: {e}")
+            logger.warning("AndroidBrowser eval_js unavailable: %s", e)
         except Exception as e:
             preview = script.replace('\n', ' ')[:120]
-            print(f"AndroidBrowser eval_js error: {e}; script={preview!r}")
+            logger.exception("AndroidBrowser eval_js error for script %r: %s", preview, e)
 class IOSBrowser(BaseBrowser):
     def __init__(self, webview_instance):
         self.webview = webview_instance
