@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DartVoice Web Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Barlow Condensed"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#CC0B20',
+                        dark: '#08080A',
+                        card: '#111114',
+                        wire: '#252530',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; margin: 0; padding: 0; overflow: hidden; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+        
+        /* Premium Grids and Glows */
+        .grid-bg-soft {
+            background-image:
+                linear-gradient(rgba(37, 37, 48, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 37, 48, 0.5) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .hero-glow {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 120% 100% at 50% -20%, rgba(204, 11, 32, 0.25) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Status Dot Animations */
+        .status-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #4A4A5A; display: inline-block; margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        @keyframes pulseActive {
+            0% { box-shadow: 0 0 0 0 rgba(204, 11, 32, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(204, 11, 32, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(204, 11, 32, 0); }
+        }
+
+        .status-dot.listening {
+            background: #CC0B20; 
+            box-shadow: 0 0 12px rgba(204, 11, 32, 0.8);
+            animation: pulseActive 1.5s infinite;
+        }
+
+        /* Premium Buttons */
+        .btn-brand {
+            background: #CC0B20; transition: all 0.25s; position: relative; overflow: hidden;
+            font-weight: bold; border-radius: 12px; padding: 14px 24px; text-align: center; cursor: pointer; border: none; color: white; width: 100%;
+            font-size: 15px; letter-spacing: 0.5px;
+        }
+        .btn-brand::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.25s;
+        }
+        .btn-brand:hover { 
+            background: #e60d24; 
+            box-shadow: 0 0 30px rgba(204, 11, 32, 0.4), 0 4px 12px rgba(204, 11, 32, 0.2); 
+            transform: translateY(-2px); 
+        }
+        .btn-brand:hover::after { opacity: 1; }
+        .btn-brand:active { transform: translateY(0); }
+
+        .btn-outline { 
+            background: rgba(255, 255, 255, 0.02); border: 1px solid #252530; color: #a0a0a0; 
+            padding: 12px; border-radius: 10px; width: 100%; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.25s;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255, 255, 255, 0.1); transform: translateY(-1px); }
+
+        /* App Layout */
+        .app-container { display: flex; height: 100vh; width: 100vw; }
+        
+        .sidebar { 
+            width: 380px; 
+            min-width: 300px;
+            max-width: 50vw;
+            background: #08080A; 
+            position: relative;
+            display: flex; flex-direction: column; z-index: 10;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+        }
+        
+        .sidebar-inner {
+            position: relative;
+            z-index: 10;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        /* Custom scrollbar for sidebar */
+        .sidebar-inner::-webkit-scrollbar { width: 4px; }
+        .sidebar-inner::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-inner::-webkit-scrollbar-thumb { background: #252530; border-radius: 4px; }
+        .sidebar-inner::-webkit-scrollbar-thumb:hover { background: #4A4A5A; }
+
+        /* Interactive Layout Splitter */
+        .resizer {
+            width: 4px;
+            background: #252530;
+            cursor: col-resize;
+            position: relative;
+            z-index: 20;
+            transition: background 0.2s, width 0.2s;
+        }
+        .resizer:hover, .resizer.dragging {
+            background: #CC0B20;
+            width: 6px;
+        }
+
+        .main-content { 
+            flex: 1; position: relative; 
+            background: radial-gradient(circle at center, #111114 0%, #08080a 100%);
+            min-width: 0;
+        }
+        iframe { width: 100%; height: 100%; border: none; background-color: #ffffff; }
+        
+        /* Transcript HUD */
+        .hud-card {
+            background: rgba(17, 17, 20, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            position: relative;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .tab-content {
+            display: none;
+            opacity: 0;
+        }
+        .tab-content.flex {
+            display: flex;
+            animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #transcript-box { 
+            height: 100%; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; 
+            font-size: 13px; color: #6E6E82; 
+            padding-right: 8px;
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom scrollbar */
+        #transcript-box::-webkit-scrollbar { width: 4px; }
+        #transcript-box::-webkit-scrollbar-track { background: transparent; }
+        #transcript-box::-webkit-scrollbar-thumb { background: #252530; border-radius: 4px; }
+        #transcript-box::-webkit-scrollbar-thumb:hover { background: #4A4A5A; }
+
+        .log-entry { margin-bottom: 8px; opacity: 0; animation: fadeIn 0.3s forwards; line-height: 1.4; }
+        .log-entry.score-log { display: inline-flex; align-items: center; justify-content: center; background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.3); color: #fff; font-weight: bold; font-size: 16px; padding: 6px 12px; border-radius: 8px; margin-right: 6px; margin-bottom: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .log-sys { color: #4A4A5A; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Audio Waves */
+        .wave-container { display: flex; align-items: flex-end; justify-content: center; height: 18px; gap: 3px; opacity: 0; transition: opacity 0.3s; }
+        .wave-container.active { opacity: 1; }
+        .eq-bar {
+            width: 4px; background: #CC0B20; border-radius: 2px;
+            height: 3px; /* Default resting height */
+            transition: height 0.08s ease;
+            box-shadow: 0 0 8px rgba(204,11,32,0.5);
+        }
+        
+        /* Toggle Flare Animation */
+        .peer-checked\\:bg-brand {
+            box-shadow: 0 0 10px rgba(204,11,32,0.4);
+        }
+        
+        @keyframes paywallDrop {
+            0% { opacity: 0; transform: scale(1.05) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .paywall-animate { animation: paywallDrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <div class="sidebar grid-bg-soft" id="sidebar">
+            <div class="hero-glow"></div>
+            
+            <div class="sidebar-inner">
+                <!-- Profile Pill & Branding -->
+                <div class="mb-6 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="display text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                                DART<span class="text-brand">VOICE</span>
+                            </h1>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Scorer Studio</p>
+                        </div>
+                        
+                        <!-- Account Pill -->
+                        <div class="flex items-center gap-2 bg-[#141418] border border-[#252530] rounded-full p-1.5 pr-4 shadow-md hover:bg-[#1a1a20] cursor-pointer transition-colors">
+                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-brand to-red-900 flex items-center justify-center font-display font-bold text-white text-xs">
+                                V
+                            </div>
+                            <div class="flex flex-col justify-center">
+                                <span class="text-xs font-bold text-white leading-tight">Vryn</span>
+                                <span class="text-[8px] text-brand font-bold uppercase tracking-widest leading-none">Pro Active</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabs Navigation -->
+                    <div class="flex gap-2 mt-2">
+                        <button class="flex-1 py-1.5 text-xs font-bold text-white bg-[#252530] border border-white/10 rounded tracking-widest uppercase transition-all tab-btn active" data-target="tab-dashboard">Dashboard</button>
+                        <button class="flex-1 py-1.5 text-xs font-bold text-gray-400 bg-[#08080A] border border-transparent rounded hover:bg-[#111114] tracking-widest uppercase transition-all tab-btn" data-target="tab-settings">Settings</button>
+                    </div>
+                </div>
+
+                <!-- TAB: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content flex flex-col flex-1 pb-4">
+                    <!-- Main Control Panel & Microphone -->
+                    <div class="hud-card p-4 mb-4 shadow-lg relative overflow-visible">
+                    <div class="absolute inset-0 bg-brand/5 blur-xl pointer-events-none rounded-2xl"></div>
+                    
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <div class="flex items-center">
+                            <div id="status-indicator" class="status-dot"></div>
+                            <span id="status-text" class="text-[11px] font-semibold text-gray-300 uppercase tracking-widest">Idle</span>
+                        </div>
+                        
+                        <div id="wave-visualizer" class="wave-container">
+                            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Microphone Selector -->
+                    <div class="mb-4 relative z-10">
+                        <select id="mic-select" class="w-full bg-[#08080A] border border-[#252530] text-[11px] text-gray-300 p-2 rounded outline-none focus:border-brand/50 transition-colors">
+                            <option>Default Microphone Array</option>
+                            <option>USB External Headset</option>
+                        </select>
+                    </div>
+
+                    <button id="toggle-listen" class="btn-brand shadow-[0_0_15px_rgba(204,11,32,0.3)] w-full py-2.5 text-sm tracking-wide relative z-10">START LISTENING</button>
+                </div>
+                
+                <!-- Live Checkout -->
+                <div id="live-checkout-panel" class="hud-card p-4 mb-4 border border-white/5 transition-all flex-shrink-0">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Live Checkout</span>
+                        <span class="text-[9px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20 tracking-wider" id="checkout-target">REMAINING: 140</span>
+                    </div>
+                    <div class="text-xl font-display font-bold text-white tracking-wider flex gap-2 items-center" id="checkout-path">
+                        T20 <span class="text-wire/50">•</span> T20 <span class="text-wire/50">•</span> D10
+                    </div>
+                    </div>
+                <!-- Live Score Log History -->
+                <div class="hud-card p-4 mb-4 border border-white/5 flex-shrink-0">
+                    <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Scores Registered
+                    </h3>
+                    <div id="live-scores-box" class="flex flex-wrap min-h-[40px] max-h-[85px] overflow-y-auto w-full content-start pt-1">
+                        <span class="text-xs text-gray-500 italic w-full">No scores tracked yet...</span>
+                    </div>
+                </div>
+
+                <!-- AI Transcript HUD -->
+                <div class="mb-auto flex flex-col min-h-0">
+                    <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-3 flex items-center gap-2 flex-shrink-0">
+                        <svg class="w-4 h-4 text-brand opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Live Transcript
+                    </h3>
+                    <div class="hud-card p-4 flex-1">
+                        <div id="transcript-box" class="h-full max-h-[160px]">
+                            <div class="log-entry log-sys">System initialized. Model loaded.</div>
+                            <div class="log-entry text-gray-400 mt-2 mb-2 italic">Awaiting voice commands...</div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- CLOSE TAB DASHBOARD -->
+
+            <!-- TAB: SETTINGS -->
+            <div id="tab-settings" class="tab-content hidden flex-col flex-1 pb-4">
+                <!-- Match Configuration & Calibration -->
+                <div class="hud-card p-4 mb-4 border border-white/5">
+                    <div class="flex items-center justify-between mb-3 text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase border-b border-white/5 pb-2">
+                        Match Configuration
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <!-- Scorer Target & Mode -->
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <span class="text-[10px] text-gray-400 font-medium block mb-1">Target Scorer</span>
+                                <select class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none">
+                                    <option>DartCounter</option>
+                                    <option>Nakka</option>
+                                </select>
+                            </div>
+                            <div class="flex-1">
+                                <span class="text-[10px] text-gray-400 font-medium block mb-1">Game Type</span>
+                                <select class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none">
+                                    <option>X01</option>
+                                    <option>Cricket</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Calibration Button -->
+                        <div>
+                            <button id="recalibrate-btn" class="w-full text-xs font-semibold py-1.5 bg-[#252530]/50 hover:bg-[#252530] border border-white/5 rounded text-white transition-all flex items-center justify-center gap-2">
+                                <svg class="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                Re-Calibrate Grid
+                            </button>
+                        </div>
+                        
+                        <!-- Input Mode (Per dart vs 3 dart) -->
+                        <div class="flex items-center justify-between border-t border-white/5 pt-2">
+                            <span class="text-xs text-gray-300 font-medium">Input Mode</span>
+                            <div class="flex bg-[#08080A] rounded border border-[#252530] p-0.5" id="input-mode-toggle">
+                                <button class="text-[10px] px-2 py-1 rounded bg-[#252530] text-white font-bold mode-btn active" data-mode="total">Total</button>
+                                <button class="text-[10px] px-2 py-1 rounded text-gray-400 hover:text-white font-bold mode-btn" data-mode="per-dart">Per-Dart</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Voice Trigger (Wake Word) -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-300 font-medium">Wake Word <span class="opacity-50 text-[10px]">("DartVoice...")</span></span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-wake-word" class="sr-only peer" checked>
+                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                            </label>
+                        </div>
+
+                        <!-- Cancel Trigger -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-300 font-medium">Cancel Trigger <span class="opacity-50 text-[10px]">("Cancel...")</span></span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-cancel-word" class="sr-only peer" checked>
+                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                            </label>
+                        </div>
+
+                        <!-- Live Checkout Display -->
+                        <div class="flex items-center justify-between border-b border-white/5 pb-3">
+                            <span class="text-xs text-gray-300 font-medium">Show Live Checkout</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-live-checkout" class="sr-only peer" checked>
+                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase pt-2 pb-1">
+                            Pro Active Modifiers
+                        </div>
+                        
+                        <!-- Bust Protection (Pro) -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-300 font-medium">Auto-Bust Protection</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-bust" class="sr-only peer" checked>
+                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                            </label>
+                        </div>
+                        
+                        <!-- Auto-Start Match (Pro) -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-300 font-medium">Auto-Start Next Match</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-autostart" class="sr-only peer" checked>
+                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                            </label>
+                        </div>
+                        
+                        <!-- Audio Chime (Pro) -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-300 font-medium">Injection Audio Chimes</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-chime" class="sr-only peer">
+                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Requirements & Extension Download -->
+                <div class="hud-card p-4 border border-brand/20 bg-brand/5">
+                    <div class="text-[10px] font-bold text-brand tracking-[0.2em] uppercase mb-2">System Requirements</div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-[#08080A] p-2.5 rounded border border-[#252530]">
+                            <span class="text-white font-bold text-[10px] block mb-1 flex items-center gap-1.5"><svg class="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 019-9"></path></svg> CHROME EXTENSION REQUIRED</span>
+                            <span class="text-gray-400 text-[9.5px] block mb-2 leading-relaxed">This integrated scorer requires the <b>DartVoice Launchpad</b> extension to unblock security headers and inject scores.</span>
+                            <button id="recalibrate-btn" class="w-full text-center block text-[10px] font-bold py-1.5 bg-[#252530] hover:bg-[#30303b] rounded transition-colors text-white uppercase tracking-widest">Re-Calibrate Grid</button>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- CLOSE TAB SETTINGS -->
+
+            <!-- Footer Actions -->
+            <div class="mt-4 pt-4 border-t border-wire border-dashed flex-shrink-0">
+                    <button class="btn-outline py-2.5 mb-3 hover:bg-white/5 active:scale-95 transition-all text-xs" onclick="window.location.href='dartvoice-dashboard.html'">
+                        <span class="opacity-80 font-medium">← Return to Dashboard</span>
+                    </button>
+                    <div class="flex items-center justify-between text-[10px] text-gray-500 font-medium tracking-wide">
+                        <span>DartVoice Web v1.2</span>
+                        <span class="flex items-center gap-1.5 bg-green-500/10 text-green-500/80 px-2 py-0.5 rounded-full border border-green-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></span>
+                            Extension Linked
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Dynamic Layout Splitter -->
+    <div class="resizer" id="resizer"></div>
+
+    <!-- Main iFrame Area -->
+    <div class="main-content">
+        <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; screen-wake-lock"></iframe>
+    </div>
+    </div>
+
+    <!-- SUBSCRIPTION PAYWALL MODAL -->
+    <div id="paywall-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[999999] hidden flex-col items-center justify-center p-4">
+        <div class="bg-[#111114] border border-brand/30 rounded-2xl max-w-md w-full p-8 shadow-[0_0_80px_rgba(204,11,32,0.15)] transform translate-y-4 opacity-0 transition-all duration-500" id="paywall-content">
+            <div class="w-16 h-16 bg-brand/10 border border-brand/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            
+            <h2 class="text-2xl font-display font-bold text-white text-center tracking-wide mb-2 uppercase">Trial Period Concluded</h2>
+            <p class="text-gray-400 text-sm text-center mb-8 leading-relaxed">You have reached the end of your free auto-scoring demonstration. Upgrade to a DartVoice Pro subscription to unlock infinite scoring, the Native Mobile Apps, and the Chrome bridge.</p>
+            
+            <div class="space-y-4">
+                <a href="https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00" target="_blank" class="block w-full py-3.5 bg-brand hover:bg-brand-light text-white font-bold text-sm tracking-widest uppercase text-center rounded-lg shadow-[0_0_20px_rgba(204,11,32,0.4)] transition-all">
+                    Upgrade to Pro — £4.99/mo
+                </a>
+                <button onclick="document.getElementById('paywall-modal').classList.add('hidden')" class="block w-full py-3 bg-transparent border border-[#252530] hover:bg-[#252530] text-gray-400 font-bold text-xs tracking-widest uppercase text-center rounded-lg transition-all">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('toggle-listen');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        const transcriptBox = document.getElementById('transcript-box');
+        const liveScoresBox = document.getElementById('live-scores-box');
+        
+        const waveVisualizer = document.getElementById('wave-visualizer');
+        const eqBars = document.querySelectorAll('.eq-bar');
+        
+        let listening = false;
+        let recognition = null;
+        let visualizerInterval = null;
+        
+        function startEqualizer() {
+            if (visualizerInterval) clearInterval(visualizerInterval);
+            visualizerInterval = setInterval(() => {
+                eqBars.forEach(bar => {
+                    // Randomize height between 3px and 18px to look like active audio
+                    bar.style.height = Math.floor(Math.random() * 15 + 3) + 'px';
+                });
+            }, 80);
+        }
+        
+        function stopEqualizer() {
+            if (visualizerInterval) clearInterval(visualizerInterval);
+            eqBars.forEach(bar => {
+                bar.style.height = '3px'; // Rest
+            });
+        }
+        
+        function log(msg, isScore=false) {
+            if (isScore) {
+                // Clear placeholder if it's the first score
+                if (liveScoresBox.innerHTML.includes('No scores tracked yet...')) {
+                    liveScoresBox.innerHTML = '';
+                }
+                const scoreDiv = document.createElement('div');
+                scoreDiv.className = 'log-entry score-log';
+                scoreDiv.textContent = msg;
+                liveScoresBox.appendChild(scoreDiv);
+                liveScoresBox.scrollTop = liveScoresBox.scrollHeight;
+                
+                // Still log an event in transcript for traceability
+                const div = document.createElement('div');
+                div.className = 'log-entry text-green-400 border-l-2 border-green-800 pl-2 ml-1 text-xs';
+                div.textContent = `[System] Injected Value: ${msg}`;
+                transcriptBox.appendChild(div);
+            } else {
+                const div = document.createElement('div');
+                div.className = 'log-entry text-gray-400 border-l-2 border-gray-800 pl-2 ml-1 cursor-default';
+                div.textContent = msg;
+                transcriptBox.appendChild(div);
+            }
+            transcriptBox.scrollTop = transcriptBox.scrollHeight;
+        }
+
+        // Initialize Web Speech API
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            
+            recognition.onstart = function() {
+                listening = true;
+                btn.textContent = "STOP LISTENING";
+                btn.style.background = "#252530";
+                btn.style.boxShadow = "none";
+                statusIndicator.className = "status-dot listening";
+                statusText.textContent = "Awaiting Score...";
+                statusText.className = "text-sm font-semibold text-white";
+                waveVisualizer.classList.add('active');
+                startEqualizer();
+                log("Microphone activated — Speak your score.", false);
+            };
+            
+            recognition.onresult = function(event) {
+                let final_transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        const words = event.results[i][0].transcript.trim().toLowerCase();
+                        if(words.includes("score")) {
+                            log("HEARD: " + words, true);
+                            log("Forwarding to target frame...", false);
+                            blastScoreToIframe(words.replace("score", "").trim());
+                        } else if(words.includes("cancel") && AppConfig.cancelWordEnabled) {
+                            log("HEARD: Cancel Trigger", true);
+                            blastScoreToIframe("cancel");
+                        } else {
+                            log(words);
+                        }
+                    }
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                log("Error: " + event.error);
+                if(event.error === 'not-allowed') {
+                    stopListening();
+                }
+            };
+            
+            recognition.onend = function() {
+                if (listening) {
+                    // Auto-restart if we didn't manually stop it
+                    recognition.start();
+                } else {
+                    stopListeningStyle();
+                }
+            };
+        } else {
+            log("Web Speech API not supported. Please use Chrome.");
+            btn.disabled = true;
+            btn.textContent = "UNSUPPORTED BROWSER";
+        }
+
+        function stopListeningStyle() {
+            statusIndicator.className = "status-dot";
+            statusText.textContent = "Microphone Idle";
+            statusText.className = "text-[11px] font-semibold text-gray-400 uppercase";
+            btn.textContent = "START LISTENING";
+            btn.style.background = "#CC0B20";
+            waveVisualizer.classList.remove('active');
+            stopEqualizer();
+        }
+
+        function stopListening() {
+            listening = false;
+            if(recognition) recognition.stop();
+            stopListeningStyle();
+            log("Microphone isolated.");
+        }
+
+        btn.addEventListener('click', () => {
+            if (listening) {
+                stopListening();
+            } else {
+                if(recognition) recognition.start();
+            }
+        });
+
+        // Tab Switching Logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Remove active classes
+                tabBtns.forEach(b => {
+                    b.classList.remove('bg-[#252530]', 'text-white', 'border-white/10', 'active');
+                    b.classList.add('bg-[#08080A]', 'text-gray-400', 'border-transparent');
+                });
+                
+                // Hide all contents
+                tabContents.forEach(c => {
+                    c.classList.add('hidden');
+                    c.classList.remove('flex');
+                });
+                
+                // Set active tab
+                btn.classList.add('bg-[#252530]', 'text-white', 'border-white/10', 'active');
+                btn.classList.remove('bg-[#08080A]', 'text-gray-400', 'border-transparent');
+                
+                // Show active content
+                const targetId = btn.getAttribute('data-target');
+                const targetContent = document.getElementById(targetId);
+                targetContent.classList.remove('hidden');
+                targetContent.classList.add('flex');
+            });
+        });
+
+        // Handle Calibration Button
+        document.getElementById('recalibrate-btn').addEventListener('click', () => {
+             log("Triggering Calibration...", false);
+             const targetIframe = document.getElementById('scorer-frame');
+             targetIframe.contentWindow.postMessage({
+                 type: "DARTVOICE_CALIBRATE_START"
+             }, "*");
+        });
+
+        // --- DEMO LIMITER STATE ---
+        let demoHits = 0;
+        const DEMO_LIMIT = 5;
+
+        // Update the score forwarder logic
+        function blastScoreToIframe(scoreString) {
+             demoHits++;
+             
+             if (demoHits > DEMO_LIMIT) {
+                 log("DEMO LIMIT REACHED. Intercepting score...", false);
+                 if(recognition) recognition.stop();
+                 const paywall = document.getElementById('paywall-modal');
+                 const paywallContent = document.getElementById('paywall-content');
+                 paywall.classList.remove('hidden');
+                 paywall.classList.add('flex');
+                 setTimeout(() => {
+                     paywallContent.classList.remove('translate-y-4', 'opacity-0');
+                 }, 50);
+                 return;
+             }
+
+             const targetIframe = document.getElementById('scorer-frame');
+             targetIframe.contentWindow.postMessage({
+                 type: "DARTVOICE_SCORE_INJECT",
+                 score: scoreString
+             }, "*");
+             
+             log(`Demo uses remaining: ${DEMO_LIMIT - demoHits}`);
+        }
+
+        // --- APP CONFIGURATION STATE ---
+        const AppConfig = {
+            inputMode: 'total', // 'total' or 'per-dart'
+            wakeWordEnabled: true,
+            cancelWordEnabled: true,
+            liveCheckoutEnabled: true,
+            bustProtection: true,
+            autoStartNextMatch: true,
+            audioChimes: false
+        };
+
+        // --- INTERACTIVE UI LOGIC ---
+        // Input Mode Toggles
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // reset all
+                modeBtns.forEach(b => {
+                    b.classList.remove('bg-[#252530]', 'text-white', 'active');
+                    b.classList.add('text-gray-400');
+                });
+                // set active
+                e.target.classList.remove('text-gray-400');
+                e.target.classList.add('bg-[#252530]', 'text-white', 'active');
+                AppConfig.inputMode = e.target.dataset.mode;
+                log(`Input mode set to: ${AppConfig.inputMode}`);
+            });
+        });
+
+        // Toggles
+        document.getElementById('toggle-wake-word').addEventListener('change', (e) => {
+            AppConfig.wakeWordEnabled = e.target.checked;
+            log(`Wake Word trigger ${AppConfig.wakeWordEnabled ? 'enabled' : 'disabled'}`);
+        });
+
+        document.getElementById('toggle-cancel-word').addEventListener('change', (e) => {
+            AppConfig.cancelWordEnabled = e.target.checked;
+            log(`Cancel trigger ${AppConfig.cancelWordEnabled ? 'enabled' : 'disabled'}`);
+        });
+
+        document.getElementById('toggle-live-checkout').addEventListener('change', (e) => {
+            AppConfig.liveCheckoutEnabled = e.target.checked;
+            const checkoutPanel = document.getElementById('live-checkout-panel');
+            if(AppConfig.liveCheckoutEnabled) {
+                checkoutPanel.style.display = 'block';
+            } else {
+                checkoutPanel.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('toggle-bust').addEventListener('change', (e) => {
+            AppConfig.bustProtection = e.target.checked;
+            log(`Pro Setting: Bust Protection ${AppConfig.bustProtection ? 'enabled' : 'disabled'}`);
+        });
+
+        document.getElementById('toggle-autostart').addEventListener('change', (e) => {
+            AppConfig.autoStartNextMatch = e.target.checked;
+            log(`Pro Setting: Auto-Start Match ${AppConfig.autoStartNextMatch ? 'enabled' : 'disabled'}`);
+        });
+
+        document.getElementById('toggle-chime').addEventListener('change', (e) => {
+            AppConfig.audioChimes = e.target.checked;
+            log(`Pro Setting: Audio Chimes ${AppConfig.audioChimes ? 'enabled' : 'disabled'}`);
+        });
+
+        // Automatically fetch real microphones using media devices API
+        async function fetchMics() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioInputDevices = devices.filter(device => device.kind === 'audioinput');
+                const micSelect = document.getElementById('mic-select');
+                
+                if (audioInputDevices.length > 0 && micSelect) {
+                    micSelect.innerHTML = '';
+                    audioInputDevices.forEach(device => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Microphone ${micSelect.length + 1}`;
+                        micSelect.appendChild(option);
+                    });
+
+                    // Add note about browser limitations
+                    const note = document.createElement('option');
+                    note.disabled = true;
+                    note.text = "--- Use Chrome URL Bar to Force Mic ---";
+                    micSelect.appendChild(note);
+                }
+                
+        // Stop the temporary stream used for permission grabbing
+                stream.getTracks().forEach(track => track.stop());
+            } catch (err) {
+                console.warn("Could not enumerate devices (permissions likely denied):", err);
+            }
+        }
+        
+        // --- LAYOUT RESIZER LOGIC --- //
+        const sidebarUI = document.getElementById('sidebar');
+        const resizerUI = document.getElementById('resizer');
+        const iframeUI = document.getElementById('scorer-frame');
+        let isResizing = false;
+
+        resizerUI.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            resizerUI.classList.add('dragging');
+            document.body.style.cursor = 'col-resize';
+            // Disable pointer events on the iframe so it doesn't steal track focus!
+            iframeUI.style.pointerEvents = 'none';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            let newWidth = e.clientX;
+            // Boundaries
+            if (newWidth < 300) newWidth = 300;
+            if (newWidth > window.innerWidth * 0.6) newWidth = window.innerWidth * 0.6;
+            
+            sidebarUI.style.width = newWidth + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                resizerUI.classList.remove('dragging');
+                document.body.style.cursor = '';
+                // Restore iframe pointers
+                iframeUI.style.pointerEvents = 'auto';
+            }
+        });
+        
+        document.getElementById('recalibrate-btn').addEventListener('click', () => {
+            log("Opening Calibration Overlay inside Scorer Frame...", false);
+            const targetIframe = document.getElementById('scorer-frame');
+            targetIframe.contentWindow.postMessage({
+                type: "DARTVOICE_CALIBRATE_START"
+            }, "*");
+        });
+
+        // Execute on load
+        fetchMics();
+    </script>
+</body>
+
+</html>

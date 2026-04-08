@@ -1,5 +1,4 @@
-# DartVoice - System Architecture & AI Context
-*Generated for Future AI Handoff*
+# DartVoice
 
 **Project Description:** DartVoice is a voice-controlled auto-scoring system designed to automate manual dartboard scoring software (like Target Dart Counter, Nakka, etc.). The system translates spoken words (e.g., "Triple twenty", "Ton eighty", "Two marks on nineteen") into system-level inputs or DOM clicks. 
 
@@ -38,7 +37,7 @@ The software ecosystem comprises a static marketing website, custom transactiona
 
 ## 🚀 Immediate Next Steps & Deployment Checklist
 
-For any AI returning to this codebase, the UI/UX is functionally "Launch Ready." Focus should immediately shift to deployment, backend integration, and store compliance.
+The UI/UX is functionally "Launch Ready." Focus should shift to deployment, backend integration, and store compliance.
 
 ### 1. Chrome Extension Submission ✅
 - ✅ Icons generated (16x16, 48x48, 128x128) and wired into `manifest.json`.

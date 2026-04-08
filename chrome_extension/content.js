@@ -105,74 +105,146 @@
   let recognition = null;
   let calibrationMode = false;
   let calibratedCoords = { x: null, y: null };
+  
+  // Load persisted calibration
+  chrome.storage.local.get(['calibratedCoords'], (result) => {
+    if (result.calibratedCoords) {
+      calibratedCoords = result.calibratedCoords;
+      logTrace(`Restored Persisted Calibration: X=${calibratedCoords.x}, Y=${calibratedCoords.y}`);
+    }
+  });
+  const isDartVoiceParent = window.location.href.includes('web-app.html') || window.location.href.includes('dartvoice-dashboard.html');
+  const isIframe = window !== window.top;
 
-  // --- SHADOW DOM UI SETUP ---
-  const container = document.createElement('div');
-  container.id = 'dartvoice-ext-container';
-  container.style.position = 'fixed';
-  container.style.top = '20px';
-  container.style.right = '20px';
-  container.style.zIndex = '999999';
-  container.style.fontFamily = 'Arial, sans-serif';
-  document.body.appendChild(container);
+  if (isDartVoiceParent) {
+      logTrace("Detected DartVoice Dashboard. Disabling internal microphone to avoid conflicts.");
+  }
 
-  const shadow = container.attachShadow({ mode: 'open' });
+  const frameID = isIframe ? "[IFRAME]" : "[PARENT]";
 
   const style = document.createElement('style');
   style.textContent = `
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    
     .dv-panel {
-      background: #08080A;
+      background: rgba(8, 8, 10, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: #F0F0F5;
-      padding: 16px;
-      border-radius: 12px;
-      width: 250px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      border: 1px solid #252530;
+      padding: 20px;
+      border-radius: 16px;
+      width: 280px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
       position: relative;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    h3 { margin: 0 0 10px 0; font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #6E6E82; display: inline-block; }
-    .status-dot.active { background: #CC0B20; box-shadow: 0 0 8px #CC0B20; }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 12px;
+    }
+    
+    h3 {
+      margin: 0;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: white;
+    }
+    
+    .text-red { color: #CC0B20; }
+    
+    .close-btn {
+      cursor: pointer;
+      color: #6E6E82;
+      font-size: 16px;
+      transition: color 0.2s;
+    }
+    .close-btn:hover { color: #fff; }
+    
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6E6E82;
+    }
+    
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #6E6E82; display: inline-block; }
+    .status-dot.active { background: #CC0B20; box-shadow: 0 0 10px #CC0B20; }
+    
     button {
-      background: #18181C;
+      background: rgba(37,37,48,0.5);
       color: #F0F0F5;
-      border: 1px solid #252530;
-      padding: 8px 12px;
-      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 10px 14px;
+      border-radius: 8px;
       cursor: pointer;
       width: 100%;
-      margin-bottom: 8px;
-      font-weight: bold;
+      margin-bottom: 10px;
+      font-weight: 700;
+      font-size: 11px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       transition: all 0.2s;
     }
-    button:hover { background: #222228; }
-    button.primary { background: #CC0B20; border-color: #CC0B20; }
-    button.primary:hover { background: #e01030; }
-    .log {
-      font-size: 12px;
-      color: #6E6E82;
-      background: #111114;
-      padding: 8px;
-      border-radius: 6px;
-      min-height: 40px;
-      margin-top: 10px;
-      word-wrap: break-word;
+    button:hover { background: rgba(37,37,48,0.8); }
+    
+    button.primary {
+      background: #CC0B20;
+      border-color: transparent;
+      box-shadow: 0 0 15px rgba(204,11,32,0.3);
     }
-    .close-btn { cursor: pointer; color: #6E6E82; font-size: 14px; }
+    button.primary:hover {
+      background: #e60d24;
+      box-shadow: 0 0 20px rgba(204,11,32,0.5);
+      transform: translateY(-1px);
+    }
+    button.primary:active { transform: translateY(1px); }
+    
+    .log {
+      font-size: 11px;
+      font-weight: 500;
+      color: #aaabbb;
+      background: #111114;
+      padding: 12px;
+      border-radius: 8px;
+      min-height: 50px;
+      margin-top: 16px;
+      word-wrap: break-word;
+      border: 1px solid rgba(255,255,255,0.03);
+      line-height: 1.4;
+    }
   `;
   shadow.appendChild(style);
 
   const panel = document.createElement('div');
   panel.className = 'dv-panel';
   panel.innerHTML = `
-    <h3>DartVoice Web <span class="close-btn" id="dv-close">✖</span></h3>
-    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 15px;">
-      <span style="font-size:13px;" id="dv-status-text">Mic Off</span>
+    <div class="header">
+      <h3>DART<span class="text-red">VOICE</span> overlay</h3>
+      <span class="close-btn" id="dv-close">✖</span>
+    </div>
+    <div class="status-row">
+      <span id="dv-status-text">Microphone Idle</span>
       <div class="status-dot" id="dv-status-dot"></div>
     </div>
     <button id="dv-toggle-mic" class="primary">Start Listening</button>
-    <button id="dv-calibrate">Calibrate Input Box</button>
-    <div class="log" id="dv-log">Waiting for speech...</div>
+    <button id="dv-calibrate">Calibrate Grid</button>
+    <div class="log" id="dv-log">Awaiting voice commands...</div>
   `;
   shadow.appendChild(panel);
 
@@ -183,46 +255,110 @@
   const logDiv = shadow.getElementById('dv-log');
   const closeBtn = shadow.getElementById('dv-close');
 
-  function logAction(msg) {
-    logDiv.textContent = msg;
+  function logTrace(msg, data) {
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = `[DartVoice Bridge ${frameID}]`;
+    if (data) console.log(`${prefix} ${msg}`, data);
+    else console.log(`${prefix} ${msg}`);
   }
 
-  // --- CALIBRATION ---
-  calibrateBtn.addEventListener('click', () => {
-    calibrationMode = true;
-    logAction("Click the score input box on the page to save its position.");
-    panel.style.opacity = '0.5';
-  });
+  // --- AUTO-COOKIE DISMISSAL ---
+  function autoDismissCookies() {
+      const cookieBtn = document.querySelector('button.cm__btn:nth-of-type(1)');
+      if (cookieBtn && cookieBtn.textContent.toLowerCase().includes('accept')) {
+          logTrace("Auto-dismissing cookie consent modal...");
+          cookieBtn.click();
+      }
+  }
+  
+  // Check for cookies periodically
+  const cookieInterval = setInterval(autoDismissCookies, 2000);
+  setTimeout(() => clearInterval(cookieInterval), 20000); // Stop after 20s
 
-  document.addEventListener('click', (e) => {
-    if (calibrationMode && !e.composedPath().includes(container)) {
+  logTrace("Extension Script Injected and Ready.");
+
+  // --- CALIBRATION OVERLAY ---
+  let calibrationOverlay = null;
+
+  function startCalibration() {
+    calibrationMode = true;
+    logTrace("Calibration Mode activated. Spawning overlay.");
+    panel.style.opacity = '0.5';
+
+    // Create the dark overlay
+    calibrationOverlay = document.createElement('div');
+    calibrationOverlay.style.position = 'fixed';
+    calibrationOverlay.style.inset = '0';
+    calibrationOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+    calibrationOverlay.style.zIndex = '2147483647'; // Max integer to ensure it's on top of everything
+    calibrationOverlay.style.display = 'flex';
+    calibrationOverlay.style.flexDirection = 'column';
+    calibrationOverlay.style.alignItems = 'center';
+    calibrationOverlay.style.justifyContent = 'center';
+    calibrationOverlay.style.cursor = 'crosshair';
+    
+    // Add textual instructions
+    calibrationOverlay.innerHTML = `
+      <div style="text-align: center; color: white; font-family: sans-serif; pointer-events: none;">
+        <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 16px; color: #CC0B20; text-transform: uppercase; letter-spacing: 2px;">Calibration Mode</h1>
+        <p style="font-size: 18px; color: #F0F0F5;">Click exactly on the DartCounter Score Input Box.</p>
+      </div>
+    `;
+
+    document.body.appendChild(calibrationOverlay);
+
+    // Listen for the calibration click strictly on the overlay
+    calibrationOverlay.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      
       calibratedCoords = { x: e.clientX, y: e.clientY };
       calibrationMode = false;
-      panel.style.opacity = '1';
-      logAction(`Calibrated at: ${e.clientX}, ${e.clientY}`);
-    }
-  }, true);
+      
+      // Persist to storage
+      chrome.storage.local.set({ calibratedCoords });
+      
+      logTrace(`Coordinate Calibrated: X=${e.clientX}, Y=${e.clientY}`);
+      
+      // Destroy the overlay instantly
+      document.body.removeChild(calibrationOverlay);
+      calibrationOverlay = null;
+    }, true);
+  }
+
+  calibrateBtn.addEventListener('click', () => {
+    startCalibration();
+  });
 
   // --- CLICK SIMULATION ---
   function clickCoordinate(x, y) {
     const el = document.elementFromPoint(x, y);
     if (el) {
+      logTrace("Simulating click on target element:", el);
       // Simulate physical click
       el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, clientX: x, clientY: y }));
       el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, clientX: x, clientY: y }));
       el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: x, clientY: y }));
       el.focus();
+    } else {
+      logTrace(`No DOM element found at X=${x}, Y=${y}!`);
     }
   }
 
   // --- SPEECH RECOGNITION ---
   function initSpeech() {
-    if (!('webkitSpeechRecognition' in window)) {
-      logAction("Your browser does not support SpeechRecognition.");
-      return;
+    // SECURITY: If we are running in the Scorer Studio Iframe, 
+    // we MUST NOT use the mic. The Parent Dashboard handles voice.
+    if (isIframe) {
+        logTrace("Mic initialization blocked in Iframe mode (Ghost Mode).");
+        return;
     }
+
+    if (!('webkitSpeechRecognition' in window)) {
+        logTrace("Your browser does not support SpeechRecognition.");
+        return;
+    }
+    // ... [Speech Init Truncated for Space in Chunk] ...
     recognition = new webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = false;
@@ -234,6 +370,7 @@
       statusDot.classList.add('active');
       toggleMicBtn.textContent = 'Stop Listening';
       toggleMicBtn.classList.remove('primary');
+      logTrace("Microphone natively listening...");
     };
 
     recognition.onend = () => {
@@ -252,7 +389,7 @@
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
           const transcript = event.results[i][0].transcript.trim().toLowerCase();
-          logAction(`Heard: "${transcript}"`);
+          logTrace(`Heard: "${transcript}"`);
           processSpeech(transcript);
         }
       }
@@ -261,7 +398,7 @@
 
   function processSpeech(transcript) {
     if (!calibratedCoords.x || !calibratedCoords.y) {
-      logAction("Error: Please Calibrate the input box first!");
+      logTrace("Error: Please Calibrate the input box first!");
       return;
     }
 
@@ -277,11 +414,11 @@
     }
 
     if (finalScore !== null) {
-      logAction(`Matched Score: ${finalScore}`);
+      logTrace(`Matched Score: ${finalScore}. Preparing Injection...`);
       // Simulate clicking the box, typing the number, and entering
       simulateScoreEntry(finalScore);
     } else {
-      logAction(`Could not parse: "${transcript}"`);
+      logTrace(`Could not parse: "${transcript}"`);
     }
   }
 
@@ -293,20 +430,38 @@
     clickCoordinate(x, y);
 
     setTimeout(() => {
-      const el = document.activeElement;
-      if (el && (el.tagName === 'INPUT' || el.isContentEditable)) {
-        if (el.tagName === 'INPUT') el.value = score;
-        else el.textContent = score;
+      let el = document.activeElement;
+      
+      // Fallback: If activeElement is not an input, try to grab the element exactly at the calibrated point
+      if (!el || (el.tagName !== 'INPUT' && !el.isContentEditable)) {
+          el = document.elementFromPoint(x, y);
+      }
 
-        // Dispatch input event so React/Vue hooks trigger
+      logTrace("Target Element identified for injection:", el);
+      
+      if (el && (el.tagName === 'INPUT' || el.isContentEditable)) {
+        // High-compatibility insertion for React/Vue/Angular
+        if (el.tagName === 'INPUT') {
+            el.focus();
+            el.select();
+            document.execCommand('insertText', false, score);
+        } else {
+            el.textContent = '';
+            el.textContent = score;
+        }
+
+        // Dispatch events as secondary fallback
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
 
         // Dispatch Enter key to submit
-        el.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter', keyCode: 13 }));
-        el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter', keyCode: 13 }));
+        logTrace("Dispatching ENTER key events...");
+        el.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter', code: 'Enter', keyCode: 13, which: 13 }));
+        el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter', code: 'Enter', keyCode: 13, which: 13 }));
+      } else {
+        logTrace("CRITICAL ERROR: No valid input target found at calibrated coordinates!", {x, y, el});
       }
-    }, 50);
+    }, 150); // Increased timeout slightly to ensure focus/click settle
   }
 
   toggleMicBtn.addEventListener('click', () => {
@@ -346,5 +501,36 @@
   });
 
   document.addEventListener('mouseup', () => { isDragging = false; });
+
+  // --- WEB APP BRIDGE LISTENER ---
+  window.addEventListener('message', (event) => {
+    // If the parent Web App Dashboard is talking to us
+    if (event.data && event.data.type) {
+      logTrace("Received Window Payload:", event.data);
+      
+      if (event.data.type === "DARTVOICE_CALIBRATE_START") {
+        startCalibration();
+      }
+      
+      if (event.data.type === "DARTVOICE_SCORE_INJECT") {
+        const score = event.data.score;
+        if (!calibratedCoords.x || !calibratedCoords.y) {
+           logTrace(`Web App sent score: ${score}, but we are NOT CALIBRATED. Ignoring injection.`);
+           return;
+        }
+        
+        logTrace(`Web App triggered cross-origin score injection: ${score}`);
+        simulateScoreEntry(score);
+      }
+    }
+  });
+
+  // --- SILENT GHOST MODE FOR IFRAME ---
+  // If we are running inside the Scorer Studio iframe, we want to be INVISIBLE.
+  // The Parent Dashboard handles the UI.
+  if (isIframe) {
+      container.style.display = 'none';
+      logTrace("GHOST MODE ENGAGED: Extension running silently inside iframe.");
+  }
 
 })();

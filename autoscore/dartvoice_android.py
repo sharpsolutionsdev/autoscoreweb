@@ -1035,76 +1035,47 @@ class SettingsOverlay(FloatLayout):
             on_change=lambda v: self._on_slider('voice_rate', v * 400,
                                                 self._rate_lbl, ' wpm', 1)))
 
-        # ── Divider ───────────────────────────────────────────────────────────
-        _div2 = Widget(size_hint_y=None, height=dp(1))
-        with _div2.canvas:
-            Color(*SEP)
-            _div2._r = RoundedRectangle(pos=_div2.pos, size=_div2.size, radius=[0])
-        _div2.bind(pos=lambda *_: setattr(_div2._r, 'pos', _div2.pos),
-                   size=lambda *_: setattr(_div2._r, 'size', _div2.size))
-        content.add_widget(Widget(size_hint_y=None, height=dp(6)))
-        content.add_widget(_div2)
-        content.add_widget(Widget(size_hint_y=None, height=dp(2)))
+        # ── Section: Smart Browser ──────────────────────────────────────────────
+        content.add_widget(self._section_label('SMART BROWSER'))
 
-        # ── Section: Calibration ──────────────────────────────────────────────
-        content.add_widget(self._section_label('VISUAL CALIBRATION'))
-
-        cal_x = self._cfg.get('calibrated_x')
-        is_calibrated = cal_x is not None
-
-        # Calibration row: [status dot] [button] [status text]
-        cal_row = BoxLayout(size_hint_y=None, height=dp(56), spacing=dp(10),
+        # Smart Browser row: [status dot] [info text] [Launch button]
+        sb_row = BoxLayout(size_hint_y=None, height=dp(56), spacing=dp(10),
                             padding=[dp(14), dp(8), dp(14), dp(8)])
-        with cal_row.canvas.before:
+        with sb_row.canvas.before:
             Color(*SEP)
-            cal_row._bdr = RoundedRectangle(pos=cal_row.pos, size=cal_row.size,
+            sb_row._bdr = RoundedRectangle(pos=sb_row.pos, size=sb_row.size,
                                              radius=[dp(12)])
             Color(*BG)
-            cal_row._bg = RoundedRectangle(
-                pos=(cal_row.x + dp(1), cal_row.y + dp(1)),
-                size=(cal_row.width - dp(2), cal_row.height - dp(2)),
+            sb_row._bg = RoundedRectangle(
+                pos=(sb_row.x + dp(1), sb_row.y + dp(1)),
+                size=(sb_row.width - dp(2), sb_row.height - dp(2)),
                 radius=[dp(11)])
-        def _upd_cal_row(w, *_):
+        def _upd_sb_row(w, *_):
             w._bdr.pos = w.pos; w._bdr.size = w.size
             w._bg.pos = (w.x + dp(1), w.y + dp(1))
             w._bg.size = (w.width - dp(2), w.height - dp(2))
-        cal_row.bind(pos=_upd_cal_row, size=_upd_cal_row)
-
-        # Status indicator dot
-        dot = Widget(size_hint=(None, None), size=(dp(10), dp(10)))
-        dot_col = (0.13, 0.77, 0.37, 1) if is_calibrated else FG3
-        with dot.canvas:
-            Color(*dot_col)
-            dot._el = Ellipse(pos=dot.pos, size=dot.size)
-        dot.bind(pos=lambda *_: setattr(dot._el, 'pos', dot.pos),
-                 size=lambda *_: setattr(dot._el, 'size', dot.size))
-        cal_row.add_widget(dot)
+        sb_row.bind(pos=_upd_sb_row, size=_upd_sb_row)
 
         # Info column
-        cal_info = BoxLayout(orientation='vertical', size_hint_x=1, spacing=dp(1))
-        cal_info.add_widget(Label(
-            text='\u2316  Calibrate Input Location', font_size=sp(12), bold=True,
+        sb_info = BoxLayout(orientation='vertical', size_hint_x=1, spacing=dp(1))
+        sb_info.add_widget(Label(
+            text='\u2316  Launch Web Scorer', font_size=sp(12), bold=True,
             color=FG, halign='left', valign='middle',
             size_hint_y=None, height=dp(20))
         )
-        if is_calibrated:
-            cal_y = self._cfg.get('calibrated_y')
-            cal_sub = f'Set to ({cal_x:.2f}, {cal_y:.2f})'
-        else:
-            cal_sub = 'Not configured \u2014 tap to set'
-        sub = Label(text=cal_sub, font_size=sp(9), color=FG2,
+        sub = Label(text='DartCounter / Nakka embedded', font_size=sp(9), color=FG2,
                     halign='left', valign='middle',
                     size_hint_y=None, height=dp(16))
         sub.bind(size=lambda i, v: setattr(i, 'text_size', v))
-        cal_info.add_widget(sub)
-        cal_row.add_widget(cal_info)
+        sb_info.add_widget(sub)
+        sb_row.add_widget(sb_info)
 
         # Transparent tap overlay
-        cal_tap = Button(size_hint=(1, 1), background_normal='',
+        sb_tap = Button(size_hint=(1, 1), background_normal='',
                          background_color=(0, 0, 0, 0),
-                         on_press=lambda *_: self._on_calibrate_req())
-        cal_row.add_widget(cal_tap)
-        content.add_widget(cal_row)
+                         on_press=lambda *_: self._on_launch_browser())
+        sb_row.add_widget(sb_tap)
+        content.add_widget(sb_row)
 
         # ── Divider ───────────────────────────────────────────────────────────
         _div3 = Widget(size_hint_y=None, height=dp(1))
@@ -1205,14 +1176,13 @@ class SettingsOverlay(FloatLayout):
         # Bottom padding
         content.add_widget(Widget(size_hint_y=None, height=dp(30)))
 
-    def _on_calibrate_req(self):
-        """Close settings and trigger visual calibration mode."""
+    def _on_launch_browser(self):
+        """Close settings and launch Smart Browser mode."""
         self._close()
-        # Find DartVoiceLayout and start calibration
-        if self.parent and hasattr(self.parent, '_start_calibration'):
-            self.parent._start_calibration()
-        elif self.parent and self.parent.parent and hasattr(self.parent.parent, '_start_calibration'):
-            self.parent.parent._start_calibration()
+        if self.parent and hasattr(self.parent, '_launch_smart_browser'):
+            self.parent._launch_smart_browser()
+        elif self.parent and self.parent.parent and hasattr(self.parent.parent, '_launch_smart_browser'):
+            self.parent.parent._launch_smart_browser()
 
     # ── helpers ───────────────────────────────────────────────────────────────
     def _section_label(self, text):
@@ -1693,7 +1663,10 @@ class DartVoiceLayout(FloatLayout):
         self._pip_mode      = False
         self._pip_dot       = None
 
+        Window.bind(on_keyboard=self._on_keyboard)
+
         try:
+
             self._build()
         except Exception:
             import traceback
@@ -2670,7 +2643,79 @@ class DartVoiceLayout(FloatLayout):
     def _on_calibrated(self, x, y):
         self._save_cfg({'calibrated_x': x, 'calibrated_y': y})
         self._set_status(f"Calibrated to {x:.2f}, {y:.2f}")
+        from shared import speak
         speak("Calibrated", self.cfg)
+
+    def _launch_smart_browser(self):
+        """Launches a native Android WebView over Kivy."""
+        if not ANDROID:
+            self._set_status("Smart Browser requires Android/iOS.")
+            return
+        self._set_status("Launching Smart Browser...")
+        try:
+            from jnius import autoclass
+            from android.runnable import run_on_ui_thread
+            
+            WebView = autoclass('android.webkit.WebView')
+            WebViewClient = autoclass('android.webkit.WebViewClient')
+            WebChromeClient = autoclass('android.webkit.WebChromeClient')
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            LayoutParams = autoclass('android.view.ViewGroup$LayoutParams')
+            
+            @run_on_ui_thread
+            def create_webview():
+                Activity = PythonActivity.mActivity
+                wv = WebView(Activity)
+                wv.getSettings().setJavaScriptEnabled(True)
+                wv.getSettings().setDomStorageEnabled(True)
+                wv.setWebViewClient(WebViewClient())
+                wv.setWebChromeClient(WebChromeClient())
+                wv.loadUrl("https://dartcounter.net")
+                
+                Activity.addContentView(wv, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+                
+                import shared
+                shared.active_browser = shared.AndroidBrowser(wv)
+                self._android_wv = wv
+                
+            create_webview()
+            if not self._active:
+                self._start_listening()
+        except Exception as e:
+            self._set_status(f"Browser Error: {e}")
+
+    def _on_keyboard(self, window, key, scancode, codepoint, modifier):
+        """Handle hardware back button (ESC, key=27)"""
+        if key == 27:
+            if getattr(self, '_android_wv', None) is not None:
+                try:
+                    from jnius import autoclass
+                    from android.runnable import run_on_ui_thread
+                    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                    @run_on_ui_thread
+                    def remove_webview():
+                        Activity = PythonActivity.mActivity
+                        wv = self._android_wv
+                        parent = wv.getParent()
+                        if parent:
+                            parent.removeView(wv)
+                        wv.destroy()
+                        self._android_wv = None
+                        import shared
+                        shared.active_browser = None
+                    remove_webview()
+                    self._set_status("Closed Smart Browser")
+                    return True  # Event consumed
+                except Exception as e:
+                    self._set_status(f"Failed to close browser: {e}")
+            
+            # Also dismiss Settings overlay if open
+            for child in list(self.children):
+                if hasattr(child, 'leave'):
+                    child.leave()
+                    return True
+        return False
+
 
 
     def _find_model(self):
@@ -2693,10 +2738,20 @@ class DartVoiceLayout(FloatLayout):
 
     def _on_score(self, data):
         self._haptic_pulse()
+        import shared
+        
         mode = self.cfg.get('game_mode', 'X01')
         if mode == 'Cricket':
+            if shared.active_browser is not None:
+                pass # Can add cricket support later
             Clock.schedule_once(lambda dt: self._apply_cricket(data))
             return
+        
+        # Smart browser scoring for X01
+        if shared.active_browser is not None and isinstance(data, int):
+            shared.active_browser.score(data)
+            self._set_status(f"Sent {data} to Browser")
+        
         # X01 per-dart: submit signal
         if isinstance(data, tuple) and data[0] == 'dart_submit':
             if self._current_darts:
@@ -3120,7 +3175,6 @@ class LoginScreen(FloatLayout):
     def _do_action(self, *args):
         text = self.token_input.text.strip()
         if not text: return
-        
         from kivy.clock import Clock
         
         if self._mode == 'email':

@@ -4,6 +4,8 @@ import os, sys, json, re, threading, time
 # Platform detection
 # ─────────────────────────────────────────────────────────────────────────────
 ANDROID = sys.platform == 'linux' and 'ANDROID_ARGUMENT' in os.environ
+IOS = sys.platform == 'ios' or sys.platform == 'darwin'
+
 
 if ANDROID:
     try:
@@ -19,6 +21,8 @@ def _config_dir():
     if ANDROID:
         from android.storage import app_storage_path  # type: ignore
         return app_storage_path()
+    if IOS:
+        return os.path.dirname(os.path.abspath(__file__))
     return os.path.dirname(os.path.abspath(__file__))
 
 def load_config():
@@ -420,3 +424,98 @@ def speak(text, cfg):
                 except Exception:
                     pass
     threading.Thread(target=_do, daemon=True).start()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Smart Browser & JS Drivers
+# ─────────────────────────────────────────────────────────────────────────────
+DARTCOUNTER_DRIVER = """
+(function(val) {
+    const input = document.querySelector('input[type="number"], .score-input');
+    if (input) {
+        input.value = val;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
+        input.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', keyCode: 13, bubbles: true }));
+    } else {
+        // Fallback for custom numberpads if they have specific test ids like #score-20
+        // Currently relies on the standard input
+    }
+})
+"""
+
+NAKKA_DRIVER = """
+(function(val) {
+    const p1Input = document.getElementById('p1-input') || document.querySelector('.player1-input');
+    if (p1Input) {
+        p1Input.click();
+        // Nakka might use a custom keypad; may require mapping string digits to keypad clicks.
+        // E.g. document.getElementById('key-' + digit).click()
+        const strVal = String(val);
+        for(let i=0; i<strVal.length; i++) {
+            let key = document.getElementById('key_' + strVal[i]);
+            if (key) key.click();
+        }
+        let enterKey = document.getElementById('key_enter');
+        if (enterKey) enterKey.click();
+    }
+})
+"""
+
+class BaseBrowser:
+    def eval_js(self, script):
+        raise NotImplementedError
+
+    def score(self, val):
+        self.eval_js(f"{DARTCOUNTER_DRIVER}({val});")
+
+class AndroidBrowser(BaseBrowser):
+    def __init__(self, webview_instance):
+        self.webview = webview_instance
+
+    def eval_js(self, script):
+        try:
+            from jnius import autoclass, PythonJavaClass, java_method
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            String = autoclass('java.lang.String')
+
+            class JSRunnable(PythonJavaClass):
+                __javainterfaces__ = ['java/lang/Runnable']
+                __javacontext__ = 'app'
+                def __init__(self, wv, s):
+                    super().__init__()
+                    self.wv = wv
+                    self.s = s
+
+                @java_method('()V')
+                def run(self):
+                    try:
+                        self.wv.evaluateJavascript(String(self.s), None)
+                    except Exception as e:
+                        print(f"JS Eval Error: {e}")
+
+            runnable = JSRunnable(self.webview, script)
+            PythonActivity.mActivity.runOnUiThread(runnable)
+class IOSBrowser(BaseBrowser):
+    def __init__(self, webview_instance):
+        self.webview = webview_instance
+        try:
+            from pyobjus import autoclass
+            self.NSString = autoclass('NSString')
+        except ImportError:
+            pass
+
+    def eval_js(self, script):
+        try:
+            ns_script = self.NSString.alloc().initWithUTF8String_(script)
+            # Evaluate using WKWebView's evaluateJavaScript:completionHandler:
+            self.webview.evaluateJavaScript_completionHandler_(ns_script, None)
+        except Exception as e:
+            print(f"IOSBrowser eval_js error: {e}")
+
+class DummyBrowser(BaseBrowser):
+    def eval_js(self, script):
+        print(f"[DummyBrowser] executing: {script[:30]}...")
+
+# Global active browser instance if Embedded mode is enabled
+active_browser = None

@@ -506,6 +506,26 @@
                     <!-- Left column -->
                     <div class="space-y-5">
 
+                        <!-- Scorer Studio Card -->
+                        <div id="card-scorer-studio" class="hidden card-panel fade-up-1 pulse-glow" style="border-color: rgba(204,11,32,0.3); background: linear-gradient(145deg, #111114, #1A0608);">
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#CC0B20;">Browser Powered</p>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background: rgba(204,11,32,0.15); color: #CC0B20;">PREMIUM</span>
+                                </div>
+                                <h2 class="display text-3xl mb-2">SCORER STUDIO</h2>
+                                <p class="text-xs text-muted leading-relaxed mb-5">Open the integrated split-screen scorer. Control DartCounter with your voice directly in this browser window. <strong class="text-white">Requires Chrome Extension.</strong></p>
+                                
+                                <button onclick="window.location.href='web-app.html'" class="btn-brand w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(204,11,32,0.3)]">
+                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Launch Integrated Scorer
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Subscription Card -->
                         <div class="card-panel fade-up-2">
                             <div class="sub-accent"></div>
@@ -1237,6 +1257,7 @@
             const dlCard = $('card-downloads');
             const dlLocked = $('card-downloads-locked');
             const qsCard = $('card-quickstart');
+            const ssCard = $('card-scorer-studio');
 
             const isActive = sub && ['active', 'trialing'].includes(sub.status);
 
@@ -1245,10 +1266,12 @@
                     dlCard.classList.remove('hidden');
                     dlLocked.classList.add('hidden');
                     qsCard.classList.remove('hidden');
+                    if (ssCard) ssCard.classList.remove('hidden');
                 } else {
                     dlCard.classList.add('hidden');
                     dlLocked.classList.remove('hidden');
                     qsCard.classList.add('hidden');
+                    if (ssCard) ssCard.classList.add('hidden');
                 }
             }
 
