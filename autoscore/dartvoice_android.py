@@ -3238,24 +3238,30 @@ class LoadingScreen(FloatLayout):
         def _draw(w, *a):
             w.canvas.clear()
             cx, cy = w.center_x, w.center_y
+            glow_r = dp(60)
+            outer_r = dp(48)
+            accent_r = dp(34)
+            inner_r = dp(22)
+            core_r = dp(14)
+            bull_r = dp(5)
             with w.canvas:
                 Color(*ACCENT[:3], 0.12)
-                Ellipse(pos=(cx-dp(60), cy-dp(60)), size=(dp(120), dp(120)))
+                Ellipse(pos=(cx - glow_r, cy - glow_r), size=(glow_r * 2, glow_r * 2))
                 # Outer dark ring
                 Color(0.2, 0.2, 0.24, 1)
-                Ellipse(pos=(cx-dp(48), cy-dp(48)), size=(dp(96), dp(96)))
+                Ellipse(pos=(cx - outer_r, cy - outer_r), size=(outer_r * 2, outer_r * 2))
                 # Accent ring
                 Color(*ACCENT)
-                Ellipse(pos=(cx-dp(34), cy-dp(34)), size=(dp(68), dp(68)))
+                Ellipse(pos=(cx - accent_r, cy - accent_r), size=(accent_r * 2, accent_r * 2))
                 # Inner dark ring
                 Color(0.2, 0.2, 0.24, 1)
-                Ellipse(pos=(cx-dp(22), cy-dp(22)), size=(dp(44), dp(44)))
+                Ellipse(pos=(cx - inner_r, cy - inner_r), size=(inner_r * 2, inner_r * 2))
                 # Inner accent ring
                 Color(*ACCENT)
-                Ellipse(pos=(cx-dp(14), cy-dp(14)), size=(dp(28), dp(28)))
+                Ellipse(pos=(cx - core_r, cy - core_r), size=(core_r * 2, core_r * 2))
                 # Bullseye dot
                 Color(0.94, 0.94, 0.96, 1)
-                Ellipse(pos=(cx-dp(5), cy-dp(5)), size=(dp(10), dp(10)))
+                Ellipse(pos=(cx - bull_r, cy - bull_r), size=(bull_r * 2, bull_r * 2))
         self.logo_wrap.bind(pos=_draw, size=_draw)
 
     def _cycle_message(self, dt):
@@ -3411,19 +3417,25 @@ class LoginScreen(FloatLayout):
     def _draw_login_logo(self, widget, *_):
         widget.canvas.clear()
         cx, cy = widget.center_x, widget.center_y
+        glow_r = dp(50)
+        outer_r = dp(40)
+        accent_r = dp(28)
+        inner_r = dp(18)
+        core_r = dp(10)
+        bull_r = dp(4)
         with widget.canvas:
             Color(*ACCENT[:3], 0.12)
-            Ellipse(pos=(cx - dp(50), cy - dp(50)), size=(dp(100), dp(100)))
+            Ellipse(pos=(cx - glow_r, cy - glow_r), size=(glow_r * 2, glow_r * 2))
             Color(*CARD2)
-            Ellipse(pos=(cx - dp(40), cy - dp(40)), size=(dp(80), dp(80)))
+            Ellipse(pos=(cx - outer_r, cy - outer_r), size=(outer_r * 2, outer_r * 2))
             Color(*ACCENT)
-            Ellipse(pos=(cx - dp(28), cy - dp(28)), size=(dp(56), dp(56)))
+            Ellipse(pos=(cx - accent_r, cy - accent_r), size=(accent_r * 2, accent_r * 2))
             Color(*CARD)
-            Ellipse(pos=(cx - dp(18), cy - dp(18)), size=(dp(36), dp(36)))
+            Ellipse(pos=(cx - inner_r, cy - inner_r), size=(inner_r * 2, inner_r * 2))
             Color(*ACCENT)
-            Ellipse(pos=(cx - dp(10), cy - dp(10)), size=(dp(20), dp(20)))
+            Ellipse(pos=(cx - core_r, cy - core_r), size=(core_r * 2, core_r * 2))
             Color(*FG)
-            Ellipse(pos=(cx - dp(4), cy - dp(4)), size=(dp(8), dp(8)))
+            Ellipse(pos=(cx - bull_r, cy - bull_r), size=(bull_r * 2, bull_r * 2))
 
     def _update_input(self, instance, *_):
         instance._bdr.pos = instance.pos
