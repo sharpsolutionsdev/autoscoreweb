@@ -1925,7 +1925,8 @@ class DartVoiceLayout(FloatLayout):
 
         # Score surface with ambient glow
         score_wrap = FloatLayout(size_hint=(1, 1))
-        glow_label_center_y = 0.49  # slight offset to create a soft text-shadow effect
+        glow_shadow_offset = 0.01
+        glow_label_center_y = 0.5 - glow_shadow_offset  # nudges the glow label below the score text for a soft shadow
         score_card = Widget(size_hint=(0.94, 0.94), pos_hint={'center_x': 0.5, 'center_y': 0.5})
         with score_card.canvas.before:
             Color(*ACCENT[:3], 0.05)
