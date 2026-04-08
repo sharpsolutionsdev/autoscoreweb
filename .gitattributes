@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Binary assets — no line-ending conversion
+downloads/*.zip binary

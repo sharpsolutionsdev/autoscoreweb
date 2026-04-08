@@ -1,0 +1,95 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'autoscore/dartvoice_v2.py'
+      - 'autoscore/shared.py'
+      - 'autoscore/billing.py'
+      - 'autoscore/DartVoice.spec'
+      - 'autoscore/installer.iss'
+      - 'autoscore/fonts/**'
+      - 'autoscore/vosk-model-small-en-us/**'
+      - '.github/workflows/build-windows.yml'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    name: Build Windows EXE + Installer
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    timeout-minutes: 60
+
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        working-directory: autoscore
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_windows.txt
+          pip install pyinstaller pillow
+
+      - name: Build EXE with PyInstaller
+        working-directory: autoscore
+        run: python -m PyInstaller DartVoice.spec --noconfirm --clean
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer with Inno Setup
+        working-directory: autoscore
+        shell: cmd
+        run: |
+          if not exist installer_output mkdir installer_output
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+          if %ERRORLEVEL% NEQ 0 exit /b 1
+
+      - name: Rename installer to stable filename
+        working-directory: autoscore
+        shell: pwsh
+        run: |
+          $src = Get-ChildItem installer_output\DartVoice_Setup_v*.exe | Select-Object -First 1
+          if (-not $src) { Write-Error "Installer not found in installer_output\"; exit 1 }
+          Rename-Item $src.FullName "DartVoice_Setup.exe"
+          Write-Host "Renamed $($src.Name) → DartVoice_Setup.exe"
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DartVoice-windows-installer
+          path: autoscore/installer_output/DartVoice_Setup.exe
+          retention-days: 30
+
+      # Public permanent URL:
+      # https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice_Setup.exe
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: windows-latest
+          name: "DartVoice Windows (latest)"
+          body: |
+            Latest DartVoice Windows installer — auto-published by CI.
+
+            **Install steps:**
+            1. Download `DartVoice_Setup.exe` below
+            2. Double-click it → Next → Next → Install
+            3. DartVoice launches automatically
+
+            No Python or other software required.
+          files: autoscore/installer_output/DartVoice_Setup.exe
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
