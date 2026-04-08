@@ -548,7 +548,8 @@ def _sep_line(widget):
                 size=lambda *a: setattr(widget._sep_rect, 'size', (a[1][0], dp(1))))
 
 def _bind_text_size(label):
-    label.bind(size=lambda i, v: setattr(i, 'text_size', v))
+    """Keep a Label's text box aligned to its widget size for centering/wrapping."""
+    label.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
     return label
 
 def _accent_btn(text, on_press):
@@ -1924,6 +1925,7 @@ class DartVoiceLayout(FloatLayout):
 
         # Score surface with ambient glow
         score_wrap = FloatLayout(size_hint=(1, 1))
+        score_glow_center_y = 0.49  # slight offset to create a soft text-shadow effect
         score_card = Widget(size_hint=(0.94, 0.94), pos_hint={'center_x': 0.5, 'center_y': 0.5})
         with score_card.canvas.before:
             Color(*ACCENT[:3], 0.05)
@@ -1959,7 +1961,7 @@ class DartVoiceLayout(FloatLayout):
         self._glow_lbl = Label(
             text=str(self.state.remaining), font_size=sp(76), bold=True,
             color=(0, 0, 0, 0), halign='center', valign='middle',
-            size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.49},
+            size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': score_glow_center_y},
         )
         _bind_text_size(self._glow_lbl)
         score_wrap.add_widget(self._glow_lbl)
@@ -3162,7 +3164,7 @@ class LoadingScreen(FloatLayout):
         self.add_widget(self.title_lbl)
 
         self.subtitle_lbl = Label(
-            text='Professional voice control for a smoother scoring session',
+            text='Professional voice control for seamless scoring sessions',
             font_size=sp(12), color=FG2,
             pos_hint={'center_x': 0.5, 'center_y': 0.53},
             halign='center', valign='middle',
