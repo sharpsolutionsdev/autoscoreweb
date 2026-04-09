@@ -511,6 +511,38 @@
     }
   }
 
+  // Retry wrapper — DartCounter may briefly hide the input after a submission
+  function injectScoreDirectDOMWithRetry(scoreStr, attempt) {
+    attempt = attempt || 1;
+    let el = document.querySelector('input[inputmode="numeric"]')
+        || document.querySelector('input[placeholder*="score"]');
+    if (el) {
+      injectScoreDirectDOM(scoreStr);
+    } else if (attempt <= 6) {
+      logTrace(`Input not found (attempt ${attempt}/6), retrying in 300ms...`);
+      setTimeout(() => injectScoreDirectDOMWithRetry(scoreStr, attempt + 1), 300);
+    } else {
+      logTrace('CRITICAL: Input element not found after 6 retries!');
+    }
+  }
+
+  // --- UNDO / CANCEL ---
+  function triggerUndo() {
+    // DartCounter uses Backspace key to undo the last score entry
+    logTrace('Triggering undo via Backspace key...');
+    document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Backspace', code: 'Backspace', keyCode: 8, which: 8 }));
+    document.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Backspace', code: 'Backspace', keyCode: 8, which: 8 }));
+
+    // Fallback: try clicking an undo button if one exists
+    setTimeout(() => {
+      const undoBtn = document.querySelector('button[aria-label*="undo"], button[aria-label*="Undo"], .undo-button, [data-testid="undo"]');
+      if (undoBtn) {
+        logTrace('Found undo button, clicking...');
+        undoBtn.click();
+      }
+    }, 200);
+  }
+
   function simulateScoreEntry(score) {
     // If running inside the iframe, use direct DOM access (no calibration needed)
     if (isIframe) {
@@ -616,10 +648,17 @@
       if (event.data.type === "DARTVOICE_SCORE_INJECT") {
         const score = event.data.score;
 
+        // Handle cancel/undo command
+        if (score === '__CANCEL__') {
+          logTrace('Cancel/Undo command received');
+          triggerUndo();
+          return;
+        }
+
         // In iframe mode, use direct DOM injection (no calibration needed)
         if (isIframe) {
           logTrace(`Iframe received score injection via postMessage: ${score}`);
-          injectScoreDirectDOM(String(score));
+          injectScoreDirectDOMWithRetry(String(score));
           return;
         }
 

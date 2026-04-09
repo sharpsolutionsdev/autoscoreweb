@@ -586,6 +586,10 @@
         let recognition = null;
         let visualizerInterval = null;
 
+        // --- PER-DART ACCUMULATOR ---
+        let dartBuffer = [];  // collects up to 3 individual dart scores
+        let dartBufferTimeout = null; // auto-submit after silence
+
         // --- VOICE SCORE PARSING LOGIC ---
         const _ONES = {
             'zero': 0, 'oh': 0, 'one': 1, 'won': 1, 'two': 2, 'too': 2, 'to': 2,
@@ -720,17 +724,65 @@
 
                     // Check for cancel trigger first
                     if (raw.includes("cancel") && AppConfig.cancelWordEnabled) {
-                        log("Cancel Trigger", true);
-                        blastScoreToIframe("cancel");
+                        if (AppConfig.inputMode === 'per-dart' && dartBuffer.length > 0) {
+                            // In per-dart mode, cancel clears the dart buffer
+                            log(`Cancel — cleared ${dartBuffer.length} buffered dart(s)`, false);
+                            dartBuffer = [];
+                            if (dartBufferTimeout) { clearTimeout(dartBufferTimeout); dartBufferTimeout = null; }
+                            statusText.textContent = 'Darts cleared. Speak again...';
+                        } else {
+                            log("Cancel Trigger", true);
+                            blastScoreToIframe("__CANCEL__");
+                        }
                         continue;
                     }
 
                     // Try to parse as a dart score
                     const score = parseSpokenScore(raw);
                     if (score !== null && score >= 0 && score <= 180) {
-                        log(score, true);
-                        log(`Heard: "${raw}" → Forwarding ${score} to scorer...`, false);
-                        blastScoreToIframe(String(score));
+                        if (AppConfig.inputMode === 'per-dart') {
+                            // Per-dart: collect 3 darts, sum, then submit
+                            if (score > 60) {
+                                // Single dart can't exceed 60 — treat as total instead
+                                log(`"${raw}" (${score}) exceeds per-dart max 60, sending as visit total`, false);
+                                log(score, true);
+                                blastScoreToIframe(String(score));
+                            } else {
+                                dartBuffer.push(score);
+                                log(`Dart ${dartBuffer.length}/3: ${score}`, false);
+                                statusText.textContent = `Darts: ${dartBuffer.join(' + ')} (${dartBuffer.length}/3)`;
+
+                                // Reset the silence timeout on each dart
+                                if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
+
+                                if (dartBuffer.length >= 3) {
+                                    // All 3 darts in — submit the total
+                                    const total = dartBuffer.reduce((a, b) => a + b, 0);
+                                    log(`${dartBuffer.join(' + ')} = ${total}`, true);
+                                    log(`Per-dart total: ${dartBuffer.join(' + ')} → Forwarding ${total} to scorer...`, false);
+                                    blastScoreToIframe(String(total));
+                                    dartBuffer = [];
+                                    statusText.textContent = 'Awaiting Score...';
+                                } else {
+                                    // Auto-submit after 6s of silence (e.g. 2-dart visit)
+                                    dartBufferTimeout = setTimeout(() => {
+                                        if (dartBuffer.length > 0) {
+                                            const total = dartBuffer.reduce((a, b) => a + b, 0);
+                                            log(`${dartBuffer.join(' + ')} = ${total} (auto-submitted after silence)`, true);
+                                            log(`Per-dart total: ${dartBuffer.join(' + ')} → Forwarding ${total} to scorer...`, false);
+                                            blastScoreToIframe(String(total));
+                                            dartBuffer = [];
+                                            statusText.textContent = 'Awaiting Score...';
+                                        }
+                                    }, 6000);
+                                }
+                            }
+                        } else {
+                            // Total mode: send immediately
+                            log(score, true);
+                            log(`Heard: "${raw}" → Forwarding ${score} to scorer...`, false);
+                            blastScoreToIframe(String(score));
+                        }
                     } else {
                         log(`Heard: "${raw}" (no score matched)`);
                     }
