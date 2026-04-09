@@ -46,9 +46,15 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
         .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.02em; text-transform: uppercase; }
         .neon-score { text-shadow: 0 0 12px rgba(204,11,32,0.9), 0 0 24px rgba(204,11,32,0.5), 0 0 48px rgba(204,11,32,0.2); }
+        .noise::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.018; pointer-events: none; z-index: 100;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center px-5 text-center">
+<body class="min-h-screen flex flex-col items-center justify-center px-5 text-center noise">
 
     <!-- Logo -->
     <a href="/" class="flex items-center gap-2.5 mb-12 group">
@@ -78,6 +84,14 @@
         </a>
     </div>
 
+    <div class="mt-16 flex items-center gap-5 text-xs" style="color:#4A4A5A">
+        <a href="contact.html" class="hover:text-muted transition">Contact</a>
+        <a href="terms.html" class="hover:text-muted transition">Terms</a>
+        <a href="privacy.html" class="hover:text-muted transition">Privacy</a>
+        <a href="guide.html" class="hover:text-muted transition">Guide</a>
+    </div>
+
     <script src="theme.js"></script>
+    <script src="cookies.js"></script>
 </body>
 </html>

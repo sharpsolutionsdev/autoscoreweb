@@ -28,6 +28,8 @@ Required env vars (baked into the app at build time):
 """
 
 import os, json, time, uuid, hashlib, threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import webbrowser
 
 # ── Supabase client (graceful fallback) ───────────────────────────────────────
 # Catch Exception (not just ImportError) because pydantic-core can throw
@@ -355,3 +357,115 @@ def billing_status() -> dict:
         'tier':         'admin' if admin else ('member' if subscribed else
                         ('demo' if secs_left > 0 else 'inactive')),
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Web-based login (localhost callback)
+# ─────────────────────────────────────────────────────────────────────────────
+# Both Windows and Android open the browser to login.html?source=app&port=PORT.
+# After the user authenticates, login.html POSTs session tokens back to
+# http://127.0.0.1:PORT/auth-callback.  This server catches that single
+# request, stores the tokens, then shuts down.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_LOGIN_SITE = 'https://dartvoice.app/login.html'
+
+class _AuthCallbackHandler(BaseHTTPRequestHandler):
+    """Handles the single POST /auth-callback from the browser."""
+
+    def do_POST(self):
+        if self.path != '/auth-callback':
+            self.send_error(404)
+            return
+        length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(length)
+        try:
+            payload = json.loads(body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            self.send_error(400)
+            return
+
+        # Validate expected keys
+        access  = payload.get('access_token', '')
+        refresh = payload.get('refresh_token', '')
+        uid     = payload.get('user_id', '')
+        email   = payload.get('email', '')
+        if not (access and refresh and uid and email):
+            self.send_error(400)
+            return
+
+        # Store session exactly as verify_otp() does
+        d = _load()
+        d['sb_access_token']  = access
+        d['sb_refresh_token'] = refresh
+        d['sb_user_id']       = uid
+        d['sb_email']         = email
+        d.pop('pending_email', None)
+        _save(d)
+
+        # CORS headers so the browser POST succeeds
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(b'{"ok":true}')
+
+        # Signal the server to stop after this request
+        self.server._auth_received = True
+
+    def do_OPTIONS(self):
+        """Handle CORS preflight for the browser POST."""
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+    def log_message(self, *args):
+        pass  # Silence request logs
+
+
+def login_via_web(callback=None, intent=''):
+    """
+    Open the DartVoice website login in the system browser and wait for
+    the session tokens to arrive via a localhost callback.
+
+    Parameters
+    ----------
+    callback : callable(success: bool, account: dict | None)
+        Called when auth completes (or times out).  May be called from a
+        background thread — use Clock/after to bounce to the UI thread.
+    intent : str
+        Optional 'subscribe' to open the sign-up variant.
+
+    Returns immediately; auth happens in a background thread.
+    """
+    def _run():
+        server = HTTPServer(('127.0.0.1', 0), _AuthCallbackHandler)
+        server._auth_received = False
+        port = server.server_address[1]
+
+        # Build login URL
+        params = f'source=app&port={port}'
+        if intent:
+            params += f'&intent={intent}'
+        url = f'{_LOGIN_SITE}?{params}'
+        webbrowser.open(url)
+
+        # Wait up to 5 minutes for the browser POST
+        server.timeout = 2
+        deadline = time.time() + 300
+        while time.time() < deadline and not server._auth_received:
+            server.handle_request()
+
+        server.server_close()
+
+        if server._auth_received:
+            acct = get_account()
+            if callback:
+                callback(True, acct)
+        else:
+            if callback:
+                callback(False, None)
+
+    threading.Thread(target=_run, daemon=True).start()

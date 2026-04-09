@@ -15,6 +15,15 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Sign In | DartVoice</title>
     <meta name="description" content="Sign in or create your DartVoice account. No password needed — we'll send you a 6-digit code.">
+    <meta property="og:title" content="Sign In | DartVoice">
+    <meta property="og:description" content="Sign in or create your DartVoice account. No password needed — we'll send you a 6-digit code.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dartvoice.app/login.html">
+    <meta property="og:image" content="https://dartvoice.app/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sign In | DartVoice">
+    <meta name="twitter:description" content="Sign in or create your DartVoice account.">
+    <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
     <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -436,8 +445,16 @@
     let _email = '';
     let _resendTimer = null;
 
+    // ── App login callback (Windows/Android desktop apps) ─────────────────
+    // When ?source=app&port=XXXX is present, after auth we POST session
+    // tokens to localhost:PORT/auth-callback so the native app picks them up.
+    const _urlParams  = new URLSearchParams(window.location.search);
+    const _appSource  = _urlParams.get('source');     // 'app' when launched from native
+    const _appPort    = _urlParams.get('port');        // localhost port for token handoff
+    const _isAppLogin = _appSource === 'app' && /^\d{4,5}$/.test(_appPort || '');
+
     // Detect intent from URL: ?intent=subscribe → sign-up mode, else sign-in mode
-    const _intent = new URLSearchParams(window.location.search).get('intent');
+    const _intent = _urlParams.get('intent');
     const _isSignUp = _intent === 'subscribe';
 
     // Adapt UI for sign-up vs sign-in
@@ -465,14 +482,45 @@
             </a>`;
     }
 
+    // Adapt UI when launched from the native app
+    if (_isAppLogin) {
+        document.getElementById('auth-subtext').textContent =
+            'Sign in here — your session will sync back to the DartVoice app automatically.';
+        document.getElementById('bottom-nudge').innerHTML = `
+            <div>
+                <p class="text-[11px] text-muted">Launched from the DartVoice app</p>
+                <p class="text-[12px] text-chalk font-semibold mt-0.5">Your session will sync back automatically after sign-in.</p>
+            </div>`;
+    }
+
     // Destination after auth
     function _authDest() {
         return _isSignUp ? 'dartvoice-dashboard.html?subscribe=1' : 'dartvoice-dashboard.html';
     }
 
     // Check if already signed in → skip to dashboard (respecting intent)
-    sb.auth.getSession().then(({ data }) => {
+    // For app logins, still push the session to the callback server
+    sb.auth.getSession().then(async ({ data }) => {
         if (data?.session?.user) {
+            if (_isAppLogin) {
+                try {
+                    await fetch(`http://127.0.0.1:${_appPort}/auth-callback`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            access_token:  data.session.access_token,
+                            refresh_token: data.session.refresh_token,
+                            user_id:       data.session.user.id,
+                            email:         data.session.user.email,
+                        }),
+                    });
+                } catch (_) {}
+                document.getElementById('step-email').classList.add('hidden');
+                document.getElementById('step-success').classList.remove('hidden');
+                document.getElementById('success-heading').textContent = 'ALREADY SIGNED IN';
+                document.getElementById('success-subtext').textContent = 'You can close this tab and return to the app.';
+                return;
+            }
             window.location.replace(_authDest());
         }
     });
@@ -604,6 +652,33 @@
         const refCode   = urlParams.get('ref');
         if (refCode) sessionStorage.setItem('dv_ref_code', refCode);
 
+        // ── App login: POST tokens to local callback server ─────────────
+        if (_isAppLogin) {
+            document.getElementById('success-heading').textContent = 'SIGNED IN';
+            document.getElementById('success-subtext').textContent = 'Returning to DartVoice app…';
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (session) {
+                    await fetch(`http://127.0.0.1:${_appPort}/auth-callback`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            access_token:  session.access_token,
+                            refresh_token: session.refresh_token,
+                            user_id:       session.user.id,
+                            email:         session.user.email,
+                        }),
+                    });
+                    document.getElementById('success-subtext').textContent =
+                        'You can close this tab and return to the app.';
+                }
+            } catch (e) {
+                document.getElementById('success-subtext').textContent =
+                    'Signed in! You can close this tab and return to the app.';
+            }
+            return;
+        }
+
         setTimeout(() => window.location.replace(_authDest()), 1200);
     }
 
@@ -662,5 +737,6 @@
     }
     </script>
     <script src="theme.js"></script>
+    <script src="cookies.js"></script>
 </body>
 </html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Contact Us — DartVoice</title>
+    <meta name="description" content="Get in touch with the DartVoice team. Report a bug, request a feature, send feedback, or make a business enquiry.">
+    <meta property="og:title" content="Contact Us — DartVoice">
+    <meta property="og:description" content="Get in touch with the DartVoice team. Report a bug, request a feature, or send feedback.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dartvoice.app/contact.html">
+    <meta property="og:image" content="https://dartvoice.app/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Contact Us — DartVoice">
+    <meta name="twitter:description" content="Get in touch with the DartVoice team. Report a bug, request a feature, or send feedback.">
+    <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
+    <meta name="theme-color" content="#CC0B20">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand:       'var(--brand, #CC0B20)',
+                        'brand-light':'var(--brand-light, #e60d24)',
+                        dark:   '#08080A',
+                        card:   '#111114',
+                        wire:   '#252530',
+                        muted:  '#6E6E82',
+                        'muted-2':'#4A4A5A',
+                        chalk:  '#F0F0F5',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; text-transform: uppercase; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up   { animation: fadeUp 0.5s 0.1s ease-out both; }
+        .fade-up-2 { animation: fadeUp 0.5s 0.25s ease-out both; }
+        .fade-up-3 { animation: fadeUp 0.5s 0.4s ease-out both; }
+
+        .btn-brand {
+            background: var(--brand, #CC0B20);
+            transition: all 0.25s;
+            position: relative; overflow: hidden;
+        }
+        .btn-brand::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.25s;
+        }
+        .btn-brand:hover::after { opacity: 1; }
+        .btn-brand:hover {
+            background: var(--brand-light, #e60d24);
+            box-shadow: 0 0 36px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
+            transform: translateY(-1px);
+        }
+        .btn-brand:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none;
+        }
+        .btn-brand:disabled::after { display: none; }
+
+        .noise::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.018; pointer-events: none; z-index: 100;
+        }
+
+        .footer-col-head {
+            font-size: 10px; font-weight: 700; letter-spacing: .15em;
+            text-transform: uppercase; color: #4A4A5A; margin-bottom: 14px;
+        }
+
+        /* Form styling */
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: #08080A;
+            border: 1px solid rgba(255,255,255,0.07);
+            font-size: 14px;
+            color: #F0F0F5;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .form-input::placeholder { color: #4A4A5A; }
+        .form-input:focus {
+            border-color: var(--brand, #CC0B20);
+            box-shadow: 0 0 0 3px rgba(204,11,32,0.1);
+        }
+        select.form-input { appearance: none; cursor: pointer; }
+        textarea.form-input { resize: vertical; min-height: 140px; line-height: 1.6; }
+
+        .form-label {
+            display: block;
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.15em;
+            color: #4A4A5A;
+            margin-bottom: 8px;
+        }
+
+        /* Select arrow */
+        .select-wrap { position: relative; }
+        .select-wrap::after {
+            content: '';
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            border: 5px solid transparent; border-top-color: #4A4A5A;
+            pointer-events: none;
+        }
+
+        /* Success state */
+        @keyframes checkScale {
+            0%   { transform: scale(0); }
+            60%  { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        .check-scale { animation: checkScale 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen flex flex-col noise">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full z-50 bg-dark/85 backdrop-blur-xl border-b border-wire/60">
+        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5 group">
+                <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="3" fill="white"/>
+                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
+            </a>
+            <div class="hidden sm:flex items-center gap-1">
+                <a href="/index.html#features"     class="text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
+                <a href="/index.html#pricing"       class="text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
+                <a href="guide.html"                class="text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
+                <a href="referral.html"             class="text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ambassador
+                </a>
+            </div>
+            <div class="hidden sm:flex items-center gap-3">
+                <a href="login.html" class="text-sm font-semibold text-muted hover:text-chalk transition">Sign In</a>
+                <a href="dartvoice-dashboard.html" class="bg-brand hover:bg-red-600 transition px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
+            </div>
+            <button id="mob-btn-nav"
+                    class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/5 transition">
+                <svg class="w-5 h-5 text-chalk" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+        <div id="mob-nav"
+             style="max-height:0;overflow:hidden;transition:max-height .35s ease"
+             class="sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
+            <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
+                <a href="/index.html#features"  class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Features</a>
+                <a href="/index.html#pricing"   class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Pricing</a>
+                <a href="guide.html"            class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Setup Guide</a>
+                <a href="referral.html"         class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
+                </a>
+                <div class="border-t border-wire/50 mt-1 pt-3 grid grid-cols-2 gap-2">
+                    <a href="login.html" class="border border-wire rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-chalk hover:bg-white/5 transition">Sign In</a>
+                    <a href="dartvoice-dashboard.html" class="bg-brand rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-white hover:bg-red-600 transition">Free Trial</a>
+                </div>
+            </div>
+        </div>
+        <script>
+        document.getElementById('mob-btn-nav').addEventListener('click', function() {
+            var m = document.getElementById('mob-nav');
+            m.style.maxHeight = m.style.maxHeight === '0px' || !m.style.maxHeight ? '320px' : '0px';
+        });
+        </script>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="flex-1 pt-28 pb-16 px-5"
+          style="background: radial-gradient(ellipse 60% 50% at 50% 10%, rgba(204,11,32,0.06) 0%, transparent 70%)">
+        <div class="max-w-lg mx-auto">
+
+            <!-- Header -->
+            <div class="text-center mb-10 fade-up">
+                <h1 class="display text-4xl sm:text-5xl mb-3">GET IN TOUCH</h1>
+                <p class="text-muted text-sm leading-relaxed max-w-sm mx-auto">
+                    Got a bug, feature idea, or just want to say hello? Pick a subject and fire away.
+                </p>
+            </div>
+
+            <!-- Contact Form Card -->
+            <div id="contact-form-card" class="bg-card border border-wire rounded-2xl overflow-hidden fade-up-2">
+                <!-- Red accent bar -->
+                <div class="h-0.5 w-full bg-brand"></div>
+
+                <form id="contact-form" class="p-6 sm:p-8 space-y-5" novalidate>
+
+                    <!-- Subject -->
+                    <div>
+                        <label for="contact-subject" class="form-label">Subject</label>
+                        <div class="select-wrap">
+                            <select id="contact-subject" class="form-input" required>
+                                <option value="" disabled selected>Select a subject…</option>
+                                <option value="bug">🐛 Bug Report</option>
+                                <option value="feedback">💬 Feedback</option>
+                                <option value="feature">💡 Feature Request</option>
+                                <option value="complaint">⚠️ Complaint</option>
+                                <option value="business">🤝 Business Enquiry</option>
+                                <option value="other">📩 Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="contact-email" class="form-label">Your Email</label>
+                        <input id="contact-email" type="email" class="form-input" placeholder="you@example.com">
+                    </div>
+
+                    <!-- Name (optional) -->
+                    <div>
+                        <label for="contact-name" class="form-label">Name <span class="text-muted-2 normal-case tracking-normal font-normal">(optional)</span></label>
+                        <input id="contact-name" type="text" class="form-input" placeholder="Your name">
+                    </div>
+
+                    <!-- Message -->
+                    <div>
+                        <label for="contact-message" class="form-label">Message</label>
+                        <textarea id="contact-message" class="form-input" placeholder="Tell us what's on your mind…" required></textarea>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" id="contact-submit"
+                            class="btn-brand w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+                        </svg>
+                        Send Message
+                    </button>
+
+                    <p id="contact-error" class="text-xs text-red-400 text-center hidden"></p>
+
+                    <p class="text-[11px] text-muted-2 text-center leading-relaxed">
+                        We'll respond to <strong class="text-muted">support@dartvoice.app</strong> within 1–2 business days. For urgent issues, email us directly.
+                    </p>
+                </form>
+            </div>
+
+            <!-- Success state (hidden by default) -->
+            <div id="contact-success" class="hidden">
+                <div class="bg-card border border-wire rounded-2xl overflow-hidden">
+                    <div class="h-0.5 w-full bg-green-500"></div>
+                    <div class="p-8 sm:p-10 text-center">
+                        <div class="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-5 check-scale">
+                            <svg class="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <h2 class="display text-3xl mb-2">MESSAGE SENT!</h2>
+                        <p class="text-muted text-sm mb-6 leading-relaxed">Thanks for getting in touch. We'll get back to you at your email within 1–2 business days.</p>
+                        <button onclick="resetForm()" class="text-sm text-brand font-semibold hover:underline">Send another message</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick contact info -->
+            <div class="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-2 fade-up-3">
+                <a href="mailto:support@dartvoice.app" class="flex items-center gap-2 hover:text-muted transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                    </svg>
+                    support@dartvoice.app
+                </a>
+                <a href="https://instagram.com/dartcounterapp" target="_blank" rel="noopener" class="flex items-center gap-2 hover:text-muted transition">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.97.24 2.43.403a4.08 4.08 0 011.47.96c.458.457.779.91.96 1.47.163.46.349 1.26.403 2.43.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.054 1.17-.24 1.97-.403 2.43a4.08 4.08 0 01-.96 1.47 4.08 4.08 0 01-1.47.96c-.46.163-1.26.349-2.43.403-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.054-1.97-.24-2.43-.403a4.08 4.08 0 01-1.47-.96 4.08 4.08 0 01-.96-1.47c-.163-.46-.349-1.26-.403-2.43C2.175 15.747 2.163 15.367 2.163 12s.012-3.584.07-4.85c.054-1.17.24-1.97.403-2.43a4.08 4.08 0 01.96-1.47 4.08 4.08 0 011.47-.96c.46-.163 1.26-.349 2.43-.403C8.416 2.175 8.796 2.163 12 2.163zM12 0C8.741 0 8.333.014 7.053.072 5.775.13 4.903.333 4.14.63a5.88 5.88 0 00-2.126 1.384A5.88 5.88 0 00.63 4.14C.333 4.903.13 5.775.072 7.053.014 8.333 0 8.741 0 12s.014 3.667.072 4.947c.058 1.278.261 2.15.558 2.913a5.88 5.88 0 001.384 2.126A5.88 5.88 0 004.14 23.37c.763.297 1.635.5 2.913.558C8.333 23.986 8.741 24 12 24s3.667-.014 4.947-.072c1.278-.058 2.15-.261 2.913-.558a6.14 6.14 0 002.126-1.384 5.88 5.88 0 001.384-2.126c.297-.763.5-1.635.558-2.913.058-1.28.072-1.688.072-4.947s-.014-3.667-.072-4.947c-.058-1.278-.261-2.15-.558-2.913a5.88 5.88 0 00-1.384-2.126A5.88 5.88 0 0019.86.63c-.763-.297-1.635-.5-2.913-.558C15.667.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z"/></svg>
+                    @dartcounterapp
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-wire/60 pt-14 pb-8">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-10 mb-12">
+                <div class="col-span-2 sm:col-span-4 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-2.5 group mb-4">
+                        <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
+                            <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                            <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                            <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                            <circle cx="18" cy="18" r="3" fill="white"/>
+                            <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                        </svg>
+                        <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
+                    </a>
+                    <p class="text-muted text-sm leading-relaxed mb-5 max-w-xs">Voice-controlled auto-scoring for darts. Say your score &mdash; DartVoice handles the rest.</p>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Product</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="/index.html#features"     class="text-sm text-muted hover:text-chalk transition">Features</a></li>
+                        <li><a href="/index.html#how-it-works" class="text-sm text-muted hover:text-chalk transition">How It Works</a></li>
+                        <li><a href="/index.html#pricing"      class="text-sm text-muted hover:text-chalk transition">Pricing</a></li>
+                        <li><a href="guide.html"               class="text-sm text-muted hover:text-chalk transition">Setup Guide</a></li>
+                        <li><a href="dartvoice-dashboard.html" class="text-sm text-muted hover:text-chalk transition">Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Earn</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="referral.html" class="text-sm text-muted hover:text-chalk transition flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-brand inline-block shrink-0"></span>Ambassador Program</a></li>
+                        <li><a href="referral.html#how-it-works" class="text-sm text-muted hover:text-chalk transition">How It Works</a></li>
+                        <li><a href="dartvoice-dashboard.html#ambassador" class="text-sm text-muted hover:text-chalk transition">Get My Link</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="footer-col-head">Legal &amp; Support</p>
+                    <ul class="space-y-2.5">
+                        <li><a href="terms.html"   class="text-sm text-muted hover:text-chalk transition">Terms of Service</a></li>
+                        <li><a href="contact.html" class="text-sm text-muted hover:text-chalk transition">Contact Us</a></li>
+                        <li><a href="mailto:support@dartvoice.app" class="text-sm text-muted hover:text-chalk transition">support@dartvoice.app</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="border-t border-wire/40 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style="color:#4A4A5A">
+                <span>&copy; 2026 DartVoice. All rights reserved.</span>
+                <div class="flex items-center gap-5">
+                    <a href="https://instagram.com/dartcounterapp" target="_blank" rel="noopener" class="hover:text-muted transition" title="Follow us on Instagram">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.97.24 2.43.403a4.08 4.08 0 011.47.96c.458.457.779.91.96 1.47.163.46.349 1.26.403 2.43.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.054 1.17-.24 1.97-.403 2.43a4.08 4.08 0 01-.96 1.47 4.08 4.08 0 01-1.47.96c-.46.163-1.26.349-2.43.403-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.054-1.97-.24-2.43-.403a4.08 4.08 0 01-1.47-.96 4.08 4.08 0 01-.96-1.47c-.163-.46-.349-1.26-.403-2.43C2.175 15.747 2.163 15.367 2.163 12s.012-3.584.07-4.85c.054-1.17.24-1.97.403-2.43a4.08 4.08 0 01.96-1.47 4.08 4.08 0 011.47-.96c.46-.163 1.26-.349 2.43-.403C8.416 2.175 8.796 2.163 12 2.163zM12 0C8.741 0 8.333.014 7.053.072 5.775.13 4.903.333 4.14.63a5.88 5.88 0 00-2.126 1.384A5.88 5.88 0 00.63 4.14C.333 4.903.13 5.775.072 7.053.014 8.333 0 8.741 0 12s.014 3.667.072 4.947c.058 1.278.261 2.15.558 2.913a5.88 5.88 0 001.384 2.126A5.88 5.88 0 004.14 23.37c.763.297 1.635.5 2.913.558C8.333 23.986 8.741 24 12 24s3.667-.014 4.947-.072c1.278-.058 2.15-.261 2.913-.558a6.14 6.14 0 002.126-1.384 5.88 5.88 0 001.384-2.126c.297-.763.5-1.635.558-2.913.058-1.28.072-1.688.072-4.947s-.014-3.667-.072-4.947c-.058-1.278-.261-2.15-.558-2.913a5.88 5.88 0 00-1.384-2.126A5.88 5.88 0 0019.86.63c-.763-.297-1.635-.5-2.913-.558C15.667.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z"/></svg>
+                    </a>
+                    <a href="terms.html"    class="hover:text-muted transition">Terms</a>
+                    <a href="contact.html"  class="hover:text-muted transition">Contact</a>
+                    <a href="referral.html" class="hover:text-brand transition flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-brand"></span>Ambassador</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        var SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+        var sb = supabase.createClient(SB_URL, SB_KEY);
+
+        var form = document.getElementById('contact-form');
+        var formCard = document.getElementById('contact-form-card');
+        var success = document.getElementById('contact-success');
+        var errorEl = document.getElementById('contact-error');
+        var submitBtn = document.getElementById('contact-submit');
+        var defaultBtnHTML = submitBtn.innerHTML;
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            errorEl.classList.add('hidden');
+
+            var subject = document.getElementById('contact-subject').value;
+            var email   = document.getElementById('contact-email').value.trim();
+            var name    = document.getElementById('contact-name').value.trim() || null;
+            var message = document.getElementById('contact-message').value.trim();
+
+            // Rate limit: max 3 messages per 10 minutes
+            var rlKey = 'dv-contact-ts';
+            var now = Date.now();
+            var stamps = JSON.parse(localStorage.getItem(rlKey) || '[]').filter(function(t){ return now - t < 600000; });
+            if (stamps.length >= 3) {
+                errorEl.textContent = 'You\u2019ve sent too many messages. Please wait a few minutes and try again.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (!subject) {
+                errorEl.textContent = 'Please select a subject.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (!email) {
+                errorEl.textContent = 'Please enter your email.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (!message) {
+                errorEl.textContent = 'Please enter a message.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Sending…';
+
+            try {
+                var { error } = await sb.from('dartvoice_contact_messages').insert({
+                    subject: subject,
+                    email:   email,
+                    name:    name,
+                    message: message
+                });
+
+                if (error) throw error;
+
+                // Record successful send timestamp for rate limiting
+                stamps.push(now);
+                localStorage.setItem(rlKey, JSON.stringify(stamps));
+
+                // Fire-and-forget notification email to support
+                fetch('https://poyjykgqsvgimssbhsuz.supabase.co/functions/v1/notify-contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: subject, email: email, message: message })
+                }).catch(function() {});
+
+                formCard.classList.add('hidden');
+                success.classList.remove('hidden');
+            } catch (err) {
+                errorEl.textContent = 'Something went wrong. Please try again or email support@dartvoice.app.';
+                errorEl.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = defaultBtnHTML;
+            }
+        });
+
+        // Allow reset
+        window.resetForm = function() {
+            form.reset();
+            success.classList.add('hidden');
+            formCard.classList.remove('hidden');
+        };
+    })();
+    </script>
+    <script src="theme.js"></script>
+    <script src="cookies.js"></script>
+</body>
+</html>

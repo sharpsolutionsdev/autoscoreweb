@@ -1423,7 +1423,7 @@ class DartVoiceApp(ctk.CTk):
     # ── Account dialog (sign in / sign out from Settings) ────────────────────
     def _open_account_dialog(self):
         try:
-            from billing import get_account, send_otp, verify_otp, sign_out, \
+            from billing import get_account, sign_out, \
                                  billing_status, check_subscription_async
         except ImportError:
             return
@@ -1566,124 +1566,55 @@ class DartVoiceApp(ctk.CTk):
                 ).pack(fill='x')
 
             else:
-                # ── Sign-in view — two-step: email → OTP ─────────────────
-                email_var = tk.StringVar()
-                code_var  = tk.StringVar()
-                msg_var   = tk.StringVar()
+                # ── Sign-in view — opens dartvoice.app in browser ────────
+                from billing import login_via_web
 
                 ctk.CTkLabel(body, text="Welcome to DartVoice",
                              text_color=FG, font=("Uber Move Bold", 17, "bold"),
                              ).pack(anchor='w', pady=(0, 4))
-                ctk.CTkLabel(body, text="Sign in or create an account to continue.",
-                             text_color=FG2, font=("Rubik", 10),
+                ctk.CTkLabel(body, text="Sign in or create an account via the\nDartVoice website — opens in your browser.",
+                             text_color=FG2, font=("Rubik", 10), wraplength=320,
+                             justify='left',
                              ).pack(anchor='w', pady=(0, 18))
 
-                step1 = ctk.CTkFrame(body, fg_color='transparent')
-                step1.pack(fill='x')
-                ctk.CTkLabel(step1, text="EMAIL ADDRESS", text_color=FG2,
-                             font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
-                email_entry = ctk.CTkEntry(
-                    step1, textvariable=email_var,
-                    placeholder_text="your@email.com",
-                    font=("Rubik", 13), height=50, corner_radius=12,
-                    border_color=SEP, border_width=1,
-                    fg_color=BG, text_color=FG,
-                    placeholder_text_color=FG2,
-                )
-                email_entry.pack(fill='x', pady=(0, 12))
-                email_entry.focus()
-                send_btn = ctk.CTkButton(
-                    step1, text="CONTINUE  →",
+                status_var = tk.StringVar(value='')
+
+                sign_in_btn = ctk.CTkButton(
+                    body, text="SIGN IN VIA DARTVOICE.APP  →",
                     font=("Uber Move Bold", 13, "bold"),
                     fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
                     height=50, corner_radius=12,
                 )
-                send_btn.pack(fill='x')
+                sign_in_btn.pack(fill='x', pady=(0, 10))
 
-                step2 = ctk.CTkFrame(body, fg_color='transparent')
-                confirm_lbl = ctk.CTkLabel(step2, text="", text_color=FG2,
-                                           font=("Rubik", 10), wraplength=320, justify='left')
-                confirm_lbl.pack(anchor='w', pady=(0, 12))
-                ctk.CTkLabel(step2, text="MAGIC CODE", text_color=FG2,
-                             font=("Rubik", 8, "bold")).pack(anchor='w', pady=(0, 4))
-                code_entry = ctk.CTkEntry(
-                    step2, textvariable=code_var,
-                    placeholder_text="0 0 0 0 0 0",
-                    font=("Courier New", 30, "bold"),
-                    height=64, corner_radius=12,
-                    border_color=ACCENT, border_width=2,
-                    fg_color=BG, text_color=FG,
-                    justify='center',
-                )
-                code_entry.pack(fill='x', pady=(0, 12))
-                verify_btn = ctk.CTkButton(
-                    step2, text="VERIFY CODE  →",
-                    font=("Uber Move Bold", 13, "bold"),
-                    fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-                    height=50, corner_radius=12,
-                )
-                verify_btn.pack(fill='x', pady=(0, 8))
-                back_btn = ctk.CTkButton(
-                    step2, text="← Use a different email",
-                    font=("Rubik", 10), fg_color='transparent',
-                    hover_color=CARD2, text_color=FG2,
-                    height=30, corner_radius=8,
-                )
-                back_btn.pack()
+                ctk.CTkLabel(body, textvariable=status_var,
+                             text_color=FG2, font=("Rubik", 10),
+                             wraplength=320).pack(pady=(0, 8))
 
-                msg_lbl = ctk.CTkLabel(body, textvariable=msg_var,
-                                       text_color='#FF5555', font=("Rubik", 10),
-                                       wraplength=320)
-                msg_lbl.pack(pady=(10, 0))
+                sec_row = ctk.CTkFrame(body, fg_color='transparent')
+                sec_row.pack(pady=(4, 0))
+                ctk.CTkLabel(sec_row, text="🔒", font=("Rubik", 9),
+                             text_color=FG3).pack(side='left', padx=(0, 4))
+                ctk.CTkLabel(sec_row, text="Same polished login — in your browser, synced here instantly",
+                             font=("Rubik", 9), text_color=FG3).pack(side='left')
 
-                def _go_step1():
-                    step2.pack_forget(); step1.pack(fill='x')
-                    msg_var.set(''); email_entry.focus()
+                def _on_web_login(success, acct):
+                    def _ui():
+                        if success:
+                            _close(refocus=False); self._billing_gate()
+                        else:
+                            status_var.set("Login timed out — try again.")
+                            sign_in_btn.configure(state='normal',
+                                                  text='SIGN IN VIA DARTVOICE.APP  →')
+                    self.after(0, _ui)
 
-                def _send():
-                    email = email_var.get().strip()
-                    if not email or '@' not in email:
-                        msg_var.set("Please enter a valid email address."); return
-                    send_btn.configure(state='disabled', text='Sending…')
-                    msg_var.set('')
-                    def _do():
-                        ok, err = send_otp(email)
-                        def _ui():
-                            send_btn.configure(state='normal', text='Resend code →')
-                            if ok:
-                                msg_var.set('')
-                                confirm_lbl.configure(
-                                    text=f"Code sent to {email}\nEnter it below — expires in 10 minutes.")
-                                step1.pack_forget(); step2.pack(fill='x'); code_entry.focus()
-                            else:
-                                msg_var.set(f"Error: {err}")
-                        self.after(0, _ui)
-                    threading.Thread(target=_do, daemon=True).start()
+                def _do_web_login():
+                    sign_in_btn.configure(state='disabled',
+                                          text='Waiting for browser…')
+                    status_var.set("Complete sign-in in your browser.\nThis window will update automatically.")
+                    login_via_web(callback=_on_web_login)
 
-                def _verify():
-                    email = email_var.get().strip()
-                    code  = code_var.get().strip()
-                    if not code:
-                        msg_var.set("Enter the 6-digit code from your email."); return
-                    verify_btn.configure(state='disabled', text='Verifying…')
-                    msg_var.set('')
-                    def _do():
-                        ok, _ = verify_otp(email, code)
-                        def _ui():
-                            verify_btn.configure(state='normal', text='VERIFY CODE  →')
-                            if ok:
-                                _close(refocus=False); self._billing_gate()
-                            else:
-                                msg_var.set("Invalid code — try again or resend.")
-                                code_var.set('')
-                        self.after(0, _ui)
-                    threading.Thread(target=_do, daemon=True).start()
-
-                send_btn.configure(command=_send)
-                verify_btn.configure(command=_verify)
-                back_btn.configure(command=_go_step1)
-                email_entry.bind('<Return>', lambda e: _send())
-                code_entry.bind('<Return>',  lambda e: _verify())
+                sign_in_btn.configure(command=_do_web_login)
 
         def _fetch():
             try:

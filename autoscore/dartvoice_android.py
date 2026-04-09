@@ -1485,8 +1485,8 @@ class PaywallOverlay(FloatLayout):
     # ── Sign-in flow ──────────────────────────────────────────────────────────
 
     def _show_signin(self):
-        """Replace the subscribe card with an email-OTP sign-in card."""
-        from kivy.uix.textinput import TextInput
+        """Open the DartVoice website login in the system browser."""
+        from billing import login_via_web
 
         if self._card:
             self.remove_widget(self._card)
@@ -1496,7 +1496,7 @@ class PaywallOverlay(FloatLayout):
         panel = BoxLayout(
             orientation='vertical',
             size_hint=(0.88, None),
-            height=dp(380),
+            height=dp(340),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
             padding=[dp(24), dp(20), dp(24), dp(20)], spacing=dp(10),
         )
@@ -1517,112 +1517,53 @@ class PaywallOverlay(FloatLayout):
             size_hint_y=None, height=dp(30), halign='center', valign='middle',
         ))
         panel.add_widget(Label(
-            text="Enter your email — we'll send a 6-digit code.",
+            text="Opens dartvoice.app in your browser.\nSign in there and you'll be synced back here.",
             font_size=sp(11), color=FG2,
-            size_hint_y=None, height=dp(24),
+            size_hint_y=None, height=dp(40),
             halign='center', valign='middle',
         ))
 
-        self._si_email = TextInput(
-            hint_text='your@email.com',
-            font_size=sp(13), multiline=False,
-            background_normal='', background_color=(*BG[:3], 1),
-            foreground_color=FG, hint_text_color=FG2,
-            cursor_color=ACCENT[:3] + (1,),
-            size_hint_y=None, height=dp(50),
-        )
-        panel.add_widget(self._si_email)
-
-        self._si_send_btn = _accent_btn('CONTINUE  →', self._si_send)
-        panel.add_widget(self._si_send_btn)
-
-        # OTP step (hidden initially)
-        self._si_code = TextInput(
-            hint_text='0 0 0 0 0 0',
-            font_size=sp(28), multiline=False,
-            halign='center',
-            background_normal='', background_color=(*BG[:3], 1),
-            foreground_color=FG, hint_text_color=FG2,
-            cursor_color=ACCENT[:3] + (1,),
-            input_filter='int',
-            size_hint_y=None, height=dp(64),
-            opacity=0, disabled=True,
-        )
-        panel.add_widget(self._si_code)
-
-        self._si_verify_btn = _accent_btn('VERIFY CODE  →', self._si_verify)
-        self._si_verify_btn.opacity  = 0
-        self._si_verify_btn.disabled = True
-        panel.add_widget(self._si_verify_btn)
-
         self._si_msg = Label(
-            text='', font_size=sp(10), color=(1.0, 0.333, 0.333, 1),
-            size_hint_y=None, height=dp(20),
+            text='', font_size=sp(10), color=FG2,
+            size_hint_y=None, height=dp(24),
             halign='center', valign='middle',
         )
+
+        self._si_btn = _accent_btn(
+            'SIGN IN VIA DARTVOICE.APP  \u2192', self._si_web_login
+        )
+        panel.add_widget(self._si_btn)
         panel.add_widget(self._si_msg)
 
-        back_btn = _ghost_btn('← Back', self._show_subscribe)
+        # Security note
+        panel.add_widget(Label(
+            text='\U0001f512  Same login as web \u2014 Secure \u2014 No passwords',
+            font_size=sp(9), color=FG3,
+            size_hint_y=None, height=dp(20),
+            halign='center', valign='middle',
+        ))
+
+        back_btn = _ghost_btn('\u2190 Back', self._show_subscribe)
         panel.add_widget(back_btn)
 
         self.add_widget(panel)
 
-    def _si_send(self):
-        try:
-            from billing import send_otp
-        except ImportError:
-            self._si_msg.text = 'Billing module not available.'
-            return
-        email = self._si_email.text.strip()
-        if not email or '@' not in email:
-            self._si_msg.text = 'Enter a valid email address.'
-            return
-        self._si_send_btn.text = 'Sending…'
-        self._si_msg.text = ''
+    def _si_web_login(self):
+        from billing import login_via_web, check_subscription_async
+        self._si_btn.text = 'Waiting for browser\u2026'
+        self._si_msg.text = 'Complete sign-in in your browser.'
 
-        def _do():
-            ok, err = send_otp(email)
+        def _on_result(success, acct):
             def _ui(dt):
-                self._si_send_btn.text = 'Resend code'
-                if ok:
-                    self._si_msg.text = f'Code sent to {email}'
-                    self._si_email.disabled  = True
-                    self._si_code.opacity    = 1
-                    self._si_code.disabled   = False
-                    self._si_verify_btn.opacity  = 1
-                    self._si_verify_btn.disabled = False
-                    Clock.schedule_once(lambda dt2: self._si_code.focus_next, 0.1)
-                else:
-                    self._si_msg.text = f'Error: {err}'
-            Clock.schedule_once(_ui)
-        threading.Thread(target=_do, daemon=True).start()
-
-    def _si_verify(self):
-        try:
-            from billing import verify_otp, check_subscription_async
-        except ImportError:
-            self._si_msg.text = 'Billing module not available.'
-            return
-        email = self._si_email.text.strip()
-        code  = self._si_code.text.strip()
-        if len(code) < 6:
-            self._si_msg.text = 'Enter the full 6-digit code.'
-            return
-        self._si_verify_btn.text = 'Verifying…'
-        self._si_msg.text = ''
-
-        def _do():
-            ok, err = verify_otp(email, code)
-            def _ui(dt):
-                self._si_verify_btn.text = 'VERIFY CODE  →'
-                if ok:
-                    self._si_msg.text = 'Signed in — checking subscription…'
+                if success:
+                    self._si_msg.text = 'Signed in \u2014 checking subscription\u2026'
                     check_subscription_async(self._on_signin_checked)
                 else:
-                    self._si_msg.text = 'Invalid code — try again.'
-                    self._si_code.text = ''
+                    self._si_btn.text = 'SIGN IN VIA DARTVOICE.APP  \u2192'
+                    self._si_msg.text = 'Login timed out \u2014 tap to try again.'
             Clock.schedule_once(_ui)
-        threading.Thread(target=_do, daemon=True).start()
+
+        login_via_web(callback=_on_result)
 
     def _on_signin_checked(self, subscribed: bool, account=None):
         if subscribed:
@@ -3286,22 +3227,29 @@ class LoadingScreen(FloatLayout):
         Clock.schedule_once(lambda dt: self.on_complete(), 0.8)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Login / OTP Screen
+# Login / OTP Screen — opens dartvoice.app in the browser
 # ─────────────────────────────────────────────────────────────────────────────
 class LoginScreen(FloatLayout):
+    """
+    Full-screen login view that opens dartvoice.app/login.html in the
+    system browser.  A local HTTP callback server receives the session
+    tokens automatically — the same polished web login the user sees on
+    desktop, with consistent styling.
+    """
     def __init__(self, on_login, **kwargs):
         super().__init__(**kwargs)
         self.on_login = on_login
-        self._mode = 'email'  # 'email' or 'otp'
-        
+        self._waiting = False
+
         with self.canvas.before:
             Color(*BG)
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=self._update_bg, pos=self._update_bg)
 
+        # Card background
         self.auth_card = Widget(
             size_hint=(0.9, None),
-            height=dp(430),
+            height=dp(380),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
         )
         with self.auth_card.canvas.before:
@@ -3318,6 +3266,7 @@ class LoginScreen(FloatLayout):
         self.auth_card.bind(pos=self._update_auth_card, size=self._update_auth_card)
         self.add_widget(self.auth_card)
 
+        # Logo
         self.logo_wrap = Widget(
             size_hint=(None, None), size=(dp(84), dp(84)),
             pos_hint={'center_x': 0.5, 'center_y': 0.73},
@@ -3333,7 +3282,7 @@ class LoginScreen(FloatLayout):
         ))
 
         self.title_lbl = Label(
-            text="Sign in with a one-time code", font_size=sp(20), color=FG, bold=True,
+            text="Sign in via dartvoice.app", font_size=sp(20), color=FG, bold=True,
             pos_hint={'center_x': 0.5, 'center_y': 0.59},
             size_hint=(0.8, None), height=dp(28),
             halign='center', valign='middle',
@@ -3342,43 +3291,20 @@ class LoginScreen(FloatLayout):
         self.add_widget(self.title_lbl)
 
         self.msg_lbl = Label(
-            text="Sync your profile, subscription, and settings", font_size=sp(13),
-            color=FG2, markup=True,
-            pos_hint={'center_x': 0.5, 'center_y': 0.53},
-            size_hint=(0.78, None), height=dp(36),
+            text="Opens the DartVoice website in your browser.\nSign in there and you'll be synced back here automatically.",
+            font_size=sp(13), color=FG2, markup=True,
+            pos_hint={'center_x': 0.5, 'center_y': 0.51},
+            size_hint=(0.82, None), height=dp(48),
             halign='center', valign='middle',
         )
         _bind_text_size(self.msg_lbl)
         self.add_widget(self.msg_lbl)
 
-        # Input
-        self.token_input = TextInput(
-            hint_text="Enter Email Address",
-            size_hint=(0.8, None), height=dp(50),
-            pos_hint={'center_x': 0.5, 'center_y': 0.43},
-            background_normal='', background_active='',
-            background_color=(0, 0, 0, 0), foreground_color=FG,
-            padding=[dp(16), dp(13), dp(16), dp(13)], font_size=sp(16),
-            multiline=False, cursor_color=ACCENT,
-            hint_text_color=FG2,
-        )
-        with self.token_input.canvas.before:
-            Color(*SEP)
-            self.token_input._bdr = RoundedRectangle(pos=self.token_input.pos, size=self.token_input.size, radius=[dp(16)])
-            Color(*CARD2)
-            self.token_input._bg = RoundedRectangle(
-                pos=(self.token_input.x + dp(1), self.token_input.y + dp(1)),
-                size=(self.token_input.width - dp(2), self.token_input.height - dp(2)),
-                radius=[dp(15)],
-            )
-        self.token_input.bind(pos=self._update_input, size=self._update_input)
-        self.add_widget(self.token_input)
-
-        # Send/Verify button
+        # Sign-in button
         self.action_btn = Button(
-            text="SEND CODE", size_hint=(0.8, None), height=dp(54),
-            pos_hint={'center_x': 0.5, 'center_y': 0.33},
-            background_normal='', background_color=(0,0,0,0), color=FG, bold=True
+            text="SIGN IN VIA DARTVOICE.APP  \u2192", size_hint=(0.8, None), height=dp(54),
+            pos_hint={'center_x': 0.5, 'center_y': 0.38},
+            background_normal='', background_color=(0, 0, 0, 0), color=FG, bold=True
         )
         with self.action_btn.canvas.before:
             Color(*ACCENT[:3], 0.15)
@@ -3390,21 +3316,21 @@ class LoginScreen(FloatLayout):
             Color(*ACCENT)
             self.btn_bg = RoundedRectangle(size=self.action_btn.size, pos=self.action_btn.pos, radius=[dp(12)])
         self.action_btn.bind(pos=self._update_btn, size=self._update_btn)
-        self.action_btn.bind(on_release=self._do_action)
+        self.action_btn.bind(on_release=self._do_web_login)
         self.add_widget(self.action_btn)
 
         self.add_widget(Label(
-            text="Passwordless sign-in — Secure code delivery — No saved passwords",
+            text="Same login as web \u2014 Secure \u2014 No passwords",
             font_size=sp(11), color=FG3,
-            pos_hint={'center_x': 0.5, 'center_y': 0.24},
+            pos_hint={'center_x': 0.5, 'center_y': 0.29},
             size_hint=(0.82, None), height=dp(18),
             halign='center', valign='middle',
         ))
 
         self.add_widget(Label(
-            text="Don't have an account? Start a free trial at [color=CC0B20]dartvoice.app[/color]",
-            markup=True, font_size=sp(12), color=FG2,
-            pos_hint={'center_x': 0.5, 'center_y': 0.18},
+            text="\U0001f512  Secured with Supabase Auth & Stripe",
+            font_size=sp(10), color=FG3,
+            pos_hint={'center_x': 0.5, 'center_y': 0.23},
             size_hint=(0.82, None), height=dp(20),
             halign='center', valign='middle',
         ))
@@ -3444,72 +3370,34 @@ class LoginScreen(FloatLayout):
             Color(*FG)
             Ellipse(pos=(cx - bull_r, cy - bull_r), size=(bull_r * 2, bull_r * 2))
 
-    def _update_input(self, instance, *_):
-        instance._bdr.pos = instance.pos
-        instance._bdr.size = instance.size
-        instance._bg.pos = (instance.x + dp(1), instance.y + dp(1))
-        instance._bg.size = (instance.width - dp(2), instance.height - dp(2))
-
     def _update_btn(self, instance, value):
         self.btn_glow.pos = (instance.x - dp(2), instance.y - dp(2))
         self.btn_glow.size = (instance.width + dp(4), instance.height + dp(4))
         self.btn_bg.pos = instance.pos
         self.btn_bg.size = instance.size
 
-    def _do_action(self, *args):
-        text = self.token_input.text.strip()
-        if not text: return
-        from kivy.clock import Clock
-        
-        if self._mode == 'email':
-            self.msg_lbl.text = "Sending OTP..."
-            self.action_btn.disabled = True
-            
-            def _send_thread():
-                from billing import send_otp
-                success, msg = send_otp(text)
-                Clock.schedule_once(lambda dt: self._on_otp_sent(success, msg, text))
-                
-            import threading
-            threading.Thread(target=_send_thread, daemon=True).start()
-            
-        elif self._mode == 'otp':
-            self.msg_lbl.text = "Verifying..."
-            self.action_btn.disabled = True
-            
-            def _verify_thread():
-                from billing import verify_otp
-                success, msg = verify_otp(self._email, text)
-                Clock.schedule_once(lambda dt: self._on_otp_verified(success, msg))
-                
-            import threading
-            threading.Thread(target=_verify_thread, daemon=True).start()
+    def _do_web_login(self, *args):
+        if self._waiting:
+            return
+        self._waiting = True
+        self.action_btn.text = "Waiting for browser\u2026"
+        self.msg_lbl.text = "Complete sign-in in your browser.\nThis screen will update automatically."
 
-    def _on_otp_sent(self, success, msg, email):
-        self.action_btn.disabled = False
-        if success:
-            self._email = email
-            self._mode = 'otp'
-            self.token_input.text = ""
-            self.token_input.hint_text = "Enter 6-Digit Code"
-            self.action_btn.text = "VERIFY"
-            self.msg_lbl.text = "Code sent to your email!"
-        else:
-            self.msg_lbl.text = f"[color=CC0B20]{msg}[/color]"
+        from billing import login_via_web
 
-    def _on_otp_verified(self, success, msg):
-        self.action_btn.disabled = False
-        if success:
-            self.msg_lbl.text = "Authenticated!"
-            self.token_input.disabled = True
-            self.action_btn.disabled = True
-            from billing import get_account
-            account = get_account()
-            token = account.get('session_token', 'temp_token') if account else 'temp_token'
-            self.on_login(token)
-        else:
-            self.token_input.text = ""
-            self.msg_lbl.text = f"[color=CC0B20]{msg}[/color]"
+        def _on_result(success, acct):
+            def _ui(dt):
+                self._waiting = False
+                if success:
+                    self.msg_lbl.text = "Signed in!"
+                    token = acct.get('user_id', 'ok') if acct else 'ok'
+                    self.on_login(token)
+                else:
+                    self.action_btn.text = "SIGN IN VIA DARTVOICE.APP  \u2192"
+                    self.msg_lbl.text = "Login timed out \u2014 tap to try again."
+            Clock.schedule_once(_ui)
+
+        login_via_web(callback=_on_result)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # App entry point

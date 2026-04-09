@@ -16,6 +16,15 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Dashboard | DartVoice</title>
     <meta name="description" content="Manage your DartVoice subscription and download the app.">
+    <meta property="og:title" content="Dashboard | DartVoice">
+    <meta property="og:description" content="Manage your DartVoice subscription, download apps, and track your Ambassador referrals.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dartvoice.app/dartvoice-dashboard.html">
+    <meta property="og:image" content="https://dartvoice.app/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Dashboard | DartVoice">
+    <meta name="twitter:description" content="Manage your DartVoice subscription and download apps.">
+    <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
     <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -505,6 +514,10 @@
                         class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
                         Profile
                     </button>
+                    <button onclick="switchTab('messages')" id="tab-btn-messages"
+                        class="tab-btn hidden px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
+                        Messages
+                    </button>
                 </div>
             </div>
 
@@ -812,7 +825,7 @@
                                 </div>
                                 <div class="mt-4 flex gap-2">
                                     <a href="guide.html" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Open Guide</a>
-                                    <a href="mailto:support@dartvoice.app" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Contact Support</a>
+                                    <a href="contact.html" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Contact Support</a>
                                 </div>
                             </div>
                         </div>
@@ -888,24 +901,34 @@
                         </div>
 
                         <!-- Stats row -->
-                        <div class="grid grid-cols-3 gap-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div class="p-4 rounded-xl text-center"
                                 style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
                                 <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
-                                    style="color:#4A4A5A;">Referrals</p>
-                                <p id="amb-total-referrals" class="display text-3xl" style="color:#F0F0F5;">—</p>
+                                    style="color:#4A4A5A;">Pending</p>
+                                <p id="amb-pending-referrals" class="display text-3xl" style="color:#F0F0F5;">—</p>
+                                <p class="text-[10px] mt-1" style="color:#4A4A5A;">referrals</p>
                             </div>
                             <div class="p-4 rounded-xl text-center"
                                 style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
                                 <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
-                                    style="color:#4A4A5A;">Converted</p>
-                                <p id="amb-converted" class="display text-3xl" style="color:#F0F0F5;">—</p>
+                                    style="color:#4A4A5A;">Confirmed</p>
+                                <p id="amb-confirmed-referrals" class="display text-3xl" style="color:#F0F0F5;">—</p>
+                                <p class="text-[10px] mt-1" style="color:#4A4A5A;">referrals</p>
                             </div>
                             <div class="p-4 rounded-xl text-center"
                                 style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
                                 <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
-                                    style="color:#4A4A5A;">Balance</p>
-                                <p id="amb-balance" class="display text-3xl" style="color:#22c55e;">£—</p>
+                                    style="color:#f59e0b;">Pending</p>
+                                <p id="amb-pending-earnings" class="display text-3xl" style="color:#f59e0b;">£—</p>
+                                <p class="text-[10px] mt-1" style="color:#4A4A5A;">earnings</p>
+                            </div>
+                            <div class="p-4 rounded-xl text-center"
+                                style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
+                                    style="color:#22c55e;">Confirmed</p>
+                                <p id="amb-confirmed-earnings" class="display text-3xl" style="color:#22c55e;">£—</p>
+                                <p class="text-[10px] mt-1" style="color:#4A4A5A;">earnings</p>
                             </div>
                         </div>
                     </div>
@@ -944,15 +967,13 @@
 
                         <div id="payout-locked" class="hidden">
                             <div class="p-4 rounded-xl bg-dark/60 border border-white/[0.04] text-center">
-                                <p class="text-muted text-sm">Minimum £5 balance to cash out</p>
-                                <p class="text-muted-2 text-xs mt-1">Keep referring — each paid signup adds £5 to your
-                                    balance.</p>
+                                <p class="text-muted text-sm">Minimum £5 confirmed earnings to request a payout</p>
+                                <p class="text-muted-2 text-xs mt-1">Keep referring — each confirmed referral adds £5 to your earnings.</p>
                             </div>
                         </div>
 
                         <div id="payout-form" class="hidden space-y-3">
-                            <p class="text-muted text-sm">We'll send your balance to your PayPal within 3 business days.
-                            </p>
+                            <p class="text-muted text-sm">Enter your PayPal email and request a payout. Our team will review and process it within 3 business days.</p>
                             <div>
                                 <label
                                     class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">PayPal
@@ -1108,6 +1129,19 @@
                 </div>
             </div><!-- /tab-profile -->
 
+            <!-- ── TAB: Messages (admin only) ────────────────────── -->
+            <div id="tab-messages" class="hidden">
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="text-lg font-bold text-chalk">Contact Messages</h2>
+                        <button onclick="loadMessages()" class="text-xs text-brand hover:underline">Refresh</button>
+                    </div>
+                    <div id="messages-loading" class="text-center py-10 text-muted text-sm">Loading…</div>
+                    <div id="messages-empty" class="hidden text-center py-10 text-muted text-sm">No messages yet.</div>
+                    <div id="messages-list" class="hidden space-y-4"></div>
+                </div>
+            </div><!-- /tab-messages -->
+
         </div>
     </div><!-- /inner container -->
     </div><!-- /view-dashboard -->
@@ -1217,6 +1251,12 @@
             _profileEmail = user.email;
             $('nav-email').textContent = user.email;
             showView('dashboard');
+
+            // Admin gating — show Messages tab for admin emails
+            const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app'];
+            if (ADMIN_EMAILS.includes(user.email?.toLowerCase())) {
+                $('tab-btn-messages').classList.remove('hidden');
+            }
 
             // First-time welcome banner: show if account < 10 minutes old
             const createdAt = new Date(user.created_at);
@@ -1436,7 +1476,7 @@
 
         // ── Tab switching ─────────────────────────────────────────────
         function switchTab(name) {
-            ['overview', 'ambassador', 'profile'].forEach(t => {
+            ['overview', 'ambassador', 'profile', 'messages'].forEach(t => {
                 const panel = $('tab-' + t);
                 const btn = $('tab-btn-' + t);
                 if (t === name) {
@@ -1448,6 +1488,7 @@
                 }
             });
             if (name === 'ambassador' && _ambUserId) loadAmbassador(_ambUserId);
+            if (name === 'messages') loadMessages();
         }
 
         // ── Ambassador ────────────────────────────────────────────────
@@ -1479,36 +1520,42 @@
             const url = code ? `https://dartvoice.app/login?ref=${code}` : '—';
             $('ref-link-text').textContent = url;
 
-            // Fetch stats from ambassador_stats view
-            const { data: stats } = await sb.from('dartvoice_ambassador_stats')
-                .select('*')
+            // Fetch ALL referrals to compute stats client-side
+            const { data: refs } = await sb.from('dartvoice_referrals')
+                .select('referred_email, status, reward_amount, created_at')
                 .eq('referrer_user_id', userId)
-                .maybeSingle();
+                .order('created_at', { ascending: false });
 
-            const total = stats?.total_referrals ?? 0;
-            const converted = stats?.converted ?? 0;
-            const balance = parseFloat(stats?.total_earnings ?? 0);
-            _ambBalance = balance;
+            const allRefs = refs || [];
+            const pendingStatuses = ['signed_up', 'trial_active'];
+            const confirmedStatuses = ['converted', 'rewarded'];
 
-            $('amb-total-referrals').textContent = total;
-            $('amb-converted').textContent = converted;
-            $('amb-balance').textContent = `£${balance.toFixed(2)}`;
+            const pendingRefs = allRefs.filter(r => pendingStatuses.includes(r.status));
+            const confirmedRefs = allRefs.filter(r => confirmedStatuses.includes(r.status));
+            const pendingEarnings = pendingRefs.length * 5;
+            const confirmedEarnings = confirmedRefs.reduce((sum, r) => sum + parseFloat(r.reward_amount || 5), 0);
+            _ambBalance = confirmedEarnings;
+
+            $('amb-pending-referrals').textContent = pendingRefs.length;
+            $('amb-confirmed-referrals').textContent = confirmedRefs.length;
+            $('amb-pending-earnings').textContent = `£${pendingEarnings.toFixed(2)}`;
+            $('amb-confirmed-earnings').textContent = `£${confirmedEarnings.toFixed(2)}`;
 
             // Badge in tab button
-            if (balance > 0) {
+            if (confirmedEarnings > 0) {
                 const badge = $('amb-earned-badge');
-                badge.textContent = `£${balance.toFixed(0)}`;
+                badge.textContent = `£${confirmedEarnings.toFixed(0)}`;
                 badge.classList.remove('hidden');
             }
 
             // Status badge
-            $('amb-status-badge').innerHTML = total > 0
+            $('amb-status-badge').innerHTML = allRefs.length > 0
                 ? `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 tracking-wide">ACTIVE AMBASSADOR</span>`
                 : `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-white/5 text-muted-2 tracking-wide">NOT YET STARTED</span>`;
 
             // Payout section
             hide('payout-loading');
-            if (balance >= 5) {
+            if (confirmedEarnings >= 5) {
                 show('payout-form');
                 hide('payout-locked');
                 if (profile?.paypal_email) $('input-paypal').value = profile.paypal_email;
@@ -1517,14 +1564,8 @@
                 hide('payout-form');
             }
 
-            // Referrals list
-            const { data: refs } = await sb.from('dartvoice_referrals')
-                .select('referred_email, status, reward_amount, created_at')
-                .eq('referrer_user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(10);
-
-            renderReferralsList(refs || []);
+            // Show latest 10 referrals
+            renderReferralsList(allRefs.slice(0, 10));
         }
 
         function renderReferralsList(refs) {
@@ -1536,27 +1577,29 @@
             </div>`;
                 return;
             }
-            const statusColor = {
-                invited: 'text-muted-2',
-                signed_up: 'text-blue-400',
-                trial_active: 'text-brand',
-                converted: 'text-green-400',
-                rewarded: 'text-green-400',
+            const statusMeta = {
+                signed_up:    { label: 'Signed Up',  color: 'text-blue-400',  bg: 'bg-blue-400/10' },
+                trial_active: { label: 'On Trial',   color: 'text-brand',     bg: 'bg-brand/10' },
+                converted:    { label: 'Paid',       color: 'text-green-400', bg: 'bg-green-400/10' },
+                rewarded:     { label: 'Paid Out',   color: 'text-green-400', bg: 'bg-green-400/10' },
             };
             el.innerHTML = `<div class="divide-y divide-white/[0.04]">
-            ${refs.map(r => `
+            ${refs.map(r => {
+                const meta = statusMeta[r.status] || { label: r.status, color: 'text-muted', bg: 'bg-white/[0.04]' };
+                const isPending = ['signed_up', 'trial_active'].includes(r.status);
+                const amount = isPending ? 5 : parseFloat(r.reward_amount || 5);
+                return `
             <div class="flex items-center justify-between py-3">
                 <div class="min-w-0">
                     <p class="text-sm font-medium truncate">${r.referred_email}</p>
                     <p class="text-[10px] text-muted-2 uppercase tracking-wider mt-0.5">${new Date(r.created_at).toLocaleDateString('en-GB')}</p>
                 </div>
                 <div class="flex items-center gap-3 shrink-0 ml-3">
-                    ${r.status === 'rewarded' || r.status === 'converted'
-                    ? `<span class="text-xs font-bold text-green-400">+£${parseFloat(r.reward_amount).toFixed(2)}</span>`
-                    : ''}
-                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-white/[0.04] ${statusColor[r.status] || 'text-muted'}">${r.status.replace('_', ' ')}</span>
+                    <span class="text-xs font-bold ${isPending ? 'text-amber-400' : 'text-green-400'}">${isPending ? '~' : '+'}£${amount.toFixed(2)}</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${meta.bg} ${meta.color}">${meta.label}</span>
                 </div>
-            </div>`).join('')}
+            </div>`;
+            }).join('')}
         </div>`;
         }
 
@@ -1625,10 +1668,61 @@
                 msgEl.textContent = 'Error: ' + error.message;
                 msgEl.className = 'text-xs text-center text-red-400';
             } else {
-                msgEl.textContent = `✓ Payout of £${_ambBalance.toFixed(2)} requested. You'll hear from us within 3 business days.`;
+                msgEl.textContent = `✓ Payout of £${_ambBalance.toFixed(2)} requested. Our team will review and process it within 3 business days.`;
                 msgEl.className = 'text-xs text-center text-green-400';
             }
             msgEl.classList.remove('hidden');
+        }
+
+        // ── Messages (admin) ─────────────────────────────────────────
+        let _messagesLoaded = false;
+        async function loadMessages() {
+            const loadingEl = $('messages-loading');
+            const emptyEl   = $('messages-empty');
+            const listEl    = $('messages-list');
+
+            loadingEl.classList.remove('hidden');
+            emptyEl.classList.add('hidden');
+            listEl.classList.add('hidden');
+
+            const { data, error } = await sb.from('dartvoice_contact_messages')
+                .select('id, subject, email, name, message, created_at')
+                .order('created_at', { ascending: false })
+                .limit(50);
+
+            loadingEl.classList.add('hidden');
+
+            if (error || !data || data.length === 0) {
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            listEl.innerHTML = data.map(m => {
+                const d = new Date(m.created_at);
+                const when = d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+                    + ' ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+                const safeSub = escHtml(m.subject || '');
+                const safeEmail = escHtml(m.email || '');
+                const safeName = escHtml(m.name || '');
+                const safeMsg = escHtml(m.message || '').replace(/\n/g, '<br>');
+                return `<div class="glass-card rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                        <span class="text-xs font-bold text-brand">${safeSub}</span>
+                        <span class="text-[10px] text-muted">${when}</span>
+                    </div>
+                    <div class="text-xs text-muted mb-2">${safeEmail}${safeName ? ' &middot; ' + safeName : ''}</div>
+                    <div class="text-sm text-chalk/80">${safeMsg}</div>
+                </div>`;
+            }).join('');
+
+            listEl.classList.remove('hidden');
+            _messagesLoaded = true;
+        }
+
+        function escHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
         }
 
         // ── Init ──────────────────────────────────────────────────────
@@ -1689,6 +1783,7 @@
 
     </script>
     <script src="theme.js"></script>
+    <script src="cookies.js"></script>
 </body>
 
 </html>

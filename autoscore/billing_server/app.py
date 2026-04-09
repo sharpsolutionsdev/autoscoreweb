@@ -286,6 +286,16 @@ def webhook():
                         status='trialing',
                         trial_start=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
 
+            # Update referral status to trial_active if this user was referred
+            try:
+                _sb.table('dartvoice_referrals') \
+                    .update({'status': 'trial_active'}) \
+                    .eq('referred_user_id', user_id) \
+                    .eq('status', 'signed_up') \
+                    .execute()
+            except Exception:
+                pass
+
     # ── Subscription updated / created ────────────────────────────────────────
     elif etype in ('customer.subscription.created',
                    'customer.subscription.updated'):
@@ -334,6 +344,21 @@ def webhook():
                                 '%Y-%m-%dT%H:%M:%SZ',
                                 time.gmtime(sub.current_period_end)
                             ) if sub.current_period_end else None)
+            except Exception:
+                pass
+
+            # ── Referral conversion: credit the ambassador ────────────
+            try:
+                ref_resp = _sb.table('dartvoice_referrals') \
+                    .select('id, status') \
+                    .eq('referred_user_id', user_id) \
+                    .in_('status', ['signed_up', 'trial_active']) \
+                    .execute()
+                if ref_resp.data:
+                    _sb.table('dartvoice_referrals') \
+                        .update({'status': 'converted', 'reward_amount': 5.00}) \
+                        .eq('id', ref_resp.data[0]['id']) \
+                        .execute()
             except Exception:
                 pass
 
