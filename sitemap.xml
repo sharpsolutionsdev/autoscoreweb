@@ -7,49 +7,49 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/login.html</loc>
+    <loc>https://dartvoice.app/login</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/guide.html</loc>
+    <loc>https://dartvoice.app/guide</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/referral.html</loc>
+    <loc>https://dartvoice.app/referral</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/terms.html</loc>
+    <loc>https://dartvoice.app/terms</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/contact.html</loc>
+    <loc>https://dartvoice.app/contact</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/privacy.html</loc>
+    <loc>https://dartvoice.app/privacy</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/web-app.html</loc>
+    <loc>https://dartvoice.app/web-app</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dartvoice.app/dartvoice-dashboard.html</loc>
+    <loc>https://dartvoice.app/dartvoice-dashboard</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

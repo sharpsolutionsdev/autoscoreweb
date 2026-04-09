@@ -244,7 +244,7 @@
                         </div>
                         
                         <!-- Account Pill -->
-                        <div id="account-pill" class="flex items-center gap-2 bg-[#141418] border border-[#252530] rounded-full p-1.5 pr-4 shadow-md hover:bg-[#1a1a20] cursor-pointer transition-colors" onclick="window.location.href='dartvoice-dashboard.html'">
+                        <div id="account-pill" class="flex items-center gap-2 bg-[#141418] border border-[#252530] rounded-full p-1.5 pr-4 shadow-md hover:bg-[#1a1a20] cursor-pointer transition-colors" onclick="window.location.href='dartvoice-dashboard'">
                             <div id="account-avatar" class="w-7 h-7 rounded-full bg-gradient-to-br from-brand to-red-900 flex items-center justify-center font-display font-bold text-white text-xs">
                                 ?
                             </div>
@@ -459,7 +459,7 @@
                             <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                         </label>
                     </div>
-                    <button class="btn-outline py-2.5 mb-3 hover:bg-white/5 active:scale-95 transition-all text-xs" onclick="window.location.href='dartvoice-dashboard.html'">
+                    <button class="btn-outline py-2.5 mb-3 hover:bg-white/5 active:scale-95 transition-all text-xs" onclick="window.location.href='dartvoice-dashboard'">
                         <span class="opacity-80 font-medium">← Return to Dashboard</span>
                     </button>
                     <div class="flex items-center justify-between text-[10px] text-gray-500 font-medium tracking-wide">
@@ -521,7 +521,7 @@
                    class="block w-full py-3 bg-transparent border border-[#252530] hover:bg-[#252530] text-gray-400 font-bold text-xs tracking-widest uppercase text-center rounded-lg transition-all cursor-pointer">
                     I've Installed It — Refresh
                 </button>
-                <button onclick="window.location.href='index.html'"
+                <button onclick="window.location.href='/'"
                    class="block w-full py-2.5 bg-transparent text-gray-500 text-xs tracking-wider text-center transition-all cursor-pointer border-none hover:text-gray-300">
                     ← Back to Home
                 </button>
@@ -540,10 +540,10 @@
             <p class="text-gray-400 text-sm text-center mb-8 leading-relaxed">Your 10-minute live demo has ended. Create your account, then start your free trial to keep scoring with full DartVoice access.</p>
             
             <div class="space-y-4">
-                <a href="login.html" class="block w-full py-3.5 bg-[#191920] hover:bg-[#22222b] border border-white/10 text-white font-bold text-sm tracking-widest uppercase text-center rounded-lg transition-all">
+                <a href="login" class="block w-full py-3.5 bg-[#191920] hover:bg-[#22222b] border border-white/10 text-white font-bold text-sm tracking-widest uppercase text-center rounded-lg transition-all">
                     Create Account
                 </a>
-                <a href="login.html?intent=subscribe" class="block w-full py-3.5 bg-brand hover:bg-brand-light text-white font-bold text-sm tracking-widest uppercase text-center rounded-lg shadow-[0_0_20px_rgba(204,11,32,0.4)] transition-all">
+                <a href="login?intent=subscribe" class="block w-full py-3.5 bg-brand hover:bg-brand-light text-white font-bold text-sm tracking-widest uppercase text-center rounded-lg shadow-[0_0_20px_rgba(204,11,32,0.4)] transition-all">
                     Start Free Trial
                 </a>
                 <button onclick="document.getElementById('paywall-modal').classList.add('hidden')" class="block w-full py-3 bg-transparent border border-[#252530] hover:bg-[#252530] text-gray-400 font-bold text-xs tracking-widest uppercase text-center rounded-lg transition-all">
@@ -552,6 +552,99 @@
             </div>
         </div>
     </div>
+
+    <!-- FIRST-TIME ONBOARDING TUTORIAL -->
+    <div id="onboarding-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999997] hidden flex items-center justify-center p-4">
+        <div class="bg-[#111114] border border-wire rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="h-1 bg-wire"><div id="onb-progress" class="h-full bg-brand transition-all duration-300" style="width:25%"></div></div>
+            <div class="p-6 sm:p-8">
+                <div class="flex items-center justify-between mb-5">
+                    <span id="onb-step-label" class="text-[10px] font-bold text-muted-2 tracking-widest uppercase">Step 1 of 4</span>
+                    <button onclick="dismissOnboarding()" class="text-xs text-muted hover:text-chalk transition">Skip</button>
+                </div>
+
+                <!-- Step 1: Extension -->
+                <div id="onb-s1" class="onb-step">
+                    <div class="w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Install the Chrome Extension</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">DartVoice needs the <b class="text-white">Launchpad</b> extension to inject scores into your dartboard app. Install it from the Chrome Web Store and refresh this page.</p>
+                    <a href="https://chromewebstore.google.com/detail/dartvoice-launchpad" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm text-brand font-semibold hover:underline">Open Chrome Web Store <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></a>
+                </div>
+
+                <!-- Step 2: Mic Permissions -->
+                <div id="onb-s2" class="onb-step hidden">
+                    <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Allow Microphone Access</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">When your browser asks for mic permission, click <b class="text-white">Allow</b>. DartVoice listens locally — your audio never leaves your device.</p>
+                    <div class="bg-[#08080A] rounded-lg p-3 border border-[#252530]">
+                        <p class="text-xs text-muted leading-relaxed">If you accidentally blocked it: click the <b class="text-white">lock icon</b> in Chrome's address bar → Site Settings → Microphone → Allow.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Select Mic -->
+                <div id="onb-s3" class="onb-step hidden">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Choose Your Microphone</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">In the <b class="text-white">Settings</b> tab on the left panel, pick the mic you want to use. A headset mic works best to reduce background noise.</p>
+                    <div class="bg-[#08080A] rounded-lg p-3 border border-[#252530]">
+                        <p class="text-xs text-muted leading-relaxed"><b class="text-white">Tip:</b> In a noisy pub? Enable <b class="text-white">"Require Trigger Word"</b> so it only listens when you say <b class="text-brand">"score"</b> first.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4: Start Scoring -->
+                <div id="onb-s4" class="onb-step hidden">
+                    <div class="w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">You're All Set!</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">Hit <b class="text-white">Start Listening</b> and say your score. For example: <span class="text-brand font-mono text-xs">"score sixty"</span> or <span class="text-brand font-mono text-xs">"score treble twenty"</span>.</p>
+                    <div class="bg-[#08080A] rounded-lg p-3 border border-[#252530]">
+                        <p class="text-xs text-muted leading-relaxed">Need help? Check the <a href="guide" class="text-brand hover:underline">full setup guide</a> for voice commands, cricket mode, and troubleshooting.</p>
+                    </div>
+                </div>
+
+                <!-- Nav buttons -->
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-wire">
+                    <button id="onb-prev" onclick="onbNav(-1)" class="text-sm text-muted hover:text-chalk transition hidden">← Back</button>
+                    <div></div>
+                    <button id="onb-next" onclick="onbNav(1)" class="bg-brand hover:bg-[#e60d24] text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-all">Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        var _onbStep = 1, _onbTotal = 4;
+        function show() {
+            for (var i = 1; i <= _onbTotal; i++) document.getElementById('onb-s'+i).classList.toggle('hidden', i !== _onbStep);
+            document.getElementById('onb-step-label').textContent = 'Step ' + _onbStep + ' of ' + _onbTotal;
+            document.getElementById('onb-progress').style.width = (_onbStep / _onbTotal * 100) + '%';
+            document.getElementById('onb-prev').classList.toggle('hidden', _onbStep === 1);
+            var btn = document.getElementById('onb-next');
+            btn.textContent = _onbStep === _onbTotal ? "Let's Go!" : 'Next →';
+        }
+        window.onbNav = function(dir) {
+            _onbStep += dir;
+            if (_onbStep > _onbTotal) { dismissOnboarding(); return; }
+            if (_onbStep < 1) _onbStep = 1;
+            show();
+        };
+        window.dismissOnboarding = function() {
+            localStorage.setItem('dv-onboarding-done', '1');
+            document.getElementById('onboarding-overlay').classList.add('hidden');
+        };
+        if (!localStorage.getItem('dv-onboarding-done')) {
+            document.getElementById('onboarding-overlay').classList.remove('hidden');
+        }
+    })();
+    </script>
 
     <script>
         // --- SUPABASE AUTH & ACCOUNT ---

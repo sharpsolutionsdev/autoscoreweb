@@ -396,7 +396,7 @@
             <!-- Right side -->
             <div class="flex items-center gap-3">
                 <a href="/" class="text-xs text-muted hover:text-white transition hidden sm:block">Home</a>
-                <a href="guide.html" class="text-xs text-muted hover:text-white transition hidden sm:block">Guide</a>
+                <a href="guide" class="text-xs text-muted hover:text-white transition hidden sm:block">Guide</a>
                 <div class="w-px h-4 bg-white/10 hidden sm:block"></div>
                 <span id="nav-email" class="hidden text-xs text-muted truncate max-w-[160px]"></span>
                 <button id="btn-signout" onclick="signOut()"
@@ -543,7 +543,7 @@
                                 <h2 class="display text-3xl mb-2">SCORER STUDIO</h2>
                                 <p class="text-xs text-muted leading-relaxed mb-5">Open the integrated split-screen scorer. Control DartCounter with your voice directly in this browser window. <strong class="text-white">Requires Chrome Extension.</strong></p>
                                 
-                                <button onclick="window.location.href='web-app.html'" class="btn-brand w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(204,11,32,0.3)]">
+                                <button onclick="window.location.href='web-app'" class="btn-brand w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(204,11,32,0.3)]">
                                     <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -624,7 +624,7 @@
                                 </div>
                             </div>
                             <div class="border-t border-white/[0.04] px-6 py-3 bg-dark-2/40">
-                                <a href="guide.html"
+                                <a href="guide"
                                     class="text-xs text-muted hover:text-brand transition inline-flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
@@ -828,15 +828,15 @@
                                     </div>
                                 </div>
                                 <div class="mt-4 flex gap-2">
-                                    <a href="guide.html" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Open Guide</a>
-                                    <a href="contact.html" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Contact Support</a>
+                                    <a href="guide" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Open Guide</a>
+                                    <a href="contact" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Contact Support</a>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Help links -->
                         <div class="fade-up-4 space-y-2 px-1">
-                            <a href="guide.html"
+                            <a href="guide"
                                 class="flex items-center gap-3 py-2 text-muted hover:text-white transition group">
                                 <svg class="w-4 h-4 text-muted-2 group-hover:text-brand transition shrink-0" fill="none"
                                     stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1177,6 +1177,33 @@
                         </div>
                     </div>
 
+                    <!-- Charts row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                        <!-- Sign-ups per day (bar chart) -->
+                        <div class="glass-card rounded-2xl p-6">
+                            <h2 class="text-xs font-bold text-muted-2 tracking-widest uppercase mb-4">Sign-ups (Last 30 Days)</h2>
+                            <div id="chart-signups" class="flex items-end gap-[3px] h-[120px]">
+                                <p class="text-muted text-xs w-full text-center">Loading…</p>
+                            </div>
+                        </div>
+
+                        <!-- Status breakdown (donut) -->
+                        <div class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center">
+                            <h2 class="text-xs font-bold text-muted-2 tracking-widest uppercase mb-4 self-start">Subscription Breakdown</h2>
+                            <div class="relative w-[120px] h-[120px]">
+                                <svg id="chart-donut" viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#252530" stroke-width="3.8"/>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="donut-center-val" class="text-lg font-display font-bold text-chalk">—</span>
+                                    <span class="text-[9px] text-muted-2 uppercase tracking-widest">Total</span>
+                                </div>
+                            </div>
+                            <div id="chart-donut-legend" class="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-[10px]"></div>
+                        </div>
+                    </div>
+
                     <!-- New users this month -->
                     <div class="glass-card rounded-2xl p-6">
                         <div class="flex items-center justify-between mb-4">
@@ -1268,7 +1295,7 @@
                 show('nav-email');
             } else if (name === 'auth') {
                 // Redirect to dedicated login page rather than show inline auth
-                window.location.replace('login.html');
+                window.location.replace('login');
             } else {
                 hide('btn-signout');
                 hide('nav-email');
@@ -1277,7 +1304,7 @@
 
         async function signOut() {
             await sb.auth.signOut();
-            window.location.replace('login.html');
+            window.location.replace('login');
         }
 
         // ── Checkout popup ────────────────────────────────────────────
@@ -1875,9 +1902,71 @@
                 }
 
                 _adminStatsLoaded = true;
+
+                // ── Charts ──
+                renderSignupChart(d.newThisMonth);
+                renderDonutChart(d.byStatus);
             } catch (e) {
                 console.error('Failed to load admin stats:', e);
             }
+        }
+
+        function renderSignupChart(users) {
+            const el = $('chart-signups');
+            const buckets = {};
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                buckets[d.toISOString().slice(0,10)] = 0;
+            }
+            (users || []).forEach(u => {
+                const key = new Date(u.created_at).toISOString().slice(0,10);
+                if (buckets[key] !== undefined) buckets[key]++;
+            });
+            const vals = Object.values(buckets);
+            const keys = Object.keys(buckets);
+            const max = Math.max(...vals, 1);
+            el.innerHTML = vals.map((v, i) => {
+                const pct = (v / max) * 100;
+                const day = new Date(keys[i]).getDate();
+                return `<div class="flex-1 flex flex-col items-center gap-1 group relative" title="${keys[i]}: ${v}">
+                    <div class="w-full rounded-sm transition-all duration-200 group-hover:opacity-80" style="height:${Math.max(pct, 3)}%;background:${v ? '#CC0B20' : '#252530'};min-height:2px;"></div>
+                    ${i % 5 === 0 ? `<span class="text-[8px] text-muted-2">${day}</span>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function renderDonutChart(byStatus) {
+            const svg = $('chart-donut');
+            const legend = $('chart-donut-legend');
+            const segments = [
+                { key: 'active', label: 'Active', color: '#22c55e' },
+                { key: 'trialing', label: 'Trialing', color: '#eab308' },
+                { key: 'past_due', label: 'Past Due', color: '#f97316' },
+                { key: 'canceled', label: 'Cancelled', color: '#6E6E82' }
+            ];
+            const total = segments.reduce((s, seg) => s + (byStatus[seg.key] || 0), 0) || 1;
+            $('donut-center-val').textContent = total === 1 && !byStatus.active ? '0' : total;
+            let offset = 0;
+            const r = 15.9, circ = 2 * Math.PI * r;
+            // Remove old arcs
+            svg.querySelectorAll('.donut-seg').forEach(el => el.remove());
+            segments.forEach(seg => {
+                const val = byStatus[seg.key] || 0;
+                if (!val) return;
+                const pct = val / total;
+                const arc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                arc.setAttribute('class', 'donut-seg');
+                arc.setAttribute('cx', '18'); arc.setAttribute('cy', '18'); arc.setAttribute('r', String(r));
+                arc.setAttribute('fill', 'none'); arc.setAttribute('stroke', seg.color); arc.setAttribute('stroke-width', '3.8');
+                arc.setAttribute('stroke-dasharray', `${pct * circ} ${circ}`);
+                arc.setAttribute('stroke-dashoffset', String(-offset * circ));
+                svg.appendChild(arc);
+                offset += pct;
+            });
+            legend.innerHTML = segments.map(seg => {
+                const val = byStatus[seg.key] || 0;
+                return `<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:${seg.color}"></span><span class="text-muted">${seg.label}</span><span class="font-bold text-chalk">${val}</span></span>`;
+            }).join('');
         }
 
         // ── Messages (admin) ─────────────────────────────────────────
@@ -1939,7 +2028,7 @@
                 const _params = new URLSearchParams(window.location.search);
                 if (_params.get('subscribe') === '1') {
                     // Clean the URL so refreshing doesn't re-trigger
-                    history.replaceState(null, '', 'dartvoice-dashboard.html');
+                    history.replaceState(null, '', 'dartvoice-dashboard');
                     // Load dashboard first, then open checkout popup
                     _ambUserId = session.user.id;
                     await loadDashboard(session.user);
@@ -1982,7 +2071,7 @@
                         }
                     }
                 } else if (event === 'SIGNED_OUT') {
-                    window.location.replace('login.html');
+                    window.location.replace('login');
                 }
             });
         })();
