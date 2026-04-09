@@ -311,14 +311,51 @@
                     </div>
                 </div>
 
+                <!-- Session Stats -->
+                <div class="hud-card p-3 mb-4 border border-white/5 flex-shrink-0">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                            <div id="stat-visits" class="text-lg font-display font-bold text-white">0</div>
+                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Visits</div>
+                        </div>
+                        <div>
+                            <div id="stat-avg" class="text-lg font-display font-bold text-white">&mdash;</div>
+                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Avg</div>
+                        </div>
+                        <div>
+                            <div id="stat-high" class="text-lg font-display font-bold text-white">&mdash;</div>
+                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Best</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Voice Commands -->
+                <div class="hud-card p-3 mb-4 border border-white/5 flex-shrink-0">
+                    <h3 class="text-[10px] text-gray-500 font-bold tracking-[0.2em] uppercase mb-2 flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-brand opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        Voice Commands
+                    </h3>
+                    <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                        <span class="text-gray-500">Score</span><span class="text-gray-300 font-mono">"sixty"</span>
+                        <span class="text-gray-500">Treble</span><span class="text-gray-300 font-mono">"treble twenty"</span>
+                        <span class="text-gray-500">Double</span><span class="text-gray-300 font-mono">"double sixteen"</span>
+                        <span class="text-gray-500">Bullseye</span><span class="text-gray-300 font-mono">"bullseye"</span>
+                        <span class="text-gray-500">Miss</span><span class="text-gray-300 font-mono">"miss"</span>
+                        <span class="text-gray-500">Undo</span><span class="text-gray-300 font-mono">"cancel"</span>
+                    </div>
+                </div>
+
                 <!-- AI Transcript HUD -->
                 <div class="mb-auto flex flex-col min-h-0">
-                    <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-3 flex items-center gap-2 flex-shrink-0">
-                        <svg class="w-4 h-4 text-brand opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Live Transcript
-                    </h3>
+                    <div class="flex items-center justify-between mb-3 flex-shrink-0">
+                        <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+                            <svg class="w-4 h-4 text-brand opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Live Transcript
+                        </h3>
+                        <button onclick="clearTranscript()" class="text-[9px] text-gray-500 hover:text-gray-300 font-bold uppercase tracking-widest transition-colors" title="Clear log">Clear</button>
+                    </div>
                     <div class="hud-card p-4 flex-1">
-                        <div id="transcript-box" class="h-full max-h-[160px]">
+                        <div id="transcript-box" class="h-full max-h-[300px]">
                             <div class="log-entry log-sys">System initialized. Model loaded.</div>
                             <div class="log-entry text-gray-400 mt-2 mb-2 italic">Awaiting voice commands...</div>
                         </div>
@@ -842,6 +879,21 @@
             });
         }
         
+        // --- SESSION STATS ---
+        let _sessionScores = [];
+        function updateSessionStats() {
+            document.getElementById('stat-visits').textContent = _sessionScores.length;
+            if (_sessionScores.length > 0) {
+                const avg = Math.round(_sessionScores.reduce((a,b) => a+b, 0) / _sessionScores.length);
+                document.getElementById('stat-avg').textContent = avg;
+                document.getElementById('stat-high').textContent = Math.max(..._sessionScores);
+            }
+        }
+
+        function clearTranscript() {
+            transcriptBox.innerHTML = '<div class="log-entry log-sys">Log cleared.</div>';
+        }
+
         function log(msg, isScore=false) {
             if (isScore) {
                 // Clear placeholder if it's the first score
@@ -854,18 +906,22 @@
                 liveScoresBox.appendChild(scoreDiv);
                 liveScoresBox.scrollTop = liveScoresBox.scrollHeight;
                 
-                // Still log an event in transcript for traceability
+                // Track session stats
+                const n = Number(msg);
+                if (!isNaN(n)) { _sessionScores.push(n); updateSessionStats(); }
+                
+                // Log in transcript (newest at top)
                 const div = document.createElement('div');
                 div.className = 'log-entry text-green-400 border-l-2 border-green-800 pl-2 ml-1 text-xs';
-                div.textContent = `[System] Injected Value: ${msg}`;
-                transcriptBox.appendChild(div);
+                div.textContent = '[Score] ' + msg;
+                transcriptBox.prepend(div);
             } else {
                 const div = document.createElement('div');
                 div.className = 'log-entry text-gray-400 border-l-2 border-gray-800 pl-2 ml-1 cursor-default';
                 div.textContent = msg;
-                transcriptBox.appendChild(div);
+                transcriptBox.prepend(div);
             }
-            transcriptBox.scrollTop = transcriptBox.scrollHeight;
+            transcriptBox.scrollTop = 0;
         }
 
         // Initialize Web Speech API
