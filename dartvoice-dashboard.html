@@ -514,6 +514,10 @@
                         class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
                         Profile
                     </button>
+                    <button onclick="switchTab('admin')" id="tab-btn-admin"
+                        class="tab-btn hidden px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
+                        Admin Stats
+                    </button>
                     <button onclick="switchTab('messages')" id="tab-btn-messages"
                         class="tab-btn hidden px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
                         Messages
@@ -1129,6 +1133,95 @@
                 </div>
             </div><!-- /tab-profile -->
 
+            <!-- ── TAB: Admin Stats (admin only) ─────────────────── -->
+            <div id="tab-admin" class="hidden">
+                <div class="space-y-5">
+
+                    <!-- Top-level KPI cards -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Total Users</p>
+                            <p id="stat-total-users" class="text-2xl font-display font-bold text-chalk">—</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Active Subs</p>
+                            <p id="stat-active-subs" class="text-2xl font-display font-bold text-success">—</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Trialing</p>
+                            <p id="stat-trialing" class="text-2xl font-display font-bold text-yellow-400">—</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Est. MRR</p>
+                            <p id="stat-mrr" class="text-2xl font-display font-bold text-brand">—</p>
+                        </div>
+                    </div>
+
+                    <!-- Secondary KPIs -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Cancelled</p>
+                            <p id="stat-canceled" class="text-2xl font-display font-bold text-muted">—</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Past Due</p>
+                            <p id="stat-pastdue" class="text-2xl font-display font-bold text-yellow-400">—</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Referrals</p>
+                            <p id="stat-referrals-total" class="text-2xl font-display font-bold text-chalk">—</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-4 text-center">
+                            <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Ref Pending</p>
+                            <p id="stat-referrals-pending" class="text-2xl font-display font-bold text-amber-400">—</p>
+                        </div>
+                    </div>
+
+                    <!-- New users this month -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold text-chalk">New Sign-ups This Month</h2>
+                            <span id="stat-new-this-month" class="text-xs font-bold px-3 py-1 rounded-full bg-brand/10 text-brand border border-brand/15"></span>
+                        </div>
+                        <div id="admin-signups-list" class="space-y-0 divide-y divide-white/[0.04] max-h-[300px] overflow-y-auto">
+                            <p class="text-muted text-sm py-4 text-center">Loading…</p>
+                        </div>
+                    </div>
+
+                    <!-- All subscribers table -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold text-chalk">All Subscribers</h2>
+                            <button onclick="loadAdminStats()" class="text-xs text-brand hover:underline">Refresh</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead>
+                                    <tr class="text-[10px] font-bold text-muted-2 tracking-widest uppercase border-b border-white/[0.06]">
+                                        <th class="pb-3 pr-4">Email</th>
+                                        <th class="pb-3 pr-4">Status</th>
+                                        <th class="pb-3 pr-4">Period End</th>
+                                        <th class="pb-3">Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-subs-tbody" class="divide-y divide-white/[0.04]">
+                                    <tr><td colspan="4" class="py-4 text-center text-muted">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Referrals breakdown -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <h2 class="text-lg font-bold text-chalk mb-4">Referral Activity</h2>
+                        <div id="admin-referrals-list" class="space-y-0 divide-y divide-white/[0.04] max-h-[300px] overflow-y-auto">
+                            <p class="text-muted text-sm py-4 text-center">Loading…</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div><!-- /tab-admin -->
+
             <!-- ── TAB: Messages (admin only) ────────────────────── -->
             <div id="tab-messages" class="hidden">
                 <div class="glass-card rounded-2xl p-6">
@@ -1252,10 +1345,11 @@
             $('nav-email').textContent = user.email;
             showView('dashboard');
 
-            // Admin gating — show Messages tab for admin emails
+            // Admin gating — show Messages + Admin Stats tabs for admin emails
             const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reubensharp18@gmail.com'];
             if (ADMIN_EMAILS.includes(user.email?.toLowerCase())) {
                 $('tab-btn-messages').classList.remove('hidden');
+                $('tab-btn-admin').classList.remove('hidden');
             }
 
             // First-time welcome banner: show if account < 10 minutes old
@@ -1476,7 +1570,7 @@
 
         // ── Tab switching ─────────────────────────────────────────────
         function switchTab(name) {
-            ['overview', 'ambassador', 'profile', 'messages'].forEach(t => {
+            ['overview', 'ambassador', 'profile', 'admin', 'messages'].forEach(t => {
                 const panel = $('tab-' + t);
                 const btn = $('tab-btn-' + t);
                 if (t === name) {
@@ -1489,6 +1583,7 @@
             });
             if (name === 'ambassador' && _ambUserId) loadAmbassador(_ambUserId);
             if (name === 'messages') loadMessages();
+            if (name === 'admin') loadAdminStats();
         }
 
         // ── Ambassador ────────────────────────────────────────────────
@@ -1672,6 +1767,117 @@
                 msgEl.className = 'text-xs text-center text-green-400';
             }
             msgEl.classList.remove('hidden');
+        }
+
+        // ── Admin Stats ───────────────────────────────────────────────
+        let _adminStatsLoaded = false;
+        const PRICE_PER_MONTH = 6.99;
+
+        async function loadAdminStats() {
+            if (_adminStatsLoaded) return;
+
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session) return;
+
+                const resp = await fetch(SUPABASE_URL + '/functions/v1/admin-stats', {
+                    headers: {
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'apikey': SUPABASE_KEY
+                    }
+                });
+
+                if (!resp.ok) {
+                    const err = await resp.text();
+                    console.error('Admin stats error:', err);
+                    return;
+                }
+
+                const d = await resp.json();
+
+                // KPI cards
+                $('stat-total-users').textContent = d.totalUsers;
+                $('stat-active-subs').textContent = d.byStatus.active || 0;
+                $('stat-trialing').textContent = d.byStatus.trialing || 0;
+                $('stat-canceled').textContent = d.byStatus.canceled || 0;
+                $('stat-pastdue').textContent = d.byStatus.past_due || 0;
+
+                const paying = (d.byStatus.active || 0) + (d.byStatus.trialing || 0);
+                $('stat-mrr').textContent = '£' + (paying * PRICE_PER_MONTH).toFixed(2);
+
+                $('stat-referrals-total').textContent = d.referrals.total;
+                $('stat-referrals-pending').textContent = d.referrals.pending;
+                $('stat-new-this-month').textContent = d.newThisMonth.length + ' this month';
+
+                // New sign-ups list
+                const signupEl = $('admin-signups-list');
+                if (d.newThisMonth.length === 0) {
+                    signupEl.innerHTML = '<p class="text-muted text-sm py-4 text-center">No new users this month.</p>';
+                } else {
+                    signupEl.innerHTML = d.newThisMonth.map(u => {
+                        const when = new Date(u.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+                        return `<div class="flex items-center justify-between py-2.5">
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-chalk truncate">${escHtml(u.email)}</p>
+                            </div>
+                            <span class="text-[10px] text-muted-2 shrink-0 ml-3">${when}</span>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Subscribers table
+                const tbody = $('admin-subs-tbody');
+                if (d.subscribers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-muted">No subscribers.</td></tr>';
+                } else {
+                    const statusColors = {
+                        active: 'text-success bg-success/10',
+                        trialing: 'text-yellow-400 bg-yellow-400/10',
+                        past_due: 'text-yellow-400 bg-yellow-400/10',
+                        canceled: 'text-muted bg-white/[0.04]',
+                        none: 'text-muted-2 bg-white/[0.04]'
+                    };
+                    tbody.innerHTML = d.subscribers.map(s => {
+                        const sc = statusColors[s.status] || statusColors.none;
+                        const pEnd = s.current_period_end ? new Date(s.current_period_end).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : '—';
+                        const upd = s.updated_at ? new Date(s.updated_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : '—';
+                        return `<tr>
+                            <td class="py-2.5 pr-4 text-chalk text-xs truncate max-w-[200px]">${escHtml(s.email || '—')}</td>
+                            <td class="py-2.5 pr-4"><span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${sc}">${s.status}</span></td>
+                            <td class="py-2.5 pr-4 text-xs text-muted">${pEnd}</td>
+                            <td class="py-2.5 text-xs text-muted">${upd}</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                // Referrals
+                const refEl = $('admin-referrals-list');
+                if (d.referralsList.length === 0) {
+                    refEl.innerHTML = '<p class="text-muted text-sm py-4 text-center">No referrals yet.</p>';
+                } else {
+                    const refColors = {
+                        signed_up: 'text-blue-400 bg-blue-400/10',
+                        trial_active: 'text-brand bg-brand/10',
+                        converted: 'text-green-400 bg-green-400/10',
+                        rewarded: 'text-green-400 bg-green-400/10'
+                    };
+                    refEl.innerHTML = d.referralsList.map(r => {
+                        const rc = refColors[r.status] || 'text-muted bg-white/[0.04]';
+                        const when = new Date(r.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+                        return `<div class="flex items-center justify-between py-2.5">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium text-chalk truncate">${escHtml(r.referred_email)}</p>
+                                <p class="text-[10px] text-muted-2 mt-0.5">by ${escHtml(r.referrer_email || '—')} · ${when}</p>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${rc} shrink-0 ml-3">${r.status}</span>
+                        </div>`;
+                    }).join('');
+                }
+
+                _adminStatsLoaded = true;
+            } catch (e) {
+                console.error('Failed to load admin stats:', e);
+            }
         }
 
         // ── Messages (admin) ─────────────────────────────────────────
