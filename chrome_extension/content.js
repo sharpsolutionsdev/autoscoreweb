@@ -477,19 +477,6 @@
     else console.log(`${prefix} ${msg}`);
   }
 
-  // --- AUTO-COOKIE DISMISSAL ---
-  function autoDismissCookies() {
-      const cookieBtn = document.querySelector('button.cm__btn:nth-of-type(1)');
-      if (cookieBtn && cookieBtn.textContent.toLowerCase().includes('accept')) {
-          logTrace("Auto-dismissing cookie consent modal...");
-          cookieBtn.click();
-      }
-  }
-  
-  // Check for cookies periodically
-  const cookieInterval = setInterval(autoDismissCookies, 2000);
-  setTimeout(() => clearInterval(cookieInterval), 20000); // Stop after 20s
-
   logTrace("Extension Script Injected and Ready.");
 
   // --- CALIBRATION OVERLAY ---
@@ -876,14 +863,16 @@
   document.addEventListener('mouseup', () => { isDragging = false; });
 
   // --- WEB APP BRIDGE LISTENER ---
+  const _TRUSTED_ORIGINS = ['https://dartvoice.app', 'https://www.dartvoice.app'];
   window.addEventListener('message', (event) => {
+    if (!_TRUSTED_ORIGINS.includes(event.origin) && event.origin !== window.location.origin) return;
     // If the parent Web App Dashboard is talking to us
     if (event.data && event.data.type) {
       logTrace("Received Window Payload:", event.data);
 
       // Extension detection handshake — reply so the parent knows we're alive
       if (event.data.type === "DARTVOICE_PING") {
-        event.source.postMessage({ type: "DARTVOICE_PONG" }, "*");
+        event.source.postMessage({ type: "DARTVOICE_PONG" }, event.origin);
         return;
       }
       
