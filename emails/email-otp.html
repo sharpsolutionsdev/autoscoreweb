@@ -1,44 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
     <title>Your DartVoice Code</title>
+    <!--[if mso]>
+    <noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+    <![endif]-->
     <style>
-        body { margin: 0; padding: 0; background-color: #050505; font-family: 'Rubik', -apple-system, sans-serif; }
-        .wrapper { width: 100%; max-width: 500px; margin: 60px auto; background-color: #0A0A0C; border: 1px solid #1A1A20; border-radius: 32px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
-        .hero { padding: 40px; text-align: center; border-bottom: 1px solid #1A1A20; }
-        h1 { color: #F0F0F5; font-size: 24px; margin: 0 0 12px; font-weight: 700; }
-        p { color: #6E6E82; font-size: 15px; line-height: 1.6; margin: 0; }
-        .code-container { padding: 40px; text-align: center; background: radial-gradient(circle at center, #1A0608 0%, #0A0A0C 100%); }
-        .code { display: inline-block; padding: 20px 40px; background: #111114; border: 1px solid #CC0B20; border-radius: 20px; color: #F0F0F5; font-family: 'Rubik', sans-serif; font-size: 48px; font-weight: 800; letter-spacing: 8px; box-shadow: 0 0 40px rgba(204,11,32,0.15); }
-        .timer { margin-top: 24px; color: #CC0B20; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
-        .footer { padding: 32px; background: #08080A; text-align: center; }
-        .footer-text { font-size: 11px; color: #4A4A5A; }
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        @media screen and (max-width: 600px) {
+            .email-wrapper { width: 100% !important; }
+            .body-cell { padding: 28px 20px !important; }
+        }
     </style>
 </head>
-<body>
-    <div class="wrapper">
-        <div style="height: 3px; background: #CC0B20;"></div>
-        <div class="hero">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CC0B20" stroke-width="2" style="margin-bottom:16px;">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            <h1>Your Login Code</h1>
-            <p>Enter the code below to sign in to your DartVoice account. This code expires in 10 minutes.</p>
-        </div>
+<body style="margin:0;padding:0;background-color:#08080A;">
 
-        <div class="code-container">
-            <div class="code">{{ .Token }}</div>
-            <div class="timer">EXPIRES IN 10 MINUTES</div>
-        </div>
+<!-- Preheader -->
+<div style="display:none;font-size:1px;color:#08080A;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Your one-time login code for DartVoice. Expires in 10 minutes.
+</div>
 
-        <div class="footer">
-            <p class="footer-text">
-                If you didn't request this code, you can safely ignore this email.<br>
-                &copy; 2026 DartVoice &bull; Built for the oche.
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#08080A;">
+<tr><td align="center" style="padding:40px 20px;">
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="500" class="email-wrapper"
+           style="background-color:#111114;border-radius:24px;border:1px solid #252530;overflow:hidden;">
+
+        <!-- Red accent bar -->
+        <tr><td height="3" style="background-color:#CC0B20;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+        <!-- Logo + Title -->
+        <tr><td align="center" style="padding:40px 40px 32px;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
+            <tr>
+                <td width="34" height="34" style="background-color:#CC0B20;border-radius:9px;text-align:center;vertical-align:middle;">
+                    <span style="color:white;font-size:14px;line-height:34px;">&#9679;</span>
+                </td>
+                <td width="10">&nbsp;</td>
+                <td style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:18px;font-weight:900;font-style:italic;color:#F0F0F5;letter-spacing:1px;text-transform:uppercase;">DARTVOICE</td>
+            </tr>
+            </table>
+
+            <h1 style="margin:0 0 8px;font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:28px;font-weight:900;font-style:italic;color:#F0F0F5;text-transform:uppercase;letter-spacing:-0.02em;">Your Login Code</h1>
+            <p style="margin:0;font-size:14px;color:#6E6E82;line-height:1.6;">Enter this code to sign in to your DartVoice account.</p>
+        </td></tr>
+
+        <!-- OTP Code -->
+        <tr><td align="center" class="body-cell" style="padding:0 40px 36px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+            <tr><td align="center" style="background-color:#08080A;border:1px solid #CC0B20;border-radius:16px;padding:20px 44px;">
+                <span style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:44px;font-weight:900;color:#F0F0F5;letter-spacing:8px;line-height:1;">{{ .Token }}</span>
+            </td></tr>
+            </table>
+            <p style="margin:16px 0 0;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;color:#CC0B20;text-transform:uppercase;letter-spacing:2px;">Expires in 10 minutes</p>
+        </td></tr>
+
+        <!-- Safety note -->
+        <tr><td class="body-cell" style="padding:0 40px 28px;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr><td style="background-color:#18181C;border-radius:8px;padding:14px 16px;">
+                <p style="margin:0;font-size:12px;color:#6E6E82;line-height:1.6;">
+                    If you didn't request this code, you can safely ignore this email. Someone may have entered your address by mistake.
+                </p>
+            </td></tr>
+            </table>
+        </td></tr>
+
+        <!-- Divider + Footer -->
+        <tr><td style="padding:0 40px;"><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td height="1" style="background-color:#252530;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>
+        <tr><td align="center" style="padding:24px 40px;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;">
+            <p style="margin:0;font-size:11px;color:#4A4A5A;">
+                &copy; 2026 DartVoice &nbsp;&bull;&nbsp;
+                <a href="https://instagram.com/dartcounterapp" style="color:#4A4A5A;text-decoration:underline;">Instagram</a>
+                &nbsp;&bull;&nbsp;
+                <a href="https://dartvoice.app/terms.html" style="color:#4A4A5A;text-decoration:underline;">Terms</a>
+                &nbsp;&bull;&nbsp;
+                <a href="mailto:support@dartvoice.app" style="color:#4A4A5A;text-decoration:underline;">Support</a>
             </p>
-        </div>
-    </div>
+        </td></tr>
+
+    </table>
+
+</td></tr>
+</table>
+
 </body>
 </html>

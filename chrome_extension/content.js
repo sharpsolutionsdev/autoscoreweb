@@ -1,5 +1,11 @@
 (function () {
-  if (window.__dartvoiceInjected) return;
+  // Kill any previous instance's recognition to prevent dual-mic fighting
+  if (window.__dartvoiceRecognition) {
+    try { window.__dartvoiceRecognition.abort(); } catch(e) {}
+    window.__dartvoiceRecognition = null;
+  }
+  // If already injected and overlay still present, skip re-injection
+  if (window.__dartvoiceInjected && document.getElementById('dartvoice-overlay')) return;
   window.__dartvoiceInjected = true;
 
   // --- DART PARSING LOGIC PORTED FROM PYTHON ---
@@ -575,12 +581,17 @@
     }
     // ... [Speech Init Truncated for Space in Chunk] ...
     recognition = new webkitSpeechRecognition();
+    window.__dartvoiceRecognition = recognition;
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
+    var _recStartTime = 0;
+    var _rapidRestarts = 0;
+
     recognition.onstart = () => {
       isListening = true;
+      _recStartTime = Date.now();
       statusText.textContent = 'Listening...';
       statusDot.classList.add('active');
       toggleMicBtn.textContent = 'Stop Listening';
@@ -596,9 +607,24 @@
       toggleMicBtn.textContent = 'Start Listening';
       toggleMicBtn.classList.add('primary');
       stopDemoTracking();
-      // Auto-restart if it was stopped by the browser network timeout
+
+      // Auto-restart with exponential backoff to prevent rapid cycling
       if (toggleMicBtn.dataset.intendedState === "on") {
-        setTimeout(() => { if (!isListening) startRecognitionWithMic(); }, 1000);
+        var uptime = Date.now() - _recStartTime;
+        if (uptime < 3000) {
+          _rapidRestarts++;
+        } else {
+          _rapidRestarts = 0;
+        }
+        if (_rapidRestarts >= 5) {
+          logTrace('Recognition restarting too rapidly — stopping. Click Start Listening to retry.');
+          toggleMicBtn.dataset.intendedState = 'off';
+          _rapidRestarts = 0;
+          return;
+        }
+        var delay = Math.min(1000 * Math.pow(2, _rapidRestarts), 16000);
+        logTrace('Auto-restarting recognition in ' + delay + 'ms...');
+        setTimeout(() => { if (!isListening) startRecognitionWithMic(); }, delay);
       }
     };
 

@@ -123,22 +123,31 @@ btnLaunch.addEventListener('click', async function () {
     if (!tab) return;
 
     var state = await getState();
+    var config = {
+        type: 'DV_INIT_CONFIG',
+        micDeviceId: micSelect.value || null,
+        email: state.email || null,
+        sub: state.sub || null,
+        demoUsedMs: state.demoUsedMs || 0,
+        demoLimitMs: DEMO_LIMIT_MS
+    };
 
-    chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js']
-    }, function () {
-        setTimeout(function () {
-            chrome.tabs.sendMessage(tab.id, {
-                type: 'DV_INIT_CONFIG',
-                micDeviceId: micSelect.value || null,
-                email: state.email || null,
-                sub: state.sub || null,
-                demoUsedMs: state.demoUsedMs || 0,
-                demoLimitMs: DEMO_LIMIT_MS
+    // Try sending config to an already-running content script first
+    chrome.tabs.sendMessage(tab.id, config, function (response) {
+        if (chrome.runtime.lastError || !response || !response.ok) {
+            // Content script not loaded — inject it, then send config
+            chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['content.js']
+            }, function () {
+                setTimeout(function () {
+                    chrome.tabs.sendMessage(tab.id, config);
+                    window.close();
+                }, 250);
             });
+        } else {
             window.close();
-        }, 250);
+        }
     });
 });
 
