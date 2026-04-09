@@ -223,6 +223,67 @@
             100% { opacity: 1; transform: scale(1) translateY(0); }
         }
         .paywall-animate { animation: paywallDrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* --- MOBILE FLOATING BAR --- */
+        .mobile-bar {
+            display: none;
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(8,8,10,0.92); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid #252530;
+            padding: 10px 16px; padding-bottom: max(10px, env(safe-area-inset-bottom));
+            align-items: center; gap: 10px;
+        }
+        .mobile-bar .mob-status { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+        .mobile-bar .mob-status-text { font-size: 11px; color: #a0a0a0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mobile-bar .mob-listen-btn {
+            background: #CC0B20; border: none; color: #fff; font-weight: bold;
+            font-size: 12px; padding: 10px 18px; border-radius: 10px; cursor: pointer;
+            letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0;
+        }
+        .mobile-bar .mob-listen-btn.active { background: #252530; }
+        .mobile-bar .mob-panel-btn {
+            background: rgba(255,255,255,0.06); border: 1px solid #252530; color: #a0a0a0;
+            width: 40px; height: 40px; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .mobile-bar .mob-panel-btn:active { background: rgba(255,255,255,0.1); }
+
+        /* Mobile panel overlay */
+        .mobile-panel-backdrop {
+            display: none; position: fixed; inset: 0; z-index: 40;
+            background: rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.3s;
+        }
+        .mobile-panel-backdrop.open { display: block; opacity: 1; }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar {
+                position: fixed; bottom: 0; left: 0; right: 0;
+                width: 100% !important; min-width: 0; max-width: 100vw;
+                height: 70vh; max-height: 70vh;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                z-index: 45;
+            }
+            .sidebar.mobile-open { transform: translateY(0); }
+            .sidebar-inner { padding: 16px 16px 80px; }
+            .resizer { display: none; }
+            .main-content { flex: 1; width: 100%; height: 100vh; }
+            .mobile-bar { display: flex; }
+
+            /* Pull handle at top of mobile panel */
+            .sidebar::before {
+                content: '';
+                display: block; width: 36px; height: 4px;
+                background: #4A4A5A; border-radius: 2px;
+                margin: 8px auto 4px;
+                flex-shrink: 0;
+            }
+        }
     </style>
 </head>
 
@@ -517,6 +578,21 @@
     <div class="main-content">
         <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; screen-wake-lock"></iframe>
     </div>
+    </div>
+
+    <!-- MOBILE BACKDROP -->
+    <div class="mobile-panel-backdrop" id="mob-backdrop" onclick="toggleMobilePanel(false)"></div>
+
+    <!-- MOBILE FLOATING TOOLBAR -->
+    <div class="mobile-bar" id="mobile-bar">
+        <div class="mob-status">
+            <div id="mob-status-dot" class="status-dot" style="width:8px;height:8px;margin:0"></div>
+            <span id="mob-status-text" class="mob-status-text">Idle</span>
+        </div>
+        <button id="mob-listen-btn" class="mob-listen-btn" onclick="toggleMobileListen()">START</button>
+        <button class="mob-panel-btn" onclick="toggleMobilePanel()" aria-label="Open controls">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        </button>
     </div>
 
     <!-- EXTENSION REQUIRED GATE -->
@@ -1290,6 +1366,96 @@
 
         // Execute on load
         fetchMics();
+
+        // --- MOBILE PANEL LOGIC --- //
+        function toggleMobilePanel(forceState) {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('mob-backdrop');
+            const isOpen = sidebar.classList.contains('mobile-open');
+            const shouldOpen = forceState !== undefined ? forceState : !isOpen;
+
+            if (shouldOpen) {
+                sidebar.classList.add('mobile-open');
+                backdrop.classList.add('open');
+            } else {
+                sidebar.classList.remove('mobile-open');
+                backdrop.classList.remove('open');
+            }
+        }
+
+        function toggleMobileListen() {
+            if (!extensionDetected) {
+                extGate.style.display = 'flex';
+                return;
+            }
+            if (listening) {
+                stopListening();
+            } else {
+                if (recognition) recognition.start();
+            }
+        }
+
+        // Sync mobile bar status with main status
+        const _origOnStart = recognition ? recognition.onstart : null;
+        const _origOnEnd = recognition ? recognition.onend : null;
+
+        function syncMobileBar() {
+            const mobDot = document.getElementById('mob-status-dot');
+            const mobText = document.getElementById('mob-status-text');
+            const mobBtn = document.getElementById('mob-listen-btn');
+            if (!mobDot) return;
+
+            if (listening) {
+                mobDot.className = 'status-dot listening';
+                mobDot.style.width = '8px'; mobDot.style.height = '8px'; mobDot.style.margin = '0';
+                mobText.textContent = statusText.textContent || 'Listening...';
+                mobBtn.textContent = 'STOP';
+                mobBtn.classList.add('active');
+            } else {
+                mobDot.className = 'status-dot';
+                mobDot.style.width = '8px'; mobDot.style.height = '8px'; mobDot.style.margin = '0';
+                mobText.textContent = 'Idle';
+                mobBtn.textContent = 'START';
+                mobBtn.classList.remove('active');
+            }
+        }
+
+        // Observe status text changes to keep mobile bar in sync
+        if (statusText) {
+            const observer = new MutationObserver(() => {
+                const mobText = document.getElementById('mob-status-text');
+                if (mobText && listening) mobText.textContent = statusText.textContent;
+            });
+            observer.observe(statusText, { childList: true, characterData: true, subtree: true });
+        }
+
+        // Patch start/stop to sync mobile bar
+        const origStopStyle = stopListeningStyle;
+        stopListeningStyle = function() {
+            origStopStyle();
+            syncMobileBar();
+        };
+
+        if (recognition) {
+            const origOnStart = recognition.onstart;
+            recognition.onstart = function() {
+                origOnStart.call(this);
+                syncMobileBar();
+            };
+        }
+
+        // Close mobile panel on swipe down
+        (function() {
+            let touchStartY = 0;
+            const sidebar = document.getElementById('sidebar');
+            sidebar.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            sidebar.addEventListener('touchend', function(e) {
+                const dy = e.changedTouches[0].clientY - touchStartY;
+                if (dy > 80) toggleMobilePanel(false);
+            }, { passive: true });
+        })();
     </script>
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
