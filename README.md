@@ -48,7 +48,7 @@ The UI/UX is functionally "Launch Ready." Focus should shift to deployment, back
 *Note: The frontend is currently static HTML. To make the dashboard and OTP logic functional:*
 - ⬜ Ensure the backend server securely validates Stripe Webhooks (e.g. `customer.subscription.created`) and updates the user database.
 - ⬜ Connect the static `login.html` and `dartvoice-dashboard.html` files to an actual routing framework (like Next.js) OR wire up Vanilla JS to consume backend JWT/Session tokens.
-- ⬜ Hook up the SendGrid/AWS SES logic to dispatch the templates located in `/emails/` when OTP requests are fired.
+- ✅ Lifecycle emails dispatched via Resend API through Supabase Edge Functions (`send-dartvoice-email`, `send-confirmation`). OTP emails sent via Supabase Auth SMTP → Resend. All sent from `@dartvoice.app` domain.
 
 ### 3. Windows & Android Builds ⬜
 - **Windows**: Package `dartvoice_v2.py` utilizing PyInstaller or Nuitka to compile a standalone executable (`DartVoice_Setup.exe`). Ensure the executable is code-signed with an EV certificate to prevent Windows Defender SmartScreen warnings.
