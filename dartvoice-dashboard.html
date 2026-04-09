@@ -22,6 +22,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -35,8 +36,8 @@
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
                     colors: {
-                        brand: '#CC0B20',
-                        'brand-light': '#e60d24',
+                        brand: 'var(--brand, #CC0B20)',
+                        'brand-light': 'var(--brand-light, #e60d24)',
                         dark: '#08080A',
                         'dark-2': '#0f0f0f',
                         card: '#111114',
@@ -1687,6 +1688,7 @@
         })();
 
     </script>
+    <script src="theme.js"></script>
 </body>
 
 </html>

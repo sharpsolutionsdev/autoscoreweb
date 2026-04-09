@@ -19,6 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,8 +30,8 @@
                         sans:    ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
                     colors: {
-                        brand:      '#CC0B20',
-                        'brand-light': '#e60d24',
+                        brand:      'var(--brand, #CC0B20)',
+                        'brand-light': 'var(--brand-light, #e60d24)',
                         dark:       '#08080A',
                         card:       '#111114',
                         'card-2':   '#18181C',
@@ -660,5 +661,6 @@
         if (!popup || popup.closed) window.open(DV_CHECKOUT_URL, '_blank', 'noopener');
     }
     </script>
+    <script src="theme.js"></script>
 </body>
 </html>

@@ -18,13 +18,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand:  '#CC0B20',
+                        brand:  'var(--brand, #CC0B20)',
                         dark:   '#08080A',
                         card:   '#111114',
                         wire:   '#252530',
@@ -311,5 +312,6 @@
         </div>
     </footer>
 
+    <script src="theme.js"></script>
 </body>
 </html>

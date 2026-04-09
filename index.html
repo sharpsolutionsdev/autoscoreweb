@@ -34,6 +34,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -44,8 +45,8 @@
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
                     colors: {
-                        brand: '#CC0B20',
-                        'brand-light': '#e60d24',
+                        brand: 'var(--brand, #CC0B20)',
+                        'brand-light': 'var(--brand-light, #e60d24)',
                         dark: '#08080A',
                         card: '#111114',
                         'card-2': '#18181C',
@@ -1011,7 +1012,11 @@
                 <a href="#how-it-works" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">How It Works</a>
                 <a href="#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
                 <a href="guide.html" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
-                <a href="web-app.html" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1">Web App <span class="flex h-2 w-2 relative -top-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span></span></a>
+                <a href="web-app.html" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1.5">
+                    <img src="dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded" style="image-rendering:auto;">
+                    Web App
+                    <span class="flex h-2 w-2 relative -top-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span></span>
+                </a>
                 <a href="referral.html"
                     class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>
@@ -1050,7 +1055,10 @@
                 <a href="guide.html"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
                 <a href="web-app.html"
-                    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Web App</a>
+                    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
+                    <img src="dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded">
+                    Web App
+                </a>
                 <a href="referral.html"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
@@ -3422,6 +3430,7 @@
         };
     })();
     </script>
+    <script src="theme.js"></script>
 </body>
 
 </html>
