@@ -547,6 +547,11 @@ def _sep_line(widget):
     widget.bind(pos=lambda *_: setattr(widget._sep_rect, 'pos', widget.pos),
                 size=lambda *a: setattr(widget._sep_rect, 'size', (a[1][0], dp(1))))
 
+def _bind_text_size(label):
+    """Keep a Label's text box aligned to its widget size for centering/wrapping."""
+    label.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
+    return label
+
 def _accent_btn(text, on_press):
     btn = Button(
         text=text, font_size=sp(13), bold=True,
@@ -1906,6 +1911,7 @@ class DartVoiceLayout(FloatLayout):
         self.maximum_lbl = Label(text='', font_size=sp(9), bold=True, color=ACCENT,
                                   halign='center', valign='middle',
                                   size_hint=(1, None), height=dp(18))
+        _bind_text_size(self.maximum_lbl)
         top_stage.add_widget(self.maximum_lbl)
 
         # Score area label (REMAINING or LAST SCORE depending on mode)
@@ -1914,15 +1920,67 @@ class DartVoiceLayout(FloatLayout):
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(20),
         )
+        _bind_text_size(self._score_area_lbl)
         top_stage.add_widget(self._score_area_lbl)
 
-        # Score label (main display)
+        # Score surface with ambient glow
+        score_wrap = FloatLayout(size_hint=(1, 1))
+        glow_vertical_offset = 0.01
+        glow_label_center_y = 0.5 - glow_vertical_offset  # nudges the glow label below the score text for a soft shadow
+        score_card = Widget(size_hint=(0.94, 0.94), pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        with score_card.canvas.before:
+            Color(*ACCENT[:3], 0.05)
+            score_card._glow = RoundedRectangle(pos=score_card.pos, size=score_card.size, radius=[dp(28)])
+            Color(*SEP)
+            score_card._bdr = RoundedRectangle(pos=score_card.pos, size=score_card.size, radius=[dp(26)])
+            Color(*CARD2)
+            score_card._bg = RoundedRectangle(
+                pos=(score_card.x + dp(1), score_card.y + dp(1)),
+                size=(score_card.width - dp(2), score_card.height - dp(2)),
+                radius=[dp(25)],
+            )
+        def _upd_score_card(*_):
+            score_card._glow.pos = (score_card.x - dp(2), score_card.y - dp(2))
+            score_card._glow.size = (score_card.width + dp(4), score_card.height + dp(4))
+            score_card._bdr.pos = score_card.pos
+            score_card._bdr.size = score_card.size
+            score_card._bg.pos = (score_card.x + dp(1), score_card.y + dp(1))
+            score_card._bg.size = (score_card.width - dp(2), score_card.height - dp(2))
+        score_card.bind(pos=_upd_score_card, size=_upd_score_card)
+        score_wrap.add_widget(score_card)
+
+        self._glow_widget = Widget(
+            size_hint=(0.82, 0.82),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+        )
+        self._glow_widget.bind(
+            pos=lambda *_: self._redraw_score_glow(),
+            size=lambda *_: self._redraw_score_glow(),
+        )
+        score_wrap.add_widget(self._glow_widget)
+
+        self._glow_lbl = Label(
+            text=str(self.state.remaining), font_size=sp(76), bold=True,
+            color=(0, 0, 0, 0), halign='center', valign='middle',
+            size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': glow_label_center_y},
+        )
+        _bind_text_size(self._glow_lbl)
+        score_wrap.add_widget(self._glow_lbl)
+
         self.score_lbl = Label(
             text=str(self.state.remaining), font_size=sp(76), bold=True,
             color=FG, halign='center', valign='middle',
-            size_hint=(1, 1),
+            size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5},
         )
-        top_stage.add_widget(self.score_lbl)
+        _bind_text_size(self.score_lbl)
+        self.score_lbl.bind(
+            pos=lambda *_: self._redraw_score_glow(),
+            size=lambda *_: self._redraw_score_glow(),
+            text=lambda *_: self._redraw_score_glow(),
+            font_size=lambda *_: self._redraw_score_glow(),
+        )
+        score_wrap.add_widget(self.score_lbl)
+        top_stage.add_widget(score_wrap)
 
         # Per-dart slot display (hidden when not in per-dart mode)
         self.dart_row_lbl = Label(
@@ -1930,6 +1988,7 @@ class DartVoiceLayout(FloatLayout):
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(32), opacity=0,
         )
+        _bind_text_size(self.dart_row_lbl)
         top_stage.add_widget(self.dart_row_lbl)
 
         # Live checkout hint
@@ -1938,14 +1997,47 @@ class DartVoiceLayout(FloatLayout):
             halign='center', valign='middle',
             size_hint=(1, None), height=dp(24),
         )
+        _bind_text_size(self.checkout_lbl)
         top_stage.add_widget(self.checkout_lbl)
 
-        self.status_lbl = Label(text='Ready', font_size=sp(11), color=FG2,
-                                 halign='center', valign='middle',
-                                 size_hint=(1, None), height=dp(26))
+        self.status_lbl = Label(
+            text='Ready', font_size=sp(11), color=FG2,
+            halign='center', valign='middle',
+            size_hint=(1, None), height=dp(30),
+        )
+        _bind_text_size(self.status_lbl)
+        with self.status_lbl.canvas.before:
+            Color(*ACCENT[:3], 0.06)
+            self.status_lbl._glow = RoundedRectangle(pos=self.status_lbl.pos, size=(0, 0), radius=[dp(14)])
+            Color(*SEP)
+            self.status_lbl._bdr = RoundedRectangle(pos=self.status_lbl.pos, size=(0, 0), radius=[dp(13)])
+            Color(*CARD2)
+            self.status_lbl._bg = RoundedRectangle(pos=self.status_lbl.pos, size=(0, 0), radius=[dp(12)])
+        def _upd_status_pill(*_):
+            pill_w = min(
+                self.status_lbl.width * 0.78,
+                max(dp(136), self.status_lbl.texture_size[0] + dp(28)),
+            )
+            pill_h = max(dp(22), self.status_lbl.height - dp(4))
+            x = self.status_lbl.center_x - pill_w / 2
+            y = self.status_lbl.center_y - pill_h / 2
+            self.status_lbl._glow.pos = (x - dp(2), y - dp(1))
+            self.status_lbl._glow.size = (pill_w + dp(4), pill_h + dp(2))
+            self.status_lbl._bdr.pos = (x, y)
+            self.status_lbl._bdr.size = (pill_w, pill_h)
+            self.status_lbl._bg.pos = (x + dp(1), y + dp(1))
+            self.status_lbl._bg.size = (pill_w - dp(2), pill_h - dp(2))
+        self.status_lbl.bind(
+            pos=_upd_status_pill,
+            size=_upd_status_pill,
+            text=_upd_status_pill,
+            texture_size=_upd_status_pill,
+        )
         top_stage.add_widget(self.status_lbl)
         self._top_stage = top_stage
         self.add_widget(top_stage)
+        Clock.schedule_once(self._redraw_score_glow, 0)
+        Clock.schedule_once(_upd_status_pill, 0)
 
         # ── Cricket grid (hidden initially, overlays top stage) ───────────
         self.cricket_card = BoxLayout(
@@ -3033,27 +3125,87 @@ class LoadingScreen(FloatLayout):
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=self._update_bg, pos=self._update_bg)
 
+        self.hero_card = Widget(
+            size_hint=(0.88, None),
+            height=dp(320),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+        )
+        with self.hero_card.canvas.before:
+            Color(*ACCENT[:3], 0.05)
+            self.hero_card._glow = RoundedRectangle(pos=self.hero_card.pos, size=self.hero_card.size, radius=[dp(28)])
+            Color(*SEP)
+            self.hero_card._bdr = RoundedRectangle(pos=self.hero_card.pos, size=self.hero_card.size, radius=[dp(26)])
+            Color(*CARD)
+            self.hero_card._bg = RoundedRectangle(
+                pos=(self.hero_card.x + dp(1), self.hero_card.y + dp(1)),
+                size=(self.hero_card.width - dp(2), self.hero_card.height - dp(2)),
+                radius=[dp(25)],
+            )
+        self.hero_card.bind(pos=self._update_loading_card, size=self._update_loading_card)
+        self.add_widget(self.hero_card)
+
+        self.badge_lbl = Label(
+            text='VOICE SCORING — PREMIUM',
+            font_size=sp(10), bold=True, color=ACCENT,
+            pos_hint={'center_x': 0.5, 'center_y': 0.66},
+            halign='center', valign='middle',
+            size_hint=(0.8, None), height=dp(20),
+        )
+        _bind_text_size(self.badge_lbl)
+        self.add_widget(self.badge_lbl)
+
         # App name (above logo)
         self.title_lbl = Label(
-            text='DARTVOICE', font_size=sp(24), bold=True, color=FG,
-            pos_hint={'center_x': 0.5, 'center_y': 0.62},
-            halign='center',
+            text='DARTVOICE', font_size=sp(26), bold=True, color=FG,
+            pos_hint={'center_x': 0.5, 'center_y': 0.58},
+            halign='center', valign='middle',
+            size_hint=(0.8, None), height=dp(32),
         )
+        _bind_text_size(self.title_lbl)
         self.add_widget(self.title_lbl)
+
+        self.subtitle_lbl = Label(
+            text='Professional voice control for seamless scoring sessions',
+            font_size=sp(12), color=FG2,
+            pos_hint={'center_x': 0.5, 'center_y': 0.53},
+            halign='center', valign='middle',
+            size_hint=(0.76, None), height=dp(22),
+        )
+        _bind_text_size(self.subtitle_lbl)
+        self.add_widget(self.subtitle_lbl)
 
         # Centered logo
         self.logo_wrap = Widget(size_hint=(None, None), size=(dp(100), dp(100)),
-                                 pos_hint={'center_x': 0.5, 'center_y': 0.48})
+                                 pos_hint={'center_x': 0.5, 'center_y': 0.43})
         self.add_widget(self.logo_wrap)
         self._init_logo()
 
         # Tagline
         self.msg = Label(
             text=self.taglines[0], font_size=sp(13), color=FG2,
-            pos_hint={'center_x': 0.5, 'center_y': 0.33},
-            halign='center',
+            pos_hint={'center_x': 0.5, 'center_y': 0.28},
+            halign='center', valign='middle',
+            size_hint=(0.76, None), height=dp(34),
         )
+        _bind_text_size(self.msg)
+        with self.msg.canvas.before:
+            Color(*SEP)
+            self.msg._bdr = RoundedRectangle(pos=self.msg.pos, size=(0, 0), radius=[dp(14)])
+            Color(*CARD2)
+            self.msg._bg = RoundedRectangle(pos=self.msg.pos, size=(0, 0), radius=[dp(13)])
+        self.msg.bind(pos=self._update_loading_msg, size=self._update_loading_msg,
+                      text=self._update_loading_msg, texture_size=self._update_loading_msg)
         self.add_widget(self.msg)
+
+        self.footer_lbl = Label(
+            text='Preparing your session and performing secure account checks',
+            font_size=sp(11), color=FG3,
+            pos_hint={'center_x': 0.5, 'center_y': 0.21},
+            halign='center', valign='middle',
+            size_hint=(0.8, None), height=dp(20),
+        )
+        _bind_text_size(self.footer_lbl)
+        self.add_widget(self.footer_lbl)
 
         # Pulsating animation
         anim = Animation(opacity=0.6, duration=1.0) + Animation(opacity=1.0, duration=1.0)
@@ -3071,26 +3223,52 @@ class LoadingScreen(FloatLayout):
         self.bg_rect.pos = self.pos
         self.bg_rect.size = self.size
 
+    def _update_loading_card(self, *_):
+        self.hero_card._glow.pos = (self.hero_card.x - dp(2), self.hero_card.y - dp(2))
+        self.hero_card._glow.size = (self.hero_card.width + dp(4), self.hero_card.height + dp(4))
+        self.hero_card._bdr.pos = self.hero_card.pos
+        self.hero_card._bdr.size = self.hero_card.size
+        self.hero_card._bg.pos = (self.hero_card.x + dp(1), self.hero_card.y + dp(1))
+        self.hero_card._bg.size = (self.hero_card.width - dp(2), self.hero_card.height - dp(2))
+
+    def _update_loading_msg(self, *_):
+        pill_w = min(self.msg.width, max(dp(180), self.msg.texture_size[0] + dp(30)))
+        pill_h = max(dp(28), self.msg.height)
+        x = self.msg.center_x - pill_w / 2
+        y = self.msg.center_y - pill_h / 2
+        self.msg._bdr.pos = (x, y)
+        self.msg._bdr.size = (pill_w, pill_h)
+        self.msg._bg.pos = (x + dp(1), y + dp(1))
+        self.msg._bg.size = (pill_w - dp(2), pill_h - dp(2))
+
     def _init_logo(self):
         def _draw(w, *a):
             w.canvas.clear()
             cx, cy = w.center_x, w.center_y
+            glow_r = dp(60)
+            outer_r = dp(48)
+            accent_r = dp(34)
+            inner_r = dp(22)
+            core_r = dp(14)
+            bull_r = dp(5)
             with w.canvas:
+                Color(*ACCENT[:3], 0.12)
+                Ellipse(pos=(cx - glow_r, cy - glow_r), size=(glow_r * 2, glow_r * 2))
                 # Outer dark ring
                 Color(0.2, 0.2, 0.24, 1)
-                Ellipse(pos=(cx-dp(48), cy-dp(48)), size=(dp(96), dp(96)))
+                Ellipse(pos=(cx - outer_r, cy - outer_r), size=(outer_r * 2, outer_r * 2))
                 # Accent ring
                 Color(*ACCENT)
-                Ellipse(pos=(cx-dp(34), cy-dp(34)), size=(dp(68), dp(68)))
+                Ellipse(pos=(cx - accent_r, cy - accent_r), size=(accent_r * 2, accent_r * 2))
                 # Inner dark ring
                 Color(0.2, 0.2, 0.24, 1)
-                Ellipse(pos=(cx-dp(22), cy-dp(22)), size=(dp(44), dp(44)))
+                Ellipse(pos=(cx - inner_r, cy - inner_r), size=(inner_r * 2, inner_r * 2))
                 # Inner accent ring
                 Color(*ACCENT)
-                Ellipse(pos=(cx-dp(14), cy-dp(14)), size=(dp(28), dp(28)))
+                Ellipse(pos=(cx - core_r, cy - core_r), size=(core_r * 2, core_r * 2))
                 # Bullseye dot
                 Color(0.94, 0.94, 0.96, 1)
-                Ellipse(pos=(cx-dp(5), cy-dp(5)), size=(dp(10), dp(10)))
+                Ellipse(pos=(cx - bull_r, cy - bull_r), size=(bull_r * 2, bull_r * 2))
         self.logo_wrap.bind(pos=_draw, size=_draw)
 
     def _cycle_message(self, dt):
@@ -3121,54 +3299,160 @@ class LoginScreen(FloatLayout):
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=self._update_bg, pos=self._update_bg)
 
-        # Header
-        self.add_widget(Label(
-            text="SIGN IN", font_size=sp(14), color=ACCENT, bold=True,
-            pos_hint={'center_x': 0.5, 'center_y': 0.8}
-        ))
-        
-        self.msg_lbl = Label(
-            text="Sync your profile and settings", font_size=sp(16), color=FG,
-            pos_hint={'center_x': 0.5, 'center_y': 0.74}
+        self.auth_card = Widget(
+            size_hint=(0.9, None),
+            height=dp(430),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
         )
+        with self.auth_card.canvas.before:
+            Color(*ACCENT[:3], 0.05)
+            self.auth_card._glow = RoundedRectangle(pos=self.auth_card.pos, size=self.auth_card.size, radius=[dp(28)])
+            Color(*SEP)
+            self.auth_card._bdr = RoundedRectangle(pos=self.auth_card.pos, size=self.auth_card.size, radius=[dp(26)])
+            Color(*CARD)
+            self.auth_card._bg = RoundedRectangle(
+                pos=(self.auth_card.x + dp(1), self.auth_card.y + dp(1)),
+                size=(self.auth_card.width - dp(2), self.auth_card.height - dp(2)),
+                radius=[dp(25)],
+            )
+        self.auth_card.bind(pos=self._update_auth_card, size=self._update_auth_card)
+        self.add_widget(self.auth_card)
+
+        self.logo_wrap = Widget(
+            size_hint=(None, None), size=(dp(84), dp(84)),
+            pos_hint={'center_x': 0.5, 'center_y': 0.73},
+        )
+        self.logo_wrap.bind(pos=self._draw_login_logo, size=self._draw_login_logo)
+        self.add_widget(self.logo_wrap)
+
+        self.add_widget(Label(
+            text="DARTVOICE ACCOUNT", font_size=sp(11), color=ACCENT, bold=True,
+            pos_hint={'center_x': 0.5, 'center_y': 0.64},
+            size_hint=(0.7, None), height=dp(18),
+            halign='center', valign='middle',
+        ))
+
+        self.title_lbl = Label(
+            text="Sign in with a one-time code", font_size=sp(20), color=FG, bold=True,
+            pos_hint={'center_x': 0.5, 'center_y': 0.59},
+            size_hint=(0.8, None), height=dp(28),
+            halign='center', valign='middle',
+        )
+        _bind_text_size(self.title_lbl)
+        self.add_widget(self.title_lbl)
+
+        self.msg_lbl = Label(
+            text="Sync your profile, subscription, and settings", font_size=sp(13),
+            color=FG2, markup=True,
+            pos_hint={'center_x': 0.5, 'center_y': 0.53},
+            size_hint=(0.78, None), height=dp(36),
+            halign='center', valign='middle',
+        )
+        _bind_text_size(self.msg_lbl)
         self.add_widget(self.msg_lbl)
 
         # Input
         self.token_input = TextInput(
             hint_text="Enter Email Address",
             size_hint=(0.8, None), height=dp(50),
-            pos_hint={'center_x': 0.5, 'center_y': 0.6},
-            background_color=CARD, foreground_color=FG,
-            padding=[dp(15), dp(13)], font_size=sp(16),
-            multiline=False, cursor_color=ACCENT
+            pos_hint={'center_x': 0.5, 'center_y': 0.43},
+            background_normal='', background_active='',
+            background_color=(0, 0, 0, 0), foreground_color=FG,
+            padding=[dp(16), dp(13), dp(16), dp(13)], font_size=sp(16),
+            multiline=False, cursor_color=ACCENT,
+            hint_text_color=FG2,
         )
+        with self.token_input.canvas.before:
+            Color(*SEP)
+            self.token_input._bdr = RoundedRectangle(pos=self.token_input.pos, size=self.token_input.size, radius=[dp(16)])
+            Color(*CARD2)
+            self.token_input._bg = RoundedRectangle(
+                pos=(self.token_input.x + dp(1), self.token_input.y + dp(1)),
+                size=(self.token_input.width - dp(2), self.token_input.height - dp(2)),
+                radius=[dp(15)],
+            )
+        self.token_input.bind(pos=self._update_input, size=self._update_input)
         self.add_widget(self.token_input)
 
         # Send/Verify button
         self.action_btn = Button(
             text="SEND CODE", size_hint=(0.8, None), height=dp(54),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5},
-            background_color=(0,0,0,0), color=FG, bold=True
+            pos_hint={'center_x': 0.5, 'center_y': 0.33},
+            background_normal='', background_color=(0,0,0,0), color=FG, bold=True
         )
         with self.action_btn.canvas.before:
+            Color(*ACCENT[:3], 0.15)
+            self.btn_glow = RoundedRectangle(
+                size=(self.action_btn.width + dp(4), self.action_btn.height + dp(4)),
+                pos=(self.action_btn.x - dp(2), self.action_btn.y - dp(2)),
+                radius=[dp(18)],
+            )
             Color(*ACCENT)
             self.btn_bg = RoundedRectangle(size=self.action_btn.size, pos=self.action_btn.pos, radius=[dp(12)])
         self.action_btn.bind(pos=self._update_btn, size=self._update_btn)
         self.action_btn.bind(on_release=self._do_action)
         self.add_widget(self.action_btn)
 
-        # Help / Link
+        self.add_widget(Label(
+            text="Passwordless sign-in — Secure code delivery — No saved passwords",
+            font_size=sp(11), color=FG3,
+            pos_hint={'center_x': 0.5, 'center_y': 0.24},
+            size_hint=(0.82, None), height=dp(18),
+            halign='center', valign='middle',
+        ))
+
         self.add_widget(Label(
             text="Don't have an account? Start a free trial at [color=CC0B20]dartvoice.app[/color]",
             markup=True, font_size=sp(12), color=FG2,
-            pos_hint={'center_x': 0.5, 'center_y': 0.4}
+            pos_hint={'center_x': 0.5, 'center_y': 0.18},
+            size_hint=(0.82, None), height=dp(20),
+            halign='center', valign='middle',
         ))
 
     def _update_bg(self, *args):
         self.bg_rect.pos = self.pos
         self.bg_rect.size = self.size
 
+    def _update_auth_card(self, *_):
+        self.auth_card._glow.pos = (self.auth_card.x - dp(2), self.auth_card.y - dp(2))
+        self.auth_card._glow.size = (self.auth_card.width + dp(4), self.auth_card.height + dp(4))
+        self.auth_card._bdr.pos = self.auth_card.pos
+        self.auth_card._bdr.size = self.auth_card.size
+        self.auth_card._bg.pos = (self.auth_card.x + dp(1), self.auth_card.y + dp(1))
+        self.auth_card._bg.size = (self.auth_card.width - dp(2), self.auth_card.height - dp(2))
+
+    def _draw_login_logo(self, widget, *_):
+        widget.canvas.clear()
+        cx, cy = widget.center_x, widget.center_y
+        glow_r = dp(50)
+        outer_r = dp(40)
+        accent_r = dp(28)
+        inner_r = dp(18)
+        core_r = dp(10)
+        bull_r = dp(4)
+        with widget.canvas:
+            Color(*ACCENT[:3], 0.12)
+            Ellipse(pos=(cx - glow_r, cy - glow_r), size=(glow_r * 2, glow_r * 2))
+            Color(*CARD2)
+            Ellipse(pos=(cx - outer_r, cy - outer_r), size=(outer_r * 2, outer_r * 2))
+            Color(*ACCENT)
+            Ellipse(pos=(cx - accent_r, cy - accent_r), size=(accent_r * 2, accent_r * 2))
+            Color(*CARD)
+            Ellipse(pos=(cx - inner_r, cy - inner_r), size=(inner_r * 2, inner_r * 2))
+            Color(*ACCENT)
+            Ellipse(pos=(cx - core_r, cy - core_r), size=(core_r * 2, core_r * 2))
+            Color(*FG)
+            Ellipse(pos=(cx - bull_r, cy - bull_r), size=(bull_r * 2, bull_r * 2))
+
+    def _update_input(self, instance, *_):
+        instance._bdr.pos = instance.pos
+        instance._bdr.size = instance.size
+        instance._bg.pos = (instance.x + dp(1), instance.y + dp(1))
+        instance._bg.size = (instance.width - dp(2), instance.height - dp(2))
+
     def _update_btn(self, instance, value):
+        self.btn_glow.pos = (instance.x - dp(2), instance.y - dp(2))
+        self.btn_glow.size = (instance.width + dp(4), instance.height + dp(4))
         self.btn_bg.pos = instance.pos
         self.btn_bg.size = instance.size
 
