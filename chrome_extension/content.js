@@ -497,13 +497,13 @@
       el.dispatchEvent(new KeyboardEvent('keyup', enterOpts));
 
       // Fallback: click the Submit button directly (Angular may ignore synthetic keyboard events)
-      setTimeout(() => {
-        const submitBtn = document.querySelector('button.submit-button');
-        if (submitBtn) {
-          logTrace("Clicking Submit button as fallback...");
-          submitBtn.click();
-        }
-      }, 100);
+      // setTimeout(() => {
+      //   const submitBtn = document.querySelector('button.submit-button');
+      //   if (submitBtn) {
+      //     logTrace("Clicking Submit button as fallback...  ");
+      //     submitBtn.click();
+      //   }
+      // }, 100);
 
       logTrace("Score injected via direct DOM: " + scoreStr);
     } else {
