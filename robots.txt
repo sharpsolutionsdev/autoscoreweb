@@ -2,9 +2,10 @@ User-agent: *
 Allow: /
 
 Disallow: /dartvoice-dashboard.html
-Disallow: /designhub.html
-Disallow: /social-media-gen.html
-Disallow: /appuiprototype.html
-Disallow: /promptguide.md
+Disallow: /prototypes/
+Disallow: /logs/
+Disallow: /migrations/
+Disallow: /autoscore/
+Disallow: /build_artifacts/
 
 Sitemap: https://dartvoice.app/sitemap.xml
