@@ -24,7 +24,7 @@ Flow
 Required env vars (baked into the app at build time):
   SUPABASE_URL            — https://poyjykgqsvgimssbhsuz.supabase.co
   SUPABASE_ANON_KEY       — publishable anon key
-  DV_BILLING_URL          — https://billing.dartvoice.com  (for checkout redirect)
+  DV_BILLING_URL          — https://billing.dartvoice.app  (for checkout redirect)
 """
 
 import os, json, time, uuid, hashlib, threading
@@ -43,7 +43,7 @@ SUPABASE_URL     = os.environ.get('SUPABASE_URL',     'https://poyjykgqsvgimssbh
 SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA'
 )
-BILLING_SERVER   = os.environ.get('DV_BILLING_URL', 'https://billing.dartvoice.com')
+BILLING_SERVER   = os.environ.get('DV_BILLING_URL', 'https://billing.dartvoice.app')
 DEMO_MINUTES     = 10   # free demo window before subscription required
 _SALT            = 'dartvoice-billing-v1-8f3a'
 _ACTIVE_STATUSES = {'active', 'trialing'}

@@ -1527,7 +1527,7 @@ class DartVoiceApp(ctk.CTk):
                         font=("Uber Move Bold", 13, "bold"),
                         fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
                         height=50, corner_radius=12,
-                        command=lambda: webbrowser.open('https://dartvoice.com'),
+                        command=lambda: webbrowser.open('https://dartvoice.app'),
                     ).pack(fill='x', pady=(0, 8))
 
                     def _refresh_status():
@@ -1547,7 +1547,7 @@ class DartVoiceApp(ctk.CTk):
                     font=("Rubik", 11), fg_color=CARD2, hover_color=SEP,
                     text_color=FG2, height=42, corner_radius=10,
                     command=lambda: webbrowser.open(
-                        f"{os.environ.get('DV_BILLING_URL','https://billing.dartvoice.com')}"
+                        f"{os.environ.get('DV_BILLING_URL','https://billing.dartvoice.app')}"
                         f"/portal?user_id={account['user_id']}"
                     ),
                 ).pack(fill='x', pady=(0, 8))

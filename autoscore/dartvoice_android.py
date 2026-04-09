@@ -1435,7 +1435,7 @@ class PaywallOverlay(FloatLayout):
 
     def _open_checkout(self):
         import webbrowser
-        webbrowser.open('https://dartvoice.com')
+        webbrowser.open('https://dartvoice.app')
         self._sub_btn.text = 'Waiting for payment…'
         # Auto-poll after a short delay (checks Supabase for active subscription)
         self._start_polling(max_attempts=12, interval=8)
@@ -1850,7 +1850,7 @@ class DartVoiceLayout(FloatLayout):
         # Account Button (Profile/Subscription)
         def _show_acc(*_):
             import webbrowser
-            webbrowser.open('https://dartvoice.com/dashboard')
+            webbrowser.open('https://dartvoice.app/dashboard')
             self._set_status("Opening Dashboard...")
 
         acc_btn = _ghost_btn('', _show_acc)
@@ -3159,7 +3159,7 @@ class LoginScreen(FloatLayout):
 
         # Help / Link
         self.add_widget(Label(
-            text="Don't have an account? Start a free trial at [color=CC0B20]dartvoice.com[/color]",
+            text="Don't have an account? Start a free trial at [color=CC0B20]dartvoice.app[/color]",
             markup=True, font_size=sp(12), color=FG2,
             pos_hint={'center_x': 0.5, 'center_y': 0.4}
         ))

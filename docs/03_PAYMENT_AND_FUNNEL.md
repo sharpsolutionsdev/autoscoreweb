@@ -81,7 +81,7 @@ The DartVoice funnel is designed to be **short, low-friction, and high-trust**. 
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    👀 CONSIDERATION                         │
-│  User lands on dartvoice.com (index.html)                   │
+│  User lands on dartvoice.app (index.html)                   │
 │  Premium dark-mode landing page with:                       │
 │   • Animated device mockups (phone + laptop)                │
 │   • Feature cards with live visual demos                    │

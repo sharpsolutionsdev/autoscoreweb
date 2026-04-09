@@ -7,4 +7,4 @@ Disallow: /social-media-gen.html
 Disallow: /appuiprototype.html
 Disallow: /promptguide.md
 
-Sitemap: https://dartvoice.com/sitemap.xml
+Sitemap: https://dartvoice.app/sitemap.xml

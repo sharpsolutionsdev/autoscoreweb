@@ -811,7 +811,7 @@
                                 </div>
                                 <div class="mt-4 flex gap-2">
                                     <a href="guide.html" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Open Guide</a>
-                                    <a href="mailto:support@dartvoice.com" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Contact Support</a>
+                                    <a href="mailto:support@dartvoice.app" class="btn-ghost px-3.5 py-2 rounded-lg text-xs text-muted hover:text-white">Contact Support</a>
                                 </div>
                             </div>
                         </div>
@@ -832,14 +832,14 @@
                                 </svg>
                             </a>
                             <div class="w-full h-px bg-white/[0.04]"></div>
-                            <a href="mailto:support@dartvoice.com"
+                            <a href="mailto:support@dartvoice.app"
                                 class="flex items-center gap-3 py-2 text-muted hover:text-white transition group">
                                 <svg class="w-4 h-4 text-muted-2 group-hover:text-brand transition shrink-0" fill="none"
                                     stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span class="text-sm">support@dartvoice.com</span>
+                                <span class="text-sm">support@dartvoice.app</span>
                                 <svg class="w-3.5 h-3.5 ml-auto text-muted-2 group-hover:text-brand transition"
                                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -1122,7 +1122,7 @@
     <script>
         const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
-        const BILLING_URL = 'https://billing.dartvoice.com';
+        const BILLING_URL = 'https://billing.dartvoice.app';
         // Direct Stripe Payment Link — append ?client_reference_id=USER_ID so the
         // checkout.session.completed webhook can match back to the Supabase user.
         const STRIPE_PAY_URL = 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00';
@@ -1475,7 +1475,7 @@
 
             const code = profile?.referral_code || '';
             _ambRefCode = code;
-            const url = code ? `https://dartvoice.com/login?ref=${code}` : '—';
+            const url = code ? `https://dartvoice.app/login?ref=${code}` : '—';
             $('ref-link-text').textContent = url;
 
             // Fetch stats from ambassador_stats view

@@ -15,8 +15,8 @@ Environment variables  (see .env.example):
   STRIPE_PRICE_ID          price_...
   SUPABASE_URL             https://poyjykgqsvgimssbhsuz.supabase.co
   SUPABASE_SERVICE_KEY     service_role secret key (never ships in the app)
-  SUCCESS_URL              https://dartvoice.com/thanks
-  CANCEL_URL               https://dartvoice.com/pricing
+    SUCCESS_URL              https://dartvoice.app/thanks.html
+    CANCEL_URL               https://dartvoice.app/checkout-cancelled.html
 """
 
 import os, time
@@ -27,8 +27,8 @@ from supabase import create_client
 
 app = Flask(__name__)
 CORS(app, origins=[
-    'https://dartvoice.com',
-    'https://www.dartvoice.com',
+    'https://dartvoice.app',
+    'https://www.dartvoice.app',
 ])
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -36,8 +36,8 @@ stripe.api_key      = os.environ['STRIPE_SECRET_KEY']
 _WEBHOOK_SECRET     = os.environ['STRIPE_WEBHOOK_SECRET']
 _PRICE_ID           = os.environ['STRIPE_PRICE_ID']
 TRIAL_DAYS          = 7
-SUCCESS_URL         = os.environ.get('SUCCESS_URL', 'https://dartvoice.com/thanks')
-CANCEL_URL          = os.environ.get('CANCEL_URL',  'https://dartvoice.com/pricing')
+SUCCESS_URL         = os.environ.get('SUCCESS_URL', 'https://dartvoice.app/thanks.html')
+CANCEL_URL          = os.environ.get('CANCEL_URL',  'https://dartvoice.app/checkout-cancelled.html')
 
 # ── Supabase admin client (service key — server only, never in the app) ───────
 _sb = create_client(
@@ -204,7 +204,7 @@ def portal():
     try:
         session = stripe.billing_portal.Session.create(
             customer=customer_id,
-            return_url='https://dartvoice.com/dartvoice-dashboard.html',
+            return_url='https://dartvoice.app/dartvoice-dashboard.html',
         )
         return redirect(session.url, code=303)
     except stripe.StripeError as e:

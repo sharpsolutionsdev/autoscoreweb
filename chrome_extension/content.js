@@ -122,6 +122,20 @@
 
   const frameID = isIframe ? "[IFRAME]" : "[PARENT]";
 
+  // --- UI OVERLAY CONTAINER ---
+  const container = document.createElement('div');
+  container.id = 'dartvoice-overlay';
+  container.style.position = 'fixed';
+  container.style.top = '20px';
+  container.style.right = '20px';
+  container.style.zIndex = '2147483646';
+  const shadow = container.attachShadow({ mode: 'open' });
+  if (document.body) {
+    document.body.appendChild(container);
+  } else {
+    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(container));
+  }
+
   const style = document.createElement('style');
   style.textContent = `
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
@@ -354,6 +368,12 @@
         return;
     }
 
+    // Don't run voice on the DartVoice parent page - web-app.html handles it
+    if (isDartVoiceParent) {
+        logTrace("Mic initialization blocked on DartVoice parent page.");
+        return;
+    }
+
     if (!('webkitSpeechRecognition' in window)) {
         logTrace("Your browser does not support SpeechRecognition.");
         return;
@@ -422,7 +442,82 @@
     }
   }
 
+  // --- DIRECT DOM INJECTION (for iframe / Ghost Mode) ---
+  function injectScoreDirectDOM(scoreStr) {
+    // DartCounter uses: input[type="text"][inputmode="numeric"][placeholder*="score"]
+    let el = document.querySelector('input[inputmode="numeric"]')
+        || document.querySelector('input[placeholder*="score"]')
+        || document.querySelector('input[type="number"]')
+        || document.querySelector('input[type="tel"]');
+
+    if (!el) {
+      const inputs = document.querySelectorAll('input');
+      for (const inp of inputs) {
+        if (inp.offsetParent !== null && !inp.disabled
+            && inp.type !== 'hidden' && inp.type !== 'checkbox'
+            && inp.type !== 'radio' && inp.type !== 'submit') {
+          el = inp;
+          break;
+        }
+      }
+    }
+
+    if (el) {
+      logTrace("Found DartCounter input element:", el);
+      el.focus();
+      el.click();
+
+      // Clear any existing value first
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype, 'value'
+      );
+      if (nativeSetter && nativeSetter.set) {
+        nativeSetter.set.call(el, '');
+      }
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Simulate typing each character (Angular change detection needs this)
+      for (const char of scoreStr) {
+        el.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: char, code: 'Digit' + char }));
+        if (nativeSetter && nativeSetter.set) {
+          nativeSetter.set.call(el, el.value + char);
+        } else {
+          el.value += char;
+        }
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: char, code: 'Digit' + char }));
+      }
+
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+
+      // Press Enter to submit the score
+      const enterOpts = { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter', keyCode: 13, which: 13 };
+      el.dispatchEvent(new KeyboardEvent('keydown', enterOpts));
+      el.dispatchEvent(new KeyboardEvent('keypress', enterOpts));
+      el.dispatchEvent(new KeyboardEvent('keyup', enterOpts));
+
+      // Fallback: click the Submit button directly (Angular may ignore synthetic keyboard events)
+      setTimeout(() => {
+        const submitBtn = document.querySelector('button.submit-button');
+        if (submitBtn) {
+          logTrace("Clicking Submit button as fallback...");
+          submitBtn.click();
+        }
+      }, 100);
+
+      logTrace("Score injected via direct DOM: " + scoreStr);
+    } else {
+      logTrace("CRITICAL: No input element found in DartCounter DOM!");
+    }
+  }
+
   function simulateScoreEntry(score) {
+    // If running inside the iframe, use direct DOM access (no calibration needed)
+    if (isIframe) {
+      injectScoreDirectDOM(String(score));
+      return;
+    }
+
     const x = calibratedCoords.x;
     const y = calibratedCoords.y;
 
@@ -459,9 +554,9 @@
         el.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter', code: 'Enter', keyCode: 13, which: 13 }));
         el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter', code: 'Enter', keyCode: 13, which: 13 }));
       } else {
-        logTrace("CRITICAL ERROR: No valid input target found at calibrated coordinates!", {x, y, el});
+        logTrace("CRITICAL ERROR: Active Element is NOT an Input or ContentEditable!", el);
       }
-    }, 150); // Increased timeout slightly to ensure focus/click settle
+    }, 150);
   }
 
   toggleMicBtn.addEventListener('click', () => {
@@ -507,6 +602,12 @@
     // If the parent Web App Dashboard is talking to us
     if (event.data && event.data.type) {
       logTrace("Received Window Payload:", event.data);
+
+      // Extension detection handshake — reply so the parent knows we're alive
+      if (event.data.type === "DARTVOICE_PING") {
+        event.source.postMessage({ type: "DARTVOICE_PONG" }, "*");
+        return;
+      }
       
       if (event.data.type === "DARTVOICE_CALIBRATE_START") {
         startCalibration();
@@ -514,6 +615,14 @@
       
       if (event.data.type === "DARTVOICE_SCORE_INJECT") {
         const score = event.data.score;
+
+        // In iframe mode, use direct DOM injection (no calibration needed)
+        if (isIframe) {
+          logTrace(`Iframe received score injection via postMessage: ${score}`);
+          injectScoreDirectDOM(String(score));
+          return;
+        }
+
         if (!calibratedCoords.x || !calibratedCoords.y) {
            logTrace(`Web App sent score: ${score}, but we are NOT CALIBRATED. Ignoring injection.`);
            return;

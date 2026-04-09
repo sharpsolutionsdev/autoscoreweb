@@ -11,7 +11,7 @@
 #define AppName      "DartVoice"
 #define AppVersion   "1.7"
 #define AppPublisher "DartVoice"
-#define AppURL       "https://dartvoice.com"
+#define AppURL       "https://dartvoice.app"
 #define AppExeName   "DartVoice.exe"
 #define SourceDir    "dist\DartVoice"
 
