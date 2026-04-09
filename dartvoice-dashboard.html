@@ -1634,10 +1634,15 @@
         (async function init() {
             const { data: { session } } = await sb.auth.getSession();
             if (session?.user) {
-                // Auto-redirect to Stripe checkout after sign-up flow
+                // Auto-open Stripe checkout after sign-up flow (popup so user stays on dashboard)
                 const _params = new URLSearchParams(window.location.search);
                 if (_params.get('subscribe') === '1') {
-                    window.location.replace(`${STRIPE_PAY_URL}?client_reference_id=${session.user.id}`);
+                    // Clean the URL so refreshing doesn't re-trigger
+                    history.replaceState(null, '', 'dartvoice-dashboard.html');
+                    // Load dashboard first, then open checkout popup
+                    _ambUserId = session.user.id;
+                    await loadDashboard(session.user);
+                    dvCheckout(null, session.user.id);
                     return;
                 }
 
