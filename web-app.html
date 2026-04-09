@@ -20,6 +20,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -243,13 +244,13 @@
                         </div>
                         
                         <!-- Account Pill -->
-                        <div class="flex items-center gap-2 bg-[#141418] border border-[#252530] rounded-full p-1.5 pr-4 shadow-md hover:bg-[#1a1a20] cursor-pointer transition-colors">
-                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-brand to-red-900 flex items-center justify-center font-display font-bold text-white text-xs">
-                                V
+                        <div id="account-pill" class="flex items-center gap-2 bg-[#141418] border border-[#252530] rounded-full p-1.5 pr-4 shadow-md hover:bg-[#1a1a20] cursor-pointer transition-colors" onclick="window.location.href='dartvoice-dashboard.html'">
+                            <div id="account-avatar" class="w-7 h-7 rounded-full bg-gradient-to-br from-brand to-red-900 flex items-center justify-center font-display font-bold text-white text-xs">
+                                ?
                             </div>
                             <div class="flex flex-col justify-center">
-                                <span class="text-xs font-bold text-white leading-tight">Vryn</span>
-                                <span class="text-[8px] text-brand font-bold uppercase tracking-widest leading-none">Pro Active</span>
+                                <span id="account-name" class="text-xs font-bold text-white leading-tight">Guest</span>
+                                <span id="account-status" class="text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none">Demo Mode</span>
                             </div>
                         </div>
                     </div>
@@ -447,6 +448,17 @@
 
             <!-- Footer Actions -->
             <div class="mt-4 pt-4 border-t border-wire border-dashed flex-shrink-0">
+                    <!-- Guest Mode Toggle (admin only) -->
+                    <div id="guest-mode-row" class="hidden flex items-center justify-between mb-3 bg-[#111114] border border-[#252530] rounded-lg px-3 py-2">
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Guest View</span>
+                            <p class="text-[9px] text-gray-500">See the app as a non-subscriber</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-guest-mode" class="sr-only peer">
+                            <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                        </label>
+                    </div>
                     <button class="btn-outline py-2.5 mb-3 hover:bg-white/5 active:scale-95 transition-all text-xs" onclick="window.location.href='dartvoice-dashboard.html'">
                         <span class="opacity-80 font-medium">← Return to Dashboard</span>
                     </button>
@@ -542,6 +554,68 @@
     </div>
 
     <script>
+        // --- SUPABASE AUTH & ACCOUNT ---
+        const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+        const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reubensharp18@gmail.com'];
+        let _isAdmin = false;
+        let _guestMode = false;
+        let _userSub = null;
+
+        (async function initAccount() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session?.user) return; // Guest — defaults are fine
+
+            const user = session.user;
+            const email = user.email;
+            _isAdmin = ADMIN_EMAILS.includes(email?.toLowerCase());
+
+            // Fetch subscription + profile
+            const [{ data: sub }, { data: profile }] = await Promise.all([
+                sb.from('dartvoice_subscriptions').select('status').eq('user_id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('display_name').eq('id', user.id).maybeSingle(),
+            ]);
+
+            _userSub = sub;
+            const displayName = profile?.display_name?.trim() || email.split('@')[0];
+            const initials = displayName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            const isActive = sub && ['active', 'trialing'].includes(sub.status);
+
+            // Update account pill
+            document.getElementById('account-avatar').textContent = initials;
+            document.getElementById('account-name').textContent = displayName;
+            const statusEl = document.getElementById('account-status');
+            if (isActive) {
+                statusEl.textContent = sub.status === 'active' ? 'Pro Active' : 'Free Trial';
+                statusEl.className = 'text-[8px] font-bold uppercase tracking-widest leading-none ' + (sub.status === 'active' ? 'text-brand' : 'text-yellow-400');
+            } else {
+                statusEl.textContent = 'No Subscription';
+                statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
+            }
+
+            // Show guest mode toggle for admins
+            if (_isAdmin) {
+                document.getElementById('guest-mode-row').classList.remove('hidden');
+                document.getElementById('toggle-guest-mode').addEventListener('change', function(e) {
+                    _guestMode = e.target.checked;
+                    if (_guestMode) {
+                        document.getElementById('account-name').textContent = 'Guest';
+                        document.getElementById('account-avatar').textContent = '?';
+                        statusEl.textContent = 'Demo Mode';
+                        statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
+                    } else {
+                        document.getElementById('account-name').textContent = displayName;
+                        document.getElementById('account-avatar').textContent = initials;
+                        if (isActive) {
+                            statusEl.textContent = sub.status === 'active' ? 'Pro Active' : 'Free Trial';
+                            statusEl.className = 'text-[8px] font-bold uppercase tracking-widest leading-none ' + (sub.status === 'active' ? 'text-brand' : 'text-yellow-400');
+                        }
+                    }
+                });
+            }
+        })();
+
         // --- EXTENSION DETECTION ---
         let extensionDetected = false;
         const extGate = document.getElementById('ext-gate');
