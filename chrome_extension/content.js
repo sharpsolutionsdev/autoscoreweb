@@ -113,6 +113,24 @@
       logTrace(`Restored Persisted Calibration: X=${calibratedCoords.x}, Y=${calibratedCoords.y}`);
     }
   });
+
+  // --- SUBSCRIPTION & DEMO STATE ---
+  var DEMO_LIMIT_MS = 10 * 60 * 1000;
+  var dvAuth = { email: null, sub: null, demoUsedMs: 0, micDeviceId: null };
+  var _micStartedAt = null;
+  var _demoInterval = null;
+
+  function hasActiveSub() { return dvAuth.sub === 'active' || dvAuth.sub === 'trialing'; }
+  function demoTimeRemaining() { return Math.max(0, DEMO_LIMIT_MS - dvAuth.demoUsedMs); }
+
+  // Load auth/demo state from storage
+  chrome.storage.local.get(['dv_user_email', 'dv_sub_status', 'dv_demo_used_ms', 'dv_mic_device_id'], (d) => {
+    dvAuth.email = d.dv_user_email || null;
+    dvAuth.sub = d.dv_sub_status || null;
+    dvAuth.demoUsedMs = d.dv_demo_used_ms || 0;
+    dvAuth.micDeviceId = d.dv_mic_device_id || null;
+  });
+
   const isDartVoiceParent = window.location.href.includes('web-app.html') || window.location.href.includes('dartvoice-dashboard.html');
   const isIframe = window !== window.top;
 
@@ -242,6 +260,67 @@
       border: 1px solid rgba(255,255,255,0.03);
       line-height: 1.4;
     }
+
+    button:disabled {
+      opacity: 0.4; cursor: not-allowed;
+      transform: none !important; box-shadow: none !important;
+    }
+
+    .demo-row {
+      margin-bottom: 12px; padding: 10px;
+      background: rgba(255,255,255,0.03); border-radius: 8px;
+    }
+    .demo-bar {
+      height: 4px; background: rgba(255,255,255,0.06);
+      border-radius: 2px; overflow: hidden; margin-bottom: 5px;
+    }
+    .demo-fill {
+      height: 100%; background: linear-gradient(90deg, #CC0B20, #e60d24);
+      border-radius: 2px; transition: width 0.3s; width: 0%;
+    }
+    .demo-fill.expired { background: #6E6E82; }
+    .demo-time {
+      font-size: 10px; color: #6E6E82; font-weight: 600;
+    }
+    .demo-time b { color: #F0F0F5; }
+
+    .mic-row { margin-bottom: 10px; }
+    .mic-row label {
+      display: block; font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #6E6E82; margin-bottom: 5px;
+    }
+    .mic-row select {
+      width: 100%; background: #111114; color: #F0F0F5;
+      border: 1px solid rgba(255,255,255,0.07); border-radius: 6px;
+      padding: 7px 10px; font-size: 11px;
+      font-family: 'Plus Jakarta Sans', sans-serif; outline: none;
+    }
+    .mic-row select:focus { border-color: #CC0B20; }
+
+    .lockout-overlay {
+      position: absolute; inset: 0;
+      background: rgba(8,8,10,0.97); border-radius: 16px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px; text-align: center; z-index: 10;
+    }
+    .lockout-overlay h4 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px; font-weight: 900; font-style: italic;
+      text-transform: uppercase; color: white; margin: 0 0 8px;
+    }
+    .lockout-overlay p {
+      font-size: 11px; color: #6E6E82; margin: 0 0 14px;
+      line-height: 1.4;
+    }
+    .lockout-overlay a {
+      display: inline-block; background: #CC0B20; color: white;
+      text-decoration: none; padding: 10px 20px; border-radius: 8px;
+      font-weight: 700; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.04em; transition: background 0.2s;
+    }
+    .lockout-overlay a:hover { background: #e60d24; }
   `;
   shadow.appendChild(style);
 
@@ -256,9 +335,22 @@
       <span id="dv-status-text">Microphone Idle</span>
       <div class="status-dot" id="dv-status-dot"></div>
     </div>
+    <div class="demo-row" id="dv-demo-row">
+      <div class="demo-bar"><div class="demo-fill" id="dv-demo-fill"></div></div>
+      <span class="demo-time" id="dv-demo-time"><b>10:00</b> remaining</span>
+    </div>
+    <div class="mic-row" id="dv-mic-row">
+      <label>Microphone</label>
+      <select id="dv-mic-select"><option value="">System Default</option></select>
+    </div>
     <button id="dv-toggle-mic" class="primary">Start Listening</button>
     <button id="dv-calibrate">Calibrate Grid</button>
     <div class="log" id="dv-log">Awaiting voice commands...</div>
+    <div class="lockout-overlay" id="dv-lockout" style="display:none;">
+      <h4>Demo Expired</h4>
+      <p>Your 10-minute demo has ended.<br>Sign in &amp; subscribe to continue.</p>
+      <a href="https://dartvoice.app/login.html" target="_blank">Sign In →</a>
+    </div>
   `;
   shadow.appendChild(panel);
 
@@ -268,6 +360,109 @@
   const calibrateBtn = shadow.getElementById('dv-calibrate');
   const logDiv = shadow.getElementById('dv-log');
   const closeBtn = shadow.getElementById('dv-close');
+  const demoRow = shadow.getElementById('dv-demo-row');
+  const demoFill = shadow.getElementById('dv-demo-fill');
+  const demoTimeSpan = shadow.getElementById('dv-demo-time');
+  const micRow = shadow.getElementById('dv-mic-row');
+  const micSelect = shadow.getElementById('dv-mic-select');
+  const lockoutDiv = shadow.getElementById('dv-lockout');
+
+  // --- DEMO TIMER HELPERS ---
+  function formatDemoTime(ms) {
+    var s = Math.max(0, Math.ceil(ms / 1000));
+    return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+  }
+
+  function updateDemoUI(overrideUsed) {
+    if (!demoRow) return;
+    if (hasActiveSub()) { demoRow.style.display = 'none'; return; }
+    demoRow.style.display = '';
+    var used = overrideUsed !== undefined ? overrideUsed : dvAuth.demoUsedMs;
+    var remaining = Math.max(0, DEMO_LIMIT_MS - used);
+    var pct = Math.min(100, (used / DEMO_LIMIT_MS) * 100);
+    demoFill.style.width = pct + '%';
+    demoTimeSpan.innerHTML = '<b>' + formatDemoTime(remaining) + '</b> remaining';
+    if (remaining <= 0) demoFill.classList.add('expired');
+  }
+
+  function startDemoTracking() {
+    if (hasActiveSub()) return;
+    _micStartedAt = Date.now();
+    _demoInterval = setInterval(function () {
+      var elapsed = Date.now() - _micStartedAt;
+      var total = dvAuth.demoUsedMs + elapsed;
+      updateDemoUI(total);
+      if (total >= DEMO_LIMIT_MS) {
+        forceStopMic();
+        dvAuth.demoUsedMs = total;
+        _micStartedAt = null;
+        clearInterval(_demoInterval);
+        _demoInterval = null;
+        chrome.storage.local.set({ dv_demo_used_ms: dvAuth.demoUsedMs });
+        showLockout();
+      }
+    }, 1000);
+  }
+
+  function stopDemoTracking() {
+    if (_micStartedAt) {
+      dvAuth.demoUsedMs += Date.now() - _micStartedAt;
+      _micStartedAt = null;
+    }
+    if (_demoInterval) { clearInterval(_demoInterval); _demoInterval = null; }
+    chrome.storage.local.set({ dv_demo_used_ms: dvAuth.demoUsedMs });
+    updateDemoUI();
+  }
+
+  function forceStopMic() {
+    if (recognition && isListening) {
+      toggleMicBtn.dataset.intendedState = 'off';
+      recognition.stop();
+    }
+  }
+
+  function showLockout() {
+    if (lockoutDiv) lockoutDiv.style.display = 'flex';
+    toggleMicBtn.disabled = true;
+  }
+
+  function hideLockout() {
+    if (lockoutDiv) lockoutDiv.style.display = 'none';
+    toggleMicBtn.disabled = false;
+    updateDemoUI();
+  }
+
+  // --- MIC DEVICE ENUMERATION ---
+  function loadMicDevices() {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices) return;
+    navigator.mediaDevices.enumerateDevices().then(function (devices) {
+      var mics = devices.filter(function (d) { return d.kind === 'audioinput'; });
+      if (mics.length === 0) return;
+      micSelect.innerHTML = '<option value="">System Default</option>';
+      mics.forEach(function (mic) {
+        var opt = document.createElement('option');
+        opt.value = mic.deviceId;
+        opt.textContent = mic.label || ('Microphone ' + mic.deviceId.slice(0, 8));
+        micSelect.appendChild(opt);
+      });
+      if (dvAuth.micDeviceId) micSelect.value = dvAuth.micDeviceId;
+    }).catch(function () {});
+  }
+
+  micSelect.addEventListener('change', function () {
+    dvAuth.micDeviceId = micSelect.value || null;
+    chrome.storage.local.set({ dv_mic_device_id: dvAuth.micDeviceId });
+  });
+
+  // Init demo UI + mic list (deferred so state loads first)
+  setTimeout(function () {
+    if (!isIframe && !isDartVoiceParent) {
+      updateDemoUI();
+      loadMicDevices();
+      // If demo already expired on load, lock immediately
+      if (!hasActiveSub() && dvAuth.demoUsedMs >= DEMO_LIMIT_MS) showLockout();
+    }
+  }, 300);
 
   function logTrace(msg, data) {
     const timestamp = new Date().toLocaleTimeString();
@@ -391,6 +586,7 @@
       toggleMicBtn.textContent = 'Stop Listening';
       toggleMicBtn.classList.remove('primary');
       logTrace("Microphone natively listening...");
+      startDemoTracking();
     };
 
     recognition.onend = () => {
@@ -399,9 +595,10 @@
       statusDot.classList.remove('active');
       toggleMicBtn.textContent = 'Start Listening';
       toggleMicBtn.classList.add('primary');
+      stopDemoTracking();
       // Auto-restart if it was stopped by the browser network timeout
       if (toggleMicBtn.dataset.intendedState === "on") {
-        setTimeout(() => { if (!isListening) recognition.start(); }, 1000);
+        setTimeout(() => { if (!isListening) startRecognitionWithMic(); }, 1000);
       }
     };
 
@@ -591,7 +788,29 @@
     }, 150);
   }
 
+  // --- MIC PRIMING + START ---
+  async function startRecognitionWithMic() {
+    // Prime Chrome to use the selected mic device before starting speech recognition
+    if (dvAuth.micDeviceId) {
+      try {
+        var stream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: { exact: dvAuth.micDeviceId } }
+        });
+        stream.getTracks().forEach(function (t) { t.stop(); });
+      } catch (e) {
+        logTrace('Mic prime failed: ' + e.message);
+      }
+    }
+    try { recognition.start(); } catch (e) { }
+  }
+
   toggleMicBtn.addEventListener('click', () => {
+    // Block if demo expired and no subscription
+    if (!hasActiveSub() && dvAuth.demoUsedMs >= DEMO_LIMIT_MS) {
+      showLockout();
+      return;
+    }
+
     if (!recognition) initSpeech();
 
     if (isListening) {
@@ -599,12 +818,13 @@
       recognition.stop();
     } else {
       toggleMicBtn.dataset.intendedState = "on";
-      try { recognition.start(); } catch (e) { }
+      startRecognitionWithMic();
     }
   });
 
   closeBtn.addEventListener('click', () => {
     if (recognition && isListening) recognition.stop();
+    stopDemoTracking();
     container.remove();
     window.__dartvoiceInjected = false;
   });
@@ -680,5 +900,46 @@
       container.style.display = 'none';
       logTrace("GHOST MODE ENGAGED: Extension running silently inside iframe.");
   }
+
+  // --- CHROME RUNTIME MESSAGE LISTENER ---
+  // Receives config from popup (DV_INIT_CONFIG) when launched manually
+  try {
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+      if (msg.type === 'DV_INIT_CONFIG') {
+        dvAuth.email = msg.email;
+        dvAuth.sub = msg.sub;
+        dvAuth.demoUsedMs = msg.demoUsedMs || 0;
+        dvAuth.micDeviceId = msg.micDeviceId || null;
+        if (!isIframe && !isDartVoiceParent) {
+          updateDemoUI();
+          if (dvAuth.micDeviceId && micSelect) micSelect.value = dvAuth.micDeviceId;
+          if (!hasActiveSub() && dvAuth.demoUsedMs >= DEMO_LIMIT_MS) showLockout();
+          else hideLockout();
+        }
+        sendResponse({ ok: true });
+      }
+    });
+  } catch (e) { }
+
+  // --- LIVE AUTH/SUB UPDATES VIA STORAGE ---
+  // When user signs in on dartvoice.app, auth-bridge updates chrome.storage.
+  // We listen for those changes and automatically unlock the overlay.
+  try {
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area !== 'local') return;
+      if (changes.dv_sub_status) {
+        dvAuth.sub = changes.dv_sub_status.newValue || null;
+        if (hasActiveSub()) hideLockout();
+      }
+      if (changes.dv_user_email) {
+        dvAuth.email = changes.dv_user_email.newValue || null;
+      }
+      if (changes.dv_mic_device_id) {
+        dvAuth.micDeviceId = changes.dv_mic_device_id.newValue || null;
+        if (micSelect) micSelect.value = dvAuth.micDeviceId || '';
+      }
+      if (!isIframe && !isDartVoiceParent) updateDemoUI();
+    });
+  } catch (e) { }
 
 })();

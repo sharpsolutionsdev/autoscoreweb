@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "DartVoice Launchpad",
-  "version": "1.0",
-  "description": "Voice-control any browser dart scorer. Start scoring without clicking.",
+  "version": "2.0",
+  "description": "Voice-control any browser dart scorer. 10-min demo, then sign in to continue.",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
     "128": "icon128.png"
   },
   "action": {
-    "default_title": "Launch DartVoice",
+    "default_title": "DartVoice",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icon16.png",
@@ -18,13 +18,21 @@
     }
   },
   "permissions": ["activeTab", "scripting", "storage", "declarativeNetRequest"],
-  "host_permissions": ["*://*.dartcounter.net/*", "*://nakka.com/*", "<all_urls>"],
+  "host_permissions": ["*://*.dartcounter.net/*", "*://nakka.com/*", "*://dartvoice.app/*", "<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["*://*.dartcounter.net/*", "*://nakka.com/*"],
       "js": ["content.js"],
       "all_frames": true,
       "run_at": "document_start"
+    },
+    {
+      "matches": ["*://dartvoice.app/*"],
+      "js": ["auth-bridge.js"],
+      "run_at": "document_idle"
     }
   ],
   "declarative_net_request": {
