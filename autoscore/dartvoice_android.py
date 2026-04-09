@@ -2483,16 +2483,6 @@ class DartVoiceLayout(FloatLayout):
                     )
                     self._set_status('Requesting mic permission…')
                     return
-                from jnius import autoclass
-                PythonActivity = autoclass('org.kivy.android.PythonActivity')
-                Settings = autoclass('android.provider.Settings')
-                if not Settings.canDrawOverlays(PythonActivity.mActivity):
-                    Intent = autoclass('android.content.Intent')
-                    Uri = autoclass('android.net.Uri')
-                    intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + PythonActivity.mActivity.getPackageName()))
-                    PythonActivity.mActivity.startActivityForResult(intent, 5469)
-                    self._set_status('Please grant overlay permission and try again.')
-                    return
             except Exception:
                 pass
             import threading
@@ -2592,15 +2582,21 @@ class DartVoiceLayout(FloatLayout):
             return
 
         _post_status('Listening')
-        chunk = bytearray(4096)
+
+        # Use short[] instead of byte[] — pyjnius reliably writes back into
+        # Java short arrays, whereas Python bytearray passed to Java byte[]
+        # may not receive the recorded data on all pyjnius versions.
+        import struct
+        from jnius import jarray  # type: ignore
+        CHUNK_SHORTS = 2048  # 4096 bytes = 2048 shorts (16-bit PCM)
+        short_buf = jarray('h', [0] * CHUNK_SHORTS)
 
         while hasattr(self, '_vosk_stop') and not self._vosk_stop.is_set():
             try:
-                # Need exactly three arguments for Java: read(byte[] audioData, int offsetInBytes, int sizeInBytes)
-                n = recorder.read(chunk, 0, len(chunk))
+                n = recorder.read(short_buf, 0, CHUNK_SHORTS)
                 if n <= 0:
                     continue
-                data = bytes(chunk[:n])
+                data = struct.pack(f'<{n}h', *short_buf[:n])
 
                 if rec.AcceptWaveform(data):
                     text = json.loads(rec.Result()).get('text', '').lower()
@@ -2610,7 +2606,10 @@ class DartVoiceLayout(FloatLayout):
                     trigger = self.cfg.get('trigger', 'score').lower()
                     if self.cfg.get('require_trigger', True) and partial and trigger in partial:
                         _post_status('Trigger heard…')
-            except Exception:
+            except Exception as e:
+                import traceback
+                print(f'DARTVOICE vosk_loop error: {e}', flush=True)
+                traceback.print_exc()
                 continue
 
         try:
@@ -3514,6 +3513,13 @@ class DartVoiceAndroidApp(App):
         try:
             from jnius import autoclass, PythonJavaClass, java_method
             PythonActivity = autoclass('org.kivy.android.PythonActivity')
+
+            # Check overlay permission before creating the overlay
+            Settings = autoclass('android.provider.Settings')
+            if not Settings.canDrawOverlays(PythonActivity.mActivity):
+                # Skip overlay — permission not granted (non-blocking)
+                return
+
             Context = autoclass('android.content.Context')
             WindowManager = autoclass('android.view.WindowManager')
             LayoutParams = autoclass('android.view.WindowManager$LayoutParams')

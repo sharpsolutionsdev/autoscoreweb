@@ -77,11 +77,13 @@ def _ensure_model():
         from android.storage import app_storage_path  # type: ignore
         dest = os.path.join(app_storage_path(), MODEL_NAME)
     except ImportError:
+        print('DARTVOICE: android.storage not available', flush=True)
         return None
 
     # Check for marker file to confirm a complete extraction
     marker = os.path.join(dest, '.extracted')
     if os.path.isdir(dest) and os.path.exists(marker):
+        print(f'DARTVOICE: Model found at {dest}', flush=True)
         return dest
 
     # Also check if the model already exists beside the script (p4a copies
@@ -95,9 +97,10 @@ def _ensure_model():
             try:
                 shutil.copytree(local, dest)
                 open(marker, 'w').write('ok')
+                print(f'DARTVOICE: Model copied to {dest}', flush=True)
                 return dest
-            except Exception:
-                pass
+            except Exception as e:
+                print(f'DARTVOICE: copytree failed: {e}', flush=True)
         return local  # fallback: use the bundled dir directly
 
     # Extract from APK zip (assets/ or private/ prefix)
@@ -116,8 +119,10 @@ def _ensure_model():
             pass
 
         if not apk_path:
+            print('DARTVOICE: Could not determine APK path', flush=True)
             return None
 
+        print(f'DARTVOICE: Extracting model from {apk_path}', flush=True)
         with zipfile.ZipFile(apk_path, 'r') as z:
             # Try multiple possible prefixes used by different p4a bootstraps
             prefixes = [
@@ -136,7 +141,9 @@ def _ensure_model():
                     break
 
             if not members:
+                print(f'DARTVOICE: Model not found in APK. Tried prefixes: {prefixes}', flush=True)
                 return None
+            print(f'DARTVOICE: Found {len(members)} model files with prefix {used_prefix!r}', flush=True)
             os.makedirs(dest, exist_ok=True)
             for member in members:
                 rel = member[len(used_prefix):]
@@ -150,8 +157,10 @@ def _ensure_model():
                     with z.open(member) as src_f, open(target, 'wb') as dst_f:
                         dst_f.write(src_f.read())
             open(marker, 'w').write('ok')
+            print(f'DARTVOICE: Model extracted to {dest}', flush=True)
         return dest
     except Exception as e:
+        print(f'DARTVOICE: Model extraction failed: {e}', flush=True)
         return None
 
 

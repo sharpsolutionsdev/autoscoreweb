@@ -17,6 +17,16 @@ def _load_libvosk():
     if _lib is not None:
         return _lib
 
+    # 0. On Android, let the system linker find libvosk.so in the APK's
+    #    native libs directory (lib/<abi>/) — no full path needed.
+    if 'ANDROID_ARGUMENT' in os.environ:
+        try:
+            _lib = ctypes.cdll.LoadLibrary('libvosk.so')
+            _setup_prototypes(_lib)
+            return _lib
+        except OSError:
+            pass
+
     # Search paths (in priority order)
     candidates = []
 

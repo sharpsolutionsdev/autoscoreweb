@@ -31,6 +31,22 @@ import os, json, time, uuid, hashlib, threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import webbrowser
 
+
+def _open_browser(url):
+    """Open URL in system browser.  Uses Android Intent on Android."""
+    if 'ANDROID_ARGUMENT' in os.environ:
+        try:
+            from jnius import autoclass  # type: ignore
+            Intent = autoclass('android.content.Intent')
+            Uri = autoclass('android.net.Uri')
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            PythonActivity.mActivity.startActivity(intent)
+            return
+        except Exception:
+            pass
+    webbrowser.open(url)
+
 # ── Supabase client (graceful fallback) ───────────────────────────────────────
 # Catch Exception (not just ImportError) because pydantic-core can throw
 # OSError / RuntimeError when its compiled .so is missing or wrong-arch.
@@ -450,7 +466,7 @@ def login_via_web(callback=None, intent=''):
         if intent:
             params += f'&intent={intent}'
         url = f'{_LOGIN_SITE}?{params}'
-        webbrowser.open(url)
+        _open_browser(url)
 
         # Wait up to 5 minutes for the browser POST
         server.timeout = 2
