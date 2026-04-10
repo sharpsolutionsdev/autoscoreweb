@@ -24,7 +24,19 @@
       "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/dartvoice_android.py', doraise=True\\); print\\('android OK'\\)\")",
       "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/main.py', doraise=True\\); print\\('main OK'\\)\")",
       "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/billing.py', doraise=True\\); print\\('billing OK'\\)\")",
-      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/service/main.py', doraise=True\\); print\\('service OK'\\)\")"
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/service/main.py', doraise=True\\); print\\('service OK'\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('autoscore/billing_server/app.py', doraise=True\\)\")",
+      "Bash(claude mcp:*)",
+      "Bash(npx --version)",
+      "Read(//c/Program Files/nodejs/**)",
+      "Bash(where npx.cmd)",
+      "Bash(cmd.exe /c \"where node 2>NUL\")",
+      "Bash(ls /c/Users/vrynw/AppData/Roaming/nvm/v*/node.exe)",
+      "Bash(ls /c/Users/vrynw/.nvm/versions/node/*/bin/node)",
+      "mcp__render__list_services"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\vrynw\\.claude"
     ]
   }
 }

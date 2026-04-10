@@ -19,10 +19,14 @@ Environment variables  (see .env.example):
     CANCEL_URL               https://dartvoice.app/checkout-cancelled.html
 """
 
-import os, time, json
-import stripe
-from flask import Flask, request, jsonify, redirect, abort
+import json
+import os
+import time
+import requests
+
+from flask import abort, Flask, jsonify, redirect, request
 from flask_cors import CORS
+import stripe
 from supabase import create_client
 
 app = Flask(__name__)
@@ -52,10 +56,25 @@ def _upsert_sub(user_id: str, **fields):
     """Insert or update a subscription row for the given Supabase user_id."""
     fields['user_id']    = user_id
     fields['updated_at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-    _sb.table('dartvoice_subscriptions').upsert(
-        fields,
-        on_conflict='user_id',
-    ).execute()
+    try:
+        app.logger.info('Upserting subscription for user %s: %s', user_id, json.dumps(fields))
+    except Exception:
+        app.logger.info('Upserting subscription for user %s', user_id)
+
+    try:
+        resp = _sb.table('dartvoice_subscriptions').upsert(
+            fields,
+            on_conflict='user_id',
+        ).execute()
+        try:
+            app.logger.info('Upserted subscription for %s: %s', user_id, {k: v for k, v in fields.items() if k != 'user_id'})
+        except Exception:
+            # Best-effort logging; avoid failing the request due to logging
+            pass
+        return resp
+    except Exception as e:
+        app.logger.exception('Failed to upsert subscription for %s: %s', user_id, e)
+        raise
 
 def _user_id_for_customer(stripe_customer_id: str) -> str | None:
     """Look up Supabase user_id from a Stripe customer_id."""
@@ -94,6 +113,49 @@ def _get_customer_email(customer_id: str) -> str:
         return (c.get('email', '') or '') if isinstance(c, dict) else (c.email or '')
     except Exception:
         return ''
+
+
+def _get_sub_row(user_id: str) -> dict | None:
+    """Fetch the current subscription row for a Supabase user (or None)."""
+    try:
+        resp = (_sb.table('dartvoice_subscriptions')
+                .select('*')
+                .eq('user_id', user_id)
+                .limit(1)
+                .execute())
+        if resp.data:
+            return resp.data[0]
+    except Exception:
+        pass
+    return None
+
+
+def _invoke_edge_function(slug: str, payload: dict) -> dict | None:
+    """Invoke a Supabase Edge Function (service-role auth) and return parsed JSON on success.
+
+    Returns None on error. Uses the SUPABASE_SERVICE_KEY for authentication.
+    """
+    url = os.environ.get('SUPABASE_URL', '').rstrip('/') + f'/functions/v1/{slug}'
+    service_key = os.environ.get('SUPABASE_SERVICE_KEY', '')
+    if not url or not service_key:
+        app.logger.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY for function invocation')
+        return None
+    headers = {
+        'Content-Type': 'application/json',
+        'apikey': service_key,
+        'Authorization': f'Bearer {service_key}',
+    }
+    try:
+        r = requests.post(url, headers=headers, json=payload, timeout=10)
+        if r.status_code == 200:
+            try:
+                return r.json()
+            except Exception:
+                return {'ok': True}
+        app.logger.error('Edge function %s returned %s: %s', slug, r.status_code, r.text)
+    except Exception as e:
+        app.logger.exception('Error calling edge function %s: %s', slug, e)
+    return None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Routes
@@ -224,8 +286,7 @@ def checkout():
         )
         return redirect(session.url, code=303)
     except stripe.StripeError as e:
-        return jsonify({'error': str(e)}), 500
-
+        return jsonify({'error': str(e)}), 50
 
 @app.route('/portal')
 def portal():
@@ -266,18 +327,26 @@ def webhook():
             'message': 'Webhook endpoint is live. Stripe must send POST requests.'
         }), 200
 
+    # Read raw payload as text so we can parse JSON reliably.
     payload = request.data
-    sig     = request.headers.get('Stripe-Signature', '')
+    sig = request.headers.get('Stripe-Signature', '')
     try:
-        stripe.Webhook.construct_event(payload, sig, _WEBHOOK_SECRET)
+        event = stripe.Webhook.construct_event(payload, sig, _WEBHOOK_SECRET)
     except stripe.SignatureVerificationError:
+        app.logger.warning('Stripe webhook signature verification failed')
         abort(400)
 
-    # Use the raw JSON payload for data access — StripeObject in SDK v15
-    # no longer supports .get(), so we bypass it entirely after signature check.
-    raw = json.loads(payload)
-    etype = raw['type']
-    obj   = raw['data']['object']  # plain dict, no StripeObject issues
+    # Parse the raw payload into a plain dict to avoid StripeObject attribute issues.
+    try:
+        payload_text = payload.decode('utf-8') if isinstance(payload, (bytes, bytearray)) else payload
+        evt = json.loads(payload_text)
+    except Exception:
+        evt = _stripe_to_dict(event)
+
+    etype = evt.get('type')
+    event_id = evt.get('id')
+    app.logger.info('Received Stripe event %s id=%s', etype, event_id)
+    obj = (evt.get('data') or {}).get('object', {})
 
     # ── Checkout completed ────────────────────────────────────────────────────
     if etype == 'checkout.session.completed':
@@ -286,6 +355,7 @@ def webhook():
         sub_id     = obj.get('subscription')
         email      = (obj.get('customer_details') or {}).get('email', '')
         install_id = ''
+        prev = _get_sub_row(user_id) if user_id else None
         if sub_id:
             try:
                 sub = _stripe_to_dict(stripe.Subscription.retrieve(sub_id))
@@ -312,12 +382,28 @@ def webhook():
             except Exception:
                 pass
 
+            # Send welcome email if we haven't already sent any confirmation
+            try:
+                already_sent = prev and prev.get('confirmation_sent_at')
+                if not already_sent:
+                    to_addr = email or (prev or {}).get('email') or _get_customer_email(cust_id)
+                    if to_addr:
+                        res = _invoke_edge_function('send-dartvoice-email', {
+                            'type': 'welcome',
+                            'to': to_addr,
+                            'data': {'manage_url': 'https://dartvoice.app/dartvoice-dashboard.html'},
+                        })
+                        if res:
+                            _upsert_sub(user_id, confirmation_sent_at=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+            except Exception:
+                pass
+
     # ── Subscription updated / created ────────────────────────────────────────
     elif etype in ('customer.subscription.created',
                    'customer.subscription.updated'):
-        cust_id    = obj.get('customer')
-        sub_id     = obj.get('id')
-        status     = obj.get('status', 'unknown')
+        cust_id = obj.get('customer')
+        sub_id = obj.get('id')
+        status = obj.get('status', 'unknown')
         install_id = (obj.get('metadata') or {}).get('install_id', '')
         period_end = obj.get('current_period_end')
         period_end_iso = (
@@ -329,6 +415,8 @@ def webhook():
             _user_id_for_customer(cust_id)
         )
         if user_id:
+            prev = _get_sub_row(user_id)
+            will_send_active = False
             fields = dict(stripe_customer_id=cust_id,
                           stripe_sub_id=sub_id,
                           status=status)
@@ -336,7 +424,27 @@ def webhook():
                 fields['install_id'] = install_id
             if period_end_iso:
                 fields['current_period_end'] = period_end_iso
+            if status == 'active':
+                # Only mark subscribed_at/send email when this is a transition to active
+                if not (prev and prev.get('subscribed_at')):
+                    fields['subscribed_at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                    will_send_active = True
             _upsert_sub(user_id, **fields)
+
+            # Send subscription-active email if this just transitioned to active
+            try:
+                if will_send_active:
+                    to_addr = (prev or {}).get('email') or _get_customer_email(cust_id)
+                    if to_addr:
+                        res = _invoke_edge_function('send-dartvoice-email', {
+                            'type': 'subscription-active',
+                            'to': to_addr,
+                            'data': {'manage_url': 'https://dartvoice.app/dartvoice-dashboard.html'},
+                        })
+                        if res:
+                            _upsert_sub(user_id, confirmation_sent_at=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+            except Exception:
+                pass
 
     # ── Subscription deleted ──────────────────────────────────────────────────
     elif etype == 'customer.subscription.deleted':
@@ -348,20 +456,37 @@ def webhook():
     # ── First invoice paid (trial converts to active) ─────────────────────────
     elif etype == 'invoice.payment_succeeded':
         cust_id = obj.get('customer')
-        sub_id  = obj.get('subscription')
+        sub_id = obj.get('subscription')
         user_id = _user_id_for_customer(cust_id)
         if user_id and sub_id:
+            prev = _get_sub_row(user_id)
             try:
                 sub = _stripe_to_dict(stripe.Subscription.retrieve(sub_id))
                 sub_status = sub.get('status', 'unknown') if isinstance(sub, dict) else getattr(sub, 'status', 'unknown')
                 period_end = sub.get('current_period_end') if isinstance(sub, dict) else getattr(sub, 'current_period_end', None)
-                _upsert_sub(user_id,
-                            stripe_sub_id=sub_id,
-                            status=sub_status,
-                            current_period_end=time.strftime(
-                                '%Y-%m-%dT%H:%M:%SZ',
-                                time.gmtime(period_end)
-                            ) if period_end else None)
+                fields = dict(stripe_sub_id=sub_id,
+                              status=sub_status)
+                if period_end:
+                    fields['current_period_end'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(period_end))
+                send_active = False
+                if sub_status == 'active':
+                    if not (prev and prev.get('subscribed_at')):
+                        fields['subscribed_at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                        send_active = True
+                _upsert_sub(user_id, **fields)
+                if send_active:
+                    try:
+                        to_addr = (prev or {}).get('email') or _get_customer_email(cust_id)
+                        if to_addr:
+                            res = _invoke_edge_function('send-dartvoice-email', {
+                                'type': 'subscription-active',
+                                'to': to_addr,
+                                'data': {'manage_url': 'https://dartvoice.app/dartvoice-dashboard.html'},
+                            })
+                            if res:
+                                _upsert_sub(user_id, confirmation_sent_at=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+                    except Exception:
+                        pass
             except Exception:
                 pass
 
