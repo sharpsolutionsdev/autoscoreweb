@@ -3408,11 +3408,28 @@
                   var subStatus = (subRes.data && subRes.data.status) || null;
                   var hasActive = subStatus === 'active' || subStatus === 'trialing';
 
-                  var ctaHref = hasActive ? 'dartvoice-dashboard' : 'login?intent=subscribe';
-                  var ctaText = hasActive ? 'Dashboard' : 'Start Free Trial';
-                  var ctaBtn  = hasActive
-                      ? 'btn-outline px-4 py-2 rounded-lg text-sm font-semibold text-chalk'
-                      : 'btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white';
+                  // If no active sub in DB, try Stripe sync fallback (silent)
+                  if (!hasActive && session.access_token) {
+                      fetch(SB_URL + '/functions/v1/sync-stripe-subscription', {
+                          method: 'POST',
+                          headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'apikey': SB_KEY },
+                          body: '{}'
+                      }).then(function(r) { return r.json(); }).then(function(d) {
+                          if (d.synced && d.subscription && (d.subscription.status === 'active' || d.subscription.status === 'trialing')) {
+                              updateNavAuth(email, true);
+                          }
+                      }).catch(function() {});
+                  }
+
+                  updateNavAuth(email, hasActive);
+              });
+        });
+
+        function updateNavAuth(email, hasActive) {
+                  // Logged-in users always see Dashboard as primary CTA
+                  var ctaHref = 'dartvoice-dashboard';
+                  var ctaText = hasActive ? 'My Dashboard' : 'My Dashboard';
+                  var ctaBtn  = 'btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white';
 
                   // Desktop
                   var desktopEl = document.getElementById('nav-auth-desktop');
@@ -3433,8 +3450,7 @@
                               '<button onclick="dvSignOut()" class="btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk">Sign Out</button>' +
                           '</div>';
                   }
-              });
-        });
+        }
 
         window.dvSignOut = function() {
             sb.auth.signOut().then(function() { window.location.reload(); });
