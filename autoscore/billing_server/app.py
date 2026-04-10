@@ -269,6 +269,9 @@ def webhook():
 
     etype = event['type']
     obj   = event['data']['object']
+    # Stripe SDK v15: StripeObject no longer supports .get(); convert to dict
+    if hasattr(obj, 'to_dict_recursive'):
+        obj = obj.to_dict_recursive()
 
     # ── Checkout completed ────────────────────────────────────────────────────
     if etype == 'checkout.session.completed':
