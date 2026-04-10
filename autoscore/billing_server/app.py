@@ -269,9 +269,21 @@ def webhook():
 
     etype = event['type']
     obj   = event['data']['object']
-    # Stripe SDK v15: StripeObject no longer supports .get(); convert to dict
+    # Stripe SDK v15: StripeObject no longer supports .get(); convert to dict (including all nested fields)
     if hasattr(obj, 'to_dict_recursive'):
         obj = obj.to_dict_recursive()
+
+    # Defensive: ensure all nested dicts are plain dicts (paranoia for Stripe v15)
+    import collections.abc
+    def deep_convert(o):
+        if isinstance(o, dict):
+            return {k: deep_convert(v) for k, v in o.items()}
+        elif isinstance(o, list):
+            return [deep_convert(i) for i in o]
+        elif hasattr(o, 'to_dict_recursive'):
+            return deep_convert(o.to_dict_recursive())
+        return o
+    obj = deep_convert(obj)
 
     # ── Checkout completed ────────────────────────────────────────────────────
     if etype == 'checkout.session.completed':
