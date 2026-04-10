@@ -82,10 +82,16 @@ def _user_id_for_install(install_id: str) -> str | None:
         return resp.data[0]['user_id']
     return None
 
+def _stripe_to_dict(obj):
+    """Convert any StripeObject (and nested children) to a plain dict."""
+    if hasattr(obj, 'to_dict_recursive'):
+        return obj.to_dict_recursive()
+    return obj
+
 def _get_customer_email(customer_id: str) -> str:
     try:
-        c = stripe.Customer.retrieve(customer_id)
-        return c.get('email', '') or ''
+        c = _stripe_to_dict(stripe.Customer.retrieve(customer_id))
+        return (c.get('email', '') or '') if isinstance(c, dict) else (c.email or '')
     except Exception:
         return ''
 
@@ -294,8 +300,9 @@ def webhook():
         install_id = ''
         if sub_id:
             try:
-                sub = stripe.Subscription.retrieve(sub_id)
-                install_id = (sub.metadata or {}).get('install_id', '')
+                sub = _stripe_to_dict(stripe.Subscription.retrieve(sub_id))
+                meta = sub.get('metadata', {}) if isinstance(sub, dict) else {}
+                install_id = meta.get('install_id', '')
             except Exception:
                 pass
         if user_id:
@@ -357,14 +364,16 @@ def webhook():
         user_id = _user_id_for_customer(cust_id)
         if user_id and sub_id:
             try:
-                sub = stripe.Subscription.retrieve(sub_id)
+                sub = _stripe_to_dict(stripe.Subscription.retrieve(sub_id))
+                sub_status = sub.get('status', 'unknown') if isinstance(sub, dict) else getattr(sub, 'status', 'unknown')
+                period_end = sub.get('current_period_end') if isinstance(sub, dict) else getattr(sub, 'current_period_end', None)
                 _upsert_sub(user_id,
                             stripe_sub_id=sub_id,
-                            status=sub.status,   # 'active' after trial converts
+                            status=sub_status,
                             current_period_end=time.strftime(
                                 '%Y-%m-%dT%H:%M:%SZ',
-                                time.gmtime(sub.current_period_end)
-                            ) if sub.current_period_end else None)
+                                time.gmtime(period_end)
+                            ) if period_end else None)
             except Exception:
                 pass
 
