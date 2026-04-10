@@ -252,8 +252,14 @@ def portal():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
+    if request.method == 'GET':
+        return jsonify({
+            'ok': True,
+            'message': 'Webhook endpoint is live. Stripe must send POST requests.'
+        }), 200
+
     payload = request.data
     sig     = request.headers.get('Stripe-Signature', '')
     try:
