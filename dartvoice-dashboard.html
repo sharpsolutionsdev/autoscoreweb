@@ -1400,6 +1400,7 @@
                     renderSubscription(sub, userId);
                     showProfileBadge(sub.status === 'active' ? 'active' : 'trial');
                     showToast('You\'re in! Your free trial has started.');
+                    window.location.href = 'thanks.html';
                     return;
                 }
 
@@ -2172,7 +2173,9 @@
                 const _params = new URLSearchParams(window.location.search);
                 if (_params.get('subscribe') === '1') {
                     // Clean the URL so refreshing doesn't re-trigger
-                    history.replaceState(null, '', 'dartvoice-dashboard');
+                    _params.delete('subscribe');
+                    const qs = _params.toString() ? '?' + _params.toString() : '';
+                    history.replaceState(null, '', 'dartvoice-dashboard' + qs);
                     // Load dashboard first, then open checkout popup
                     _ambUserId = session.user.id;
                     await loadDashboard(session.user);
