@@ -19,7 +19,7 @@ Environment variables  (see .env.example):
     CANCEL_URL               https://dartvoice.app/checkout-cancelled.html
 """
 
-import os, time
+import os, time, json
 import stripe
 from flask import Flask, request, jsonify, redirect, abort
 from flask_cors import CORS
@@ -269,27 +269,15 @@ def webhook():
     payload = request.data
     sig     = request.headers.get('Stripe-Signature', '')
     try:
-        event = stripe.Webhook.construct_event(payload, sig, _WEBHOOK_SECRET)
+        stripe.Webhook.construct_event(payload, sig, _WEBHOOK_SECRET)
     except stripe.SignatureVerificationError:
         abort(400)
 
-    etype = event['type']
-    obj   = event['data']['object']
-    # Stripe SDK v15: StripeObject no longer supports .get(); convert to dict (including all nested fields)
-    if hasattr(obj, 'to_dict_recursive'):
-        obj = obj.to_dict_recursive()
-
-    # Defensive: ensure all nested dicts are plain dicts (paranoia for Stripe v15)
-    import collections.abc
-    def deep_convert(o):
-        if isinstance(o, dict):
-            return {k: deep_convert(v) for k, v in o.items()}
-        elif isinstance(o, list):
-            return [deep_convert(i) for i in o]
-        elif hasattr(o, 'to_dict_recursive'):
-            return deep_convert(o.to_dict_recursive())
-        return o
-    obj = deep_convert(obj)
+    # Use the raw JSON payload for data access — StripeObject in SDK v15
+    # no longer supports .get(), so we bypass it entirely after signature check.
+    raw = json.loads(payload)
+    etype = raw['type']
+    obj   = raw['data']['object']  # plain dict, no StripeObject issues
 
     # ── Checkout completed ────────────────────────────────────────────────────
     if etype == 'checkout.session.completed':
