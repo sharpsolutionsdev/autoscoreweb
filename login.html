@@ -494,8 +494,10 @@
     }
 
     // Destination after auth
-    function _authDest() {
-        return _isSignUp ? 'dartvoice-dashboard?subscribe=1' : 'dartvoice-dashboard';
+function _authDest() {
+        const dest = _isSignUp ? 'dartvoice-dashboard?subscribe=1' : 'dartvoice-dashboard';
+        const plan = _urlParams.get('plan');
+        return plan ? `${dest}${dest.includes('?') ? '&' : '?'}plan=${plan}` : dest;
     }
 
     // Check if already signed in → skip to dashboard (respecting intent)

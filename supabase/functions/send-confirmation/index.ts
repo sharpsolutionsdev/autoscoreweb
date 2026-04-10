@@ -200,6 +200,17 @@ Deno.serve(async (req) => {
     const result = await res.json();
     console.log(`Sent ${emailType} to ${email}:`, result);
 
+    // Update confirmation_sent_at in DB (use user_id as it's the most reliable key)
+    const matchKey = record.user_id || record.id;
+    const matchCol = record.user_id ? "user_id" : "id";
+    if (matchKey) {
+      const { error: updateErr } = await supabase
+        .from("dartvoice_subscriptions")
+        .update({ confirmation_sent_at: new Date().toISOString() })
+        .eq(matchCol, matchKey);
+      if (updateErr) console.error("Failed to update confirmation_sent_at:", updateErr);
+    }
+
     return new Response(JSON.stringify({ ok: true, type: emailType, resend: result }), {
       status: 200,
     });

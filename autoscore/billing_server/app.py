@@ -22,7 +22,6 @@ Environment variables  (see .env.example):
 import json
 import os
 import time
-import requests
 
 from flask import abort, Flask, jsonify, redirect, request
 from flask_cors import CORS
@@ -60,6 +59,8 @@ def _upsert_sub(user_id: str, **fields):
         app.logger.info('Upserting subscription for user %s: %s', user_id, json.dumps(fields))
     except Exception:
         app.logger.info('Upserting subscription for user %s', user_id)
+
+        
 
     try:
         resp = _sb.table('dartvoice_subscriptions').upsert(
@@ -107,14 +108,6 @@ def _stripe_to_dict(obj):
         return obj.to_dict_recursive()
     return obj
 
-def _get_customer_email(customer_id: str) -> str:
-    try:
-        c = _stripe_to_dict(stripe.Customer.retrieve(customer_id))
-        return (c.get('email', '') or '') if isinstance(c, dict) else (c.email or '')
-    except Exception:
-        return ''
-
-
 def _get_sub_row(user_id: str) -> dict | None:
     """Fetch the current subscription row for a Supabase user (or None)."""
     try:
@@ -129,33 +122,6 @@ def _get_sub_row(user_id: str) -> dict | None:
         pass
     return None
 
-
-def _invoke_edge_function(slug: str, payload: dict) -> dict | None:
-    """Invoke a Supabase Edge Function (service-role auth) and return parsed JSON on success.
-
-    Returns None on error. Uses the SUPABASE_SERVICE_KEY for authentication.
-    """
-    url = os.environ.get('SUPABASE_URL', '').rstrip('/') + f'/functions/v1/{slug}'
-    service_key = os.environ.get('SUPABASE_SERVICE_KEY', '')
-    if not url or not service_key:
-        app.logger.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY for function invocation')
-        return None
-    headers = {
-        'Content-Type': 'application/json',
-        'apikey': service_key,
-        'Authorization': f'Bearer {service_key}',
-    }
-    try:
-        r = requests.post(url, headers=headers, json=payload, timeout=10)
-        if r.status_code == 200:
-            try:
-                return r.json()
-            except Exception:
-                return {'ok': True}
-        app.logger.error('Edge function %s returned %s: %s', slug, r.status_code, r.text)
-    except Exception as e:
-        app.logger.exception('Error calling edge function %s: %s', slug, e)
-    return None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Routes
@@ -286,7 +252,7 @@ def checkout():
         )
         return redirect(session.url, code=303)
     except stripe.StripeError as e:
-        return jsonify({'error': str(e)}), 50
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/portal')
 def portal():
@@ -382,21 +348,7 @@ def webhook():
             except Exception:
                 pass
 
-            # Send welcome email if we haven't already sent any confirmation
-            try:
-                already_sent = prev and prev.get('confirmation_sent_at')
-                if not already_sent:
-                    to_addr = email or (prev or {}).get('email') or _get_customer_email(cust_id)
-                    if to_addr:
-                        res = _invoke_edge_function('send-dartvoice-email', {
-                            'type': 'welcome',
-                            'to': to_addr,
-                            'data': {'manage_url': 'https://dartvoice.app/dartvoice-dashboard.html'},
-                        })
-                        if res:
-                            _upsert_sub(user_id, confirmation_sent_at=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
-            except Exception:
-                pass
+            # Emails are handled by the DB trigger (send-confirmation edge function)
 
     # ── Subscription updated / created ────────────────────────────────────────
     elif etype in ('customer.subscription.created',
@@ -416,7 +368,6 @@ def webhook():
         )
         if user_id:
             prev = _get_sub_row(user_id)
-            will_send_active = False
             fields = dict(stripe_customer_id=cust_id,
                           stripe_sub_id=sub_id,
                           status=status)
@@ -425,26 +376,10 @@ def webhook():
             if period_end_iso:
                 fields['current_period_end'] = period_end_iso
             if status == 'active':
-                # Only mark subscribed_at/send email when this is a transition to active
                 if not (prev and prev.get('subscribed_at')):
                     fields['subscribed_at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-                    will_send_active = True
             _upsert_sub(user_id, **fields)
-
-            # Send subscription-active email if this just transitioned to active
-            try:
-                if will_send_active:
-                    to_addr = (prev or {}).get('email') or _get_customer_email(cust_id)
-                    if to_addr:
-                        res = _invoke_edge_function('send-dartvoice-email', {
-                            'type': 'subscription-active',
-                            'to': to_addr,
-                            'data': {'manage_url': 'https://dartvoice.app/dartvoice-dashboard.html'},
-                        })
-                        if res:
-                            _upsert_sub(user_id, confirmation_sent_at=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
-            except Exception:
-                pass
+            # Emails are handled by the DB trigger (send-confirmation edge function)
 
     # ── Subscription deleted ──────────────────────────────────────────────────
     elif etype == 'customer.subscription.deleted':
@@ -468,25 +403,11 @@ def webhook():
                               status=sub_status)
                 if period_end:
                     fields['current_period_end'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(period_end))
-                send_active = False
                 if sub_status == 'active':
                     if not (prev and prev.get('subscribed_at')):
                         fields['subscribed_at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-                        send_active = True
                 _upsert_sub(user_id, **fields)
-                if send_active:
-                    try:
-                        to_addr = (prev or {}).get('email') or _get_customer_email(cust_id)
-                        if to_addr:
-                            res = _invoke_edge_function('send-dartvoice-email', {
-                                'type': 'subscription-active',
-                                'to': to_addr,
-                                'data': {'manage_url': 'https://dartvoice.app/dartvoice-dashboard.html'},
-                            })
-                            if res:
-                                _upsert_sub(user_id, confirmation_sent_at=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
-                    except Exception:
-                        pass
+                # Emails are handled by the DB trigger (send-confirmation edge function)
             except Exception:
                 pass
 

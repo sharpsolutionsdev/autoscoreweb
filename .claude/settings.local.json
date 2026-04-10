@@ -33,7 +33,10 @@
       "Bash(cmd.exe /c \"where node 2>NUL\")",
       "Bash(ls /c/Users/vrynw/AppData/Roaming/nvm/v*/node.exe)",
       "Bash(ls /c/Users/vrynw/.nvm/versions/node/*/bin/node)",
-      "mcp__render__list_services"
+      "mcp__render__list_services",
+      "Bash(\"c:/Users/vrynw/.claude/stripe.exe\" version:*)",
+      "mcp__claude_ai_Supabase__get_publishable_keys",
+      "WebFetch(domain:poyjykgqsvgimssbhsuz.supabase.co)"
     ],
     "additionalDirectories": [
       "C:\\Users\\vrynw\\.claude"

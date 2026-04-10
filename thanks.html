@@ -324,28 +324,48 @@
 
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
-    <!-- Sync Stripe subscription to DB on landing (fallback for webhook failures) -->
+    <!-- Auto-redirect to dashboard after 4s + sync subscription -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-    (async function() {
-        try {
-            const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
-            const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            const { data: { session } } = await sb.auth.getSession();
-            if (session?.access_token) {
-                await fetch(SUPABASE_URL + '/functions/v1/sync-stripe-subscription', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + session.access_token,
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_KEY,
-                    },
-                    body: '{}',
-                });
-            }
-        } catch (e) { /* silent — dashboard will retry */ }
-    })();
+        // Confetti particles (decorative)
+        const confetti = [];
+        for (let i = 0; i < 25; i++) {
+            const el = document.createElement('div');
+            el.style.cssText = `
+                position: fixed; left: 50%; top: -10px; 
+                width: 8px; height: 8px; background: #CC0B20; border-radius: 50%;
+                pointer-events: none; z-index: 9999;
+                animation: confettiDot 1.5s ${0.05 + i * 0.04}s ease-out forwards;
+            `;
+            document.body.appendChild(el);
+            confetti.push(el);
+        }
+        
+        // Sync Stripe subscription (fallback)
+        (async function() {
+            try {
+                const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+                const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+                const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { data: { session } } = await sb.auth.getSession();
+                if (session?.access_token) {
+                    await fetch(SUPABASE_URL + '/functions/v1/sync-stripe-subscription', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + session.access_token,
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_KEY,
+                        },
+                        body: '{}',
+                    });
+                }
+            } catch (e) { console.warn('Sync failed:', e); }
+        })();
+        
+        // Auto-redirect after 4s
+        setTimeout(() => {
+            window.location.href = 'dartvoice-dashboard.html';
+        }, 4000);
     </script>
 </body>
 </html>

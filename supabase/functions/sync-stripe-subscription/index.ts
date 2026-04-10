@@ -30,21 +30,50 @@ serve(async (req) => {
   try {
     // ── Auth ──────────────────────────────────────────────────────────────────
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new Error("Not authenticated");
+    const apiKeyHeader = req.headers.get("apikey") || req.headers.get("x-api-key") || req.headers.get("api-key");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    let isAdminCall = false;
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+
+    // If caller provided the service role key (via Authorization: Bearer <key> or apikey header)
+    // treat this as an admin/server call and accept a JSON body with `user_id` or `email`.
+    if (authHeader && authHeader.startsWith("Bearer ") && authHeader.slice(7).trim() === serviceRoleKey) {
+      isAdminCall = true;
+    } else if (apiKeyHeader && apiKeyHeader === serviceRoleKey) {
+      isAdminCall = true;
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    if (isAdminCall) {
+      // Parse body for user identification
+      const body = await req.json().catch(() => ({}));
+      userId = body.user_id ?? null;
+      userEmail = body.email ?? null;
+      if (!userId && !userEmail) {
+        return new Response(
+          JSON.stringify({ error: "admin call requires user_id or email in body" }),
+          { headers: { ...CORS, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+    } else {
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new Error("Not authenticated");
+      }
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+        { global: { headers: { Authorization: authHeader } } }
+      );
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser();
-    if (authError || !user) throw new Error("Not authenticated");
+      const {
+        data: { user },
+        error: authError,
+      } = await supabaseClient.auth.getUser();
+      if (authError || !user) throw new Error("Not authenticated");
+      userId = user.id;
+      userEmail = user.email ?? null;
+    }
 
     // ── Service-role client for writing ───────────────────────────────────────
     const sbAdmin = createClient(
@@ -57,9 +86,27 @@ serve(async (req) => {
       apiVersion: "2024-06-20",
     });
 
+    // Ensure we have an email to search Stripe by. If admin-mode provided only user_id,
+    // try to look up the email via the admin client.
+    if (!userEmail && userId) {
+      try {
+        const u = await sbAdmin.auth.admin.getUserById(userId);
+        userEmail = (u.data?.user?.email as string) ?? null;
+      } catch (_) {
+        // ignore lookup failures
+      }
+    }
+
+    if (!userEmail) {
+      return new Response(
+        JSON.stringify({ synced: false, reason: "no_email_available" }),
+        { headers: { ...CORS, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
     // Find Stripe customer(s) for this email
     const customers = await stripe.customers.list({
-      email: user.email,
+      email: userEmail,
       limit: 5,
     });
 
@@ -114,11 +161,11 @@ serve(async (req) => {
       : null;
 
     const row: Record<string, unknown> = {
-      user_id: user.id,
+      user_id: userId,
       stripe_customer_id: bestCustomerId,
       stripe_sub_id: bestSub.id,
       status: bestSub.status,
-      email: user.email,
+      email: userEmail,
       updated_at: new Date().toISOString(),
     };
     if (periodEnd) row.current_period_end = periodEnd;
@@ -137,7 +184,7 @@ serve(async (req) => {
     const { data: freshSub } = await sbAdmin
       .from("dartvoice_subscriptions")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .maybeSingle();
 
     return new Response(

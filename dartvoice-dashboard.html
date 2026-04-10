@@ -1321,7 +1321,12 @@
         const BILLING_URL = 'https://billing.dartvoice.app';
         // Direct Stripe Payment Link — append ?client_reference_id=USER_ID so the
         // checkout.session.completed webhook can match back to the Supabase user.
-        const STRIPE_PAY_URL = 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00';
+        const PAYMENT_LINKS = {
+          'monthly': 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00',
+          '6month': 'https://buy.stripe.com/14AcMX8oN7ca4EV9KAf7i01', 
+          '12month': 'https://buy.stripe.com/14A4gr8oN6864EV0a0f7i02'
+        };
+        const STRIPE_PAY_URL = PAYMENT_LINKS.monthly;
 
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const $ = id => document.getElementById(id);
@@ -1353,7 +1358,15 @@
 
         function dvCheckout(e, userId) {
             if (e) e.preventDefault();
-            const url = STRIPE_PAY_URL + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : '');
+            const params = new URLSearchParams(window.location.search);
+            const plan = params.get('plan') || 'monthly';
+            const baseUrl = PAYMENT_LINKS[plan];
+            if (!baseUrl) {
+                console.warn('Unknown plan:', plan, '- using monthly');
+                window.location.href = STRIPE_PAY_URL + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : '');
+                return;
+            }
+            const url = baseUrl + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : '');
             const isMobile = /Mobi|Android|iPhone|iPad|IEMobile/i.test(navigator.userAgent) || window.innerWidth < 768;
             if (isMobile) {
                 window.open(url, '_blank', 'noopener');
@@ -1390,10 +1403,60 @@
                     return;
                 }
 
-                if (popup && popup.closed && checks > 3) {
+                if (popup && popup.closed && checks > 60) { // Continue polling for 3 mins even if popup closed
                     clearInterval(_pollTimer);
                 }
             }, 3000);
+        }
+
+        async function manualSyncStatus(userId) {
+            const btn = $('btn-refresh-status');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Checking...';
+            
+            try {
+                // First try quick DB check
+                const { data: sub } = await sb.from('dartvoice_subscriptions').select('*').eq('user_id', userId).maybeSingle();
+                
+                if (sub && ['active', 'trialing'].includes(sub.status)) {
+                    _currentSub = sub;
+                    renderSubscription(sub, userId);
+                    showToast('Subscription updated!');
+                    return;
+                }
+
+                // If not in DB, trigger the sync edge function
+                const { data: { session } } = await sb.auth.getSession();
+                if (session?.access_token) {
+                    const resp = await fetch(SUPABASE_URL + '/functions/v1/sync-stripe-subscription', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + session.access_token,
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_KEY,
+                        },
+                        body: '{}',
+                    });
+                    const result = await resp.json();
+                    if (result.synced && result.subscription) {
+                        _currentSub = result.subscription;
+                        renderSubscription(result.subscription, userId);
+                        showToast('Subscription synced from Stripe!');
+                    } else {
+                        showToast('No active subscription found on Stripe.');
+                    }
+                }
+            } catch (e) {
+                console.error('Manual sync failed:', e);
+                showToast('Sync failed. Please try again or contact support.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                // Reload dashboard to ensure all UI is in sync
+                const { data: { user } } = await sb.auth.getUser();
+                if (user) loadDashboard(user);
+            }
         }
 
         function showToast(msg) {
@@ -1611,7 +1674,12 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         Start 7-Day Free Trial &mdash; &pound;6.99/mo
                     </button>
-                    <p class="text-[11px] text-muted-2">Cancel before day 7 &mdash; pay nothing.</p>
+                    <button id="btn-refresh-status" onclick="manualSyncStatus('${userId}')"
+                            class="btn-ghost px-4 py-2.5 rounded-xl text-xs font-medium text-muted hover:text-white flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh Status
+                    </button>
+                    <p class="text-[11px] text-muted-2">Started trial? Click refresh if it doesn't update.</p>
                 </div>`;
                 showDownloads(false);
 
