@@ -1,4 +1,6 @@
 autoscore/installer_output/
+autoscore/.claude/
+autoscore/.github/
 *.bak
 build_artifacts/
 downloads/
