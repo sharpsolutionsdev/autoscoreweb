@@ -1283,11 +1283,17 @@
         const DEMO_DURATION_MS = 10 * 60 * 1000;
         let demoStartedAt = null;
 
+        function userHasActiveSubscription() {
+            if (_isAdmin && !_guestMode) return true;
+            return _userSub && ['active', 'trialing'].includes(_userSub.status);
+        }
+
         // Update the score forwarder logic
         function blastScoreToIframe(scoreString) {
              if (!demoStartedAt) demoStartedAt = Date.now();
 
-             if (Date.now() - demoStartedAt > DEMO_DURATION_MS) {
+             // Only enforce demo limit for users without an active subscription or trial
+             if (!userHasActiveSubscription() && Date.now() - demoStartedAt > DEMO_DURATION_MS) {
                  log("DEMO WINDOW EXPIRED. Showing trial prompt...", false);
                  if(recognition) recognition.stop();
                  const paywall = document.getElementById('paywall-modal');

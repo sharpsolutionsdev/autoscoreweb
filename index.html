@@ -16,7 +16,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>DartVoice — Voice-Controlled Darts Auto-Scorer</title>
     <meta name="description"
-        content="DartVoice automatically scores your darts games using voice recognition. Just call your scores — DartVoice handles the rest.">
+        content="DartVoice autom91caally scores your darts games using voice recognition. Just call your scores — DartVoice handles the rest.">
     <meta property="og:title" content="DartVoice — Voice-Controlled Darts Auto-Scorer">
     <meta property="og:description"
         content="Say your score. DartVoice handles the rest. Voice-controlled auto-scoring for 501, 301, Cricket & more.">
@@ -277,6 +277,87 @@
             transform-origin: bottom;
         }
 
+        /* ── Media showcase ── */
+        .cinematic-banner {
+            position: relative;
+            overflow: hidden;
+        }
+        .cinematic-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .cinematic-banner .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, #08080A 0%, transparent 30%, transparent 70%, #08080A 100%);
+            pointer-events: none;
+        }
+        .cinematic-banner .overlay-vertical {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, #08080A 0%, transparent 20%, transparent 80%, #08080A 100%);
+            pointer-events: none;
+        }
+
+        .media-card {
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .media-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s ease;
+        }
+        .media-card:hover img {
+            transform: scale(1.05);
+        }
+        .media-card .media-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(8,8,10,0.85) 0%, rgba(8,8,10,0.2) 50%, transparent 100%);
+            pointer-events: none;
+        }
+        .media-card .media-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.25rem;
+            z-index: 2;
+        }
+
+        .video-bg-section {
+            position: relative;
+            overflow: hidden;
+        }
+        .video-bg-section video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            transform: translate(-50%, -50%);
+            opacity: 0.08;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+        .photo-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        @media (max-width: 640px) {
+            .photo-strip {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Scroll reveal */
         .reveal {
             opacity: 0;
@@ -500,9 +581,9 @@
         /* ── Laptop mockup ── */
         .laptop-frame {
             background: #0C0C0F;
-            border: 2px solid #252530;
+            border: 2px solid rgba(204, 11, 32, 0.25);
             border-radius: 12px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(204, 11, 32, 0.08), 0 0 0 1px rgba(204, 11, 32, 0.1) inset;
             position: relative;
             overflow: hidden;
         }
@@ -1097,6 +1178,12 @@
     <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section class="hero-glow pt-28 pb-16 sm:pt-36 sm:pb-24 relative overflow-hidden">
 
+        <!-- High-speed soundwave video bg -->
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none"
+            style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
+            <source src="assets/media/soundwaves-highspeed.mp4" type="video/mp4">
+        </video>
+
         <!-- Dartboard decorative BG -->
         <div class="board-deco" style="right:-120px; top:50%; transform:translateY(-50%);">
             <svg viewBox="0 0 500 500" width="560" height="560" class="text-wire board-spin">
@@ -1124,7 +1211,8 @@
         </div>
 
         <div class="max-w-6xl mx-auto px-5 relative">
-            <div class="grid lg:grid-cols-[1fr_520px] gap-12 lg:gap-8 items-center">
+            <div class="grid md:grid-cols-1 lg:grid-cols-[1fr_520px] gap-12 lg:gap-8 items-center">
+
 
                 <!-- Left: Copy -->
                 <div>
@@ -1258,15 +1346,16 @@
                 <div class="relative flex justify-center fade-up-3 lg:justify-end">
 
                     <!-- Laptop mockup (behind phone, offset left) -->
-                    <div class="absolute hidden lg:block z-[5]"
-                        style="left: -30px; top: 60px; width: 340px; animation: fadeUp 0.7s 0.25s ease-out both">
+                        <div class="absolute -top-12 left-1/2 -translate-x-1/2 z-[5] lg:relative lg:left-auto lg:translate-x-0 lg:top-auto hidden md:block"
+                        style="width: 340px; animation: fadeUp 0.7s 0.25s ease-out both">
+
                         <div class="laptop-frame">
                             <!-- App title bar (dark, matches real app) -->
                             <div class="flex items-center justify-between px-3 py-1.5 border-b border-white/[0.06]"
                                 style="background: #111114">
                                 <div class="flex items-center gap-2">
                                     <svg viewBox="0 0 36 36" class="w-4 h-4" fill="none">
-                                        <rect width="36" height="36" rx="9" fill="#7C3AED" />
+                                        <rect width="36" height="36" rx="9" fill="#CC0B20" />
                                         <circle cx="18" cy="18" r="6" fill="white" />
                                     </svg>
                                     <span
@@ -1274,7 +1363,7 @@
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <span class="text-[7px] px-1.5 py-0.5 rounded text-white/50 font-medium"
-                                        style="background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.3);">X01</span>
+style="background:rgba(204,11,32,0.15); border:1px solid rgba(204,11,32,0.3);">X01</span>
                                     <span class="text-[7px] px-1.5 py-0.5 rounded text-white/30 font-medium"
                                         style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);">Cricket</span>
                                     <span class="text-[7px] px-1.5 py-0.5 rounded text-white/30 font-medium"
@@ -1318,13 +1407,13 @@
                                 <!-- Center: Score display -->
                                 <div class="flex-1 flex flex-col items-center justify-center p-3 relative">
                                     <div class="absolute inset-0"
-                                        style="background: radial-gradient(ellipse at center top, rgba(124,58,237,0.15), transparent 60%)">
+style="background: radial-gradient(ellipse at center top, rgba(204,11,32,0.15), transparent 60%)">
                                     </div>
                                     <p
                                         class="relative text-[7px] font-bold text-white/30 uppercase tracking-widest mb-1">
                                         Last Score</p>
                                     <p class="relative font-black text-[52px] leading-none text-white mb-2"
-                                        style="font-family:'Barlow Condensed',sans-serif; text-shadow: 0 0 30px rgba(124,58,237,0.7), 0 0 60px rgba(124,58,237,0.3);">
+                                        style="text-shadow: 0 0 30px rgba(204,11,32,0.7);">
                                         60</p>
                                     <div class="relative flex items-center gap-1 mb-3">
                                         <div class="w-1.5 h-1.5 rounded-full bg-green-500 pulse-dot"></div>
@@ -1332,9 +1421,9 @@
                                     </div>
                                     <!-- Stop Listening button -->
                                     <div class="relative w-full max-w-[140px] py-2 rounded-lg text-center"
-                                        style="background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.4);">
-                                        <span
-                                            style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:9px; color:rgba(124,58,237,0.9); letter-spacing:0.1em;">STOP
+style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.4);">
+<span
+                                            style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:9px; color:rgba(204,11,32,0.9); letter-spacing:0.1em;">STOP
                                             LISTENING</span>
                                     </div>
                                 </div>
@@ -1343,19 +1432,19 @@
                                     <p class="text-[7px] font-bold text-white/30 uppercase tracking-wider mb-2">Live</p>
                                     <div class="grid grid-cols-2 gap-1 mb-2">
                                         <div class="rounded p-1 text-center"
-                                            style="background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.15);">
+style="background:rgba(204,11,32,0.08); border:1px solid rgba(204,11,32,0.15);">
                                             <p class="text-[6px] text-white/30 uppercase">Avg</p>
                                             <p class="text-[10px] font-bold text-white/80">33.3</p>
                                         </div>
                                         <div class="rounded p-1 text-center"
-                                            style="background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.15);">
+                                            style="background:rgba(204,11,32,0.08); border:1px solid rgba(204,11,32,0.15);">
                                             <p class="text-[6px] text-white/30 uppercase">Darts</p>
                                             <p class="text-[10px] font-bold text-white/80">354</p>
                                         </div>
                                     </div>
                                     <p class="text-[7px] font-bold text-white/30 uppercase tracking-wider mb-1">Mic</p>
                                     <div class="rounded px-1.5 py-1 mb-2 text-[7px] text-white/50 truncate"
-                                        style="background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.2);">
+style="background:rgba(204,11,32,0.1); border:1px solid rgba(204,11,32,0.2);">
                                         G435 Wireless
                                     </div>
                                     <p class="text-[7px] font-bold text-white/30 uppercase tracking-wider mb-1">Mode</p>
@@ -1363,7 +1452,7 @@
                                         <span class="text-[6px] px-1 py-0.5 rounded text-white/30"
                                             style="background:rgba(255,255,255,0.03);">Per Dart</span>
                                         <span class="text-[6px] px-1 py-0.5 rounded text-white font-bold"
-                                            style="background:rgba(124,58,237,0.5);">3 Darts</span>
+style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                     </div>
                                 </div>
                             </div>
@@ -1542,6 +1631,20 @@
         </div>
     </div>
 
+    <!-- ━━━ CINEMATIC BANNER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="cinematic-banner" style="height: 280px; sm:height: 360px;">
+        <img src="assets/media/dart-mic-red.jpeg" alt="DartVoice mic-dart hybrid with red neon glow" loading="lazy"
+            style="filter: brightness(0.75);">
+        <div class="overlay"></div>
+        <div class="overlay-vertical"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center relative z-10">
+                <p class="display text-4xl sm:text-5xl md:text-6xl text-chalk neon-white mb-3">PRECISION MEETS VOICE</p>
+                <p class="text-muted text-sm sm:text-base max-w-md mx-auto">The future of darts scoring — no hands, no hardware, just your voice.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- ━━━ FEATURES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section id="features" class="py-24 sm:py-32">
         <div class="max-w-6xl mx-auto px-5">
@@ -1556,7 +1659,9 @@
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
                 <!-- Voice Recognition -->
-                <div class="feature-card rounded-2xl p-6 reveal">
+                <div class="feature-card rounded-2xl p-6 reveal relative overflow-hidden">
+                    <!-- Mic mesh background texture -->
+                    <img src="assets/media/mic-mesh-red.jpeg" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-[0.07] pointer-events-none" style="mix-blend-mode: screen;">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
                         style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
@@ -1708,7 +1813,11 @@
                 </div>
 
                 <!-- Android Mobile MVP -->
-                <div class="feature-card rounded-2xl p-6 reveal pulse-glow" style="border-color: rgba(204,11,32,0.3); background: linear-gradient(145deg, #111114, #1A0608);">
+                <div class="feature-card rounded-2xl p-6 reveal pulse-glow relative overflow-hidden" style="border-color: rgba(204,11,32,0.3); background: linear-gradient(145deg, #111114, #1A0608);">
+                    <!-- Android pulsing video bg -->
+                    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.12] pointer-events-none" style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.8);">
+                        <source src="assets/media/android-pulse.mp4" type="video/mp4">
+                    </video>
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
                         style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.3)">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
@@ -1781,6 +1890,58 @@
         </div>
     </section>
 
+    <!-- ━━━ LIFESTYLE PHOTO STRIP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section class="py-16 sm:py-24" style="border-top: 1px solid #252530">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="text-center mb-12 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Your Setup</p>
+                <h2 class="display text-3xl sm:text-4xl md:text-5xl text-chalk mb-4">BUILT FOR REAL PLAYERS</h2>
+                <p class="text-muted text-sm sm:text-base max-w-lg mx-auto leading-relaxed">Use your device's built-in mic, a headset, or any external microphone — DartVoice works with whatever you've got.</p>
+            </div>
+            <div class="photo-strip reveal">
+                <div class="media-card group" style="height: 260px; border: 1px solid rgba(37,37,48,0.6);">
+                    <img src="assets/media/setup-gaming.jpeg" alt="Darts setup with phone on stand showing DartVoice waveform" loading="lazy">
+                    <div class="media-overlay"></div>
+                    <div class="media-label">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(204,11,32,0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                            </div>
+                            <p class="text-chalk text-sm font-semibold">Phone on Stand</p>
+                        </div>
+                        <p class="text-muted text-xs">Prop up your phone near the board and play</p>
+                    </div>
+                </div>
+                <div class="media-card group" style="height: 260px; border: 1px solid rgba(37,37,48,0.6);">
+                    <img src="assets/media/headset-darts.jpeg" alt="Gaming headset with darts on desk" loading="lazy">
+                    <div class="media-overlay"></div>
+                    <div class="media-label">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(204,11,32,0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                            </div>
+                            <p class="text-chalk text-sm font-semibold">Any Microphone</p>
+                        </div>
+                        <p class="text-muted text-xs">Headset, lapel, built-in mic, or your device mic</p>
+                    </div>
+                </div>
+                <div class="media-card group" style="height: 260px; border: 1px solid rgba(37,37,48,0.6);">
+                    <img src="assets/media/multi-device.jpeg" alt="DartVoice running on laptop, tablet, and phone" loading="lazy">
+                    <div class="media-overlay"></div>
+                    <div class="media-label">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(204,11,32,0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            </div>
+                            <p class="text-chalk text-sm font-semibold">Multi-Platform</p>
+                        </div>
+                        <p class="text-muted text-xs">Windows, Android, Chrome Extension &amp; Web App</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ━━━ DEEP DIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section id="deep-dive" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
         <div class="max-w-6xl mx-auto px-5">
@@ -1793,7 +1954,11 @@
             </div>
 
             <!-- ── ROW 1: Natural Language — full width hero ── -->
-            <div class="bento-card rounded-2xl p-6 sm:p-8 lg:p-10 mb-4 reveal">
+            <div class="bento-card rounded-2xl p-6 sm:p-8 lg:p-10 mb-4 reveal relative overflow-hidden">
+            <!-- Mic focus video bg -->
+            <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none" style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
+                <source src="assets/media/mic-focus.mp4" type="video/mp4">
+            </video>
                 <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                     <div>
                         <div class="flex items-center gap-2 mb-4">
@@ -2080,9 +2245,14 @@
                         </div>
                         <h3 class="display text-2xl sm:text-3xl text-chalk mb-4">CHECKOUTS THAT THINK<br>WITH EVERY DART
                         </h3>
-                        <p class="text-muted text-sm sm:text-base leading-relaxed">Checkout advice isn't static — it
+                        <p class="text-muted text-sm sm:text-base leading-relaxed mb-5">Checkout advice isn't static — it
                             recalculates after every single dart in Per-Dart mode. Throw your first dart, and the
                             suggestion updates instantly for what's left. The board path is always live.</p>
+                        <!-- Checkout hologram image -->
+                        <div class="media-card hidden lg:block" style="height: 140px;">
+                            <img src="assets/media/checkout-hologram.jpeg" alt="Holographic checkout display showing T20 T19 D16" loading="lazy">
+                            <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(8,8,10,0.3), rgba(8,8,10,0.6));"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2360,6 +2530,14 @@
         </div>
     </section>
 
+    <!-- ━━━ DARTBOARD 180 BANNER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="cinematic-banner" style="height: 260px;">
+        <img src="assets/media/dartboard-180-listening.jpeg" alt="Dartboard with holographic 180 LISTENING display" loading="lazy"
+            style="filter: brightness(0.75); object-position: center 45%;">
+        <div class="overlay"></div>
+        <div class="overlay-vertical"></div>
+    </div>
+
     <!-- ━━━ HOW IT WORKS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section id="how-it-works" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
         <div class="max-w-5xl mx-auto px-5">
@@ -2401,6 +2579,11 @@
 
                 <!-- Step 2 -->
                 <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
+                    <!-- 3D app animation bg (red-filtered) -->
+                    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.1] pointer-events-none"
+                        style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.8);">
+                        <source src="assets/media/3d-app.mp4" type="video/mp4">
+                    </video>
                     <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none"
                         style="color: rgba(204,11,32,0.08)">02</div>
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10"
@@ -2412,9 +2595,9 @@
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Download &amp; Install</h3>
+                    <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Download, Install, or Just Play</h3>
                     <p class="text-muted text-sm leading-relaxed relative z-10 mb-5">Grab the installer for Windows, the
-                        APK for Android, or the Web Extension from your dashboard. Installation takes seconds.</p>
+                        APK for Android, or the Chrome Extension. Or skip the download entirely — just open the <strong class="text-chalk">Web App</strong> in your browser and start scoring instantly.</p>
                     <!-- Animated download progress -->
                     <div class="demo-screen p-3 relative z-10">
                         <div class="flex items-center justify-between mb-2">
@@ -2490,6 +2673,27 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Lifestyle action shot -->
+            <div class="mt-10 reveal media-card" style="height: 320px;">
+                <img src="assets/media/player-throwing.jpeg" alt="Darts player throwing with DartVoice on phone listening" loading="lazy"
+                    style="object-position: center 30%;">
+                <div class="media-overlay"></div>
+                <div class="absolute inset-0" style="background: linear-gradient(90deg, rgba(8,8,10,0.9) 0%, rgba(8,8,10,0.3) 40%, rgba(8,8,10,0.3) 60%, rgba(8,8,10,0.9) 100%);"></div>
+                <div class="absolute inset-0 flex items-center">
+                    <div class="max-w-6xl mx-auto px-8 w-full flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div>
+                            <p class="display text-2xl sm:text-3xl text-chalk neon-white">THROW. CALL. DONE.</p>
+                            <p class="text-muted text-sm mt-2">DartVoice listens on your phone while you focus on the board.</p>
+                        </div>
+                        <a href="login?intent=subscribe"
+                            class="btn-brand px-6 py-3 rounded-xl font-semibold text-sm text-white shrink-0"
+                            style="box-shadow: 0 0 25px rgba(204,11,32,0.35);">
+                            Try It Free
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- Connecting flow arrows (desktop only) -->
@@ -2574,6 +2778,26 @@
                             </svg>
                             Cancel anytime
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium visual callout -->
+            <div class="reveal grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                <div class="media-card flex items-center gap-5 p-5 rounded-2xl" style="background: #111114; border: 1px solid #252530; height: 120px;">
+                    <img src="assets/media/premium-badge-red.jpeg" alt="Cyber 7-day free trial badge" loading="lazy"
+                        class="w-20 h-20 rounded-xl object-cover shrink-0" style="box-shadow: 0 0 20px rgba(204,11,32,0.3);">
+                    <div>
+                        <p class="text-chalk font-semibold text-sm mb-1">7-Day Free Trial</p>
+                        <p class="text-muted text-xs leading-relaxed">Full access to every feature. No card upfront. Cancel anytime during trial.</p>
+                    </div>
+                </div>
+                <div class="media-card flex items-center gap-5 p-5 rounded-2xl" style="background: #111114; border: 1px solid #252530; height: 120px;">
+                    <img src="assets/media/stats-graph.jpeg" alt="Holographic stats graph projecting from dart" loading="lazy"
+                        class="w-20 h-20 rounded-xl object-cover shrink-0" style="box-shadow: 0 0 20px rgba(204,11,32,0.2); filter: hue-rotate(-40deg) saturate(2) brightness(0.9);">
+                    <div>
+                        <p class="text-chalk font-semibold text-sm mb-1">Track Your Progress</p>
+                        <p class="text-muted text-xs leading-relaxed">Session stats, averages, and improvement trends — all tracked automatically.</p>
                     </div>
                 </div>
             </div>
@@ -2798,6 +3022,20 @@
         </div>
     </section>
 
+    <!-- ━━━ VOICE FORMULA BANNER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="cinematic-banner" style="height: 280px;">
+        <img src="assets/media/dartboard-soundwave.jpeg" alt="Winmau dartboard with voice soundwave overlay and tablet" loading="lazy"
+            style="filter: brightness(0.65);">
+        <div class="overlay"></div>
+        <div class="overlay-vertical"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center">
+                <p class="display text-3xl sm:text-5xl text-chalk neon-white">VOICE + DARTS = DARTVOICE</p>
+                <p class="text-muted text-sm mt-3 max-w-md mx-auto">Your board. Your mic. Instant voice scoring.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- ━━━ FAQ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section id="faq" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
         <div class="max-w-2xl mx-auto px-5">
@@ -2944,8 +3182,17 @@
                     </div>
                 </div>
 
-                <!-- Right: mockup stats card -->
+                <!-- Right: globe image + mockup stats card -->
                 <div class="reveal">
+                    <!-- Globe visual -->
+                    <div class="media-card mb-4 hidden sm:block" style="height: 180px;">
+                        <img src="assets/media/globe-dartboard.jpeg" alt="Holographic globe over dartboard - global darts community" loading="lazy">
+                        <div class="media-overlay"></div>
+                        <div class="media-label">
+                            <p class="text-chalk text-sm font-semibold">Share Worldwide</p>
+                            <p class="text-muted text-xs">Your referral link works anywhere darts is played</p>
+                        </div>
+                    </div>
                     <div class="feature-card rounded-2xl overflow-hidden">
                         <div class="h-0.5 bg-brand"></div>
                         <div class="px-6 py-5 border-b border-wire flex items-center justify-between">
@@ -3018,7 +3265,14 @@
     </section>
 
     <!-- ━━━ FINAL CTA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section class="py-28 sm:py-40 relative overflow-hidden" style="border-top: 1px solid #252530">
+    <section class="py-28 sm:py-40 relative overflow-hidden video-bg-section" style="border-top: 1px solid #252530">
+        <!-- Video background -->
+        <video autoplay muted loop playsinline style="filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.6);">
+            <source src="assets/media/soundwave-pulse.mp4" type="video/mp4">
+        </video>
+        <!-- Dark overlay to tame video -->
+        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 0%, #08080A 80%);"></div>
+
         <!-- Spinning dartboard deco, left side -->
         <div class="board-deco" style="left:-80px; top:50%; transform:translateY(-50%);">
             <svg viewBox="0 0 400 400" width="400" height="400" class="board-spin">

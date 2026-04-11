@@ -36,10 +36,38 @@
       "mcp__render__list_services",
       "Bash(\"c:/Users/vrynw/.claude/stripe.exe\" version:*)",
       "mcp__claude_ai_Supabase__get_publishable_keys",
-      "WebFetch(domain:poyjykgqsvgimssbhsuz.supabase.co)"
+      "WebFetch(domain:poyjykgqsvgimssbhsuz.supabase.co)",
+      "Bash(C:\\\\Users\\\\vrynw\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\scripts\\\\start-server.sh --project-dir \"c:\\\\Users\\\\vrynw\\\\Documents\\\\GitHub\\\\dartvoice\\\\testomg\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Darts_crossing_like_202604101641.jpeg\" \"assets/media/crossed-darts.jpeg\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Camera_zooms_dartboard_202604101641.jpeg\" \"assets/media/dartboard-180.jpeg\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Darts_player_throwing_202604101641.jpeg\" \"assets/media/player-throwing.jpeg\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Holographic_dart_checkout_202604101641_2.jpeg\" \"assets/media/checkout-hologram.jpeg\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Darts_setup_gaming_202604101641.jpeg\" \"assets/media/setup-gaming.jpeg\")",
+      "Bash(npx http-server:*)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Microphone_mesh_with_202604101641_3.jpeg\" \"assets/media/mic-mesh-red.jpeg\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Microphone_focus_shifts_202604101642.mp4\" \"assets/media/mic-focus.mp4\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Camera_zooms_dartboard_202604101641_3.jpeg\" \"assets/media/dartboard-180-listening.jpeg\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/Android_phone_pulsing_202604101642_2.mp4\" \"assets/media/android-pulse.mp4\")",
+      "Bash(cp \"unzipped/unzipped-imgs-mp4/DartVoice_Visual_Formula_202604101641_4.jpeg\" \"assets/media/dartboard-soundwave.jpeg\")",
+      "mcp__plugin_playwright_playwright__browser_press_key",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/index.html)",
+      "mcp__plugin_playwright_playwright__browser_close",
+      "Bash(ls -la \"c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/\"*.jpeg)",
+      "Bash(ls \"c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/\"*.jpeg)",
+      "Bash(ls \"c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/\"*.png)",
+      "Bash(gh release:*)",
+      "Bash(where gh:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" release list --repo sharpsolutionsdev/autoscoreweb --limit 5)",
+      "Bash(\"/c/Program Files \\(x86\\)/GitHub CLI/gh.exe\" release list)",
+      "Read(//c/Program Files/**)",
+      "mcp__plugin_playwright_playwright__browser_resize"
     ],
     "additionalDirectories": [
-      "C:\\Users\\vrynw\\.claude"
+      "C:\\Users\\vrynw\\.claude",
+      "C:\\Users\\vrynw\\Documents\\GitHub\\dartvoice\\testomg"
     ]
   }
 }

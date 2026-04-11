@@ -1452,11 +1452,19 @@
                 console.error('Manual sync failed:', e);
                 showToast('Sync failed. Please try again or contact support.');
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-                // Reload dashboard to ensure all UI is in sync
-                const { data: { user } } = await sb.auth.getUser();
-                if (user) loadDashboard(user);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            
+            // 10s polling loop for trial sync
+            setInterval(async () => {
+                if ($('btn-refresh-status')) {
+                    manualSyncStatus(_ambUserId);
+                }
+            }, 10000);
+            
+            // Initial sync after manual refresh
+            const { data: { user } } = await sb.auth.getUser();
+            if (user) loadDashboard(user);
             }
         }
 
@@ -1675,10 +1683,10 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         Start 7-Day Free Trial &mdash; &pound;6.99/mo
                     </button>
-                    <button id="btn-refresh-status" onclick="manualSyncStatus('${userId}')"
+<button id="btn-refresh-status" onclick="manualSyncStatus('${userId}')"
                             class="btn-ghost px-4 py-2.5 rounded-xl text-xs font-medium text-muted hover:text-white flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Refresh Status
+                        <svg class="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>Syncing trial...</span>
                     </button>
                     <p class="text-[11px] text-muted-2">Started trial? Click refresh if it doesn't update.</p>
                 </div>`;

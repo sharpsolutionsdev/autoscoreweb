@@ -1,8 +1,52 @@
-.mcp.json
+# ── Build artifacts ──
+autoscore/build/
+autoscore/dist/
 autoscore/installer_output/
-*.bak
+autoscore/__pycache__/
 build_artifacts/
-downloads/
-logs/
 *.resolved
+
+# ── Dev / IDE ──
+.mcp.json
 .env
+*.bak
+.playwright-mcp/
+__pycache__/
+
+# ── Source media (too large for git) ──
+unzipped/
+assets-hq.zip
+
+# ── Loose screenshots (dev testing) ──
+/180-banner-howit.jpeg
+/ambassador-globe.jpeg
+/ambassador-section.jpeg
+/checkout-hologram-view.jpeg
+/cinematic-banner.jpeg
+/crossed-darts-banner.jpeg
+/crossed-darts-view.jpeg
+/dartboard-180-banner.jpeg
+/features-cards.jpeg
+/features-mic-android.jpeg
+/features-revealed.jpeg
+/final-cta-video.jpeg
+/final-full-page.jpeg
+/final-index-full.jpeg
+/full-page-check.jpeg
+/hero-with-soundwaves.jpeg
+/new-180-banner.jpeg
+/new-180-listening.jpeg
+/player-action-shot.jpeg
+/pricing-badges.jpeg
+/scoring-modes-180.jpeg
+
+# ── Downloads (served via GitHub Releases, not git) ──
+downloads/*.exe
+downloads/*.apk
+
+# ── Logs ──
+logs/
+
+# ── Chrome extension metadata ──
+chrome_extension/_metadata/
+chrome_extension/__pycache__/
