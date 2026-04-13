@@ -15,7 +15,6 @@ __pycache__/
 .claude/
 .vscode/
 .kilocode/
-.github/
 
 # ── Source media (too large for git) ──
 unzipped/
