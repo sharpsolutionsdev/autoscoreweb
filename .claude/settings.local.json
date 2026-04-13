@@ -63,7 +63,21 @@
       "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" release list --repo sharpsolutionsdev/autoscoreweb --limit 5)",
       "Bash(\"/c/Program Files \\(x86\\)/GitHub CLI/gh.exe\" release list)",
       "Read(//c/Program Files/**)",
-      "mcp__plugin_playwright_playwright__browser_resize"
+      "mcp__plugin_playwright_playwright__browser_resize",
+      "Bash(powershell -Command \"Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force; Get-ExecutionPolicy -Scope CurrentUser\")",
+      "Bash(c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/.venv/Scripts/python.exe -c \"import customtkinter, PIL, vosk, pyautogui; print\\('ok'\\)\")",
+      "Bash(c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/.venv/Scripts/python.exe -c \"from PIL import Image; img = Image.open\\('c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/autoscore/icon.png'\\); print\\(img.size, img.mode\\)\")",
+      "Bash(c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/.venv/Scripts/python.exe -c \"import PIL.Image as I; i=I.open\\('c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/autoscore/dartvoice.ico'\\); print\\(i.size, i.info.get\\('sizes'\\)\\)\")",
+      "Bash(c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/.venv/Scripts/python.exe dartvoice_v2.py)",
+      "Bash(tasklist)",
+      "Bash(taskkill //PID 1420 //F)",
+      "Bash(taskkill //PID 8932 //F)",
+      "Bash(c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/.venv/Scripts/python.exe -c \"import cv2; print\\('cv2 ok', cv2.__version__\\)\")",
+      "Bash(taskkill //PID 27868 //F)",
+      "Bash(taskkill //PID 16520 //F)",
+      "Bash(gh run:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" run list --workflow=build-android.yml --limit 3)",
+      "Bash(ls *.html)"
     ],
     "additionalDirectories": [
       "C:\\Users\\vrynw\\.claude",

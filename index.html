@@ -1065,6 +1065,15 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="particles.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            if (typeof initParticles === 'function') initParticles('hero-particles', {type: 'hero', count: 80});
+            if (typeof initParallax === 'function') initParallax('.phone-frame, .laptop-frame, .media-card', 12);
+            if (typeof initReveals === 'function') initReveals();
+            if (typeof initRipples === 'function') initRipples();
+        });
+    </script>
 </head>
 
 <body class="antialiased overflow-x-hidden noise grid-bg-soft">
@@ -1179,10 +1188,13 @@
     <section class="hero-glow pt-28 pb-16 sm:pt-36 sm:pb-24 relative overflow-hidden">
 
         <!-- High-speed soundwave video bg -->
-        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none"
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none z-5"
             style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
-            <source src="assets/media/soundwaves-highspeed.mp4" type="video/mp4">
+"assets/media/soundwaves-highspeed.mp4"
         </video>
+
+        <!-- Particles canvas -->
+        <canvas id="hero-particles" class="absolute inset-0 pointer-events-none z-0"></canvas>
 
         <!-- Dartboard decorative BG -->
         <div class="board-deco" style="right:-120px; top:50%; transform:translateY(-50%);">
@@ -1595,9 +1607,66 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- ━━━ TICKER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+            </section>
+
+            <!-- ━━━ TESTIMONIALS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+            <section class="py-24 sm:py-32 bg-card border-t border-wire/50">
+                <div class="max-w-4xl mx-auto px-5 text-center">
+                    <p class="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-6">Players Love It</p>
+                    <h2 class="display text-4xl sm:text-5xl lg:text-6xl mb-6 text-chalk">REAL PLAYERS.<br>REAL RESULTS.</h2>
+                    <p class="text-muted max-w-xl mx-auto text-sm sm:text-base leading-relaxed mb-14">DartVoice players are hitting more checkouts and enjoying cleaner games. Here's what they're saying.</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-8 relative">
+                        <!-- Testimonial 1 -->
+                        <blockquote class="bg-card-2 border border-wire/30 rounded-2xl p-8 sm:p-10 hover:shadow-2xl transition-all duration-300 reveal group" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                            <div class="flex items-center gap-3 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
+                                <img src="assets/media/player-throwing.jpeg" alt="Dart player" class="w-14 h-14 rounded-full object-cover ring-2 ring-brand/30">
+                                <div>
+                                    <p class="font-semibold text-chalk text-sm">Luke Davies</p>
+                                    <p class="text-muted text-xs">Local League Player</p>
+                                </div>
+                            </div>
+                            <p class="text-lg sm:text-xl text-chalk/85 leading-relaxed mb-6 italic">“Game changer. No more score disputes, live checkouts keep me focused, and calling scores feels natural. 180s are easier than ever.”</p>
+                            <div class="flex items-center justify-center gap-2 text-xs text-muted font-semibold">
+                                <div class="w-12 h-0.5 bg-gradient-to-r from-brand/30 to-transparent rounded-full"></div>
+                                <div class="flex -space-x-1">
+                                    <svg class="w-4 h-4 text-brand fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-brand fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-brand fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-muted fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-muted fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                </div>
+                            </div>
+                        </blockquote>
+
+                        <!-- Testimonial 2 -->
+                        <blockquote class="bg-card-2 border border-wire/30 rounded-2xl p-8 sm:p-10 hover:shadow-2xl transition-all duration-300 reveal group" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                            <div class="flex items-center gap-3 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
+                                <img src="assets/media/setup-gaming.jpeg" alt="Darts setup" class="w-14 h-14 rounded-full object-cover ring-2 ring-brand/30">
+                                <div>
+                                    <p class="font-semibold text-chalk text-sm">Sarah Thompson</p>
+                                    <p class="text-muted text-xs">Team Captain</p>
+                                </div>
+                            </div>
+                            <p class="text-lg sm:text-xl text-chalk/85 leading-relaxed mb-6 italic">“Our doubles nights are smoother than ever. No more arguing over scores, and the checkouts keep everyone sharp. Worth every penny.”</p>
+                            <div class="flex items-center justify-center gap-2 text-xs text-muted font-semibold">
+                                <div class="w-12 h-0.5 bg-gradient-to-r from-brand/30 to-transparent rounded-full"></div>
+                                <div class="flex -space-x-1">
+                                    <svg class="w-4 h-4 text-brand fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-brand fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-brand fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-muted fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 text-muted fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                </div>
+                            </div>
+                        </blockquote>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ━━━ TICKER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
     <div class="border-y py-3 overflow-hidden" style="border-color: #252530">
         <div
             class="scroll-ticker whitespace-nowrap flex items-center gap-10 text-muted-2 text-xs display-normal tracking-widest">
@@ -1816,7 +1885,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <div class="feature-card rounded-2xl p-6 reveal pulse-glow relative overflow-hidden" style="border-color: rgba(204,11,32,0.3); background: linear-gradient(145deg, #111114, #1A0608);">
                     <!-- Android pulsing video bg -->
                     <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.12] pointer-events-none" style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.8);">
-                        <source src="assets/media/android-pulse.mp4" type="video/mp4">
+"Android_phone_pulsing_202604101642_2.mp4"
                     </video>
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
                         style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.3)">
@@ -3637,6 +3706,32 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 document.getElementById('mob-menu').classList.remove('open');
             });
         });
+
+        // Video Modal Handlers
+        function openVideoModal() {
+            const modal = document.getElementById('video-modal');
+            const content = document.getElementById('video-modal-content');
+            const video = document.getElementById('demo-video');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            void modal.offsetWidth; // Trigger reflow
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+            video.play().catch(e => console.log("Auto-play prevented"));
+        }
+        function closeVideoModal() {
+            const modal = document.getElementById('video-modal');
+            const content = document.getElementById('video-modal-content');
+            const video = document.getElementById('demo-video');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            video.pause();
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                video.currentTime = 0;
+            }, 300);
+        }
     </script>
 
     <!-- ── Auth-aware nav ──────────────────────────────────────────────────── -->

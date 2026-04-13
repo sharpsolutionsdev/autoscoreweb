@@ -255,12 +255,39 @@
         }
 
         /* ── Cards ── */
-        .card-panel {
+        .card-panel, .glass-card {
             background: #111114;
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .card-panel:hover, .glass-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            border-color: rgba(204, 11, 32, 0.3);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7), 0 0 40px rgba(204, 11, 32, 0.15);
+        }
+        .card-panel::before, .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(ellipse at top left, rgba(204, 11, 32, 0.08) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .card-panel:hover::before, .glass-card:hover::before {
+            opacity: 1;
+        }
+        .dl-card {
+            background: #0d0d10;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            transition: all 0.25s;
+            cursor: pointer;
         }
 
         .dl-card {
@@ -271,11 +298,32 @@
             cursor: pointer;
         }
 
+        .dl-card {
+            background: #0d0d10;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
         .dl-card:hover {
-            border-color: rgba(204, 11, 32, 0.28);
-            background: #111114;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 24px rgba(204, 11, 32, 0.07);
+            border-color: rgba(204, 11, 32, 0.4);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 35px rgba(204, 11, 32, 0.2);
+        }
+        .dl-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at 30% 20%, rgba(204, 11, 32, 0.15) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .dl-card:hover::before {
+            opacity: 1;
         }
 
         /* ── Step connector ── */
@@ -423,10 +471,15 @@
     <!-- ━━━ DASHBOARD VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div id="view-dashboard" class="hidden">
 
-        <!-- Hero band with red glow -->
-        <div
-            style="background:radial-gradient(ellipse 100% 340px at 50% 0, rgba(204,11,32,0.2) 0%, rgba(204,11,32,0.05) 45%, transparent 70%), #08080A; border-bottom:1px solid rgba(255,255,255,0.04);">
-            <div class="max-w-5xl mx-auto px-5 sm:px-8 pt-10 pb-8">
+        <!-- Hero parallax video background -->
+        <div class="hero-video-bg relative border-b border-white/[0.04]" style="--scroll:0;">
+            <video class="hero-video absolute inset-0 w-full h-full object-cover opacity-[0.10] pointer-events-none" 
+                   src="./Android_phone_pulsing_202604101642_2.mp4" 
+                   autoplay muted loop playsinline loading="eager"
+                   style="mix-blend-mode: screen; filter: sepia(1) saturate(4) hue-rotate(330deg) brightness(0.85);">
+            </video>
+            <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none"></div>
+            <div class="max-w-5xl mx-auto px-5 sm:px-8 pt-10 pb-8 relative z-10">
 
                 <!-- Welcome banner -->
                 <div id="welcome-banner" class="hidden mb-6 fade-up">
@@ -1316,6 +1369,33 @@
          JAVASCRIPT
          ═══════════════════════════════════════════════════════════ -->
     <script>
+        // Parallax scroll for hero video
+        let ticking = false;
+        function updateParallax() {
+            const scroll = window.scrollY * 0.5;
+            document.documentElement.style.setProperty('--scroll', `${scroll}px`);
+            ticking = false;
+        }
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(updateParallax);
+                ticking = true;
+            }
+        }, { passive: true });
+
+        // Magnetic hover for cards (from interactions.js patterns)
+        document.querySelectorAll('.card-panel, .glass-card, .dl-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                card.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px) rotateX(${-y * 0.02}deg) rotateY(${x * 0.02}deg)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+
         const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
         const BILLING_URL = 'https://billing.dartvoice.app';
