@@ -12,6 +12,9 @@ build_artifacts/
 *.bak
 .playwright-mcp/
 __pycache__/
+.claude/
+.vscode/
+.kilocode/
 
 # ── Source media (too large for git) ──
 unzipped/
