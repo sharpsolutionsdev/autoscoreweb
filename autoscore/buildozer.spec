@@ -40,7 +40,14 @@ presplash.color = #08080A
 # Android permissions
 android.permissions = RECORD_AUDIO, FOREGROUND_SERVICE, FOREGROUND_SERVICE_MICROPHONE, WAKE_LOCK, INTERNET, VIBRATE, SYSTEM_ALERT_WINDOW
 
-# API targets
+# Deep-link intent filter — lets the browser hand the login session back
+# via dartvoice://auth?access_token=...&refresh_token=...&user_id=...&email=...
+android.manifest.intent_filters = intent_filters.xml
+android.manifest.launch_mode = singleTask
+
+# API targets — API 24+ auto-supports all screen sizes (phone + tablet) and
+# defaults resizeableActivity=true, so no extra manifest work is needed for
+# large-screen install + multi-window.
 android.api    = 34
 android.minapi = 24
 

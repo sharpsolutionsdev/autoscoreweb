@@ -1,6 +1,36 @@
 import sys, os, json, threading, time, re, math
 
 _score_lock = threading.Lock()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HiDPI awareness — MUST run before any Tk window is created.
+# Without this, Windows renders Tk at 96 DPI and the OS bitmap-scales the whole
+# window to match the monitor scale factor (125%/150%/175%/200% on most
+# laptops), producing the grainy/pixelated look.
+# ─────────────────────────────────────────────────────────────────────────────
+def _enable_hidpi_windows():
+    if sys.platform != 'win32':
+        return 1.0
+    try:
+        import ctypes
+        try:
+            # Per-Monitor-V2: crispest across multi-monitor + dock/undock.
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except Exception:
+            try:
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
+        hdc = ctypes.windll.user32.GetDC(0)
+        LOGPIXELSX = 88
+        dpi = ctypes.windll.gdi32.GetDeviceCaps(hdc, LOGPIXELSX)
+        ctypes.windll.user32.ReleaseDC(0, hdc)
+        return max(1.0, dpi / 96.0)
+    except Exception:
+        return 1.0
+
+_DPI_SCALE = _enable_hidpi_windows()
+
 import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
@@ -8,12 +38,35 @@ import pyautogui
 
 pyautogui.FAILSAFE = False
 
+# Tell CustomTkinter / Tk to render at the real pixel density instead of
+# letting Windows blow up a 96-DPI bitmap.
+try:
+    ctk.set_widget_scaling(_DPI_SCALE)
+    ctk.set_window_scaling(_DPI_SCALE)
+except Exception:
+    pass
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Paths
 # ─────────────────────────────────────────────────────────────────────────────
 def resource_path(relative):
     base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base, relative)
+
+def asset_path(name):
+    """Resolve an HQ media asset (jpeg/png/mp4).
+
+    Tries, in order: bundled `media/` (PyInstaller / dev copy), repo's
+    sibling `../assets/media/` (dev run without bundle).  Returns None if
+    the asset can't be found so callers can fall back to hand-drawn art.
+    """
+    for candidate in (
+        resource_path(os.path.join('media', name)),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'media', name),
+    ):
+        if os.path.exists(candidate):
+            return os.path.abspath(candidate)
+    return None
 
 def config_path():
     if getattr(sys, 'frozen', False):
@@ -1313,29 +1366,82 @@ class DartVoiceApp(ctk.CTk):
         self._show_splash()
 
     def _show_splash(self):
-        """Premium Discord-style loading overlay for Windows."""
-        splash = tk.Frame(self, bg=BG)
-        splash.place(x=0, y=0, relwidth=1, relheight=1)
-        splash.lift()
+        """Premium Discord-style loading overlay for Windows.
 
-        # Canvas for animated logo
-        c = tk.Canvas(splash, bg=BG, highlightthickness=0, width=160, height=160)
-        c.place(relx=0.5, rely=0.42, anchor='center')
-        
-        # Concentric rings (matches app logo exactly)
-        def _draw_static(cx, cy):
-            rings = [(52, "#222228"), (36, ACCENT), (24, "#222228"), (14, ACCENT), (6, FG)]
-            for r, col in rings:
-                c.create_oval(cx-r, cy-r, cx+r, cy+r, fill=col, outline="")
-        _draw_static(80, 80)
+        Everything (backdrop image, rings, glow, copy) is drawn on ONE
+        full-window Canvas so there are no rectangular Tk widget backgrounds
+        clashing with the photographic backdrop.
+        """
+        self.update_idletasks()
+        sw = max(self.winfo_width(),  1024)
+        sh = max(self.winfo_height(), 600)
 
-        # Pulsating circle overlay (the 'glow')
-        glow = c.create_oval(80-48, 80-48, 80+48, 80+48, fill=ACCENT, stipple='gray50', outline="")
+        c = tk.Canvas(self, bg=BG, highlightthickness=0,
+                      borderwidth=0, width=sw, height=sh)
+        c.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # ── Photographic backdrop, darkened so no widget box is visible ────
+        self._splash_bg = None
+        bg_path = asset_path('dart-mic-red.jpeg')
+        if bg_path:
+            try:
+                from PIL import Image, ImageTk, ImageEnhance, ImageFilter, ImageDraw
+                img = Image.open(bg_path).convert('RGB')
+                # Cover-fit crop
+                src_ratio = img.width / img.height
+                dst_ratio = sw / sh
+                if src_ratio > dst_ratio:
+                    new_w = int(img.height * dst_ratio)
+                    left  = (img.width - new_w) // 2
+                    img = img.crop((left, 0, left + new_w, img.height))
+                else:
+                    new_h = int(img.width / dst_ratio)
+                    top   = (img.height - new_h) // 2
+                    img = img.crop((0, top, img.width, top + new_h))
+                img = img.resize((sw, sh), Image.LANCZOS)
+                img = img.filter(ImageFilter.GaussianBlur(radius=3))
+                img = ImageEnhance.Brightness(img).enhance(0.22)
+                # Vignette that fades to near-black around the centre
+                # so the logo/text read clearly even over busy areas.
+                vignette = Image.new('L', (sw, sh), 0)
+                vd = ImageDraw.Draw(vignette)
+                cx, cy = sw // 2, int(sh * 0.42)
+                max_r = int((sw ** 2 + sh ** 2) ** 0.5)
+                for i in range(64, 0, -2):
+                    alpha = int(255 * (1 - i / 64) ** 2)
+                    r = int(max_r * i / 64)
+                    vd.ellipse((cx - r, cy - r, cx + r, cy + r),
+                               fill=255 - alpha)
+                vignette = vignette.filter(ImageFilter.GaussianBlur(radius=80))
+                dark = Image.new('RGB', (sw, sh), (5, 5, 7))
+                img = Image.composite(dark, img, vignette)
+                self._splash_bg = ImageTk.PhotoImage(img)
+                c.create_image(0, 0, image=self._splash_bg, anchor='nw')
+            except Exception:
+                pass
+
+        # ── Concentric ring logo (drawn directly on the canvas) ────────────
+        # DPI-scaled so the logo stays crisp at 125%/150%/175%/200% too.
+        scale = _DPI_SCALE if _DPI_SCALE else 1.0
+        cx_l, cy_l = sw // 2, int(sh * 0.42)
+        ring_defs = [(52, "#222228"), (36, ACCENT), (24, "#222228"),
+                     (14, ACCENT),   (6,  FG)]
+        for r, col in ring_defs:
+            rr = int(r * scale)
+            c.create_oval(cx_l - rr, cy_l - rr, cx_l + rr, cy_l + rr,
+                          fill=col, outline="")
+
+        glow = c.create_oval(cx_l - 48, cy_l - 48, cx_l + 48, cy_l + 48,
+                             fill=ACCENT, stipple='gray25', outline="")
         c.tag_lower(glow)
+        # Keep glow above the backdrop but below the rings.
+        for ring_col in (ACCENT, FG, "#222228"):
+            pass  # rings were drawn after glow add; reorder below
 
-        name_lbl = tk.Label(splash, text="DARTVOICE", bg=BG, fg=FG,
-                            font=("Uber Move Bold", 28, "bold"))
-        name_lbl.place(relx=0.5, rely=0.64, anchor='center')
+        # ── Wordmark + tagline as canvas text (no background boxes) ────────
+        c.create_text(cx_l, int(sh * 0.62), text="DARTVOICE",
+                      fill=FG, font=("Uber Move Bold", max(18, int(28 * scale)), "bold"),
+                      anchor='center', tags='wordmark')
 
         phrases = [
             "Calibrating the dartboard...",
@@ -1343,33 +1449,29 @@ class DartVoiceApp(ctk.CTk):
             "Tuning the voice recognition...",
             "Loading checkout table...",
             "Setting up the oche...",
-            "Almost ready to score!"
+            "Almost ready to score!",
         ]
-        tag_lbl = tk.Label(splash, text=phrases[0], bg=BG, fg=FG2,
-                           font=("Rubik", 13))
-        tag_lbl.place(relx=0.5, rely=0.72, anchor='center')
+        tag_id = c.create_text(cx_l, int(sh * 0.70), text=phrases[0],
+                               fill=FG2, font=("Rubik", max(10, int(13 * scale))),
+                               anchor='center')
 
-        def _animate_splash(step=0, scale=1.0, scale_d=0.04):
+        def _animate_splash(step=0, sc=1.0, sc_d=0.04):
             if step > 90:  # ~3 seconds
                 self._build_ui()
-                splash.destroy()
+                c.destroy()
                 self._pulse()
                 self.after(100, self._billing_gate)
                 return
-            
-            # Pulse the glow ring
-            if scale > 1.2: scale_d = -0.04
-            elif scale < 0.8: scale_d = 0.04
-            scale += scale_d
-            s_diff = 60 * scale
-            c.coords(glow, 80-s_diff, 80-s_diff, 80+s_diff, 80+s_diff)
-            
-            # Update phrase every ~1 second
+            if sc > 1.2: sc_d = -0.04
+            elif sc < 0.8: sc_d = 0.04
+            sc += sc_d
+            s_diff = int(60 * sc * scale)
+            c.coords(glow, cx_l - s_diff, cy_l - s_diff,
+                           cx_l + s_diff, cy_l + s_diff)
             if step % 28 == 0:
                 import random
-                tag_lbl.config(text=random.choice(phrases))
-
-            self.after(33, lambda: _animate_splash(step + 1, scale, scale_d))
+                c.itemconfigure(tag_id, text=random.choice(phrases))
+            self.after(33, lambda: _animate_splash(step + 1, sc, sc_d))
 
         self.after(120, lambda: _animate_splash(0))
 
@@ -1686,26 +1788,45 @@ class DartVoiceApp(ctk.CTk):
         inner = ctk.CTkFrame(card, fg_color='transparent')
         inner.pack(padx=36, pady=32)
 
-        # Lock icon circle
-        icon_frame = ctk.CTkFrame(inner, fg_color=ACCENT, corner_radius=999,
-                                   width=72, height=72)
-        icon_frame.pack(pady=(0, 20))
-        icon_frame.pack_propagate(False)
-        icon_c = tk.Canvas(icon_frame, width=72, height=72,
-                           bg=ACCENT, highlightthickness=0)
-        icon_c.place(relx=0.5, rely=0.5, anchor='center')
-        # Lock SVG as canvas shapes
-        def _draw_lock(c):
-            cx, cy = 36, 38
-            # shackle
-            c.create_arc(24, 14, 48, 38, start=0, extent=180,
-                         outline='white', width=3, style='arc')
-            # body
-            c.create_rectangle(18, 36, 54, 58, fill='white', outline='')
-            # keyhole
-            c.create_oval(32, 42, 40, 50, fill=ACCENT, outline='')
-            c.create_rectangle(34, 47, 38, 54, fill=ACCENT, outline='')
-        _draw_lock(icon_c)
+        # Premium badge — real photo asset if available, else canvas lock
+        badge_path = asset_path('premium-badge-red.jpeg')
+        _badge_img = None
+        if badge_path:
+            try:
+                from PIL import Image, ImageTk, ImageDraw
+                src = Image.open(badge_path).convert('RGB')
+                size = min(src.size)
+                left = (src.width  - size) // 2
+                top  = (src.height - size) // 2
+                src  = src.crop((left, top, left + size, top + size))
+                src  = src.resize((112, 112), Image.LANCZOS)
+                # Circular mask for a polished crest look
+                mask = Image.new('L', src.size, 0)
+                ImageDraw.Draw(mask).ellipse((0, 0, src.size[0], src.size[1]), fill=255)
+                rgba = src.convert('RGBA')
+                rgba.putalpha(mask)
+                _badge_img = ImageTk.PhotoImage(rgba)
+            except Exception:
+                _badge_img = None
+
+        if _badge_img is not None:
+            badge_lbl = tk.Label(inner, image=_badge_img, bg=CARD,
+                                 borderwidth=0, highlightthickness=0)
+            badge_lbl._img_ref = _badge_img  # prevent GC
+            badge_lbl.pack(pady=(0, 20))
+        else:
+            icon_frame = ctk.CTkFrame(inner, fg_color=ACCENT, corner_radius=999,
+                                       width=72, height=72)
+            icon_frame.pack(pady=(0, 20))
+            icon_frame.pack_propagate(False)
+            icon_c = tk.Canvas(icon_frame, width=72, height=72,
+                               bg=ACCENT, highlightthickness=0)
+            icon_c.place(relx=0.5, rely=0.5, anchor='center')
+            icon_c.create_arc(24, 14, 48, 38, start=0, extent=180,
+                              outline='white', width=3, style='arc')
+            icon_c.create_rectangle(18, 36, 54, 58, fill='white', outline='')
+            icon_c.create_oval(32, 42, 40, 50, fill=ACCENT, outline='')
+            icon_c.create_rectangle(34, 47, 38, 54, fill=ACCENT, outline='')
 
         # Heading
         ctk.CTkLabel(inner, text="Free Preview Ended.",

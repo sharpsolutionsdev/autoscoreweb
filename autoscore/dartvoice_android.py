@@ -20,6 +20,13 @@ ANDROID = sys.platform == 'linux' and 'ANDROID_ARGUMENT' in os.environ
 # Kivy config must be set BEFORE any kivy imports
 # ─────────────────────────────────────────────────────────────────────────────
 os.environ.setdefault('KIVY_NO_ENV_CONFIG', '1')
+# Force SDL2 GL backend for predictable, crisp rendering on every Android
+# device.  4x MSAA removes jaggies on rounded rectangles / ellipses at every
+# pixel density.
+os.environ.setdefault('KIVY_GL_BACKEND', 'sdl2')
+from kivy.config import Config
+Config.set('graphics', 'multisamples', '4')
+Config.set('kivy',     'exit_on_escape', '0')
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -64,6 +71,30 @@ WIRE_HINT  = (0.110, 0.031, 0.055, 1)
 def hex_to_kivy(h):
     h = h.lstrip('#')
     return tuple(int(h[i:i+2], 16) / 255 for i in (0, 2, 4)) + (1,)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Responsive helpers — tablet vs phone
+# Android convention: shortest-side ≥ 600dp = "large screen" (tablet).
+# We use this to cap card widths so the login/paywall don't stretch halfway
+# across a 10" tablet, while leaving phone layouts untouched.
+# ─────────────────────────────────────────────────────────────────────────────
+def shortest_side_dp():
+    try:
+        from kivy.metrics import Metrics
+        density = Metrics.density or 1.0
+    except Exception:
+        density = 1.0
+    return min(Window.width, Window.height) / density
+
+def is_tablet():
+    try:
+        return shortest_side_dp() >= 600
+    except Exception:
+        return False
+
+def card_max_width():
+    """Pixel width cap for centred cards (login, paywall, modals)."""
+    return dp(440) if is_tablet() else Window.width * 0.92
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Player themes  (mirrors Windows app exactly)
@@ -1336,11 +1367,15 @@ class PaywallOverlay(FloatLayout):
 
         card = BoxLayout(
             orientation='vertical',
-            size_hint=(0.88, None),
+            size_hint=(None, None),
+            width=min(card_max_width(), dp(440)),
             height=dp(420),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
             padding=[dp(24), dp(20), dp(24), dp(20)], spacing=dp(10),
         )
+        # Keep the card phone-width on tablets (and when rotated).
+        Window.bind(on_resize=lambda *a:
+                    setattr(card, 'width', min(card_max_width(), dp(440))))
 
         # Card bg + accent border + radial glow overlay
         with card.canvas.before:
@@ -3245,12 +3280,16 @@ class LoginScreen(FloatLayout):
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=self._update_bg, pos=self._update_bg)
 
-        # Card background
+        # Card background — capped width so it doesn't stretch across tablets.
         self.auth_card = Widget(
-            size_hint=(0.9, None),
-            height=dp(380),
+            size_hint=(None, None),
+            size=(min(card_max_width(), dp(440)), dp(380)),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
         )
+        # Re-cap on rotate / multi-window so the card stays phone-width.
+        def _recap_card(*_):
+            self.auth_card.width = min(card_max_width(), dp(440))
+        Window.bind(on_resize=lambda *a: _recap_card())
         with self.auth_card.canvas.before:
             Color(*ACCENT[:3], 0.05)
             self.auth_card._glow = RoundedRectangle(pos=self.auth_card.pos, size=self.auth_card.size, radius=[dp(28)])
@@ -3452,6 +3491,68 @@ class DartVoiceAndroidApp(App):
         """Called after window is shown — Activity is fully ready for permissions."""
         if ANDROID:
             Clock.schedule_once(lambda dt: self._request_mic_permission(), 0.5)
+            # Handle any dartvoice://auth Intent that launched this activity,
+            # and listen for future ones when the browser hands us tokens.
+            self._install_deeplink_bridge()
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Deep-link bridge  (dartvoice://auth?access_token=...&refresh_token=...
+    #                              &user_id=...&email=...)
+    # ─────────────────────────────────────────────────────────────────────
+    def _install_deeplink_bridge(self):
+        try:
+            from jnius import autoclass  # type: ignore
+            from android import activity as android_activity  # type: ignore
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            # Drain whatever Intent launched the activity (cold start case).
+            self._consume_intent(PythonActivity.mActivity.getIntent())
+            # Register for subsequent Intents (warm start — app already alive).
+            android_activity.bind(on_new_intent=self._consume_intent)
+        except Exception as e:
+            print(f'DEEPLINK bridge install failed: {e}', flush=True)
+
+    def _consume_intent(self, intent):
+        if intent is None:
+            return
+        try:
+            uri = intent.getData()
+            if uri is None:
+                return
+            scheme = uri.getScheme() or ''
+            host   = uri.getHost() or ''
+            if scheme.lower() != 'dartvoice' or host.lower() != 'auth':
+                return
+
+            def _qp(name):
+                v = uri.getQueryParameter(name)
+                return v if v is not None else ''
+
+            access  = _qp('access_token')
+            refresh = _qp('refresh_token')
+            uid     = _qp('user_id')
+            email   = _qp('email')
+            if not (access and refresh and uid and email):
+                return
+
+            # Persist using the same billing store login_via_web uses, so the
+            # rest of the app sees a consistent account.
+            try:
+                from billing import _load, _save  # type: ignore
+                d = _load()
+                d['sb_access_token']  = access
+                d['sb_refresh_token'] = refresh
+                d['sb_user_id']       = uid
+                d['sb_email']         = email
+                d.pop('pending_email', None)
+                _save(d)
+            except Exception as e:
+                print(f'DEEPLINK save failed: {e}', flush=True)
+
+            # Advance the UI: drop the "Waiting for browser…" screen and
+            # move the user straight to the main app.
+            Clock.schedule_once(lambda dt: self.do_login(uid), 0)
+        except Exception as e:
+            print(f'DEEPLINK consume failed: {e}', flush=True)
 
     def _crash_layout(self, msg):
 

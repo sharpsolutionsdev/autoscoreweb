@@ -456,6 +456,34 @@ def login_via_web(callback=None, intent=''):
 
     Returns immediately; auth happens in a background thread.
     """
+    # Android can't reliably receive a POST on 127.0.0.1 (app gets suspended
+    # when it goes to the background, so the browser's POST is dropped).
+    # Instead, login.html redirects to dartvoice://auth?... and the Activity's
+    # Intent handler picks up the tokens — see _consume_intent in
+    # dartvoice_android.py.  We just open the browser and poll the billing
+    # store for the session to appear.
+    if 'ANDROID_ARGUMENT' in os.environ:
+        def _run_android():
+            params = 'source=app&platform=android'
+            if intent:
+                params += f'&intent={intent}'
+            _open_browser(f'{_LOGIN_SITE}?{params}')
+
+            # Poll the billing store for ~5 minutes — the Intent handler
+            # writes the tokens there when the browser redirects back.
+            deadline = time.time() + 300
+            while time.time() < deadline:
+                if get_account():
+                    if callback:
+                        callback(True, get_account())
+                    return
+                time.sleep(1)
+            if callback:
+                callback(False, None)
+
+        threading.Thread(target=_run_android, daemon=True).start()
+        return
+
     def _run():
         server = HTTPServer(('127.0.0.1', 0), _AuthCallbackHandler)
         server._auth_received = False

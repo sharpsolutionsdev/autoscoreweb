@@ -11,6 +11,9 @@ datas += [('vosk-model-small-en-us', 'vosk-model-small-en-us')]
 # ── Fonts ─────────────────────────────────────────────────────────────────────
 datas += [('fonts', 'fonts')]
 
+# ── HQ media assets (splash backdrop, premium badge, etc.) ───────────────────
+datas += [('media', 'media')]
+
 # ── billing.py (must sit next to the exe at runtime) ─────────────────────────
 datas += [('billing.py', '.')]
 

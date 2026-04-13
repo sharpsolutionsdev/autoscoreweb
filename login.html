@@ -383,7 +383,14 @@
                         </div>
                         <h2 id="success-heading" class="display text-3xl mb-2">SIGNED IN</h2>
                         <p id="success-subtext" class="text-muted text-sm">Taking you to your dashboard…</p>
-                        <div class="mt-6 flex justify-center">
+                        <div id="android-return" class="hidden mt-6">
+                            <a id="android-return-btn" href="#"
+                               class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:bg-brand/90 transition">
+                                OPEN DARTVOICE APP  →
+                            </a>
+                            <p class="text-muted text-[11px] mt-3">If nothing happens, tap the button above.</p>
+                        </div>
+                        <div id="success-spinner" class="mt-6 flex justify-center">
                             <div class="w-6 h-6 border-2 border-brand/30 border-t-brand rounded-full" style="animation: spin 0.7s linear infinite"></div>
                         </div>
                     </div>
@@ -450,8 +457,37 @@
     // tokens to localhost:PORT/auth-callback so the native app picks them up.
     const _urlParams  = new URLSearchParams(window.location.search);
     const _appSource  = _urlParams.get('source');     // 'app' when launched from native
-    const _appPort    = _urlParams.get('port');        // localhost port for token handoff
-    const _isAppLogin = _appSource === 'app' && /^\d{4,5}$/.test(_appPort || '');
+    const _appPort    = _urlParams.get('port');        // localhost port for token handoff (Windows)
+    const _appPlatform = (_urlParams.get('platform') || '').toLowerCase(); // 'android' uses deep-link handoff
+    const _isAndroidApp = _appSource === 'app' && _appPlatform === 'android';
+    const _isAppLogin = _appSource === 'app' && (_isAndroidApp || /^\d{4,5}$/.test(_appPort || ''));
+
+    // Deep-link URL that the Android app registers an Intent filter for.
+    function _androidHandoffUrl(s) {
+        const qs = new URLSearchParams({
+            access_token:  s.access_token,
+            refresh_token: s.refresh_token,
+            user_id:       s.user.id,
+            email:         s.user.email || '',
+        });
+        return `dartvoice://auth?${qs.toString()}`;
+    }
+
+    // Attempt the deep link.  Some browsers block auto-navigation to custom
+    // schemes, so we also surface a visible "OPEN DARTVOICE APP" button
+    // the user can tap as a fallback.
+    function _androidHandoff(session) {
+        const url  = _androidHandoffUrl(session);
+        const btn  = document.getElementById('android-return-btn');
+        const wrap = document.getElementById('android-return');
+        const spin = document.getElementById('success-spinner');
+        if (btn)  btn.href = url;
+        if (wrap) wrap.classList.remove('hidden');
+        if (spin) spin.classList.add('hidden');
+        // Try to auto-open — works when we're in a fresh user-gesture
+        // context (right after "Verify Code →").
+        try { window.location.href = url; } catch (_) {}
+    }
 
     // Detect intent from URL: ?intent=subscribe → sign-up mode, else sign-in mode
     const _intent = _urlParams.get('intent');
@@ -486,11 +522,21 @@
     if (_isAppLogin) {
         document.getElementById('auth-subtext').textContent =
             'Sign in here — your session will sync back to the DartVoice app automatically.';
-        document.getElementById('bottom-nudge').innerHTML = `
-            <div>
-                <p class="text-[11px] text-muted">Launched from the DartVoice app</p>
-                <p class="text-[12px] text-chalk font-semibold mt-0.5">Your session will sync back automatically after sign-in.</p>
-            </div>`;
+        const _platNote = _isAndroidApp
+            ? "We'll reopen the DartVoice app automatically — tap the button on the next screen if nothing happens."
+            : 'Your session will sync back automatically after sign-in.';
+        const _nudge = document.getElementById('bottom-nudge');
+        _nudge.replaceChildren();
+        const _wrap = document.createElement('div');
+        const _top  = document.createElement('p');
+        _top.className  = 'text-[11px] text-muted';
+        _top.textContent = 'Launched from the DartVoice app';
+        const _btm  = document.createElement('p');
+        _btm.className  = 'text-[12px] text-chalk font-semibold mt-0.5';
+        _btm.textContent = _platNote;
+        _wrap.appendChild(_top);
+        _wrap.appendChild(_btm);
+        _nudge.appendChild(_wrap);
     }
 
     // Destination after auth
@@ -505,6 +551,14 @@ function _authDest() {
     sb.auth.getSession().then(async ({ data }) => {
         if (data?.session?.user) {
             if (_isAppLogin) {
+                if (_isAndroidApp) {
+                    document.getElementById('step-email').classList.add('hidden');
+                    document.getElementById('step-success').classList.remove('hidden');
+                    document.getElementById('success-heading').textContent = 'ALREADY SIGNED IN';
+                    document.getElementById('success-subtext').textContent = 'Returning to DartVoice app…';
+                    _androidHandoff(data.session);
+                    return;
+                }
                 try {
                     await fetch(`http://127.0.0.1:${_appPort}/auth-callback`, {
                         method: 'POST',
@@ -654,13 +708,20 @@ function _authDest() {
         const refCode   = urlParams.get('ref');
         if (refCode) sessionStorage.setItem('dv_ref_code', refCode);
 
-        // ── App login: POST tokens to local callback server ─────────────
+        // ── App login: hand tokens back to the native app ───────────────
         if (_isAppLogin) {
             document.getElementById('success-heading').textContent = 'SIGNED IN';
             document.getElementById('success-subtext').textContent = 'Returning to DartVoice app…';
             try {
                 const { data: { session } } = await sb.auth.getSession();
                 if (session) {
+                    if (_isAndroidApp) {
+                        // Deep link — Android routes this to the DartVoice
+                        // Activity's Intent handler, bringing it to the
+                        // foreground with the session tokens attached.
+                        _androidHandoff(session);
+                        return;
+                    }
                     await fetch(`http://127.0.0.1:${_appPort}/auth-callback`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
