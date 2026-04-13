@@ -2245,7 +2245,7 @@ class DartVoiceLayout(FloatLayout):
         else:
             self._start_listening()
 
-    def _redraw_score_glow(self):
+    def _redraw_score_glow(self, *_):
         """Redraw radial background glow, corner brackets, and text glow
         behind the score label — mirrors the Windows _redraw_score canvas."""
         gw = self._glow_widget
@@ -2726,21 +2726,48 @@ class DartVoiceLayout(FloatLayout):
             WebView = autoclass('android.webkit.WebView')
             WebViewClient = autoclass('android.webkit.WebViewClient')
             WebChromeClient = autoclass('android.webkit.WebChromeClient')
+            CookieManager = autoclass('android.webkit.CookieManager')
             PythonActivity = autoclass('org.kivy.android.PythonActivity')
             LayoutParams = autoclass('android.view.ViewGroup$LayoutParams')
-            
+
+            # chrome://inspect debugging — lets us inspect the live DOM from
+            # desktop Chrome so we can update DARTCOUNTER_DRIVER selectors when
+            # app.dartcounter.net's markup changes.
+            try:
+                WebView.setWebContentsDebuggingEnabled(True)
+            except Exception:
+                pass
+
             @run_on_ui_thread
             def create_webview():
                 Activity = PythonActivity.mActivity
                 wv = WebView(Activity)
-                wv.getSettings().setJavaScriptEnabled(True)
-                wv.getSettings().setDomStorageEnabled(True)
+                settings = wv.getSettings()
+                settings.setJavaScriptEnabled(True)
+                settings.setDomStorageEnabled(True)
+                settings.setDatabaseEnabled(True)
+                # Pretend to be real Chrome on Android so the SPA serves its
+                # mobile UI (the default WebView UA gets desktop layout or
+                # "unsupported browser" warnings on some scoring sites).
+                settings.setUserAgentString(
+                    'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 '
+                    '(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36'
+                )
+                # Persist login cookies across sessions.
+                cm = CookieManager.getInstance()
+                cm.setAcceptCookie(True)
+                try:
+                    cm.setAcceptThirdPartyCookies(wv, True)
+                except Exception:
+                    pass
+
                 wv.setWebViewClient(WebViewClient())
                 wv.setWebChromeClient(WebChromeClient())
-                wv.loadUrl("https://dartcounter.net")
-                
+                # Load the actual scoring app, not the marketing landing page.
+                wv.loadUrl("https://app.dartcounter.net/dashboard")
+
                 Activity.addContentView(wv, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-                
+
                 import shared
                 shared.active_browser = shared.AndroidBrowser(wv)
                 self._android_wv = wv

@@ -439,19 +439,117 @@ def speak(text, cfg):
 # ─────────────────────────────────────────────────────────────────────────────
 # Smart Browser & JS Drivers
 # ─────────────────────────────────────────────────────────────────────────────
-DARTCOUNTER_DRIVER = """
+DARTCOUNTER_DRIVER = r"""
 (function(val) {
-    const input = document.querySelector('input[type="number"], .score-input');
-    if (input) {
-        input.value = val;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
-        input.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', keyCode: 13, bubbles: true }));
-    } else {
-        // Fallback for custom numberpads if they have specific test ids like #score-20
-        // Currently relies on the standard input
+    // Selectors are tried in order. Add new ones here when app.dartcounter.net
+    // ships a redesign — inspect via chrome://inspect on a USB-connected device.
+    var SELECTORS = [
+        'input[name="score"]',
+        'input[data-testid="score-input"]',
+        'input[aria-label*="score" i]',
+        'input.score-input',
+        'input[type="number"]',
+        'input[type="tel"]',
+        'input[inputmode="numeric"]'
+    ];
+
+    function findInput() {
+        for (var i = 0; i < SELECTORS.length; i++) {
+            var el = document.querySelector(SELECTORS[i]);
+            if (el && el.offsetParent !== null) return el;
+        }
+        return null;
     }
+
+    function findSubmit() {
+        var candidates = [
+            'button[type="submit"]',
+            'button[data-testid="submit-score"]',
+            'button[aria-label*="submit" i]',
+            'button[aria-label*="ok" i]',
+            'button.score-submit'
+        ];
+        for (var i = 0; i < candidates.length; i++) {
+            var el = document.querySelector(candidates[i]);
+            if (el && el.offsetParent !== null) return el;
+        }
+        // Fallback: any visible button whose text is OK / Enter / Submit
+        var btns = document.querySelectorAll('button');
+        for (var j = 0; j < btns.length; j++) {
+            var t = (btns[j].textContent || '').trim().toLowerCase();
+            if (btns[j].offsetParent !== null &&
+                (t === 'ok' || t === 'enter' || t === 'submit' || t === 'send')) {
+                return btns[j];
+            }
+        }
+        return null;
+    }
+
+    function setReactValue(el, value) {
+        // React (and Vue 3 with v-model) tracks the input's internal value
+        // via a hidden tracker; assigning .value directly is silently ignored
+        // when onChange is wired through. Use the prototype setter instead so
+        // the framework's input-value-tracker sees the change.
+        var proto = (el.tagName === 'TEXTAREA')
+            ? window.HTMLTextAreaElement.prototype
+            : window.HTMLInputElement.prototype;
+        var desc = Object.getOwnPropertyDescriptor(proto, 'value');
+        if (desc && desc.set) {
+            desc.set.call(el, String(value));
+        } else {
+            el.value = String(value);
+        }
+    }
+
+    function fire(el, type, init) {
+        var e;
+        if (type === 'keydown' || type === 'keyup' || type === 'keypress') {
+            e = new KeyboardEvent(type, Object.assign({
+                key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true
+            }, init || {}));
+        } else {
+            e = new Event(type, { bubbles: true });
+        }
+        el.dispatchEvent(e);
+    }
+
+    function inject(input, val) {
+        try { input.focus(); } catch (e) {}
+        setReactValue(input, val);
+        fire(input, 'input');
+        fire(input, 'change');
+        fire(input, 'keydown');
+        fire(input, 'keypress');
+        fire(input, 'keyup');
+        var submit = findSubmit();
+        if (submit) {
+            try { submit.click(); } catch (e) {}
+        }
+        // Also try submitting the enclosing form for sites that wire on submit.
+        var form = input.form;
+        if (form) {
+            try { form.requestSubmit ? form.requestSubmit() : form.submit(); }
+            catch (e) {}
+        }
+        console.log('[DARTVOICE_JS] injected', val,
+                    'selector=' + (input.name || input.id || input.className),
+                    'submit=' + !!submit);
+    }
+
+    // SPA hydration: input may not exist yet on first throw. Poll briefly.
+    var input = findInput();
+    if (input) { inject(input, val); return; }
+
+    var attempts = 0;
+    var iv = setInterval(function() {
+        attempts++;
+        var el = findInput();
+        if (el) { clearInterval(iv); inject(el, val); }
+        else if (attempts >= 20) {
+            clearInterval(iv);
+            console.log('[DARTVOICE_JS] no score input found for', val);
+        }
+    }, 100);
 })
 """
 
