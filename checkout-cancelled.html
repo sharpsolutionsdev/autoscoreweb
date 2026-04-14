@@ -47,42 +47,7 @@
         }
     </script>
     <script src="components/dv-footer.js"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; }
-        .display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; text-transform: uppercase; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .fade-up   { animation: fadeUp 0.5s ease-out both; }
-        .fade-up-2 { animation: fadeUp 0.5s 0.12s ease-out both; }
-
-        .btn-brand {
-            background: #CC0B20;
-            transition: all 0.25s;
-            position: relative; overflow: hidden;
-        }
-        .btn-brand::after {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
-            opacity: 0; transition: opacity 0.25s;
-        }
-        .btn-brand:hover::after { opacity: 1; }
-        .btn-brand:hover {
-            background: #e60d24;
-            box-shadow: 0 0 36px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
-            transform: translateY(-2px);
-        }
-
-        .noise::after {
-            content: '';
-            position: fixed; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            opacity: 0.018; pointer-events: none; z-index: 100;
-        }
-    </style>
+    <link rel="stylesheet" href="css/general/base.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="min-h-screen flex flex-col noise">
