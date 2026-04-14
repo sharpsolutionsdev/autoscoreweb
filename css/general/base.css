@@ -1,0 +1,658 @@
+/* =============================================================================
+   DartVoice — Shared Stylesheet
+   dv-shared.css
+   ============================================================================= */
+
+/* =============================================================================
+   1. DESIGN TOKENS
+   ============================================================================= */
+
+:root {
+  /* Brand */
+  --brand: #cc0b20; /* primary red — overridable per-user via theme.js */
+  --brand-light: #e60d24; /* hover / active variant */
+  --brand-rgb: 204, 11, 32; /* raw channels for rgba() usage */
+
+  /* Surface */
+  --color-dark: #08080a; /* page background */
+  --color-card: #111114; /* elevated card surface */
+  --color-wire: #252530; /* borders, dividers, grid lines */
+
+  /* Text */
+  --color-chalk: #f0f0f5; /* primary text */
+  --color-muted: #6e6e82; /* secondary / subdued text */
+  --color-faint: #4a4a5a; /* placeholder, labels, disabled text */
+
+  /* Alphas — convenience tokens derived from the palette */
+  --alpha-white-4: rgba(255, 255, 255, 0.04);
+  --alpha-white-6: rgba(255, 255, 255, 0.06);
+  --alpha-white-7: rgba(255, 255, 255, 0.07);
+  --alpha-white-12: rgba(255, 255, 255, 0.12);
+  --alpha-white-18: rgba(255, 255, 255, 0.18);
+  --alpha-white-22: rgba(255, 255, 255, 0.22);
+  --alpha-brand-10: rgba(204, 11, 32, 0.1);
+  --alpha-brand-12: rgba(204, 11, 32, 0.12);
+  --alpha-brand-20: rgba(204, 11, 32, 0.2);
+  --alpha-brand-35: rgba(204, 11, 32, 0.35);
+  --alpha-brand-40: rgba(204, 11, 32, 0.4);
+  --alpha-brand-50: rgba(204, 11, 32, 0.5);
+}
+
+/* =============================================================================
+   2. RESET & BASE
+   ============================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  background: var(--color-dark);
+  color: var(--color-chalk);
+  margin: 0;
+  padding: 0;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* =============================================================================
+   2. TYPOGRAPHY
+   ============================================================================= */
+
+/* Display / headline font — used for large headings and the wordmark */
+.display {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* Secondary display variant — lighter weight, used in referral page */
+.display-normal {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+/* Neon glow effect on large score / 404 numerals */
+.neon-score {
+  text-shadow:
+    0 0 12px rgba(var(--brand-rgb), 0.9),
+    0 0 24px rgba(var(--brand-rgb), 0.5),
+    0 0 48px rgba(var(--brand-rgb), 0.2);
+}
+
+/* Small all-caps label used in footers and form labels */
+.footer-col-head {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+  margin-bottom: 14px;
+}
+
+/* Section heading with left red accent bar (terms, privacy, guide) */
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+.section-heading::before {
+  content: "";
+  display: block;
+  width: 3px;
+  min-height: 1.25rem;
+  background: var(--brand);
+  border-radius: 2px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Section title with wider left accent bar (guide page variant) */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-title::before {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 1.5em;
+  background: var(--brand);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Divider with centred "or" text (login page) */
+.divider-or {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--color-faint);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.divider-or::before,
+.divider-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--alpha-white-6);
+}
+
+/*
+   Tailwind config — map tokens in each page's tailwind.config block:
+       brand  → var(--brand)       dark  → var(--color-dark)
+       card   → var(--color-card)  wire  → var(--color-wire)
+       muted  → var(--color-muted) chalk → var(--color-chalk)
+
+   theme.js overrides --brand and --brand-light on <html> at runtime
+   to support per-user colour themes.
+*/
+
+/* =============================================================================
+   3. TYPOGRAPHY
+   ============================================================================= */
+
+/* Full-screen film grain noise overlay */
+.noise::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.018;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Subtle dot grid used behind hero sections and login panel */
+.grid-bg-soft {
+  background-color: var(--color-dark);
+  background-image:
+    linear-gradient(rgba(37, 37, 48, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 37, 48, 0.4) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Denser grid used on mockup chrome headers (guide page) */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, var(--color-wire) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-wire) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Brand radial glow behind hero/login areas */
+.hero-glow {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      rgba(var(--brand-rgb), 0.13) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 50% 35% at 50% 10%,
+      rgba(var(--brand-rgb), 0.06) 0%,
+      transparent 60%
+    );
+}
+
+/* Glass glare highlight (guide page mockup) */
+.glass-glare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.03) 25%,
+    transparent 30%
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* =============================================================================
+   5. BUTTONS
+   ============================================================================= */
+
+/* Primary brand button */
+.btn-brand {
+  background: var(--brand);
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-brand::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    var(--alpha-white-12) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.btn-brand:hover::after {
+  opacity: 1;
+}
+.btn-brand:hover {
+  background: var(--brand-light);
+  box-shadow:
+    0 0 36px var(--alpha-brand-40),
+    0 4px 16px var(--alpha-brand-20);
+  transform: translateY(-2px);
+}
+.btn-brand:active {
+  transform: translateY(0);
+}
+.btn-brand:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-brand:disabled::after {
+  display: none;
+}
+
+/* Secondary outline button */
+.btn-outline {
+  border: 1px solid var(--color-wire);
+  background: transparent;
+  transition: all 0.25s;
+}
+.btn-outline:hover {
+  border-color: var(--alpha-white-18);
+  background: var(--alpha-white-4);
+}
+
+/* =============================================================================
+   6. FORM ELEMENTS
+   ============================================================================= */
+
+/* Standard text / select / textarea input */
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--color-dark);
+  border: 1px solid var(--alpha-white-7);
+  font-size: 14px;
+  color: var(--color-chalk);
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  font-family: inherit;
+}
+.form-input::placeholder {
+  color: var(--color-faint);
+}
+.form-input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--alpha-brand-10);
+}
+select.form-input {
+  appearance: none;
+  cursor: pointer;
+}
+textarea.form-input {
+  resize: vertical;
+  min-height: 140px;
+  line-height: 1.6;
+}
+
+/* Form field label */
+.form-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-faint);
+  margin-bottom: 8px;
+}
+
+/* Wrapper that adds a custom dropdown arrow */
+.select-wrap {
+  position: relative;
+}
+.select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-faint);
+  pointer-events: none;
+}
+
+/* Dark-card input used on login / OTP screens */
+.dv-input {
+  background: var(--color-card);
+  border: 1px solid var(--alpha-white-7);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  color: var(--color-chalk);
+  width: 100%;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 14px;
+  outline: none;
+}
+.dv-input::placeholder {
+  color: var(--alpha-white-22);
+}
+.dv-input:focus {
+  border-color: var(--brand);
+  box-shadow:
+    0 0 0 3px var(--alpha-brand-10),
+    0 0 20px rgba(var(--brand-rgb), 0.05);
+}
+
+/* OTP single-character boxes */
+.otp-field {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.otp-char {
+  width: 48px;
+  height: 60px;
+  background: var(--color-card);
+  border: 1px solid var(--alpha-white-7);
+  border-radius: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  font-family: "Courier New", monospace;
+  text-align: center;
+  color: var(--color-chalk);
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.otp-char:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--alpha-brand-12);
+}
+.otp-char.filled {
+  border-color: var(--alpha-brand-35);
+}
+
+/* =============================================================================
+   7. NAVIGATION
+   ============================================================================= */
+
+/* Animated underline on nav links */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--brand);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Mobile slide-down menu */
+.mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+.mobile-menu.open {
+  max-height: 360px;
+}
+
+/* =============================================================================
+   8. SCROLL REVEAL
+   ============================================================================= */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Offset anchors so fixed nav doesn't obscure headings */
+[id] {
+  scroll-margin-top: 72px;
+}
+
+/* =============================================================================
+   9. ANIMATIONS & KEYFRAMES
+   ============================================================================= */
+
+/* Generic fade-up entrance — stagger with .fade-up, .fade-up-2, .fade-up-3, .fade-up-4 */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fadeUp 0.5s ease-out both;
+}
+.fade-up-2 {
+  animation: fadeUp 0.5s 0.12s ease-out both;
+}
+.fade-up-3 {
+  animation: fadeUp 0.5s 0.25s ease-out both;
+}
+.fade-up-4 {
+  animation: fadeUp 0.5s 0.35s ease-out both;
+}
+
+/* Success tick pop (thanks page) */
+@keyframes checkPop {
+  0% {
+    transform: scale(0) rotate(-10deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+.check-pop {
+  animation: checkPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+}
+
+/* Smaller success icon scale (contact page) */
+@keyframes checkScale {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.check-scale {
+  animation: checkScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Confetti / celebration dots */
+@keyframes confettiDot {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-22px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-44px) scale(0.5);
+  }
+}
+
+/* Slow float used on hero graphics (guide page) */
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(15px, -25px) scale(1.05);
+  }
+  66% {
+    transform: translate(-10px, 15px) scale(0.95);
+  }
+}
+.animate-float-slow {
+  animation: floatSlow 12s ease-in-out infinite;
+}
+
+/* Scanline data-stream effect (guide page mockup) */
+@keyframes scanline {
+  0% {
+    transform: translateY(-200%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200%);
+    opacity: 0;
+  }
+}
+.data-stream {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(var(--brand-rgb), 0.2) 50%,
+    transparent
+  );
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 10;
+}
+
+/* Pulse ring emanating outward (referral badge) */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+.pulse-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1px solid var(--alpha-brand-50);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* Pulsing dot indicator (login / status) */
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+.pulse-dot {
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+/* Spinner (login loading state) */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  border: 2px solid var(--alpha-white-7);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* Slide-up entrance used in tab panels (web-app) */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Paywall modal drop-in (web-app) */
+@keyframes paywallDrop {
+  0% {
+    opacity: 0;
+    transform: scale(1.05) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.paywall-animate {
+  animation: paywallDrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
