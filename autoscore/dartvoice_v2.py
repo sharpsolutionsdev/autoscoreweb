@@ -1285,7 +1285,14 @@ class DartVoiceApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("DartVoice")
-        self.geometry("1024x600")
+        
+        sw = self.winfo_screenwidth()
+        sh = self.winfo_screenheight()
+        w, h = 1024, 600
+        x = int((sw - w) / 2)
+        y = int((sh - h) / 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
+        
         self.configure(fg_color=BG)
         self.resizable(True, True)
         self.minsize(720, 480)
@@ -1821,17 +1828,17 @@ class DartVoiceApp(ctk.CTk):
             icon_c.create_rectangle(34, 47, 38, 54, fill=ACCENT, outline='')
 
         # Heading
-        ctk.CTkLabel(inner, text="Free Preview Ended.",
-                     text_color=FG, font=("Uber Move Bold", 22, "bold"),
+        ctk.CTkLabel(inner, text="Unlock DartVoice Pro",
+                     text_color=FG, font=("Uber Move Bold", 26, "bold"),
                      justify='center').pack()
 
         # Body copy
         ctk.CTkLabel(
             inner,
-            text="Hope you enjoyed the warm-up.\nStart your 7-Day Free Trial to keep scoring.\nAuto-bills £6.99/mo after trial. Cancel anytime.",
-            text_color=FG2, font=("Rubik", 10),
-            justify='center', wraplength=320,
-        ).pack(pady=(8, 24))
+            text="Welcome to DartVoice! A Pro subscription or Free Trial is required to use the desktop auto-scorer.\nAuto-bills £6.99/mo after trial. Cancel anytime.",
+            text_color=FG2, font=("Rubik", 12),
+            justify='center', wraplength=340,
+        ).pack(pady=(12, 28))
 
         # Primary CTA
         def _start_trial():
@@ -1843,12 +1850,12 @@ class DartVoiceApp(ctk.CTk):
                 self._open_account_dialog()
 
         ctk.CTkButton(
-            inner, text="Start 7-Day Free Trial",
-            font=("Uber Move Bold", 14, "bold"),
+            inner, text="START 7-DAY FREE TRIAL",
+            font=("Uber Move Bold", 15, "bold"),
             fg_color=ACCENT, hover_color=PRI_HOV, text_color=PRI_FG,
-            height=52, corner_radius=12,
+            height=54, corner_radius=12,
             command=_start_trial,
-        ).pack(fill='x', pady=(0, 10))
+        ).pack(fill='x', pady=(0, 14))
 
         # Secondary CTA
         def _sign_in():
@@ -1856,13 +1863,13 @@ class DartVoiceApp(ctk.CTk):
             self._open_account_dialog()
 
         ctk.CTkButton(
-            inner, text="I've already subscribed — Sign In",
-            font=("Rubik", 11), fg_color=CARD2,
+            inner, text="I ALREADY HAVE AN ACCOUNT",
+            font=("Rubik", 12, "bold"), fg_color=CARD2,
             hover_color=SEP, text_color=FG,
-            border_width=1, border_color=SEP,
+            border_width=1, border_color=ACCENT,
             height=46, corner_radius=12,
             command=_sign_in,
-        ).pack(fill='x', pady=(0, 12))
+        ).pack(fill='x', pady=(0, 16))
 
         # Security note
         sec_row = ctk.CTkFrame(inner, fg_color='transparent')
