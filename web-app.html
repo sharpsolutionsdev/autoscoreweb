@@ -21,6 +21,56 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // STRICT SUBSCRIPTION GATE
+        // Hide the page immediately while we verify the user
+        document.documentElement.style.display = 'none';
+        
+        const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+        const sbAuth = supabase.createClient(SB_URL, SB_KEY);
+        
+        (async function() {
+            try {
+                const { data: { session } } = await sbAuth.auth.getSession();
+                if (!session || !session.user) {
+                    window.location.replace('login.html?intent=subscribe');
+                    return;
+                }
+                const { data: sub } = await sbAuth
+                    .from('dartvoice_subscriptions')
+                    .select('status')
+                    .eq('user_id', session.user.id)
+                    .maybeSingle();
+
+                const active = sub && ['active', 'trialing'].includes(sub.status);
+                if (!active) { 
+                    window.location.replace('login.html?intent=subscribe'); 
+                    return; 
+                }
+                
+                // Valid! Show UI
+                document.documentElement.style.display = '';
+                
+                // After UI is loaded, update account pill
+                document.addEventListener('DOMContentLoaded', () => {
+                   const nameEl = document.getElementById('account-name');
+                   const statusEl = document.getElementById('account-status');
+                   const avatarEl = document.getElementById('account-avatar');
+                   if (nameEl && session.user.email) {
+                       nameEl.textContent = session.user.email;
+                       avatarEl.textContent = session.user.email.charAt(0).toUpperCase();
+                   }
+                   if (statusEl && sub && sub.status) {
+                       statusEl.textContent = sub.status === 'trialing' ? 'Free Trial' : 'Pro Active';
+                   }
+                });
+            } catch (e) {
+                console.error("Auth gate error", e);
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
