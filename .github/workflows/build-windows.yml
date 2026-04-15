@@ -2,7 +2,7 @@ name: Build Windows Installer
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, working ]
     paths:
       - 'autoscore/dartvoice_v2.py'
       - 'autoscore/shared.py'
