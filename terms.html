@@ -15,7 +15,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Terms of Service | DartVoice</title>
     <meta name="description" content="Read the Terms of Service for DartVoice.">
-    <meta name="theme-color" content="#CC0B20">
+    <meta name="theme-color" content="var(--brand)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand:    'var(--brand, #CC0B20)',
+                        brand:    'var(--brand, var(--brand))',
                         dark:     '#08080A',
                         card:     '#111114',
                         card2:    '#18181C',
@@ -64,7 +64,7 @@
             display: block;
             width: 3px;
             min-height: 1.25rem;
-            background: #CC0B20;
+            background: var(--brand);
             border-radius: 2px;
             margin-top: 2px;
             flex-shrink: 0;
@@ -83,7 +83,7 @@
         <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2.5 group">
                 <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <rect width="36" height="36" rx="9" fill="var(--brand)"/>
                     <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="3" fill="white"/>
@@ -210,7 +210,7 @@
                 <div class="col-span-2 sm:col-span-4 lg:col-span-2">
                     <a href="/" class="flex items-center gap-2.5 group mb-4">
                         <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                            <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                            <rect width="36" height="36" rx="9" fill="var(--brand)"/>
                             <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
                             <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
                             <circle cx="18" cy="18" r="3" fill="white"/>

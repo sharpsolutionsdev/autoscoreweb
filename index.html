@@ -28,7 +28,7 @@
     <meta name="twitter:description"
         content="Say your score. DartVoice handles the rest. Voice-controlled auto-scoring for 501, 301, Cricket & more.">
     <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
-    <meta name="theme-color" content="#CC0B20">
+    <meta name="theme-color" content="var(--brand)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -46,7 +46,7 @@
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
                     colors: {
-                        brand: 'var(--brand, #CC0B20)',
+                        brand: 'var(--brand, var(--brand))',
                         'brand-light': 'var(--brand-light, #e60d24)',
                         dark: '#08080A',
                         card: '#111114',
@@ -76,7 +76,7 @@
             <!-- Logo — hub horizontal lockup style -->
             <a href="/" class="flex items-center gap-2.5 group">
                 <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                    <rect width="36" height="36" rx="9" fill="#CC0B20" />
+                    <rect width="36" height="36" rx="9" fill="var(--brand)" />
                     <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none" />
                     <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none" />
                     <circle cx="18" cy="18" r="3" fill="white" />
@@ -193,7 +193,7 @@
                 <circle cx="250" cy="250" r="120" stroke="#252530" stroke-width="3" fill="none" />
                 <circle cx="250" cy="250" r="65" stroke="#252530" stroke-width="3" fill="none" />
                 <circle cx="250" cy="250" r="42" stroke="#252530" stroke-width="3" fill="none" />
-                <circle cx="250" cy="250" r="18" fill="#CC0B20" opacity="0.6" />
+                <circle cx="250" cy="250" r="18" fill="var(--brand)" opacity="0.6" />
                 <circle cx="250" cy="250" r="8" fill="#08080A" />
                 <g stroke="#252530" stroke-width="2" opacity="0.8">
                     <line x1="250" y1="10" x2="250" y2="490" />
@@ -246,7 +246,7 @@
                         class="display text-5xl sm:text-6xl md:text-7xl lg:text-8xl  lg:text-[5.5rem] leading-[0.88] mb-6 fade-up-2">
                         CALL YOUR<br>
                         <span class="text-brand neon-score"
-                            style="text-shadow: 0 0 40px rgba(204,11,32,0.6), 0 0 80px rgba(204,11,32,0.2)">SCORES.</span><br>
+                            style="text-shadow: 0 0 40px rgba(var(--brand-rgb), 0.6), 0 0 80px rgba(var(--brand-rgb), 0.2)">SCORES.</span><br>
                         PLAY YOUR GAME.
                     </h1>
 
@@ -306,13 +306,13 @@
                         <span class="text-[10px] font-bold tracking-widest text-muted uppercase">Works with</span>
                         <!-- Target Dart Counter badge -->
                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold"
-                            style="background:#1A1A20; border-color:#CC0B20; color:#F0F0F5;">
+                            style="background:#1A1A20; border-color:var(--brand); color:#F0F0F5;">
                             <!-- Target-style arrow/dart icon -->
                             <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
-                                <circle cx="8" cy="8" r="6.5" stroke="#CC0B20" stroke-width="1.4" />
-                                <circle cx="8" cy="8" r="3.5" stroke="#CC0B20" stroke-width="1.2" />
-                                <circle cx="8" cy="8" r="1.5" fill="#CC0B20" />
-                                <line x1="8" y1="1.5" x2="8" y2="4" stroke="#CC0B20" stroke-width="1.4"
+                                <circle cx="8" cy="8" r="6.5" stroke="var(--brand)" stroke-width="1.4" />
+                                <circle cx="8" cy="8" r="3.5" stroke="var(--brand)" stroke-width="1.2" />
+                                <circle cx="8" cy="8" r="1.5" fill="var(--brand)" />
+                                <line x1="8" y1="1.5" x2="8" y2="4" stroke="var(--brand)" stroke-width="1.4"
                                     stroke-linecap="round" />
                             </svg>
                             Target Dart Counter
@@ -355,7 +355,7 @@
                                 style="background: #111114">
                                 <div class="flex items-center gap-2">
                                     <svg viewBox="0 0 36 36" class="w-4 h-4" fill="none">
-                                        <rect width="36" height="36" rx="9" fill="#CC0B20" />
+                                        <rect width="36" height="36" rx="9" fill="var(--brand)" />
                                         <circle cx="18" cy="18" r="6" fill="white" />
                                     </svg>
                                     <span
@@ -363,7 +363,7 @@
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <span class="text-[7px] px-1.5 py-0.5 rounded text-white/50 font-medium"
-style="background:rgba(204,11,32,0.15); border:1px solid rgba(204,11,32,0.3);">X01</span>
+style="background:rgba(var(--brand-rgb), 0.15); border:1px solid rgba(var(--brand-rgb), 0.3);">X01</span>
                                     <span class="text-[7px] px-1.5 py-0.5 rounded text-white/30 font-medium"
                                         style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);">Cricket</span>
                                     <span class="text-[7px] px-1.5 py-0.5 rounded text-white/30 font-medium"
@@ -407,13 +407,13 @@ style="background:rgba(204,11,32,0.15); border:1px solid rgba(204,11,32,0.3);">X
                                 <!-- Center: Score display -->
                                 <div class="flex-1 flex flex-col items-center justify-center p-3 relative">
                                     <div class="absolute inset-0"
-style="background: radial-gradient(ellipse at center top, rgba(204,11,32,0.15), transparent 60%)">
+style="background: radial-gradient(ellipse at center top, rgba(var(--brand-rgb), 0.15), transparent 60%)">
                                     </div>
                                     <p
                                         class="relative text-[7px] font-bold text-white/30 uppercase tracking-widest mb-1">
                                         Last Score</p>
                                     <p class="relative font-black text-[52px] leading-none text-white mb-2"
-                                        style="text-shadow: 0 0 30px rgba(204,11,32,0.7);">
+                                        style="text-shadow: 0 0 30px rgba(var(--brand-rgb), 0.7);">
                                         60</p>
                                     <div class="relative flex items-center gap-1 mb-3">
                                         <div class="w-1.5 h-1.5 rounded-full bg-green-500 pulse-dot"></div>
@@ -421,9 +421,9 @@ style="background: radial-gradient(ellipse at center top, rgba(204,11,32,0.15), 
                                     </div>
                                     <!-- Stop Listening button -->
                                     <div class="relative w-full max-w-[140px] py-2 rounded-lg text-center"
-style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.4);">
+style="background: rgba(var(--brand-rgb), 0.15); border: 1px solid rgba(var(--brand-rgb), 0.4);">
 <span
-                                            style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:9px; color:rgba(204,11,32,0.9); letter-spacing:0.1em;">STOP
+                                            style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:9px; color:rgba(var(--brand-rgb), 0.9); letter-spacing:0.1em;">STOP
                                             LISTENING</span>
                                     </div>
                                 </div>
@@ -432,19 +432,19 @@ style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.4);"
                                     <p class="text-[7px] font-bold text-white/30 uppercase tracking-wider mb-2">Live</p>
                                     <div class="grid grid-cols-2 gap-1 mb-2">
                                         <div class="rounded p-1 text-center"
-style="background:rgba(204,11,32,0.08); border:1px solid rgba(204,11,32,0.15);">
+style="background:rgba(var(--brand-rgb), 0.08); border:1px solid rgba(var(--brand-rgb), 0.15);">
                                             <p class="text-[6px] text-white/30 uppercase">Avg</p>
                                             <p class="text-[10px] font-bold text-white/80">33.3</p>
                                         </div>
                                         <div class="rounded p-1 text-center"
-                                            style="background:rgba(204,11,32,0.08); border:1px solid rgba(204,11,32,0.15);">
+                                            style="background:rgba(var(--brand-rgb), 0.08); border:1px solid rgba(var(--brand-rgb), 0.15);">
                                             <p class="text-[6px] text-white/30 uppercase">Darts</p>
                                             <p class="text-[10px] font-bold text-white/80">354</p>
                                         </div>
                                     </div>
                                     <p class="text-[7px] font-bold text-white/30 uppercase tracking-wider mb-1">Mic</p>
                                     <div class="rounded px-1.5 py-1 mb-2 text-[7px] text-white/50 truncate"
-style="background:rgba(204,11,32,0.1); border:1px solid rgba(204,11,32,0.2);">
+style="background:rgba(var(--brand-rgb), 0.1); border:1px solid rgba(var(--brand-rgb), 0.2);">
                                         G435 Wireless
                                     </div>
                                     <p class="text-[7px] font-bold text-white/30 uppercase tracking-wider mb-1">Mode</p>
@@ -452,7 +452,7 @@ style="background:rgba(204,11,32,0.1); border:1px solid rgba(204,11,32,0.2);">
                                         <span class="text-[6px] px-1 py-0.5 rounded text-white/30"
                                             style="background:rgba(255,255,255,0.03);">Per Dart</span>
                                         <span class="text-[6px] px-1 py-0.5 rounded text-white font-bold"
-style="background:rgba(204,11,32,0.5);">3 Darts</span>
+style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                                     </div>
                                 </div>
                             </div>
@@ -467,9 +467,9 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="absolute -top-4 right-10 sm:right-16 lg:right-auto lg:left-[280px] z-20 w-28 sm:w-32"
                         style="animation: fadeUp 0.7s 0.4s ease-out both">
                         <div class="rounded-2xl p-3 sm:p-4 text-center relative overflow-hidden shadow-2xl"
-                            style="background: linear-gradient(160deg, #1A0608, #111114); border: 1.5px solid #CC0B20; box-shadow: 0 0 30px rgba(204,11,32,0.25)">
+                            style="background: linear-gradient(160deg, #1A0608, #111114); border: 1.5px solid var(--brand); box-shadow: 0 0 30px rgba(var(--brand-rgb), 0.25)">
                             <div class="absolute inset-0"
-                                style="background: radial-gradient(circle at center, rgba(204,11,32,0.25) 0%, transparent 70%)">
+                                style="background: radial-gradient(circle at center, rgba(var(--brand-rgb), 0.25) 0%, transparent 70%)">
                             </div>
                             <p class="relative text-[9px] font-bold tracking-[0.25em] text-brand mb-1">MAXIMUM</p>
                             <p
@@ -499,7 +499,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         <!-- Score area (top, large, Thumb Zone style) -->
                         <div class="flex-1 flex flex-col items-center justify-center px-6 pt-4 pb-6 relative">
                             <div class="absolute inset-0"
-                                style="background: radial-gradient(ellipse at top, rgba(204,11,32,0.18), transparent 55%)">
+                                style="background: radial-gradient(ellipse at top, rgba(var(--brand-rgb), 0.18), transparent 55%)">
                             </div>
                             <p class="relative text-[10px] font-bold tracking-[0.3em] text-muted mb-1 uppercase">
                                 Remaining</p>
@@ -512,7 +512,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                 <span
                                     class="bg-card-2 border border-wire text-chalk text-[11px] font-bold px-3 py-1.5 rounded-lg">T20</span>
                                 <span class="text-white text-[11px] font-bold px-3 py-1.5 rounded-lg"
-                                    style="background:#CC0B20; box-shadow: 0 0 10px rgba(204,11,32,0.5)">BULL</span>
+                                    style="background:var(--brand); box-shadow: 0 0 10px rgba(var(--brand-rgb), 0.5)">BULL</span>
                             </div>
                             <div class="relative mt-4 flex gap-4 text-center">
                                 <div>
@@ -547,7 +547,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                 <!-- Mic button -->
                                 <button
                                     class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 text-white font-bold text-sm"
-                                    style="background: #CC0B20; box-shadow: 0 0 22px rgba(204,11,32,0.45)">
+                                    style="background: var(--brand); box-shadow: 0 0 22px rgba(var(--brand-rgb), 0.45)">
                                     <!-- Listening bars -->
                                     <div class="flex items-end gap-[2px] h-5">
                                         <div class="w-[3px] h-3 bg-white/70 rounded-full bar-1"></div>
@@ -587,7 +587,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                 <span
                                     class="bg-card-2 border border-wire text-chalk text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center">T19</span>
                                 <span class="text-white text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center"
-                                    style="background: rgba(204,11,32,0.8)">D16</span>
+                                    style="background: rgba(var(--brand-rgb), 0.8)">D16</span>
                             </div>
                             <p class="text-[9px] text-muted">167 remaining</p>
                         </div>
@@ -663,8 +663,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <!-- Mic mesh background texture -->
                     <img src="assets/media/mic-mesh-red.jpeg" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-[0.07] pointer-events-none" style="mix-blend-mode: screen;">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
+                        style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                             <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -694,7 +694,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         </div>
                         <div>
                             <span class="text-[9px] text-muted uppercase tracking-wider">Detected</span>
-                            <div class="display text-sm neon-score" style="color:#CC0B20;">"One-forty"</div>
+                            <div class="display text-sm neon-score" style="color:var(--brand);">"One-forty"</div>
                         </div>
                     </div>
                 </div>
@@ -702,8 +702,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <!-- Automatic Scoring -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
+                        style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 3v18h18" />
                             <path d="m19 9-5 5-4-4-3 3" />
@@ -718,13 +718,13 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                 <span class="text-[9px] text-muted uppercase tracking-wider">Was</span>
                                 <div class="display text-lg text-muted-2 line-through">501</div>
                             </div>
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#CC0B20" stroke-width="2"
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--brand)" stroke-width="2"
                                 fill="none">
                                 <path d="M5 12h14M12 5l7 7-7 7" />
                             </svg>
                             <div class="text-center">
                                 <span class="text-[9px] text-brand uppercase tracking-wider font-bold">Now</span>
-                                <div class="display text-xl neon-score" style="color:#CC0B20;">361</div>
+                                <div class="display text-xl neon-score" style="color:var(--brand);">361</div>
                             </div>
                             <div class="text-center">
                                 <span class="text-[9px] text-muted uppercase tracking-wider">Scored</span>
@@ -737,8 +737,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <!-- Checkout Suggestions -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
+                        style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <circle cx="12" cy="12" r="6" />
@@ -752,10 +752,10 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         <div class="text-[9px] text-muted uppercase tracking-wider mb-2">Remaining: 96</div>
                         <div class="flex gap-1.5">
                             <span class="display text-xs px-2 py-1 rounded"
-                                style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                                style="background: rgba(var(--brand-rgb), 0.1); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.2);">T20</span>
                             <span class="text-muted-2 flex items-center">→</span>
                             <span class="display text-xs px-2 py-1 rounded"
-                                style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">D18</span>
+                                style="background: rgba(var(--brand-rgb), 0.1); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.2);">D18</span>
                             <span class="ml-auto">
                                 <svg viewBox="0 0 20 20" width="14" height="14" fill="#22c55e">
                                     <path
@@ -767,21 +767,21 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 </div>
 
                 <!-- Target Dart Counter -->
-                <div class="feature-card rounded-2xl p-6 reveal" style="border-color: rgba(204,11,32,0.25);">
+                <div class="feature-card rounded-2xl p-6 reveal" style="border-color: rgba(var(--brand-rgb), 0.25);">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
-                        style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.3)">
+                        style="background: rgba(var(--brand-rgb), 0.12); border: 1px solid rgba(var(--brand-rgb), 0.3)">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-                            <circle cx="12" cy="12" r="9" stroke="#CC0B20" stroke-width="2" />
-                            <circle cx="12" cy="12" r="5" stroke="#CC0B20" stroke-width="2" />
-                            <circle cx="12" cy="12" r="2" fill="#CC0B20" />
-                            <line x1="12" y1="3" x2="12" y2="1" stroke="#CC0B20" stroke-width="2"
+                            <circle cx="12" cy="12" r="9" stroke="var(--brand)" stroke-width="2" />
+                            <circle cx="12" cy="12" r="5" stroke="var(--brand)" stroke-width="2" />
+                            <circle cx="12" cy="12" r="2" fill="var(--brand)" />
+                            <line x1="12" y1="3" x2="12" y2="1" stroke="var(--brand)" stroke-width="2"
                                 stroke-linecap="round" />
                         </svg>
                     </div>
                     <div class="flex items-center gap-2 mb-2">
                         <h3 class="font-semibold text-chalk">Target Dart Counter</h3>
                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                            style="background:rgba(204,11,32,0.15); color:#CC0B20;">COMPATIBLE</span>
+                            style="background:rgba(var(--brand-rgb), 0.15); color:var(--brand);">COMPATIBLE</span>
                     </div>
                     <p class="text-muted text-sm leading-relaxed mb-4">DartVoice works seamlessly alongside Target Dart
                         Counter — just open both apps and call your scores.</p>
@@ -793,8 +793,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             <span class="text-[10px] text-muted">Target DC</span>
                         </div>
                         <div class="absolute left-16 top-3 demo-screen px-3 py-2 flex items-center gap-2 pip-float"
-                            style="z-index:2; border-color: rgba(204,11,32,0.25); box-shadow: 0 4px 16px rgba(0,0,0,0.6);">
-                            <div class="w-5 h-5 rounded flex items-center justify-center" style="background: #CC0B20;">
+                            style="z-index:2; border-color: rgba(var(--brand-rgb), 0.25); box-shadow: 0 4px 16px rgba(0,0,0,0.6);">
+                            <div class="w-5 h-5 rounded flex items-center justify-center" style="background: var(--brand);">
                                 <svg viewBox="0 0 12 12" width="8" height="8" fill="white">
                                     <circle cx="6" cy="6" r="2" />
                                 </svg>
@@ -813,14 +813,14 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 </div>
 
                 <!-- Android Mobile MVP -->
-                <div class="feature-card rounded-2xl p-6 reveal pulse-glow relative overflow-hidden" style="border-color: rgba(204,11,32,0.3); background: linear-gradient(145deg, #111114, #1A0608);">
+                <div class="feature-card rounded-2xl p-6 reveal pulse-glow relative overflow-hidden" style="border-color: rgba(var(--brand-rgb), 0.3); background: linear-gradient(145deg, #111114, #1A0608);">
                     <!-- Android pulsing video bg -->
                     <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.12] pointer-events-none" style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.8);">
                         <source src="assets/media/android-pulse.mp4" type="video/mp4">
                     </video>
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
-                        style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.3)">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
+                        style="background: rgba(var(--brand-rgb), 0.15); border: 1px solid rgba(var(--brand-rgb), 0.3)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
                             <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
                             <line x1="12" y1="18" x2="12.01" y2="18" />
@@ -829,7 +829,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="flex items-center gap-2 mb-2">
                         <h3 class="font-semibold text-chalk">Android Native MVP</h3>
                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                            style="background: #CC0B20; color: white;">NEW</span>
+                            style="background: var(--brand); color: white;">NEW</span>
                     </div>
                     <p class="text-muted text-sm leading-relaxed mb-4">Run the full DartVoice engine in the background. Use <strong>Visual Calibration</strong> to tap targets on other apps, and <strong>PiP Mode</strong> to keep scoring visible while you play.</p>
                     <div class="demo-screen p-3 flex flex-col gap-2">
@@ -850,13 +850,13 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <!-- Works Offline -->
                 <div class="feature-card rounded-2xl p-6 reveal">
                     <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#CC0B20" stroke-width="2" fill="none"
+                        style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 12.55a11 11 0 0 1 14.08 0" />
                             <path d="M1.42 9a16 16 0 0 1 21.16 0" />
                             <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-                            <circle cx="12" cy="20" r="1" fill="#CC0B20" />
+                            <circle cx="12" cy="20" r="1" fill="var(--brand)" />
                         </svg>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Works Offline</h3>
@@ -904,8 +904,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="media-overlay"></div>
                     <div class="media-label">
                         <div class="flex items-center gap-2 mb-1">
-                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(204,11,32,0.2);">
-                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                             </div>
                             <p class="text-chalk text-sm font-semibold">Phone on Stand</p>
                         </div>
@@ -917,8 +917,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="media-overlay"></div>
                     <div class="media-label">
                         <div class="flex items-center gap-2 mb-1">
-                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(204,11,32,0.2);">
-                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
                             </div>
                             <p class="text-chalk text-sm font-semibold">Any Microphone</p>
                         </div>
@@ -930,8 +930,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="media-overlay"></div>
                     <div class="media-label">
                         <div class="flex items-center gap-2 mb-1">
-                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(204,11,32,0.2);">
-                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                             </div>
                             <p class="text-chalk text-sm font-semibold">Multi-Platform</p>
                         </div>
@@ -963,8 +963,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div>
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                                style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2"
+                                style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2"
                                     fill="none" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                                 </svg>
@@ -977,10 +977,10 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             Just talk naturally.</p>
                         <div class="flex flex-wrap gap-2">
                             <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
-                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Per-Dart
+                                style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Per-Dart
                                 Mode</span>
                             <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
-                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Cricket
+                                style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Cricket
                                 Mode</span>
                         </div>
                     </div>
@@ -1005,28 +1005,28 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         <!-- Cycling speech bubbles -->
                         <div class="phrase-cycle mb-5" style="height: 3.2em;">
                             <span class="display text-2xl sm:text-3xl text-chalk"
-                                style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Triple 17"</span>
+                                style="text-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">"Triple 17"</span>
                             <span class="display text-2xl sm:text-3xl text-chalk"
-                                style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Treble 17"</span>
+                                style="text-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">"Treble 17"</span>
                             <span class="display text-2xl sm:text-3xl text-chalk"
-                                style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"T17"</span>
+                                style="text-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">"T17"</span>
                             <span class="display text-2xl sm:text-3xl text-chalk"
-                                style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Fifty-one"</span>
+                                style="text-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">"Fifty-one"</span>
                             <span class="display text-2xl sm:text-3xl text-chalk"
-                                style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Bull"</span>
+                                style="text-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">"Bull"</span>
                             <span class="display text-2xl sm:text-3xl text-chalk"
-                                style="text-shadow: 0 0 20px rgba(204,11,32,0.3);">"Fifty"</span>
+                                style="text-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">"Fifty"</span>
                         </div>
                         <!-- Result arrow -->
                         <div class="flex items-center gap-3 pt-3" style="border-top: 1px solid #1E1E28;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#CC0B20" stroke-width="2"
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--brand)" stroke-width="2"
                                 fill="none">
                                 <polyline points="6 9 12 15 18 9" />
                             </svg>
                             <div>
                                 <span class="text-[10px] text-muted uppercase tracking-wider">Parsed as</span>
                                 <div class="flex items-center gap-2 mt-0.5">
-                                    <span class="display text-lg neon-score" style="color: #CC0B20;">T17 = 51</span>
+                                    <span class="display text-lg neon-score" style="color: var(--brand);">T17 = 51</span>
                                     <svg viewBox="0 0 20 20" width="16" height="16" fill="#22c55e">
                                         <path
                                             d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2-2a1 1 0 1 1 1.4-1.4L8.5 11l4.3-4.3a1 1 0 1 1 1.4 1.4z" />
@@ -1045,8 +1045,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <div class="bento-card rounded-2xl p-6 sm:p-8 reveal">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                            style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2"
+                            style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2"
                                 fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 6h16M4 12h10M4 18h14" />
                             </svg>
@@ -1060,20 +1060,20 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="grid sm:grid-cols-3 gap-3">
                         <div class="demo-screen p-4 text-center float-y">
                             <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">3-Dart Mode</span>
-                            <div class="display text-3xl neon-score mt-2" style="color:#CC0B20;">140</div>
+                            <div class="display text-3xl neon-score mt-2" style="color:var(--brand);">140</div>
                             <div class="text-[10px] text-muted mt-2">"One-forty!"</div>
                         </div>
                         <div class="demo-screen p-4 text-center float-y" style="animation-delay: 0.5s;">
                             <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">Per Dart</span>
                             <div class="flex justify-center gap-1.5 mt-2">
                                 <span class="display text-lg"
-                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">T20</span>
+                                    style="color:var(--brand); text-shadow: 0 0 8px rgba(var(--brand-rgb), 0.6);">T20</span>
                                 <span class="text-wire">·</span>
                                 <span class="display text-lg"
-                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">T20</span>
+                                    style="color:var(--brand); text-shadow: 0 0 8px rgba(var(--brand-rgb), 0.6);">T20</span>
                                 <span class="text-wire">·</span>
                                 <span class="display text-lg"
-                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">T20</span>
+                                    style="color:var(--brand); text-shadow: 0 0 8px rgba(var(--brand-rgb), 0.6);">T20</span>
                             </div>
                             <div class="text-[10px] text-muted mt-2">= 180</div>
                         </div>
@@ -1081,11 +1081,11 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             <span class="text-[9px] text-muted uppercase tracking-wider font-semibold">Cricket</span>
                             <div class="flex justify-center gap-1.5 mt-2">
                                 <span class="display text-base"
-                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">20</span>
+                                    style="color:var(--brand); text-shadow: 0 0 8px rgba(var(--brand-rgb), 0.6);">20</span>
                                 <span class="display text-base"
-                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">20</span>
+                                    style="color:var(--brand); text-shadow: 0 0 8px rgba(var(--brand-rgb), 0.6);">20</span>
                                 <span class="display text-base"
-                                    style="color:#CC0B20; text-shadow: 0 0 8px rgba(204,11,32,0.6);">Bull</span>
+                                    style="color:var(--brand); text-shadow: 0 0 8px rgba(var(--brand-rgb), 0.6);">Bull</span>
                             </div>
                             <div class="text-[10px] text-muted mt-2">Marks auto-tracked</div>
                         </div>
@@ -1096,8 +1096,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <div class="bento-card rounded-2xl p-6 sm:p-8 reveal">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                            style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2"
+                            style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2"
                                 fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
@@ -1156,7 +1156,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         <div class="flex items-center justify-between text-[11px]">
                             <div class="flex items-center gap-2">
                                 <span class="inline-block px-2 py-0.5 rounded font-mono font-bold"
-                                    style="background: rgba(204,11,32,0.15); color: #CC0B20; border: 1px solid rgba(204,11,32,0.25);">"Score"</span>
+                                    style="background: rgba(var(--brand-rgb), 0.15); color: var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.25);">"Score"</span>
                                 <span class="text-chalk font-semibold">140</span>
                                 <svg viewBox="0 0 20 20" width="14" height="14" fill="#22c55e">
                                     <path
@@ -1177,13 +1177,13 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
 
             <!-- ── ROW 3: Live Checkouts — full width hero ── -->
             <div class="bento-card rounded-2xl p-6 sm:p-8 lg:p-10 mb-4 reveal pulse-glow"
-                style="border-color: rgba(204,11,32,0.2);">
+                style="border-color: rgba(var(--brand-rgb), 0.2);">
                 <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                     <!-- Visual: Animated checkout display -->
                     <div class="demo-screen p-5 sm:p-6 order-2 lg:order-1">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center gap-2">
-                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="#CC0B20" stroke-width="2"
+                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--brand)" stroke-width="2"
                                     fill="none">
                                     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                 </svg>
@@ -1191,7 +1191,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                     Guide</span>
                             </div>
                             <span class="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                                style="background:rgba(204,11,32,0.15); color:#CC0B20;">LIVE</span>
+                                style="background:rgba(var(--brand-rgb), 0.15); color:var(--brand);">LIVE</span>
                         </div>
                         <!-- Cycling checkout suggestions -->
                         <div class="checkout-cycle" style="height: 110px;">
@@ -1200,11 +1200,11 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                         class="text-chalk font-bold">170</span></div>
                                 <div class="flex gap-2">
                                     <span class="display text-lg px-3 py-1.5 rounded-lg"
-                                        style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                                        style="background: rgba(var(--brand-rgb), 0.1); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.2);">T20</span>
                                     <span class="display text-lg px-3 py-1.5 rounded-lg"
-                                        style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                                        style="background: rgba(var(--brand-rgb), 0.1); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.2);">T20</span>
                                     <span class="display text-lg px-3 py-1.5 rounded-lg"
-                                        style="background: rgba(204,11,32,0.15); color:#CC0B20; border: 1px solid rgba(204,11,32,0.3);">BULL</span>
+                                        style="background: rgba(var(--brand-rgb), 0.15); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.3);">BULL</span>
                                 </div>
                                 <div class="text-[10px] text-muted">60 + 60 + 50 = 170</div>
                             </div>
@@ -1213,9 +1213,9 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                         class="text-chalk font-bold">110</span></div>
                                 <div class="flex gap-2">
                                     <span class="display text-lg px-3 py-1.5 rounded-lg"
-                                        style="background: rgba(204,11,32,0.1); color:#CC0B20; border: 1px solid rgba(204,11,32,0.2);">T20</span>
+                                        style="background: rgba(var(--brand-rgb), 0.1); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.2);">T20</span>
                                     <span class="display text-lg px-3 py-1.5 rounded-lg"
-                                        style="background: rgba(204,11,32,0.15); color:#CC0B20; border: 1px solid rgba(204,11,32,0.3);">BULL</span>
+                                        style="background: rgba(var(--brand-rgb), 0.15); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.3);">BULL</span>
                                 </div>
                                 <div class="text-[10px] text-muted">60 + 50 = 110</div>
                             </div>
@@ -1224,7 +1224,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                         class="text-chalk font-bold">50</span></div>
                                 <div class="flex gap-2">
                                     <span class="display text-xl px-4 py-2 rounded-lg neon-score"
-                                        style="background: rgba(204,11,32,0.15); color:#CC0B20; border: 1px solid rgba(204,11,32,0.4);">BULL</span>
+                                        style="background: rgba(var(--brand-rgb), 0.15); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.4);">BULL</span>
                                 </div>
                                 <div class="text-[10px] text-chalk font-semibold">Game shot!</div>
                             </div>
@@ -1234,14 +1234,14 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="order-1 lg:order-2">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                                style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.25)">
-                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2"
+                                style="background: rgba(var(--brand-rgb), 0.12); border: 1px solid rgba(var(--brand-rgb), 0.25)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2"
                                     fill="none">
                                     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                 </svg>
                             </div>
                             <span class="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                                style="background:rgba(204,11,32,0.15); color:#CC0B20;">DYNAMIC</span>
+                                style="background:rgba(var(--brand-rgb), 0.15); color:var(--brand);">DYNAMIC</span>
                         </div>
                         <h3 class="display text-2xl sm:text-3xl text-chalk mb-4">CHECKOUTS THAT THINK<br>WITH EVERY DART
                         </h3>
@@ -1264,8 +1264,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <div class="bento-card rounded-2xl p-6 reveal">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                            style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2"
+                            style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2"
                                 fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="2" y="3" width="20" height="14" rx="2" />
                                 <path d="M8 21h8M12 17v4" />
@@ -1292,9 +1292,9 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         </div>
                         <!-- PiP window -->
                         <div class="absolute bottom-2 right-2 w-24 rounded-lg p-2 pip-float"
-                            style="background: #111114; border: 1px solid rgba(204,11,32,0.3); box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 16px rgba(204,11,32,0.1);">
+                            style="background: #111114; border: 1px solid rgba(var(--brand-rgb), 0.3); box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 16px rgba(var(--brand-rgb), 0.1);">
                             <div class="text-[8px] text-brand font-bold mb-1">DARTVOICE</div>
-                            <div class="display text-sm neon-score" style="color:#CC0B20;">501</div>
+                            <div class="display text-sm neon-score" style="color:var(--brand);">501</div>
                             <div class="flex gap-[2px] mt-1 items-end h-2">
                                 <div class="w-[2px] bg-brand rounded-sm wave-bar"
                                     style="height:100%; animation: waveBar 0.6s 0.0s ease-in-out infinite;"></div>
@@ -1311,11 +1311,11 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <div class="bento-card rounded-2xl p-6 reveal">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                            style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
+                            style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                                <circle cx="12" cy="12" r="9" stroke="#CC0B20" stroke-width="2" />
-                                <circle cx="12" cy="12" r="5" stroke="#CC0B20" stroke-width="2" />
-                                <circle cx="12" cy="12" r="2" fill="#CC0B20" />
+                                <circle cx="12" cy="12" r="9" stroke="var(--brand)" stroke-width="2" />
+                                <circle cx="12" cy="12" r="5" stroke="var(--brand)" stroke-width="2" />
+                                <circle cx="12" cy="12" r="2" fill="var(--brand)" />
                             </svg>
                         </div>
                     </div>
@@ -1326,21 +1326,21 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="demo-screen p-4">
                         <div class="grid grid-cols-3 gap-2 mb-3">
                             <div class="text-center p-2 rounded-lg"
-                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15);">
-                                <div class="display text-sm" style="color:#CC0B20;">301</div>
+                                style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15);">
+                                <div class="display text-sm" style="color:var(--brand);">301</div>
                             </div>
                             <div class="text-center p-2 rounded-lg"
-                                style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.25);">
-                                <div class="display text-sm neon-score" style="color:#CC0B20;">501</div>
+                                style="background: rgba(var(--brand-rgb), 0.12); border: 1px solid rgba(var(--brand-rgb), 0.25);">
+                                <div class="display text-sm neon-score" style="color:var(--brand);">501</div>
                             </div>
                             <div class="text-center p-2 rounded-lg"
-                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15);">
-                                <div class="display text-sm" style="color:#CC0B20;">701</div>
+                                style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15);">
+                                <div class="display text-sm" style="color:var(--brand);">701</div>
                             </div>
                         </div>
                         <div class="text-center p-2 rounded-lg"
-                            style="background: rgba(204,11,32,0.06); border: 1px solid rgba(204,11,32,0.12);">
-                            <div class="display text-sm" style="color:#CC0B20;">CRICKET</div>
+                            style="background: rgba(var(--brand-rgb), 0.06); border: 1px solid rgba(var(--brand-rgb), 0.12);">
+                            <div class="display text-sm" style="color:var(--brand);">CRICKET</div>
                         </div>
                         <div class="flex justify-between mt-3 text-[10px]">
                             <span class="text-muted">Session Avg</span>
@@ -1350,18 +1350,18 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 </div>
 
                 <!-- Match Recording -->
-                <div class="bento-card rounded-2xl p-6 reveal" style="border-color: rgba(204,11,32,0.2);">
+                <div class="bento-card rounded-2xl p-6 reveal" style="border-color: rgba(var(--brand-rgb), 0.2);">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                            style="background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.25)">
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2"
+                            style="background: rgba(var(--brand-rgb), 0.12); border: 1px solid rgba(var(--brand-rgb), 0.25)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2"
                                 fill="none">
                                 <circle cx="12" cy="12" r="10" />
-                                <circle cx="12" cy="12" r="4" fill="#CC0B20" />
+                                <circle cx="12" cy="12" r="4" fill="var(--brand)" />
                             </svg>
                         </div>
                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                            style="background:rgba(204,11,32,0.15); color:#CC0B20;">NEW</span>
+                            style="background:rgba(var(--brand-rgb), 0.15); color:var(--brand);">NEW</span>
                     </div>
                     <h3 class="font-semibold mb-2 text-chalk">Match Recording</h3>
                     <p class="text-muted text-sm leading-relaxed mb-4">Screen-record your sessions and save them.
@@ -1375,17 +1375,17 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         </div>
                         <div class="text-[10px] text-muted mb-3 uppercase tracking-wider">Recording</div>
                         <div class="flex items-baseline gap-2 mb-1">
-                            <span class="display text-3xl neon-score" style="color:#CC0B20;">180</span>
+                            <span class="display text-3xl neon-score" style="color:var(--brand);">180</span>
                         </div>
                         <div class="flex items-center gap-3 mt-3 pt-3" style="border-top: 1px solid #1E1E28;">
                             <div class="flex -space-x-1">
-                                <div class="w-4 h-4 rounded-full" style="background: #CC0B20;"></div>
+                                <div class="w-4 h-4 rounded-full" style="background: var(--brand);"></div>
                                 <div class="w-4 h-4 rounded-full"
                                     style="background: #252530; border: 1px solid #1E1E28;"></div>
                             </div>
                             <span class="text-[10px] text-muted">Leg 3 · 12:47</span>
                             <div class="ml-auto w-4 h-4 rounded"
-                                style="background: rgba(204,11,32,0.15); border: 1px solid rgba(204,11,32,0.2);"></div>
+                                style="background: rgba(var(--brand-rgb), 0.15); border: 1px solid rgba(var(--brand-rgb), 0.2);"></div>
                         </div>
                     </div>
                 </div>
@@ -1397,8 +1397,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-3">
                             <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                                style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2"
+                                style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2"
                                     fill="none" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="3" />
                                     <path
@@ -1411,10 +1411,10 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             team's colours, or your mood.</p>
                     </div>
                     <!-- Visual: Animated color swatches -->
-                    <div class="flex items-center gap-3 sm:gap-4">
+                    <div class="flex items-center gap-3 sm:gap-4" data-no-theme>
                         <div class="flex flex-col items-center gap-2">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl float-y"
-                                style="background: linear-gradient(135deg, #CC0B20, #e60d24); box-shadow: 0 4px 20px rgba(204,11,32,0.4);">
+                                style="background: linear-gradient(135deg, #CC0B20, #e60d24); box-shadow: 0 4px 20px rgba(204, 11, 32, 0.4);">
                             </div>
                             <span class="text-[9px] text-muted">Crimson</span>
                         </div>
@@ -1462,7 +1462,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
 
             <div class="grid lg:grid-cols-3 gap-4 mb-4">
                 <div class="bento-card rounded-2xl p-6 sm:p-7 reveal">
-                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:#CC0B20;">Per Dart
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:var(--brand);">Per Dart
                         Mode</p>
                     <h3 class="display text-2xl text-chalk mb-3">SHOT BY SHOT</h3>
                     <p class="text-muted text-sm leading-relaxed mb-4">Call each dart individually and get instant recalcs
@@ -1474,8 +1474,8 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             precision and practice legs</li>
                     </ul>
                 </div>
-                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal" style="border-color: rgba(204,11,32,0.22);">
-                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:#CC0B20;">3-Dart
+                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal" style="border-color: rgba(var(--brand-rgb), 0.22);">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:var(--brand);">3-Dart
                         Mode</p>
                     <h3 class="display text-2xl text-chalk mb-3">FAST VISIT SCORING</h3>
                     <p class="text-muted text-sm leading-relaxed mb-4">Call your full visit total and keep play moving.
@@ -1488,7 +1488,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     </ul>
                 </div>
                 <div class="bento-card rounded-2xl p-6 sm:p-7 reveal">
-                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:#CC0B20;">Cricket
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:var(--brand);">Cricket
                         Mode</p>
                     <h3 class="display text-2xl text-chalk mb-3">MARKS, NOT MATH</h3>
                     <p class="text-muted text-sm leading-relaxed mb-4">Call numbers naturally and DartVoice tracks marks,
@@ -1511,13 +1511,13 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             every update.</p>
                         <div class="flex flex-wrap gap-2">
                             <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
-                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Custom
+                                style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Custom
                                 Trigger</span>
                             <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
-                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Live
+                                style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Live
                                 Checkout Engine</span>
                             <span class="text-[11px] px-2.5 py-1 rounded-full font-medium"
-                                style="background: rgba(204,11,32,0.08); border: 1px solid rgba(204,11,32,0.15); color: #CC0B20;">Support
+                                style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Support
                                 & Updates</span>
                         </div>
                     </div>
@@ -1552,10 +1552,10 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <!-- Step 1 -->
                 <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
                     <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none"
-                        style="color: rgba(204,11,32,0.08)">01</div>
+                        style="color: rgba(var(--brand-rgb), 0.08)">01</div>
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none">
+                        style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2" fill="none">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                             <circle cx="12" cy="7" r="4" />
                         </svg>
@@ -1572,7 +1572,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             <span class="w-[1px] h-3.5 bg-brand cursor-blink ml-0.5"></span>
                         </div>
                         <div class="mt-2.5 rounded-lg py-1.5 text-center text-[10px] font-bold text-white"
-                            style="background: #CC0B20; box-shadow: 0 0 12px rgba(204,11,32,0.3);">Start Free Trial
+                            style="background: var(--brand); box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.3);">Start Free Trial
                         </div>
                     </div>
                 </div>
@@ -1585,10 +1585,10 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         <source src="assets/media/3d-app.mp4" type="video/mp4">
                     </video>
                     <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none"
-                        style="color: rgba(204,11,32,0.08)">02</div>
+                        style="color: rgba(var(--brand-rgb), 0.08)">02</div>
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none"
+                        style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                             <polyline points="7 10 12 15 17 10" />
@@ -1606,7 +1606,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         </div>
                         <div class="h-2 rounded-full overflow-hidden" style="background: #252530;">
                             <div class="h-full rounded-full progress-fill"
-                                style="background: linear-gradient(90deg, #CC0B20, #e60d24);"></div>
+                                style="background: linear-gradient(90deg, var(--brand), var(--brand-light));"></div>
                         </div>
                         <div class="flex items-center justify-between mt-2">
                             <div class="flex gap-2">
@@ -1637,10 +1637,10 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <!-- Step 3 -->
                 <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
                     <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none"
-                        style="color: rgba(204,11,32,0.08)">03</div>
+                        style="color: rgba(var(--brand-rgb), 0.08)">03</div>
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10"
-                        style="background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.15)">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#CC0B20" stroke-width="2" fill="none"
+                        style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2" fill="none"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                             <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -1672,7 +1672,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             </div>
                             <div>
                                 <div class="text-[9px] text-muted">"One hundred and forty"</div>
-                                <div class="display text-lg neon-score" style="color:#CC0B20;">→ 140</div>
+                                <div class="display text-lg neon-score" style="color:var(--brand);">→ 140</div>
                             </div>
                         </div>
                     </div>
@@ -1694,7 +1694,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                         </div>
                         <a href="login?intent=subscribe"
                             class="btn-brand px-6 py-3 rounded-xl font-semibold text-sm text-white shrink-0"
-                            style="box-shadow: 0 0 25px rgba(204,11,32,0.35);">
+                            style="box-shadow: 0 0 25px rgba(var(--brand-rgb), 0.35);">
                             Try It Free
                         </a>
                     </div>
@@ -1706,15 +1706,15 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <div class="flex items-center gap-3 px-4 py-2 rounded-full"
                     style="background: #111114; border: 1px solid #252530;">
                     <span class="text-[10px] text-muted">Sign up</span>
-                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none">
                         <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                     <span class="text-[10px] text-muted">Install</span>
-                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none">
                         <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                     <span class="text-[10px] text-muted">Play</span>
-                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="#CC0B20" stroke-width="2" fill="none">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none">
                         <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                     <span class="text-[10px] text-brand font-bold">Under 2 minutes</span>
@@ -1737,7 +1737,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <div class="flex-1 rounded-2xl p-5 text-center relative overflow-hidden opacity-60"
                     style="background: #111114; border: 1px solid #252530">
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
-                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="#CC0B20" stroke-width="2" fill="none">
+                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="var(--brand)" stroke-width="2" fill="none">
                             <line x1="18" y1="6" x2="6" y2="18" />
                             <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
@@ -1762,10 +1762,10 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 </div>
                 <div class="flex items-center justify-center shrink-0 sm:shrink-0">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center text-muted text-xs font-bold pulse-glow"
-                        style="background: #1a1a20; border: 1px solid rgba(204,11,32,0.3);">VS</div>
+                        style="background: #1a1a20; border: 1px solid rgba(var(--brand-rgb), 0.3);">VS</div>
                 </div>
                 <div class="flex-1 rounded-2xl p-5 text-center relative overflow-hidden pulse-glow"
-                    style="background: #111114; border: 2px solid #CC0B20;">
+                    style="background: #111114; border: 2px solid var(--brand);">
                     <p class="text-[9px] font-bold tracking-[0.2em] text-brand mb-2 uppercase">DartVoice</p>
                     <p class="display text-3xl not-italic text-chalk neon-white">FROM &pound;5<span
                             class="text-sm text-muted font-normal not-italic">/mo</span></p>
@@ -1791,7 +1791,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
             <div class="reveal grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                 <div class="media-card flex items-center gap-5 p-5 rounded-2xl" style="background: #111114; border: 1px solid #252530; height: 120px;">
                     <img src="assets/media/premium-badge-red.jpeg" alt="Cyber 7-day free trial badge" loading="lazy"
-                        class="w-20 h-20 rounded-xl object-cover shrink-0" style="box-shadow: 0 0 20px rgba(204,11,32,0.3);">
+                        class="w-20 h-20 rounded-xl object-cover shrink-0" style="box-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">
                     <div>
                         <p class="text-chalk font-semibold text-sm mb-1">7-Day Free Trial</p>
                         <p class="text-muted text-xs leading-relaxed">Full access to every feature. No card upfront. Cancel anytime during trial.</p>
@@ -1799,7 +1799,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 </div>
                 <div class="media-card flex items-center gap-5 p-5 rounded-2xl" style="background: #111114; border: 1px solid #252530; height: 120px;">
                     <img src="assets/media/stats-graph.jpeg" alt="Holographic stats graph projecting from dart" loading="lazy"
-                        class="w-20 h-20 rounded-xl object-cover shrink-0" style="box-shadow: 0 0 20px rgba(204,11,32,0.2); filter: hue-rotate(-40deg) saturate(2) brightness(0.9);">
+                        class="w-20 h-20 rounded-xl object-cover shrink-0" style="box-shadow: 0 0 20px rgba(var(--brand-rgb), 0.2); filter: hue-rotate(-40deg) saturate(2) brightness(0.9);">
                     <div>
                         <p class="text-chalk font-semibold text-sm mb-1">Track Your Progress</p>
                         <p class="text-muted text-xs leading-relaxed">Session stats, averages, and improvement trends — all tracked automatically.</p>
@@ -1824,32 +1824,32 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <!-- Feature list -->
                     <div class="space-y-2.5 mb-8 flex-1">
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">7-day free trial</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">Voice-controlled scoring</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">All platforms &amp; game modes</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">Live checkout suggestions</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">All future updates</span>
                         </div>
@@ -1865,11 +1865,11 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
 
                 <!-- PLAN 2: 6-Month (MOST POPULAR) -->
                 <div class="price-card rounded-3xl p-7 sm:p-8 text-left flex flex-col relative group transition-all duration-300 hover:translate-y-[-4px]" id="plan-6month"
-                    style="border: 2px solid #CC0B20; box-shadow: 0 0 40px rgba(204,11,32,0.15), 0 0 80px rgba(204,11,32,0.05);">
+                    style="border: 2px solid var(--brand); box-shadow: 0 0 40px rgba(var(--brand-rgb), 0.15), 0 0 80px rgba(var(--brand-rgb), 0.05);">
                     <!-- Popular badge -->
                     <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20">
                         <div class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase text-white"
-                            style="background: linear-gradient(135deg, #CC0B20 0%, #e60d24 100%); box-shadow: 0 4px 20px rgba(204,11,32,0.5);">
+                            style="background: linear-gradient(135deg, var(--brand) 0%, var(--brand-light) 100%); box-shadow: 0 4px 20px rgba(var(--brand-rgb), 0.5);">
                             <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             Most Popular
                         </div>
@@ -1892,32 +1892,32 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <!-- Feature list -->
                     <div class="space-y-2.5 mb-8 flex-1">
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/80">7-day free trial</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/80">Voice-controlled scoring</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/80">All platforms &amp; game modes</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/80">Live checkout suggestions</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/80">All future updates</span>
                         </div>
@@ -1932,7 +1932,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <a href="login?intent=subscribe&plan=6month"
                         onclick="gtag('event', 'click_subscribe', { 'plan': '6month' })"
                         class="btn-brand block text-center py-3.5 rounded-xl font-semibold text-sm text-white relative z-10"
-                        style="box-shadow: 0 0 25px rgba(204,11,32,0.35);">
+                        style="box-shadow: 0 0 25px rgba(var(--brand-rgb), 0.35);">
                         Start 7-Day Free Trial
                     </a>
                     <p class="text-muted-2 text-[10px] text-center mt-2">Then &pound;34.99 every 6 months</p>
@@ -1966,32 +1966,32 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     <!-- Feature list -->
                     <div class="space-y-2.5 mb-8 flex-1">
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">7-day free trial</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">Voice-controlled scoring</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">All platforms &amp; game modes</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">Live checkout suggestions</span>
                         </div>
                         <div class="flex items-center gap-2.5 text-sm">
-                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(204,11,32,0.15)">
-                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="#CC0B20" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
+                            <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="10" height="10" stroke="var(--brand)" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
                             <span class="text-chalk/70">All future updates</span>
                         </div>
@@ -2236,7 +2236,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                     <p class="text-[10px] text-muted uppercase tracking-wider mt-0.5">Signups</p>
                                 </div>
                                 <div class="bg-dark rounded-xl p-3 text-center"
-                                    style="border: 1px solid rgba(204,11,32,0.25);">
+                                    style="border: 1px solid rgba(var(--brand-rgb), 0.25);">
                                     <p class="display text-2xl not-italic font-black text-brand">£45</p>
                                     <p class="text-[10px] text-muted uppercase tracking-wider mt-0.5">Earned</p>
                                 </div>
@@ -2290,7 +2290,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <circle cx="200" cy="200" r="90" stroke="#252530" stroke-width="2" fill="none" />
                 <circle cx="200" cy="200" r="50" stroke="#252530" stroke-width="2" fill="none" />
                 <circle cx="200" cy="200" r="30" stroke="#252530" stroke-width="2" fill="none" />
-                <circle cx="200" cy="200" r="12" fill="#CC0B20" opacity="0.5" />
+                <circle cx="200" cy="200" r="12" fill="var(--brand)" opacity="0.5" />
                 <g stroke="#252530" stroke-width="1.5">
                     <line x1="200" y1="10" x2="200" y2="390" />
                     <line x1="200" y1="10" x2="200" y2="390" transform="rotate(18 200 200)" />
@@ -2314,7 +2314,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                 <circle cx="150" cy="150" r="110" stroke="#252530" stroke-width="1.5" fill="none" />
                 <circle cx="150" cy="150" r="70" stroke="#252530" stroke-width="1.5" fill="none" />
                 <circle cx="150" cy="150" r="40" stroke="#252530" stroke-width="1.5" fill="none" />
-                <circle cx="150" cy="150" r="10" fill="#CC0B20" opacity="0.3" />
+                <circle cx="150" cy="150" r="10" fill="var(--brand)" opacity="0.3" />
                 <g stroke="#252530" stroke-width="1">
                     <line x1="150" y1="10" x2="150" y2="290" />
                     <line x1="150" y1="10" x2="150" y2="290" transform="rotate(36 150 150)" />
@@ -2327,24 +2327,24 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
 
         <!-- Center glow -->
         <div class="absolute inset-0 pointer-events-none"
-            style="background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(204,11,32,0.06) 0%, transparent 70%);">
+            style="background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(var(--brand-rgb), 0.06) 0%, transparent 70%);">
         </div>
 
         <!-- Floating score cards -->
         <div class="absolute top-12 left-[8%] hidden lg:block float-y" style="animation-delay: 0.5s; opacity: 0.5;">
             <div class="demo-screen px-3 py-2 rounded-lg">
-                <div class="display text-sm neon-score" style="color:#CC0B20;">T20</div>
+                <div class="display text-sm neon-score" style="color:var(--brand);">T20</div>
             </div>
         </div>
         <div class="absolute top-20 right-[10%] hidden lg:block float-y" style="animation-delay: 1.2s; opacity: 0.4;">
             <div class="demo-screen px-3 py-2 rounded-lg">
-                <div class="display text-sm neon-score" style="color:#CC0B20;">180</div>
+                <div class="display text-sm neon-score" style="color:var(--brand);">180</div>
             </div>
         </div>
         <div class="absolute bottom-16 left-[12%] hidden lg:block float-y"
             style="animation-delay: 0.8s; opacity: 0.35;">
             <div class="demo-screen px-3 py-2 rounded-lg">
-                <div class="display text-sm neon-score" style="color:#CC0B20;">BULL</div>
+                <div class="display text-sm neon-score" style="color:var(--brand);">BULL</div>
             </div>
         </div>
         <div class="absolute bottom-24 right-[8%] hidden lg:block float-y"
@@ -2369,7 +2369,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
             <h2
                 class="display text-5xl sm:text-6xl md:text-7xl lg:text-8xl  lg:text-7xl mb-5 text-chalk leading-[0.9] relative">
                 READY TO<br><span class="text-brand"
-                    style="text-shadow: 0 0 40px rgba(204,11,32,0.5), 0 0 80px rgba(204,11,32,0.2)">STEP UP?</span>
+                    style="text-shadow: 0 0 40px rgba(var(--brand-rgb), 0.5), 0 0 80px rgba(var(--brand-rgb), 0.2)">STEP UP?</span>
             </h2>
             <p class="text-muted text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed relative">
                 Launch with all three scoring modes, live checkouts, custom triggers, and continuous updates — built for
@@ -2378,7 +2378,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
             <div class="flex flex-col sm:flex-row gap-3 justify-center relative z-10">
                 <a href="login?intent=subscribe"
                     class="btn-brand inline-block px-10 py-4 rounded-xl font-semibold text-base text-white text-center"
-                    style="box-shadow: 0 0 40px rgba(204,11,32,0.3), 0 0 80px rgba(204,11,32,0.1);">
+                    style="box-shadow: 0 0 40px rgba(var(--brand-rgb), 0.3), 0 0 80px rgba(var(--brand-rgb), 0.1);">
                     Start 7-Day Free Trial
                 </a>
                 <a href="dartvoice-dashboard"

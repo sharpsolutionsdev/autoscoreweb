@@ -12,7 +12,7 @@ class DvFooter extends HTMLElement {
                     <div class="col-span-2 sm:col-span-4 lg:col-span-2">
                         <a href="/" class="flex items-center gap-2.5 group mb-4">
                             <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                                <rect width="36" height="36" rx="9" fill="#CC0B20" />
+                                <rect width="36" height="36" rx="9" fill="var(--brand)" />
                                 <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"
                                     fill="none" />
                                 <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"
