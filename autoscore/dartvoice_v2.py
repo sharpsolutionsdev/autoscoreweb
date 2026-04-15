@@ -1463,11 +1463,11 @@ class DartVoiceApp(ctk.CTk):
                                anchor='center')
 
         def _animate_splash(step=0, sc=1.0, sc_d=0.04):
-            if step > 90:  # ~3 seconds
-                self._build_ui()
+            if step > 60:  # ~2 seconds is enough for splash
+                # Instead of building UI immediately, check billing first
+                # to avoid flickering the dashboard if they are not subscribed.
+                self._billing_gate()
                 c.destroy()
-                self._pulse()
-                self.after(100, self._billing_gate)
                 return
             if sc > 1.2: sc_d = -0.04
             elif sc < 0.8: sc_d = 0.04
@@ -1502,6 +1502,8 @@ class DartVoiceApp(ctk.CTk):
             email = bs['account']['email'] if bs.get('account') else ''
             label = f"Member  ·  {email}" if email else "Member"
             self._status.set(label)
+            self._build_ui()
+            self._pulse()
             return
 
         self._show_paywall()
@@ -1511,6 +1513,12 @@ class DartVoiceApp(ctk.CTk):
             email = account['email'] if account else ''
             msg   = f"Member  ·  {email}" if email else "Member"
             self.after(0, lambda: self._status.set(msg))
+            
+            # If UI hasn't been built yet (stuck at splash/paywall), build it now
+            if not hasattr(self, '_sidebar'):
+                self.after(0, self._build_ui)
+                self.after(50, self._pulse)
+
             if hasattr(self, '_paywall') and self._paywall.winfo_exists():
                 self.after(0, self._paywall.destroy)
             return
@@ -1702,7 +1710,9 @@ class DartVoiceApp(ctk.CTk):
                 def _on_web_login(success, acct):
                     def _ui():
                         if success:
-                            _close(refocus=False); self._billing_gate()
+                            _close(refocus=False)
+                            # Re-run billing gate; it will build the UI if success
+                            self._billing_gate()
                         else:
                             status_var.set("Login timed out — try again.")
                             sign_in_btn.configure(state='normal',
@@ -1752,6 +1762,9 @@ class DartVoiceApp(ctk.CTk):
         win.resizable(False, False)
         win.attributes('-topmost', True)
         win.protocol("WM_DELETE_WINDOW", lambda: None)
+        
+        # Proper modal behavior
+        win.grab_set()
         win.after(50, lambda: (win.lift(), win.focus_force()))
 
         # ── Blurred/dark background canvas ────────────────────────────────
