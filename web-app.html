@@ -1124,18 +1124,26 @@
             'four': 4, 'for': 4, 'fore': 4,
             'five': 5, 'fife': 5, 'fiv': 5,
             'six': 6, 'sicks': 6, 'seeks': 6,
-            'seven': 7, 'sebben': 7, 'seben': 7,
+            'seven': 7, 'sebben': 7, 'seben': 7, 'seebin': 7, 'sebin': 7,
             'eight': 8, 'ate': 8, 'ait': 8,
             'nine': 9, 'nein': 9, 'nyne': 9,
             'ten': 10, 'tin': 10,
-            'eleven': 11, 'twelve': 12,
+            'eleven': 11, 'levin': 11, 'levven': 11,
+            'twelve': 12, 'twelf': 12,
             'thirteen': 13, 'tirteen': 13, 'turteen': 13,
             'fourteen': 14, 'forteen': 14,
-            'fifteen': 15, 'sixteen': 16, 'seventeen': 17,
-            'eighteen': 18, 'nineteen': 19,
+            'fifteen': 15, 'fiftin': 15,
+            'sixteen': 16, 'sixtin': 16,
+            'seventeen': 17, 'seventin': 17,
+            'eighteen': 18, 'eightin': 18, 'atin': 18,
+            'nineteen': 19, 'ninetin': 19,
             // Common dart call-outs
-            'bull': 50, 'bullseye': 50, 'bulls': 50, 'bull\'s eye': 50,
-            'outer bull': 25, 'outer': 25, 'single bull': 25
+            'bull': 50, 'bullseye': 50, 'bulls': 50, 'bull\'s eye': 50, 'bully': 50,
+            'outer bull': 25, 'outer': 25, 'single bull': 25, 'half bull': 25,
+            'tops': 40, 'double top': 40, 'double tops': 40, 'top': 40,
+            'madhouse': 2, 'double one': 2,
+            'ton': 100, 'a ton': 100, 'one hundred': 100,
+            'low ton': 100, 'high ton': 150 // Fallback to 150 if "high ton" is heard solo
         };
         const _TENS = {
             'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50,
@@ -1192,6 +1200,20 @@
             if (['outer bull', 'outer', 'twenty five', 'twenty five'].includes(text)) return 25;
             if (['miss', 'missed', 'nothing', 'zero', 'none', 'bounce', 'bounce out'].includes(text)) return 0;
 
+            // Handle "ton" combinations
+            if (text.startsWith('ton ')) {
+                const rest = text.replace(/^ton\s+/, '').trim();
+                const v = parseUnder100(rest);
+                if (v !== null && (100 + v) <= 180) return 100 + v;
+            }
+
+            // Handle "one eighty", "one forty", etc. without "hundred"
+            const parts = text.split(' ');
+            if (parts.length === 2 && parts[0] === 'one' && _TENS[parts[1]] !== undefined) {
+                const val = 100 + _TENS[parts[1]];
+                if (val <= 180) return val;
+            }
+
             // Handle "one hundred" patterns
             if (text.startsWith('one hundred') || text.startsWith('a hundred')) {
                 const rest = text.replace(/^(one hundred|a hundred)/, '').trim();
@@ -1200,14 +1222,17 @@
                 if (sub !== null && (100 + sub) <= 180) return 100 + sub;
             }
 
-            // Strip optional "score" prefix
-            text = text.replace(/^score\s+/, '');
+            // Strip optional "score" or "shot" prefix
+            text = text.replace(/^(score|shot)\s+/, '');
 
             const base = parseUnder100(text);
             if (base === null) return null;
 
-            // If base is the inner bull (50) and a multiplier was spoken, interpret as 50 (inner bull)
-            if (base === 50) return 50;
+            // If base is a keyword or single number, multiplier logic applies
+            if (base <= 60 || base === 25 || base === 50) {
+                return base * multiplier;
+            }
+            return base;
 
             const result = base * multiplier;
             return (result >= 0 && result <= 180) ? result : null;

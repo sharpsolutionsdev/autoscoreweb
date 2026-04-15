@@ -9,7 +9,35 @@
   window.__dartvoiceInjected = true;
 
   // --- DART PARSING LOGIC PORTED FROM PYTHON ---
-  const _ONES = { 'zero': 0, 'oh': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10, 'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19 };
+  const _ONES = {
+    'zero': 0, 'oh': 0, 'nought': 0, 'nil': 0, 'naught': 0, 'no': 0,
+    'one': 1, 'won': 1, 'wan': 1,
+    'two': 2, 'too': 2, 'to': 2, 'tu': 2,
+    'three': 3, 'free': 3, 'tree': 3, 'tee': 3,
+    'four': 4, 'for': 4, 'fore': 4,
+    'five': 5, 'fife': 5, 'fiv': 5,
+    'six': 6, 'sicks': 6, 'seeks': 6,
+    'seven': 7, 'sebben': 7, 'seben': 7, 'seebin': 7, 'sebin': 7,
+    'eight': 8, 'ate': 8, 'ait': 8,
+    'nine': 9, 'nein': 9, 'nyne': 9,
+    'ten': 10, 'tin': 10,
+    'eleven': 11, 'levin': 11, 'levven': 11,
+    'twelve': 12, 'twelf': 12,
+    'thirteen': 13, 'tirteen': 13, 'turteen': 13,
+    'fourteen': 14, 'forteen': 14,
+    'fifteen': 15, 'fiftin': 15,
+    'sixteen': 16, 'sixtin': 16,
+    'seventeen': 17, 'seventin': 17,
+    'eighteen': 18, 'eightin': 18, 'atin': 18,
+    'nineteen': 19, 'ninetin': 19,
+    // Common dart call-outs
+    'bull': 50, 'bullseye': 50, 'bulls': 50, 'bull\'s eye': 50, 'bully': 50,
+    'outer bull': 25, 'outer': 25, 'single bull': 25, 'half bull': 25,
+    'tops': 40, 'double top': 40, 'double tops': 40, 'top': 40,
+    'madhouse': 2, 'double one': 2,
+    'ton': 100, 'a ton': 100, 'one hundred': 100,
+    'low ton': 100, 'high ton': 150
+  };
   const _TENS = { 'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90 };
 
   const _CRICKET_MODS = { 'single': 1, 'double': 2, 'treble': 3, 'triple': 3, 'travel': 3, 'trouble': 3, 'tribal': 3, 'tremble': 3, 'trickle': 3, 'doubles': 2, 'singles': 1 };
@@ -77,7 +105,34 @@
 
   function parseScore(text) {
     text = text.toLowerCase().replace(/\band\b/g, ' ').replace(/\s+/g, ' ').trim();
-    return parseUnder100(text); // Basic integer mapping for MVP X01
+    
+    // Handle "ton" combinations
+    if (text.startsWith('ton ')) {
+      const rest = text.replace(/^ton\s+/, '').trim();
+      const v = parseUnder100(rest);
+      if (v !== null && (100 + v) <= 180) return 100 + v;
+    }
+
+    // Handle "one eighty", "one forty", etc. without "hundred"
+    const parts = text.split(' ');
+    if (parts.length === 2 && parts[0] === 'one' && _TENS[parts[1]] !== undefined) {
+      const val = 100 + _TENS[parts[1]];
+      if (val <= 180) return val;
+    }
+
+    // Handle "one hundred" patterns
+    if (text.startsWith('one hundred') || text.startsWith('a hundred')) {
+      const rest = text.replace(/^(one hundred|a hundred)/, '').trim();
+      if (!rest) return 100;
+      const sub = parseUnder100(rest);
+      if (sub !== null && (100 + sub) <= 180) return 100 + sub;
+    }
+
+    // Strip optional "score" or "shot" prefix
+    text = text.replace(/^(score|shot)\s+/, '');
+
+    const base = parseUnder100(text);
+    return (base !== null && base <= 180) ? base : null;
   }
 
   function parseSingleDart(text) {

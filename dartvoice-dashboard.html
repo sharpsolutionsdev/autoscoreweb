@@ -1404,9 +1404,19 @@
                     },
                     body: JSON.stringify({ returnUrl: window.location.origin + '/dartvoice-dashboard.html' }),
                 });
+                
+                if (resp.status === 404) {
+                    showToast('No billing account found. Start a trial first!');
+                    return;
+                }
+
                 const body = await resp.json();
-                if (body.url) { window.location.href = body.url; return; }
-                showToast(body.error === 'no_stripe_customer' ? 'No billing account yet — start a trial first.' : 'Could not open billing portal. Try again.');
+                if (body.url) { 
+                    window.location.href = body.url; 
+                    return; 
+                }
+                
+                showToast(body.error === 'no_stripe_customer' ? 'No billing account yet — start a trial first.' : 'Portal error. Please contact reubensharp18@gmail.com');
             } catch (e) {
                 console.error('portal open failed', e);
                 showToast('Could not open billing portal. Try again.');
@@ -1662,7 +1672,12 @@
                 <button type="button" onclick="openStripePortal(this)"
                    class="btn-ghost inline-block px-5 py-2 rounded-xl text-sm font-medium text-white">
                     Manage Subscription
-                </button>`;
+                </button>
+                <div class="mt-2">
+                    <a href="mailto:reubensharp18@gmail.com?subject=Billing%20Support" class="text-[10px] text-muted-2 hover:text-brand transition underline underline-offset-2">
+                        Need help with billing? Contact support
+                    </a>
+                </div>`;
                 showDownloads(true);
 
                 // ── Active ──
@@ -1677,7 +1692,12 @@
                 <button type="button" onclick="openStripePortal(this)"
                    class="btn-ghost inline-block px-5 py-2 rounded-xl text-sm font-medium text-white">
                     Manage Subscription
-                </button>`;
+                </button>
+                <div class="mt-2">
+                    <a href="mailto:reubensharp18@gmail.com?subject=Billing%20Support" class="text-[10px] text-muted-2 hover:text-brand transition underline underline-offset-2">
+                        Need help with billing? Contact support
+                    </a>
+                </div>`;
                 showDownloads(true);
 
                 // ── Past due ──
