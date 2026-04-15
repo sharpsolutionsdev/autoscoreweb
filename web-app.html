@@ -22,9 +22,7 @@
     <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // STRICT SUBSCRIPTION GATE
-        // Hide the page immediately while we verify the user
-        document.documentElement.style.display = 'none';
+        window.dvActiveSub = false; // default
         
         const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
@@ -33,24 +31,39 @@
         (async function() {
             try {
                 const { data: { session } } = await sbAuth.auth.getSession();
-                if (!session || !session.user) {
-                    window.location.replace('login.html?intent=subscribe');
-                    return;
-                }
-                const { data: sub } = await sbAuth
-                    .from('dartvoice_subscriptions')
-                    .select('status')
-                    .eq('user_id', session.user.id)
-                    .maybeSingle();
-
-                const active = sub && ['active', 'trialing'].includes(sub.status);
-                if (!active) { 
-                    window.location.replace('login.html?intent=subscribe'); 
-                    return; 
-                }
                 
-                // Valid! Show UI
-                document.documentElement.style.display = '';
+                if (session && session.user) {
+                    const { data: sub } = await sbAuth
+                        .from('dartvoice_subscriptions')
+                        .select('status')
+                        .eq('user_id', session.user.id)
+                        .maybeSingle();
+
+                    window.dvActiveSub = sub && ['active', 'trialing'].includes(sub.status);
+                    
+                    // After UI is loaded, update account pill
+                    document.addEventListener('DOMContentLoaded', () => {
+                       const nameEl = document.getElementById('account-name');
+                       const statusEl = document.getElementById('account-status');
+                       const avatarEl = document.getElementById('account-avatar');
+                       if (nameEl && session.user.email) {
+                           nameEl.textContent = session.user.email;
+                           avatarEl.textContent = session.user.email.charAt(0).toUpperCase();
+                       }
+                       if (statusEl && sub && sub.status) {
+                           statusEl.textContent = sub.status === 'trialing' ? 'Free Trial' : 'Pro Active';
+                       }
+                    });
+                } else {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const statusEl = document.getElementById('account-status');
+                        if (statusEl) statusEl.textContent = '10-Min Demo';
+                    });
+                }
+            } catch (e) {
+                console.error("Auth check error", e);
+            }
+        })();
                 
                 // After UI is loaded, update account pill
                 document.addEventListener('DOMContentLoaded', () => {
@@ -1161,6 +1174,24 @@
         let recognition = null;
         let visualizerInterval = null;
 
+        // --- DEMO TRACKING ---
+        const DEMO_LIMIT_MS = 10 * 60 * 1000;
+        let _demoStartedAt = null;
+        let _demoInterval = null;
+
+        function demoTimeUsed() {
+            return parseInt(localStorage.getItem('dv_webapp_demo_used_ms') || '0', 10);
+        }
+
+        function forceDemoLockout() {
+            if (listening) {
+                if (recognition) recognition.stop();
+                listening = false;
+            }
+            alert("Your 10-minute demo has expired. Please subscribe to continue.");
+            window.location.replace('login.html?intent=subscribe');
+        }
+
         // --- PER-DART ACCUMULATOR ---
         let dartBuffer = [];  // collects up to 3 individual dart scores
         let dartBufferTimeout = null; // auto-submit after silence
@@ -1361,6 +1392,21 @@
             recognition.lang = storedAccent;
             
             recognition.onstart = function() {
+                if (window.dvActiveSub === false) {
+                    if (demoTimeUsed() >= DEMO_LIMIT_MS) {
+                        forceDemoLockout();
+                        return;
+                    }
+                    _demoStartedAt = Date.now();
+                    _demoInterval = setInterval(() => {
+                        const totalUsed = demoTimeUsed() + (Date.now() - _demoStartedAt);
+                        if (totalUsed >= DEMO_LIMIT_MS) {
+                            localStorage.setItem('dv_webapp_demo_used_ms', totalUsed);
+                            forceDemoLockout();
+                        }
+                    }, 5000);
+                }
+
                 listening = true;
                 btn.textContent = "STOP LISTENING";
                 btn.style.background = "#252530";
@@ -1504,6 +1550,14 @@
 
         function stopListening() {
             listening = false;
+
+            if (window.dvActiveSub === false && _demoStartedAt) {
+                const sessionUsed = Date.now() - _demoStartedAt;
+                localStorage.setItem('dv_webapp_demo_used_ms', demoTimeUsed() + sessionUsed);
+                _demoStartedAt = null;
+                if (_demoInterval) { clearInterval(_demoInterval); _demoInterval = null; }
+            }
+
             if(recognition) recognition.stop();
             stopListeningStyle();
             log("Microphone isolated.");
