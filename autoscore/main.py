@@ -7,36 +7,55 @@ class DartVoiceWebApp(App):
         if platform == 'android':
             from jnius import autoclass
             from android.runnable import run_on_ui_thread
-            
+
             Activity = autoclass('org.kivy.android.PythonActivity').mActivity
             WebView = autoclass('android.webkit.WebView')
             WebChromeClient = autoclass('com.dartvoice.DartvoiceWebChromeClient')
-            WebViewClient = autoclass('android.webkit.WebViewClient')
-            
+            CustomWebViewClient = autoclass('com.dartvoice.DartvoiceWebViewClient')
+            FrameLayout = autoclass('android.widget.FrameLayout')
+            LayoutParams = autoclass('android.view.ViewGroup$LayoutParams')
+            DartVoiceBridge = autoclass('com.dartvoice.DartVoiceBridge')
+
             @run_on_ui_thread
             def create_webview():
-                webview = WebView(Activity)
-                settings = webview.getSettings()
-                
-                # Enable WebRTC and JavaScript features
+                # Root container for both WebViews
+                frame = FrameLayout(Activity)
+
+                # ── Control Panel WebView (web-app-mobile.html) ──
+                control_wv = WebView(Activity)
+                settings = control_wv.getSettings()
                 settings.setJavaScriptEnabled(True)
                 settings.setDomStorageEnabled(True)
                 settings.setMediaPlaybackRequiresUserGesture(False)
                 settings.setAllowFileAccessFromFileURLs(True)
                 settings.setAllowUniversalAccessFromFileURLs(True)
-                
-                # Set custom clients
-                webview.setWebChromeClient(WebChromeClient())
-                
-                # External links handled in Java override
-                CustomWebViewClient = autoclass('com.dartvoice.DartvoiceWebViewClient')
-                webview.setWebViewClient(CustomWebViewClient())
-                
-                # Attach to Android Activity
-                Activity.setContentView(webview)
-                
-                # Load the DartVoice application
-                webview.loadUrl('https://dartvoice.app/web-app.html')
+
+                control_wv.setWebChromeClient(WebChromeClient())
+                control_wv.setWebViewClient(CustomWebViewClient())
+
+                # Enable remote debugging
+                try:
+                    WebView.setWebContentsDebuggingEnabled(True)
+                except Exception:
+                    pass
+
+                # ── Create the JS Bridge ──
+                # The bridge lazily creates the DartCounter WebView
+                # and handles score injection between the two WebViews.
+                bridge = DartVoiceBridge(Activity, frame)
+                control_wv.addJavascriptInterface(bridge, 'DartVoiceBridge')
+
+                # Load the mobile-optimised control panel
+                control_wv.loadUrl('https://dartvoice.app/web-app-mobile.html')
+
+                # Add control panel to the root frame
+                frame.addView(control_wv, LayoutParams(
+                    LayoutParams.MATCH_PARENT,
+                    LayoutParams.MATCH_PARENT
+                ))
+
+                # Set root frame as Activity content
+                Activity.setContentView(frame)
 
             create_webview()
 
@@ -49,5 +68,5 @@ if __name__ == '__main__':
         def perm_callback(permissions, results):
             pass
         request_permissions([Permission.RECORD_AUDIO], perm_callback)
-        
+
     DartVoiceWebApp().run()

@@ -5,6 +5,7 @@ on:
     branches: [ main, working ]
     paths:
       - 'autoscore/dartvoice_android.py'
+      - 'autoscore/main.py'
       - 'autoscore/buildozer.spec'
       - 'autoscore/billing.py'
       - 'autoscore/intent_filters.xml'
@@ -12,6 +13,7 @@ on:
       - 'autoscore/vosk_android.py'
       - 'autoscore/service/main.py'
       - 'autoscore/gen_icon.py'
+      - 'autoscore/src/**'
       - 'autoscore/vosk-model-small-en-us/**'
       - '.github/workflows/build-android.yml'
   workflow_dispatch:

@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DartVoice — Mobile Scorer</title>
+    <meta name="description" content="DartVoice mobile scorer — voice-controlled darts scoring for Android.">
+    <meta name="theme-color" content="#CC0B20">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --brand: #CC0B20;
+            --dark: #08080A;
+            --card: #111114;
+            --wire: #252530;
+            --chalk: #F0F0F5;
+            --muted: #6E6E82;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--dark);
+            color: var(--chalk);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .display {
+            font-family: 'Barlow Condensed', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* ── Hero Glow ──────────────────────────────────── */
+        .hero-glow {
+            position: fixed; inset: 0;
+            background: radial-gradient(ellipse 140% 80% at 50% -10%, color-mix(in srgb, var(--brand) 25%, transparent) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── Container ──────────────────────────────────── */
+        .container {
+            position: relative; z-index: 1;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px 16px calc(16px + var(--safe-bottom));
+            display: flex; flex-direction: column; gap: 16px;
+            min-height: 100vh; min-height: 100dvh;
+        }
+
+        @media (min-width: 768px) {
+            .container { max-width: 540px; padding: 24px; gap: 20px; }
+        }
+
+        /* ── Header ─────────────────────────────────────── */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 4px 0;
+        }
+        .logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900; font-style: italic; font-size: 26px;
+            letter-spacing: -0.02em; text-transform: uppercase;
+            display: flex; align-items: center; gap: 2px;
+        }
+        .logo .red { color: var(--brand); }
+
+        .account-pill {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--card); border: 1px solid var(--wire);
+            border-radius: 999px; padding: 4px 12px 4px 4px;
+            font-size: 11px; font-weight: 600;
+        }
+        .avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--brand); display: flex;
+            align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 800; color: white;
+        }
+        .account-name { color: var(--chalk); }
+        .account-status {
+            font-size: 8px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--muted);
+        }
+
+        /* ── APK Badge ──────────────────────────────────── */
+        .apk-badge {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 999px; padding: 6px 14px;
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: rgba(34, 197, 94, 0.8);
+        }
+        .apk-badge .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #22c55e; box-shadow: 0 0 6px #22c55e;
+        }
+        .apk-badge.not-apk {
+            background: rgba(234, 179, 8, 0.08);
+            border-color: rgba(234, 179, 8, 0.2);
+            color: rgba(234, 179, 8, 0.8);
+        }
+        .apk-badge.not-apk .dot {
+            background: #eab308; box-shadow: 0 0 6px #eab308;
+        }
+
+        /* ── Cards ──────────────────────────────────────── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--wire);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        /* ── Main Control Card ──────────────────────────── */
+        .control-card {
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+
+        .status-row {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--muted);
+        }
+        .status-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #4A4A5A; transition: all 0.3s ease;
+        }
+        @keyframes pulseActive {
+            0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 40%, transparent); }
+            70% { box-shadow: 0 0 0 12px transparent; }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+        .status-dot.listening {
+            background: var(--brand);
+            box-shadow: 0 0 14px color-mix(in srgb, var(--brand) 80%, transparent);
+            animation: pulseActive 1.5s infinite;
+        }
+
+        .interim-text {
+            font-size: 14px; font-weight: 500;
+            color: var(--chalk); opacity: 0.7;
+            min-height: 22px; transition: opacity 0.2s;
+        }
+
+        /* EQ Visualizer */
+        .eq-wrap {
+            display: flex; align-items: flex-end; gap: 3px;
+            height: 24px; opacity: 0; transition: opacity 0.3s;
+        }
+        .eq-wrap.active { opacity: 1; }
+        .eq-bar {
+            width: 4px; border-radius: 2px;
+            background: var(--brand);
+            transition: height 0.08s linear;
+            height: 3px;
+        }
+
+        /* Mic Button */
+        .mic-btn {
+            width: 100%; padding: 16px 24px;
+            background: var(--brand);
+            color: white; border: none; border-radius: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800; font-size: 15px;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            cursor: pointer; position: relative; overflow: hidden;
+            transition: all 0.25s;
+            box-shadow: 0 0 20px color-mix(in srgb, var(--brand) 30%, transparent);
+        }
+        .mic-btn::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent 50%);
+            opacity: 0; transition: opacity 0.25s;
+        }
+        .mic-btn:active { transform: scale(0.97); }
+        .mic-btn:hover::after { opacity: 1; }
+        .mic-btn.stop {
+            background: var(--wire);
+            box-shadow: none;
+        }
+
+        /* ── Open DartCounter Button ────────────────────── */
+        .open-scorer-btn {
+            width: 100%; padding: 16px 24px;
+            background: transparent;
+            border: 2px solid var(--wire);
+            color: var(--chalk); border-radius: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700; font-size: 14px;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            cursor: pointer; transition: all 0.25s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .open-scorer-btn:hover {
+            border-color: var(--brand);
+            background: color-mix(in srgb, var(--brand) 8%, transparent);
+        }
+        .open-scorer-btn:active { transform: scale(0.97); }
+        .open-scorer-btn svg { width: 20px; height: 20px; }
+
+        /* ── Score Log ──────────────────────────────────── */
+        .score-log {
+            flex: 1; min-height: 120px;
+        }
+        .score-log h4 {
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.12em;
+            color: var(--muted); margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .score-log h4 button {
+            background: none; border: none; color: var(--muted);
+            font-size: 9px; font-weight: 700; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            transition: color 0.2s;
+        }
+        .score-log h4 button:hover { color: var(--chalk); }
+
+        .log-list {
+            display: flex; flex-direction: column; gap: 4px;
+            max-height: 200px; overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--wire) transparent;
+        }
+        .log-entry {
+            font-size: 12px; font-weight: 500;
+            padding: 6px 10px; border-radius: 8px;
+            border-left: 3px solid var(--wire);
+            background: rgba(255,255,255,0.02);
+            color: #aaabbb;
+            animation: slideIn 0.2s ease;
+        }
+        .log-entry.score {
+            border-left-color: #22c55e;
+            color: #4ade80;
+            font-weight: 700;
+        }
+        .log-entry.error {
+            border-left-color: #ef4444;
+            color: #f87171;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Stats Row ──────────────────────────────────── */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+        }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--wire);
+            border-radius: 12px; padding: 12px 8px;
+            text-align: center;
+        }
+        .stat-val {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 28px; font-weight: 900;
+            color: var(--chalk);
+        }
+        .stat-label {
+            font-size: 9px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--muted); margin-top: 2px;
+        }
+
+        /* ── Settings ───────────────────────────────────── */
+        .settings-card { display: flex; flex-direction: column; gap: 14px; }
+
+        .setting-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px;
+        }
+        .setting-label {
+            font-size: 12px; font-weight: 600; color: var(--chalk);
+        }
+        .setting-desc {
+            font-size: 10px; color: var(--muted); margin-top: 1px;
+        }
+
+        .setting-row select {
+            background: var(--dark); color: var(--chalk);
+            border: 1px solid var(--wire); border-radius: 8px;
+            padding: 8px 12px; font-size: 12px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            outline: none; min-width: 140px;
+        }
+        .setting-row select:focus { border-color: var(--brand); }
+
+        /* Toggle Switch */
+        .toggle {
+            width: 44px; height: 24px;
+            background: var(--wire); border-radius: 12px;
+            position: relative; cursor: pointer;
+            transition: background 0.2s; flex-shrink: 0;
+        }
+        .toggle::after {
+            content: ''; position: absolute;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--chalk); top: 2px; left: 2px;
+            transition: transform 0.2s;
+        }
+        .toggle.on {
+            background: var(--brand);
+        }
+        .toggle.on::after {
+            transform: translateX(20px);
+        }
+
+        /* Mode Buttons */
+        .mode-group {
+            display: flex; gap: 4px;
+            background: var(--dark); border-radius: 10px; padding: 3px;
+        }
+        .mode-btn {
+            flex: 1; padding: 8px 12px;
+            background: transparent; border: none;
+            color: var(--muted); border-radius: 8px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: var(--wire); color: var(--chalk);
+        }
+
+        /* ── Divider ────────────────────────────────────── */
+        .divider {
+            width: 100%; height: 1px;
+            background: var(--wire); margin: 4px 0;
+        }
+
+        /* ── Command Reference ──────────────────────────── */
+        .cmd-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .cmd-table td {
+            padding: 5px 8px; font-size: 11px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .cmd-table td:first-child {
+            font-weight: 700; color: var(--brand);
+            font-family: monospace; white-space: nowrap;
+        }
+        .cmd-table td:last-child {
+            color: var(--muted);
+        }
+
+        /* ── Footer ─────────────────────────────────────── */
+        .footer {
+            text-align: center;
+            font-size: 10px; color: var(--muted);
+            padding: 8px 0;
+            font-weight: 600; letter-spacing: 0.05em;
+        }
+        .footer a { color: var(--brand); text-decoration: none; }
+    </style>
+</head>
+
+<body>
+    <div class="hero-glow"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">DART<span class="red">VOICE</span></div>
+            <div class="account-pill" id="account-pill">
+                <div class="avatar" id="account-avatar">?</div>
+                <div>
+                    <div class="account-name" id="account-name">Guest</div>
+                    <div class="account-status" id="account-status">Demo Mode</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APK Connection Badge -->
+        <div class="apk-badge not-apk" id="apk-badge">
+            <div class="dot"></div>
+            <span id="apk-badge-text">Checking APK Bridge...</span>
+        </div>
+
+        <!-- Main Control Card -->
+        <div class="card control-card">
+            <div class="status-row">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Microphone Idle</span>
+            </div>
+
+            <div class="interim-text" id="interim-text">&nbsp;</div>
+
+            <!-- EQ Visualizer -->
+            <div class="eq-wrap" id="eq-wrap">
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+            </div>
+
+            <button class="mic-btn" id="mic-btn">🎤 START LISTENING</button>
+        </div>
+
+        <!-- Open DartCounter -->
+        <button class="open-scorer-btn" id="open-scorer-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+            </svg>
+            Open DartCounter
+        </button>
+
+        <!-- Session Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-val" id="stat-visits">0</div>
+                <div class="stat-label">Visits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="stat-avg">—</div>
+                <div class="stat-label">Average</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="stat-high">—</div>
+                <div class="stat-label">Highest</div>
+            </div>
+        </div>
+
+        <!-- Score Log -->
+        <div class="card score-log">
+            <h4>
+                Activity Log
+                <button id="clear-log-btn">Clear</button>
+            </h4>
+            <div class="log-list" id="log-list">
+                <div class="log-entry">Awaiting voice commands...</div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="card settings-card">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:4px;">Settings</div>
+
+            <!-- Input Mode -->
+            <div>
+                <div class="setting-label" style="margin-bottom:8px;">Input Mode</div>
+                <div class="mode-group">
+                    <button class="mode-btn active" data-mode="total">Visit Total</button>
+                    <button class="mode-btn" data-mode="per-dart">Per Dart</button>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Voice Accent -->
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Voice Accent</div>
+                    <div class="setting-desc">Match your spoken accent</div>
+                </div>
+                <select id="accent-select">
+                    <option value="en-GB">🇬🇧 English (UK)</option>
+                    <option value="en-US">🇺🇸 English (US)</option>
+                    <option value="en-AU">🇦🇺 English (AU)</option>
+                    <option value="en-IE">🇮🇪 English (IE)</option>
+                    <option value="nl-NL">🇳🇱 Dutch</option>
+                    <option value="de-DE">🇩🇪 German</option>
+                </select>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Cancel Word -->
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Cancel Word</div>
+                    <div class="setting-desc">Say "cancel" to undo</div>
+                </div>
+                <div class="toggle on" id="toggle-cancel" data-key="cancelWord"></div>
+            </div>
+        </div>
+
+        <!-- Voice Commands Reference -->
+        <details class="card" style="cursor:pointer;">
+            <summary style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);list-style:none;display:flex;align-items:center;justify-content:space-between;">
+                Voice Commands
+                <span style="font-size:14px;">▸</span>
+            </summary>
+            <table class="cmd-table" style="margin-top:12px;">
+                <tr><td>"sixty"</td><td>Score 60</td></tr>
+                <tr><td>"one eighty"</td><td>Score 180</td></tr>
+                <tr><td>"ton forty"</td><td>Score 140</td></tr>
+                <tr><td>"treble twenty"</td><td>T20 = 60</td></tr>
+                <tr><td>"double top"</td><td>D20 = 40</td></tr>
+                <tr><td>"bull" / "bullseye"</td><td>Score 50</td></tr>
+                <tr><td>"miss" / "zero"</td><td>Score 0</td></tr>
+                <tr><td>"cancel"</td><td>Undo last score</td></tr>
+            </table>
+        </details>
+
+        <div class="footer">
+            DartVoice v2.0 · Mobile Edition · <a href="https://dartvoice.app">dartvoice.app</a>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ── APK Bridge Detection ────────────────────────────────────────────
+        const isAPK = typeof window.DartVoiceBridge !== 'undefined';
+        const badge = document.getElementById('apk-badge');
+        const badgeText = document.getElementById('apk-badge-text');
+
+        if (isAPK) {
+            badge.classList.remove('not-apk');
+            badgeText.textContent = 'APK Bridge Connected';
+        } else {
+            badge.classList.add('not-apk');
+            badgeText.textContent = 'Browser Mode (No Injection)';
+        }
+
+        // ── DARTCOUNTER_DRIVER (Score injection JS) ─────────────────────────
+        const DARTCOUNTER_DRIVER = `
+(function(val) {
+    var SELECTORS = [
+        'input[name="score"]',
+        'input[data-testid="score-input"]',
+        'input[aria-label*="score" i]',
+        'input.score-input',
+        'input[type="number"]',
+        'input[type="tel"]',
+        'input[inputmode="numeric"]'
+    ];
+    function findInput() {
+        for (var i = 0; i < SELECTORS.length; i++) {
+            var el = document.querySelector(SELECTORS[i]);
+            if (el && el.offsetParent !== null) return el;
+        }
+        return null;
+    }
+    function findSubmit() {
+        var candidates = [
+            'button[type="submit"]',
+            'button[data-testid="submit-score"]',
+            'button[aria-label*="submit" i]',
+            'button[aria-label*="ok" i]',
+            'button.score-submit'
+        ];
+        for (var i = 0; i < candidates.length; i++) {
+            var el = document.querySelector(candidates[i]);
+            if (el && el.offsetParent !== null) return el;
+        }
+        var btns = document.querySelectorAll('button');
+        for (var j = 0; j < btns.length; j++) {
+            var t = (btns[j].textContent || '').trim().toLowerCase();
+            if (btns[j].offsetParent !== null &&
+                (t === 'ok' || t === 'enter' || t === 'submit' || t === 'send')) {
+                return btns[j];
+            }
+        }
+        return null;
+    }
+    function setReactValue(el, value) {
+        var proto = (el.tagName === 'TEXTAREA')
+            ? window.HTMLTextAreaElement.prototype
+            : window.HTMLInputElement.prototype;
+        var desc = Object.getOwnPropertyDescriptor(proto, 'value');
+        if (desc && desc.set) { desc.set.call(el, String(value)); }
+        else { el.value = String(value); }
+    }
+    function fire(el, type, init) {
+        var e;
+        if (type === 'keydown' || type === 'keyup' || type === 'keypress') {
+            e = new KeyboardEvent(type, Object.assign({
+                key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true
+            }, init || {}));
+        } else {
+            e = new Event(type, { bubbles: true });
+        }
+        el.dispatchEvent(e);
+    }
+    function inject(input, val) {
+        try { input.focus(); } catch (e) {}
+        setReactValue(input, val);
+        fire(input, 'input');
+        fire(input, 'change');
+        fire(input, 'keydown');
+        fire(input, 'keypress');
+        fire(input, 'keyup');
+        var submit = findSubmit();
+        if (submit) { try { submit.click(); } catch (e) {} }
+        var form = input.form;
+        if (form) {
+            try { form.requestSubmit ? form.requestSubmit() : form.submit(); }
+            catch (e) {}
+        }
+    }
+    var input = findInput();
+    if (input) { inject(input, val); return; }
+    var attempts = 0;
+    var iv = setInterval(function() {
+        attempts++;
+        var el = findInput();
+        if (el) { clearInterval(iv); inject(el, val); }
+        else if (attempts >= 20) { clearInterval(iv); }
+    }, 100);
+})`;
+
+        // ── Score Parser (ported from web-app.html) ─────────────────────────
+        const _ONES = {
+            'zero':0,'oh':0,'nought':0,'nil':0,'naught':0,'no':0,
+            'one':1,'won':1,'wan':1,
+            'two':2,'too':2,'to':2,'tu':2,
+            'three':3,'free':3,'tree':3,'tee':3,
+            'four':4,'for':4,'fore':4,
+            'five':5,'fife':5,'fiv':5,
+            'six':6,'sicks':6,'seeks':6,
+            'seven':7,'sebben':7,'seben':7,'seebin':7,'sebin':7,
+            'eight':8,'ate':8,'ait':8,
+            'nine':9,'nein':9,'nyne':9,
+            'ten':10,'tin':10,
+            'eleven':11,'levin':11,'levven':11,
+            'twelve':12,'twelf':12,
+            'thirteen':13,'tirteen':13,'turteen':13,
+            'fourteen':14,'forteen':14,
+            'fifteen':15,'fiftin':15,
+            'sixteen':16,'sixtin':16,
+            'seventeen':17,'seventin':17,
+            'eighteen':18,'eightin':18,'atin':18,
+            'nineteen':19,'ninetin':19,
+            'bull':50,'bullseye':50,'bulls':50,"bull's eye":50,'bully':50,
+            'outer bull':25,'outer':25,'single bull':25,'half bull':25,
+            'tops':40,'double top':40,'double tops':40,'top':40,
+            'madhouse':2,'double one':2,
+            'ton':100,'a ton':100,'one hundred':100,
+            'low ton':100,'high ton':150
+        };
+        const _TENS = {'twenty':20,'thirty':30,'forty':40,'fifty':50,'sixty':60,'seventy':70,'eighty':80,'ninety':90};
+
+        function parseUnder100(t) {
+            if (_ONES[t] !== undefined) return _ONES[t];
+            if (_TENS[t] !== undefined) return _TENS[t];
+            const w = t.split(' ');
+            if (w.length === 2 && _TENS[w[0]] !== undefined && _ONES[w[1]] !== undefined) {
+                return _TENS[w[0]] + _ONES[w[1]];
+            }
+            const h = t.split('-');
+            if (h.length === 2 && _TENS[h[0]] !== undefined && _ONES[h[1]] !== undefined) {
+                return _TENS[h[0]] + _ONES[h[1]];
+            }
+            const v = parseInt(t);
+            return (!isNaN(v) && v >= 0 && v <= 180) ? v : null;
+        }
+
+        function parseSpokenScore(text) {
+            text = text.toLowerCase().replace(/\band\b/g,' ').replace(/\s+/g,' ').replace(/-/g,' ').trim();
+
+            let multiplier = 1;
+            const multMatch = text.match(/^(single|s|double|d|triple|treble|t)\s+(.+)$/);
+            if (multMatch) {
+                const key = multMatch[1];
+                text = multMatch[2].trim();
+                if (/^single$|^s$/.test(key)) multiplier = 1;
+                else if (/^double$|^d$/.test(key)) multiplier = 2;
+                else if (/^triple$|^treble$|^t$/.test(key)) multiplier = 3;
+            }
+
+            const shorthand = text.match(/^([tds])\s*([0-9]{1,3})$/);
+            if (shorthand) {
+                const s = shorthand[1];
+                const n = parseInt(shorthand[2], 10);
+                const m = s === 't' ? 3 : s === 'd' ? 2 : 1;
+                const val = n * m;
+                return (val >= 0 && val <= 180) ? val : null;
+            }
+
+            if (['bull','bullseye','bulls eye','bull eye'].includes(text)) return 50;
+            if (['outer bull','outer','twenty five'].includes(text)) return 25;
+            if (['miss','missed','nothing','zero','none','bounce','bounce out'].includes(text)) return 0;
+
+            if (text.startsWith('ton ')) {
+                const rest = text.replace(/^ton\s+/,'').trim();
+                const v = parseUnder100(rest);
+                if (v !== null && (100+v) <= 180) return 100+v;
+            }
+
+            const parts = text.split(' ');
+            if (parts.length === 2 && parts[0] === 'one' && _TENS[parts[1]] !== undefined) {
+                const val = 100 + _TENS[parts[1]];
+                if (val <= 180) return val;
+            }
+
+            if (text.startsWith('one hundred') || text.startsWith('a hundred')) {
+                const rest = text.replace(/^(one hundred|a hundred)/,'').trim();
+                if (!rest) return 100;
+                const sub = parseUnder100(rest);
+                if (sub !== null && (100+sub) <= 180) return 100+sub;
+            }
+
+            text = text.replace(/^(score|shot)\s+/,'');
+            const base = parseUnder100(text);
+            if (base === null) return null;
+            if (base <= 60 || base === 25 || base === 50) return base * multiplier;
+            return base;
+        }
+
+        // ── DOM References ──────────────────────────────────────────────────
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const interimText = document.getElementById('interim-text');
+        const micBtn = document.getElementById('mic-btn');
+        const eqWrap = document.getElementById('eq-wrap');
+        const eqBars = document.querySelectorAll('.eq-bar');
+        const logList = document.getElementById('log-list');
+        const openScorerBtn = document.getElementById('open-scorer-btn');
+
+        // ── State ───────────────────────────────────────────────────────────
+        let listening = false;
+        let recognition = null;
+        let eqInterval = null;
+        let sessionScores = [];
+        let dartBuffer = [];
+        let dartBufferTimeout = null;
+        let inputMode = 'total'; // 'total' or 'per-dart'
+        let cancelWordEnabled = true;
+
+        // ── Config ──────────────────────────────────────────────────────────
+        const AppConfig = {
+            inputMode: 'total',
+            cancelWordEnabled: true,
+        };
+
+        // ── Logging ─────────────────────────────────────────────────────────
+        function log(msg, type) {
+            type = type || 'info'; // 'info', 'score', 'error'
+            const div = document.createElement('div');
+            div.className = 'log-entry' + (type === 'score' ? ' score' : type === 'error' ? ' error' : '');
+            div.textContent = msg;
+            // Prepend newest at top
+            logList.prepend(div);
+            // Keep log manageable
+            while (logList.children.length > 50) logList.removeChild(logList.lastChild);
+        }
+
+        document.getElementById('clear-log-btn').addEventListener('click', function() {
+            logList.innerHTML = '<div class="log-entry">Log cleared.</div>';
+        });
+
+        // ── Session Stats ───────────────────────────────────────────────────
+        function updateStats() {
+            document.getElementById('stat-visits').textContent = sessionScores.length;
+            if (sessionScores.length > 0) {
+                const avg = Math.round(sessionScores.reduce((a,b) => a+b, 0) / sessionScores.length);
+                document.getElementById('stat-avg').textContent = avg;
+                document.getElementById('stat-high').textContent = Math.max(...sessionScores);
+            }
+        }
+
+        // ── EQ Visualizer ───────────────────────────────────────────────────
+        function startEQ() {
+            eqWrap.classList.add('active');
+            if (eqInterval) clearInterval(eqInterval);
+            eqInterval = setInterval(() => {
+                eqBars.forEach(bar => {
+                    bar.style.height = Math.floor(Math.random() * 18 + 3) + 'px';
+                });
+            }, 80);
+        }
+        function stopEQ() {
+            eqWrap.classList.remove('active');
+            if (eqInterval) clearInterval(eqInterval);
+            eqBars.forEach(bar => { bar.style.height = '3px'; });
+        }
+
+        // ── Score Injection ─────────────────────────────────────────────────
+        function injectScore(score) {
+            if (isAPK) {
+                const js = DARTCOUNTER_DRIVER + '(' + score + ');';
+                try {
+                    window.DartVoiceBridge.evaluateOnScorer(js);
+                    log('✓ Sent ' + score + ' to DartCounter', 'score');
+                } catch(e) {
+                    log('Bridge error: ' + e.message, 'error');
+                }
+            } else {
+                log('Score: ' + score + ' (no APK bridge — browser preview)', 'score');
+            }
+            sessionScores.push(score);
+            updateStats();
+        }
+
+        function injectCancel() {
+            if (isAPK) {
+                // Send backspace key event to DartCounter
+                const js = `(function(){
+                    document.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Backspace',code:'Backspace',keyCode:8,which:8}));
+                    document.dispatchEvent(new KeyboardEvent('keyup',{bubbles:true,key:'Backspace',code:'Backspace',keyCode:8,which:8}));
+                })();`;
+                try { window.DartVoiceBridge.evaluateOnScorer(js); } catch(e) {}
+            }
+            log('⟲ Cancel — undo last score', 'info');
+        }
+
+        // ── Open DartCounter ────────────────────────────────────────────────
+        openScorerBtn.addEventListener('click', function() {
+            if (isAPK) {
+                try {
+                    window.DartVoiceBridge.openScorer();
+                    log('Opened DartCounter scorer', 'info');
+                } catch(e) {
+                    log('Failed to open scorer: ' + e.message, 'error');
+                }
+            } else {
+                window.open('https://app.dartcounter.net/dashboard', '_blank');
+                log('Opened DartCounter in new tab (browser mode)', 'info');
+            }
+        });
+
+        // ── Speech Recognition ──────────────────────────────────────────────
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = localStorage.getItem('dv-accent') || 'en-GB';
+
+            recognition.onstart = function() {
+                listening = true;
+                micBtn.textContent = '⏹ STOP LISTENING';
+                micBtn.classList.add('stop');
+                statusDot.classList.add('listening');
+                statusText.textContent = 'Awaiting Score...';
+                startEQ();
+                log('🎤 Microphone activated — speak your score');
+            };
+
+            recognition.onresult = function(event) {
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (!event.results[i].isFinal) {
+                        const interim = event.results[i][0].transcript.trim();
+                        interimText.textContent = interim ? '"' + interim + '"…' : '';
+                        continue;
+                    }
+
+                    interimText.textContent = '';
+                    statusText.textContent = 'Awaiting Score...';
+                    const raw = event.results[i][0].transcript.trim().toLowerCase();
+
+                    // Cancel trigger
+                    if (raw.includes('cancel') && AppConfig.cancelWordEnabled) {
+                        if (AppConfig.inputMode === 'per-dart' && dartBuffer.length > 0) {
+                            log('Cancel — cleared ' + dartBuffer.length + ' buffered dart(s)');
+                            dartBuffer = [];
+                            if (dartBufferTimeout) { clearTimeout(dartBufferTimeout); dartBufferTimeout = null; }
+                            statusText.textContent = 'Darts cleared. Speak again...';
+                        } else {
+                            injectCancel();
+                        }
+                        continue;
+                    }
+
+                    const score = parseSpokenScore(raw);
+                    if (score !== null && score >= 0 && score <= 180) {
+                        if (AppConfig.inputMode === 'per-dart') {
+                            if (score > 60) {
+                                log('"' + raw + '" (' + score + ') exceeds per-dart max, sending as visit total');
+                                injectScore(score);
+                            } else {
+                                dartBuffer.push(score);
+                                log('Dart ' + dartBuffer.length + '/3: ' + score);
+                                statusText.textContent = 'Darts: ' + dartBuffer.join(' + ') + ' (' + dartBuffer.length + '/3)';
+
+                                if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
+
+                                if (dartBuffer.length >= 3) {
+                                    dartBufferTimeout = setTimeout(function() {
+                                        if (dartBuffer.length > 0) {
+                                            const total = dartBuffer.reduce((a,b) => a+b, 0);
+                                            log(dartBuffer.join(' + ') + ' = ' + total);
+                                            injectScore(total);
+                                            dartBuffer = [];
+                                            statusText.textContent = 'Awaiting Score...';
+                                            dartBufferTimeout = null;
+                                        }
+                                    }, 2500);
+                                    log('3 darts received — submitting shortly. Say "cancel" to abort.');
+                                } else {
+                                    dartBufferTimeout = setTimeout(function() {
+                                        if (dartBuffer.length > 0) {
+                                            const total = dartBuffer.reduce((a,b) => a+b, 0);
+                                            log(dartBuffer.join(' + ') + ' = ' + total + ' (auto-submitted)');
+                                            injectScore(total);
+                                            dartBuffer = [];
+                                            statusText.textContent = 'Awaiting Score...';
+                                            dartBufferTimeout = null;
+                                        }
+                                    }, 6000);
+                                }
+                            }
+                        } else {
+                            log('Heard: "' + raw + '" → ' + score);
+                            injectScore(score);
+                        }
+                    } else {
+                        log('Heard: "' + raw + '" (no match)');
+                    }
+                }
+            };
+
+            recognition.onerror = function(event) {
+                if (event.error !== 'aborted' && event.error !== 'no-speech') {
+                    log('Speech error: ' + event.error, 'error');
+                }
+                if (event.error === 'not-allowed') {
+                    stopListening();
+                }
+            };
+
+            recognition.onend = function() {
+                if (listening) {
+                    setTimeout(function() {
+                        if (listening && recognition) {
+                            try { recognition.start(); } catch(e) {}
+                        }
+                    }, 500);
+                } else {
+                    stopListeningUI();
+                }
+            };
+        } else {
+            log('Web Speech API not supported. Use Chrome.', 'error');
+            micBtn.disabled = true;
+            micBtn.textContent = 'UNSUPPORTED BROWSER';
+        }
+
+        function stopListeningUI() {
+            statusDot.classList.remove('listening');
+            statusText.textContent = 'Microphone Idle';
+            micBtn.textContent = '🎤 START LISTENING';
+            micBtn.classList.remove('stop');
+            interimText.textContent = '';
+            stopEQ();
+        }
+
+        function stopListening() {
+            listening = false;
+            if (recognition) recognition.stop();
+            stopListeningUI();
+            log('Microphone stopped');
+        }
+
+        micBtn.addEventListener('click', function() {
+            if (listening) {
+                stopListening();
+            } else {
+                if (recognition) {
+                    try { recognition.start(); } catch(e) {
+                        log('Mic error: ' + e.message, 'error');
+                    }
+                }
+            }
+        });
+
+        // ── Settings Handlers ───────────────────────────────────────────────
+        // Input Mode
+        document.querySelectorAll('.mode-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                AppConfig.inputMode = btn.dataset.mode;
+                log('Input mode: ' + AppConfig.inputMode);
+            });
+        });
+
+        // Accent
+        const accentSelect = document.getElementById('accent-select');
+        accentSelect.value = localStorage.getItem('dv-accent') || 'en-GB';
+        accentSelect.addEventListener('change', function() {
+            localStorage.setItem('dv-accent', accentSelect.value);
+            if (recognition) recognition.lang = accentSelect.value;
+            log('Voice accent: ' + accentSelect.value);
+        });
+
+        // Toggle switches
+        document.querySelectorAll('.toggle').forEach(function(el) {
+            el.addEventListener('click', function() {
+                el.classList.toggle('on');
+                const key = el.dataset.key;
+                if (key === 'cancelWord') AppConfig.cancelWordEnabled = el.classList.contains('on');
+            });
+        });
+
+        // ── Supabase Auth ───────────────────────────────────────────────────
+        const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        (async function initAccount() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session || !session.user) return; // Stay as Guest
+
+            const user = session.user;
+            const email = user.email;
+
+            const [{ data: sub }, { data: profile }] = await Promise.all([
+                sb.from('dartvoice_subscriptions').select('status').eq('user_id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('display_name').eq('id', user.id).maybeSingle(),
+            ]);
+
+            const displayName = profile?.display_name?.trim() || email.split('@')[0];
+            const initials = displayName.split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
+            const isActive = sub && ['active','trialing'].includes(sub.status);
+
+            document.getElementById('account-avatar').textContent = initials;
+            document.getElementById('account-name').textContent = displayName;
+            const statusEl = document.getElementById('account-status');
+            if (isActive) {
+                statusEl.textContent = sub.status === 'active' ? 'Pro Active' : 'Free Trial';
+                statusEl.style.color = sub.status === 'active' ? 'var(--brand)' : '#facc15';
+            } else {
+                statusEl.textContent = 'No Subscription';
+            }
+        })();
+
+    })();
+    </script>
+    <script src="theme.js"></script>
+</body>
+</html>
