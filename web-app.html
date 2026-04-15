@@ -830,14 +830,77 @@
         let _guestMode = false;
         let _userSub = null;
 
+        // --- DEMO LIMITER STATE ---
+        const DEMO_DURATION_MS = 10 * 60 * 1000;
+        let demoStartedAt = null;
+
+        // Utility: Format ms as mm:ss
+        function formatDemoTime(ms) {
+            const min = Math.floor(ms / 60000);
+            const sec = Math.floor((ms % 60000) / 1000);
+            return `${min}:${String(sec).padStart(2, '0')}`;
+        }
+
+        // Insert demo timer element below account pill
+        function showDemoTimer(msLeft) {
+            let timerEl = document.getElementById('demo-timer-row');
+            if (!timerEl) {
+                const pill = document.getElementById('account-pill');
+                timerEl = document.createElement('div');
+                timerEl.id = 'demo-timer-row';
+                timerEl.style = 'margin-top:8px;margin-bottom:8px;padding:8px 12px;background:rgba(204,11,32,0.12);border:1px solid #cc0b20;border-radius:8px;color:#cc0b20;font-weight:bold;font-size:12px;text-align:center;letter-spacing:0.5px;';
+                pill.parentNode.insertBefore(timerEl, pill.nextSibling);
+            }
+            timerEl.textContent = `DEMO: ${formatDemoTime(msLeft)} left – Create an account for unlimited access.`;
+        }
+
+        // Remove demo timer if present
+        function hideDemoTimer() {
+            const timerEl = document.getElementById('demo-timer-row');
+            if (timerEl) timerEl.remove();
+        }
+
+        // Persist demo start time in localStorage for guests
+        function getOrSetDemoStart() {
+            let t = localStorage.getItem('dv-demo-start');
+            if (!t) {
+                t = Date.now();
+                localStorage.setItem('dv-demo-start', t);
+            }
+            return parseInt(t, 10);
+        }
+
+        // Clear demo start (on login/signup)
+        function clearDemoStart() {
+            localStorage.removeItem('dv-demo-start');
+        }
+
         (async function initAccount() {
             const { data: { session } } = await sb.auth.getSession();
-            if (!session?.user) return; // Guest — defaults are fine
+
+            if (!session?.user) {
+                // Guest: set demo start and show timer
+                demoStartedAt = getOrSetDemoStart();
+                const updateDemoTimer = () => {
+                    const msLeft = Math.max(0, DEMO_DURATION_MS - (Date.now() - demoStartedAt));
+                    if (msLeft > 0) {
+                        showDemoTimer(msLeft);
+                    } else {
+                        showDemoTimer(0);
+                        // Optionally, could auto-show paywall here
+                    }
+                };
+                updateDemoTimer();
+                setInterval(updateDemoTimer, 1000);
+                return;
+            }
 
             const user = session.user;
             const email = user.email;
             _isAdmin = ADMIN_EMAILS.includes(email?.toLowerCase());
 
+            // On login, clear demo start so future logins get full demo if they log out
+            clearDemoStart();
             // Fetch subscription + profile
             const [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('status').eq('user_id', user.id).maybeSingle(),
@@ -1369,9 +1432,6 @@
         document.getElementById('recalibrate-btn').addEventListener('click', triggerCalibration);
         document.getElementById('recalibrate-btn-2').addEventListener('click', triggerCalibration);
 
-        // --- DEMO LIMITER STATE ---
-        const DEMO_DURATION_MS = 10 * 60 * 1000;
-        let demoStartedAt = null;
 
         function userHasActiveSubscription() {
             if (_isAdmin && !_guestMode) return true;
@@ -1380,39 +1440,32 @@
 
         // Update the score forwarder logic
         function blastScoreToIframe(scoreString) {
-             const isPro = userHasActiveSubscription();
+            const isPro = userHasActiveSubscription();
 
-             // Only track demo start + enforce demo cutoff for non-subscribers.
-             if (!isPro) {
-                 if (!demoStartedAt) demoStartedAt = Date.now();
-                 if (Date.now() - demoStartedAt > DEMO_DURATION_MS) {
-                     log("DEMO WINDOW EXPIRED. Showing trial prompt...", false);
-                     if(recognition) recognition.stop();
-                     const paywall = document.getElementById('paywall-modal');
-                     const paywallContent = document.getElementById('paywall-content');
-                     paywall.classList.remove('hidden');
-                     paywall.classList.add('flex');
-                     setTimeout(() => {
-                         paywallContent.classList.remove('translate-y-4', 'opacity-0');
-                     }, 50);
-                     return;
-                 }
-             }
+            if (!isPro) {
+                // Always use persisted demo start for guests
+                demoStartedAt = getOrSetDemoStart();
+                if (Date.now() - demoStartedAt > DEMO_DURATION_MS) {
+                    log("DEMO WINDOW EXPIRED. Showing trial prompt...", false);
+                    if(recognition) recognition.stop();
+                    const paywall = document.getElementById('paywall-modal');
+                    const paywallContent = document.getElementById('paywall-content');
+                    paywall.classList.remove('hidden');
+                    paywall.classList.add('flex');
+                    setTimeout(() => {
+                        paywallContent.classList.remove('translate-y-4', 'opacity-0');
+                    }, 50);
+                    return;
+                }
+            }
 
-             const targetIframe = document.getElementById('scorer-frame');
-             targetIframe.contentWindow.postMessage({
-                 type: "DARTVOICE_SCORE_INJECT",
-                 score: scoreString
-             }, "*");
-
-             // Demo countdown log only applies to non-subscribers — paying users
-             // have no time limit and shouldn't see a countdown in their transcript.
-             if (!isPro) {
-                 const remainingMs = Math.max(0, DEMO_DURATION_MS - (Date.now() - demoStartedAt));
-                 const remainingMin = Math.floor(remainingMs / 60000);
-                 const remainingSec = Math.floor((remainingMs % 60000) / 1000);
-                 log(`Demo time remaining: ${remainingMin}:${String(remainingSec).padStart(2, '0')}`);
-             }
+            const targetIframe = document.getElementById('scorer-frame');
+            targetIframe.contentWindow.postMessage({
+                type: "DARTVOICE_SCORE_INJECT",
+                score: scoreString
+            }, "*");
+            // Demo countdown log no longer shown in transcript
+        }
         }
 
         // --- APP CONFIGURATION STATE ---
