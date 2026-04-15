@@ -1497,14 +1497,6 @@ class DartVoiceApp(ctk.CTk):
             self._status.set(label)
             return
 
-        if bs['demo_active']:
-            secs = int(bs['demo_secs'])
-            mins, s = divmod(secs, 60)
-            self._status.set(f"Free demo  ·  {mins}:{s:02d} remaining")
-            # Schedule paywall for when demo expires
-            self.after(secs * 1000, self._show_paywall)
-            return
-
         self._show_paywall()
 
     def _on_billing_checked(self, subscribed: bool, account):

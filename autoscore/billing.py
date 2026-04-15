@@ -357,7 +357,6 @@ def billing_status() -> dict:
     admin      = is_admin_unlocked()
     account    = get_account()
     subscribed = is_subscribed()       # already returns True if admin
-    secs_left  = demo_seconds_remaining()
     logged_in  = account is not None
     return {
         'install_id':   get_install_id(),
@@ -365,13 +364,12 @@ def billing_status() -> dict:
         'logged_in':    logged_in,
         'admin':        admin,
         'subscribed':   subscribed,
-        'demo_active':  secs_left > 0,
-        'demo_secs':    secs_left,
-        # Locked only if: demo expired AND not subscribed
-        'locked':       not subscribed and secs_left <= 0,
+        'demo_active':  False,
+        'demo_secs':    0.0,
+        # Locked only if not subscribed
+        'locked':       not subscribed,
         # Human-readable access tier
-        'tier':         'admin' if admin else ('member' if subscribed else
-                        ('demo' if secs_left > 0 else 'inactive')),
+        'tier':         'admin' if admin else ('member' if subscribed else 'inactive'),
     }
 
 
