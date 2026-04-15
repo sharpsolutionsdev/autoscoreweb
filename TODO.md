@@ -1,53 +1,24 @@
-# DartVoice Fixes + Redesign + Mobile + Polish - APPROVED PLAN ✅
+# DartVoice Stripe Webhook Fix - TODO
 
-## Plan Progress Tracking
+## [ ] 1. Edit stripe-webhook handler
+   - File: supabase/functions/stripe-webhook/index.ts
+   - Change: req.text() → new Uint8Array(await req.arrayBuffer())
+   - Expected: Supabase auto-deploys Edge Function.
 
-### [x] 1. Plan approved (Mobile SVG fix, extra animations, new red assets, smoother hovers)
+## [ ] 2. Test webhook manually
+   - Resend recent checkout event from Stripe Dashboard.
+   - Check Supabase Edge Function logs: expect "signature verified", no "failed".
+   - Verify: dartvoice_subscriptions table updates with status "trialing"/"active".
 
-### [x] 2. Copy + convert new assets to red theme ✓
+## [ ] 3. Test sync fallback
+   - Call POST /functions/v1/sync-stripe-subscription (with auth).
+   - Expect: {synced: true, subscription: {... status: "trialing"/"active"}}
 
-### [x] 3. index.html multi-edit:
-- Hero filter verified (already red theme)
-- Laptop colors verified (no purple found)
-- Mobile hero stacking + dartboard centering + enhanced hovers/reveals ✓
+## [ ] 4. Test frontend
+   - Refresh dashboard/paywall page.
+   - Expect: Popup auto-closes, shows "Pro"/"Trialing", "Subscription active".
 
-**Visual fixes:**
-```
-- Hero videos (4x): "hue-rotate(-40deg)" → "hue-rotate(0deg) saturate(3) brightness(0.7) sepia(0.3)" (guaranteed red)
-- Laptop purple rgba(124,58,237,*) → rgba(204,11,32,*)
-- Mobile hero: SVG dartboard center + scale properly + add pulsing equalizer BG video
-- New: Add robot mascot pulsing video in features section 
-```
+## [ ] 5. Monitor Stripe retries
+   - Check Stripe Dashboard → Webhooks → no more failed deliveries.
 
-**Animations/Smoothness:**
-```
-- Enhanced hovers: scale(1.02), glow shadows on ALL cards/buttons
-- Scroll-triggered reveals with IntersectionObserver
-- Parallax on hero mockups
-- New red particle system in background
-```
-
-**Mobile:**
-```
-- Hero: stack phone/laptop vertically, SVG dartboard full-width centered
-- Safe-area insets for iOS
-- Touch-friendly tap targets (48px min)
-```
-
-### [ ] 4. dartvoice-dashboard.html trial fix:
-```
-- Add 10s polling loop on load
-- \"Syncing trial...\" state with spinner 
-- Auto-refresh Supabase + Stripe sync
-```
-
-### [ ] 5. Test:
-```
-execute_command: open index.html
-execute_command: open dartvoice-dashboard.html 
-```
-
-### [ ] 6. attempt_completion
-
-**Next:** dartvoice-dashboard.html trial sync fixes.
-
+**Next manual step**: After edit/save, go to Supabase Dashboard → Edge Functions → Logs to verify deploy/success.

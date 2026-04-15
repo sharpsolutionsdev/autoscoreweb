@@ -41,7 +41,7 @@ serve(async (req) => {
       headers: { "Content-Type": "application/json", ...CORS },
     });
 
-  const payload = await req.text();
+const payload = new Uint8Array(await req.arrayBuffer());
   const sig =
     req.headers.get("stripe-signature") ||
     req.headers.get("Stripe-Signature") ||

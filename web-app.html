@@ -848,10 +848,10 @@
                 const pill = document.getElementById('account-pill');
                 timerEl = document.createElement('div');
                 timerEl.id = 'demo-timer-row';
-                timerEl.style = 'margin-top:8px;margin-bottom:8px;padding:8px 12px;background:rgba(204,11,32,0.12);border:1px solid #cc0b20;border-radius:8px;color:#cc0b20;font-weight:bold;font-size:12px;text-align:center;letter-spacing:0.5px;';
+                timerEl.style = 'margin-top:8px;margin-bottom:0;padding:8px 12px;background:rgba(204,11,32,0.12);border:1px solid #cc0b20;border-radius:8px;color:#cc0b20;font-weight:bold;font-size:12px;text-align:center;letter-spacing:0.5px;white-space:pre-line;';
                 pill.parentNode.insertBefore(timerEl, pill.nextSibling);
             }
-            timerEl.textContent = `DEMO: ${formatDemoTime(msLeft)} left – Create an account for unlimited access.`;
+            timerEl.textContent = `DEMO: ${formatDemoTime(msLeft)} left\nCreate an account for unlimited access.`;
         }
 
         // Remove demo timer if present
@@ -875,11 +875,12 @@
             localStorage.removeItem('dv-demo-start');
         }
 
+
         (async function initAccount() {
             const { data: { session } } = await sb.auth.getSession();
 
-            if (!session?.user) {
-                // Guest: set demo start and show timer
+            // Helper to show/hide demo timer
+            function enableDemoTimer() {
                 demoStartedAt = getOrSetDemoStart();
                 const updateDemoTimer = () => {
                     const msLeft = Math.max(0, DEMO_DURATION_MS - (Date.now() - demoStartedAt));
@@ -892,6 +893,11 @@
                 };
                 updateDemoTimer();
                 setInterval(updateDemoTimer, 1000);
+            }
+
+            if (!session?.user) {
+                // True guest
+                enableDemoTimer();
                 return;
             }
 
@@ -919,9 +925,11 @@
             if (isActive) {
                 statusEl.textContent = sub.status === 'active' ? 'Pro Active' : 'Free Trial';
                 statusEl.className = 'text-[8px] font-bold uppercase tracking-widest leading-none ' + (sub.status === 'active' ? 'text-brand' : 'text-yellow-400');
+                hideDemoTimer();
             } else {
                 statusEl.textContent = 'No Subscription';
                 statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
+                enableDemoTimer(); // treat as demo
             }
 
             // Pro access banner above the transcript
@@ -958,6 +966,7 @@
                         const newStatus = result.subscription.status;
                         statusEl.textContent = newStatus === 'active' ? 'Pro Active' : 'Free Trial';
                         statusEl.className = 'text-[8px] font-bold uppercase tracking-widest leading-none ' + (newStatus === 'active' ? 'text-brand' : 'text-yellow-400');
+                        hideDemoTimer();
                         if (proBanner) {
                             proBanner.classList.remove('hidden');
                             if (proBannerText) {
@@ -980,12 +989,18 @@
                         document.getElementById('account-avatar').textContent = '?';
                         statusEl.textContent = 'Demo Mode';
                         statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
+                        enableDemoTimer();
                     } else {
                         document.getElementById('account-name').textContent = displayName;
                         document.getElementById('account-avatar').textContent = initials;
                         if (isActive) {
                             statusEl.textContent = sub.status === 'active' ? 'Pro Active' : 'Free Trial';
                             statusEl.className = 'text-[8px] font-bold uppercase tracking-widest leading-none ' + (sub.status === 'active' ? 'text-brand' : 'text-yellow-400');
+                            hideDemoTimer();
+                        } else {
+                            statusEl.textContent = 'No Subscription';
+                            statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
+                            enableDemoTimer();
                         }
                     }
                 });
