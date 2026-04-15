@@ -179,6 +179,79 @@
         #toast {
             animation: toastIn 0.3s ease-out;
         }
+
+        /* ── Pro activation celebration overlay ── */
+        .dv-pro-celebrate {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(34, 197, 94, 0.14), rgba(8, 8, 10, 0.82) 70%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .dv-pro-celebrate.open {
+            opacity: 1;
+        }
+
+        .dv-pro-celebrate-card {
+            background: linear-gradient(160deg, #111114 0%, #181820 100%);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            border-radius: 22px;
+            padding: 36px 44px;
+            text-align: center;
+            box-shadow: 0 24px 90px rgba(34, 197, 94, 0.22), 0 0 0 1px rgba(34, 197, 94, 0.12) inset;
+            transform: translateY(14px) scale(0.94);
+            transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+            max-width: 360px;
+        }
+
+        .dv-pro-celebrate.open .dv-pro-celebrate-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .dv-pro-celebrate-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 40px rgba(34, 197, 94, 0.25);
+            animation: dvProPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+        }
+
+        @keyframes dvProPop {
+            0% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+            60% { transform: scale(1.18) rotate(6deg); }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .dv-pro-celebrate-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-style: italic;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            font-size: 26px;
+            color: #F0F0F5;
+            margin-bottom: 6px;
+        }
+
+        .dv-pro-celebrate-sub {
+            color: #6E6E82;
+            font-size: 13px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 
@@ -1210,8 +1283,7 @@
                     _currentSub = sub;
                     renderSubscription(sub, userId);
                     showProfileBadge(sub.status === 'active' ? 'active' : 'trial');
-                    showToast('You\'re in! Your free trial has started.');
-                    window.location.href = 'thanks.html';
+                    window.location.href = 'thanks.html?from=dashboard';
                     return;
                 }
 
@@ -1223,22 +1295,22 @@
 
         async function manualSyncStatus(userId) {
             const btn = $('btn-refresh-status');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Checking...';
-            
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Checking...';
+            }
+
             try {
-                // First try quick DB check
                 const { data: sub } = await sb.from('dartvoice_subscriptions').select('*').eq('user_id', userId).maybeSingle();
-                
                 if (sub && ['active', 'trialing'].includes(sub.status)) {
+                    const wasActive = _currentSub && ['active', 'trialing'].includes(_currentSub.status);
                     _currentSub = sub;
                     renderSubscription(sub, userId);
-                    showToast('Subscription updated!');
+                    if (!wasActive) celebrateProActivation();
                     return;
                 }
 
-                // If not in DB, trigger the sync edge function
                 const { data: { session } } = await sb.auth.getSession();
                 if (session?.access_token) {
                     const resp = await fetch(SUPABASE_URL + '/functions/v1/sync-stripe-subscription', {
@@ -1252,9 +1324,10 @@
                     });
                     const result = await resp.json();
                     if (result.synced && result.subscription) {
+                        const wasActive = _currentSub && ['active', 'trialing'].includes(_currentSub.status);
                         _currentSub = result.subscription;
                         renderSubscription(result.subscription, userId);
-                        showToast('Subscription synced from Stripe!');
+                        if (!wasActive) celebrateProActivation();
                     } else {
                         showToast('No active subscription found on Stripe.');
                     }
@@ -1263,20 +1336,36 @@
                 console.error('Manual sync failed:', e);
                 showToast('Sync failed. Please try again or contact support.');
             } finally {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            
-            // 10s polling loop for trial sync
-            setInterval(async () => {
-                if ($('btn-refresh-status')) {
-                    manualSyncStatus(_ambUserId);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
                 }
-            }, 10000);
-            
-            // Initial sync after manual refresh
-            const { data: { user } } = await sb.auth.getUser();
-            if (user) loadDashboard(user);
             }
+        }
+
+        // Fire a one-shot celebration overlay the first time the user's status
+        // flips to active/trialing on this page load.
+        let _celebratedThisLoad = false;
+        function celebrateProActivation() {
+            if (_celebratedThisLoad) return;
+            _celebratedThisLoad = true;
+            showToast('\u2728 You\'re in! Welcome to DartVoice Pro.');
+            const overlay = document.createElement('div');
+            overlay.className = 'dv-pro-celebrate';
+            overlay.innerHTML = `
+                <div class="dv-pro-celebrate-card">
+                    <div class="dv-pro-celebrate-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="38" height="38"><path d="M20 6 9 17l-5-5"/></svg>
+                    </div>
+                    <div class="dv-pro-celebrate-title">PRO ACCESS UNLOCKED</div>
+                    <div class="dv-pro-celebrate-sub">Downloads, voice scoring & unlimited play are ready.</div>
+                </div>`;
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add('open'));
+            setTimeout(() => {
+                overlay.classList.remove('open');
+                setTimeout(() => overlay.remove(), 400);
+            }, 2600);
         }
 
         function showToast(msg) {
@@ -1285,6 +1374,33 @@
             el.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
             el.classList.remove('hidden');
             setTimeout(() => el.classList.add('hidden'), 5000);
+        }
+
+        // Open Stripe Customer Portal (cancel, update card, resume) via Supabase edge function.
+        async function openStripePortal(btn) {
+            const origText = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = 'Opening\u2026'; }
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session?.access_token) { window.location.href = 'login'; return; }
+                const resp = await fetch(SUPABASE_URL + '/functions/v1/create-stripe-portal', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                    },
+                    body: JSON.stringify({ returnUrl: window.location.origin + '/dartvoice-dashboard.html' }),
+                });
+                const body = await resp.json();
+                if (body.url) { window.location.href = body.url; return; }
+                showToast(body.error === 'no_stripe_customer' ? 'No billing account yet — start a trial first.' : 'Could not open billing portal. Try again.');
+            } catch (e) {
+                console.error('portal open failed', e);
+                showToast('Could not open billing portal. Try again.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = origText; }
+            }
         }
 
         // ── Dashboard ─────────────────────────────────────────────────
@@ -1332,7 +1448,6 @@
                         const result = await resp.json();
                         if (result.synced && result.subscription) {
                             sub = result.subscription;
-                            showToast('Subscription confirmed — welcome to DartVoice Pro!');
                         }
                     }
                 } catch (e) {
@@ -1341,6 +1456,19 @@
             }
 
             _currentSub = sub;
+
+            // Fire Pro activation celebration if user arrived from checkout success
+            // and their subscription is now active/trialing. The flag is set by
+            // thanks.html before redirect, so we only celebrate on the post-payment
+            // hop (not every dashboard load).
+            if (sub && ['active', 'trialing'].includes(sub.status)) {
+                try {
+                    if (sessionStorage.getItem('dv-just-subscribed') === '1') {
+                        sessionStorage.removeItem('dv-just-subscribed');
+                        celebrateProActivation();
+                    }
+                } catch (_) { /* sessionStorage blocked */ }
+            }
 
             // Greeting: prefer stored display_name, then email prefix
             const displayName = profile?.display_name?.trim() || '';
@@ -1519,10 +1647,10 @@
                 </div>
                 <p class="text-muted-2 text-xs">Converts to &pound;6.99/mo on ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
                 actions.innerHTML = `
-                <a href="${BILLING_URL}/portal?user_id=${userId}"
+                <button type="button" onclick="openStripePortal(this)"
                    class="btn-ghost inline-block px-5 py-2 rounded-xl text-sm font-medium text-white">
                     Manage Subscription
-                </a>`;
+                </button>`;
                 showDownloads(true);
 
                 // ── Active ──
@@ -1534,10 +1662,10 @@
                 <p class="text-sm text-muted">Your subscription is active.</p>
                 <p class="text-muted-2 text-xs mt-1.5">Next billing: <span class="text-white">${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span></p>`;
                 actions.innerHTML = `
-                <a href="${BILLING_URL}/portal?user_id=${userId}"
+                <button type="button" onclick="openStripePortal(this)"
                    class="btn-ghost inline-block px-5 py-2 rounded-xl text-sm font-medium text-white">
                     Manage Subscription
-                </a>`;
+                </button>`;
                 showDownloads(true);
 
                 // ── Past due ──
@@ -1545,10 +1673,10 @@
                 badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/15 tracking-wide">PAST DUE</span>`;
                 details.innerHTML = `<p class="text-yellow-400/80 text-sm">Your last payment failed. Update your payment method to restore access.</p>`;
                 actions.innerHTML = `
-                <a href="${BILLING_URL}/portal?user_id=${userId}"
+                <button type="button" onclick="openStripePortal(this)"
                    class="btn-brand inline-block px-5 py-2.5 rounded-xl text-white font-semibold text-sm">
                     Update Payment Method
-                </a>`;
+                </button>`;
                 showDownloads(false);
 
                 // ── Other ──

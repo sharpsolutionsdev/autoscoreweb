@@ -406,6 +406,13 @@
                     </div>
                 </div>
 
+                <!-- Pro access banner (shown only to subscribers) -->
+                <div id="pro-access-banner" class="hidden mb-3 px-3 py-2 rounded-lg flex items-center gap-2 text-[11px] font-semibold"
+                     style="background:linear-gradient(135deg,rgba(34,197,94,0.12) 0%,rgba(34,197,94,0.04) 100%);border:1px solid rgba(34,197,94,0.28);color:#bbf7d0;">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M12 2l9 4v6c0 5-4 9-9 10-5-1-9-5-9-10V6l9-4z"/></svg>
+                    <span id="pro-access-banner-text" class="tracking-wide">PRO ACCESS &mdash; Unlimited voice scoring</span>
+                </div>
+
                 <!-- AI Transcript HUD -->
                 <div class="mb-auto flex flex-col min-h-0">
                     <div class="flex items-center justify-between mb-3 flex-shrink-0">
@@ -852,6 +859,52 @@
             } else {
                 statusEl.textContent = 'No Subscription';
                 statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
+            }
+
+            // Pro access banner above the transcript
+            const proBanner = document.getElementById('pro-access-banner');
+            const proBannerText = document.getElementById('pro-access-banner-text');
+            if (proBanner && isActive) {
+                proBanner.classList.remove('hidden');
+                if (proBannerText) {
+                    proBannerText.textContent = sub.status === 'active'
+                        ? 'PRO ACCESS — Unlimited voice scoring'
+                        : 'FREE TRIAL — Unlimited voice scoring';
+                }
+            } else if (proBanner) {
+                proBanner.classList.add('hidden');
+            }
+
+            // Fallback self-heal: if DB shows no active sub, ask the Supabase
+            // sync function to reconcile with Stripe (handles the case where
+            // the webhook missed/was delayed). Re-render the banner on success.
+            if (!isActive) {
+                try {
+                    const resp = await fetch(SB_URL + '/functions/v1/sync-stripe-subscription', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + session.access_token,
+                            'Content-Type': 'application/json',
+                            'apikey': SB_KEY,
+                        },
+                        body: '{}',
+                    });
+                    const result = await resp.json().catch(() => ({}));
+                    if (result?.synced && result.subscription && ['active', 'trialing'].includes(result.subscription.status)) {
+                        _userSub = { status: result.subscription.status };
+                        const newStatus = result.subscription.status;
+                        statusEl.textContent = newStatus === 'active' ? 'Pro Active' : 'Free Trial';
+                        statusEl.className = 'text-[8px] font-bold uppercase tracking-widest leading-none ' + (newStatus === 'active' ? 'text-brand' : 'text-yellow-400');
+                        if (proBanner) {
+                            proBanner.classList.remove('hidden');
+                            if (proBannerText) {
+                                proBannerText.textContent = newStatus === 'active'
+                                    ? 'PRO ACCESS — Unlimited voice scoring'
+                                    : 'FREE TRIAL — Unlimited voice scoring';
+                            }
+                        }
+                    }
+                } catch (e) { console.warn('web-app sub sync failed', e); }
             }
 
             // Show guest mode toggle for admins
@@ -1327,20 +1380,23 @@
 
         // Update the score forwarder logic
         function blastScoreToIframe(scoreString) {
-             if (!demoStartedAt) demoStartedAt = Date.now();
+             const isPro = userHasActiveSubscription();
 
-             // Only enforce demo limit for users without an active subscription or trial
-             if (!userHasActiveSubscription() && Date.now() - demoStartedAt > DEMO_DURATION_MS) {
-                 log("DEMO WINDOW EXPIRED. Showing trial prompt...", false);
-                 if(recognition) recognition.stop();
-                 const paywall = document.getElementById('paywall-modal');
-                 const paywallContent = document.getElementById('paywall-content');
-                 paywall.classList.remove('hidden');
-                 paywall.classList.add('flex');
-                 setTimeout(() => {
-                     paywallContent.classList.remove('translate-y-4', 'opacity-0');
-                 }, 50);
-                 return;
+             // Only track demo start + enforce demo cutoff for non-subscribers.
+             if (!isPro) {
+                 if (!demoStartedAt) demoStartedAt = Date.now();
+                 if (Date.now() - demoStartedAt > DEMO_DURATION_MS) {
+                     log("DEMO WINDOW EXPIRED. Showing trial prompt...", false);
+                     if(recognition) recognition.stop();
+                     const paywall = document.getElementById('paywall-modal');
+                     const paywallContent = document.getElementById('paywall-content');
+                     paywall.classList.remove('hidden');
+                     paywall.classList.add('flex');
+                     setTimeout(() => {
+                         paywallContent.classList.remove('translate-y-4', 'opacity-0');
+                     }, 50);
+                     return;
+                 }
              }
 
              const targetIframe = document.getElementById('scorer-frame');
@@ -1349,10 +1405,14 @@
                  score: scoreString
              }, "*");
 
-             const remainingMs = Math.max(0, DEMO_DURATION_MS - (Date.now() - demoStartedAt));
-             const remainingMin = Math.floor(remainingMs / 60000);
-             const remainingSec = Math.floor((remainingMs % 60000) / 1000);
-             log(`Demo time remaining: ${remainingMin}:${String(remainingSec).padStart(2, '0')}`);
+             // Demo countdown log only applies to non-subscribers — paying users
+             // have no time limit and shouldn't see a countdown in their transcript.
+             if (!isPro) {
+                 const remainingMs = Math.max(0, DEMO_DURATION_MS - (Date.now() - demoStartedAt));
+                 const remainingMin = Math.floor(remainingMs / 60000);
+                 const remainingSec = Math.floor((remainingMs % 60000) / 1000);
+                 log(`Demo time remaining: ${remainingMin}:${String(remainingSec).padStart(2, '0')}`);
+             }
         }
 
         // --- APP CONFIGURATION STATE ---

@@ -180,31 +180,61 @@
             confetti.push(el);
         }
         
-        // Sync Stripe subscription (fallback)
+        // Sync Stripe subscription — poll DB until the webhook lands (or up to ~12s),
+        // fall back to the sync-stripe-subscription function if needed, then redirect.
         (async function() {
+            const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+            const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let redirected = false;
+            const redirect = () => {
+                if (redirected) return;
+                redirected = true;
+                try { sessionStorage.setItem('dv-just-subscribed', '1'); } catch (_) {}
+                window.location.href = 'dartvoice-dashboard.html?checkout=success';
+            };
+
             try {
-                const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
-                const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
-                const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                const { data: { session } } = await sb.auth.getSession();
-                if (session?.access_token) {
-                    await fetch(SUPABASE_URL + '/functions/v1/sync-stripe-subscription', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + session.access_token,
-                            'Content-Type': 'application/json',
-                            'apikey': SUPABASE_KEY,
-                        },
-                        body: '{}',
-                    });
+                const { data: { session }, error: sessErr } = await sb.auth.getSession();
+                if (sessErr || !session?.access_token) {
+                    setTimeout(redirect, 3500);
+                    return;
                 }
-            } catch (e) { console.warn('Sync failed:', e); }
+                const userId = session.user.id;
+
+                // Kick off a Stripe-side sync in parallel so we're not purely
+                // dependent on the webhook landing in time.
+                fetch(SUPABASE_URL + '/functions/v1/sync-stripe-subscription', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                    },
+                    body: '{}',
+                }).catch(e => console.warn('sync call failed:', e));
+
+                // Poll dartvoice_subscriptions up to 12 attempts × 1s = 12s.
+                for (let i = 0; i < 12; i++) {
+                    await new Promise(r => setTimeout(r, 1000));
+                    const { data: sub } = await sb
+                        .from('dartvoice_subscriptions')
+                        .select('status')
+                        .eq('user_id', userId)
+                        .maybeSingle();
+                    if (sub && ['active', 'trialing'].includes(sub.status)) {
+                        // Small pause so the celebration animation is visible.
+                        setTimeout(redirect, 600);
+                        return;
+                    }
+                }
+                // Fallback: redirect anyway — dashboard will try one more sync.
+                redirect();
+            } catch (e) {
+                console.warn('thanks sync failed:', e);
+                setTimeout(redirect, 3500);
+            }
         })();
-        
-        // Auto-redirect after 4s
-        setTimeout(() => {
-            window.location.href = 'dartvoice-dashboard.html';
-        }, 4000);
     </script>
 </body>
 </html>
