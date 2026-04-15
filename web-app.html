@@ -923,8 +923,12 @@
     <script>
         // --- SUPABASE AUTH & ACCOUNT ---
         const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
-        const sb = supabase.createClient(SB_URL, SB_KEY);
+        // Prefer a meta tag for keys in production builds. Falls back to the embedded key for local dev.
+        const SB_KEY = document.querySelector('meta[name="supabase-key"]')?.content || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+        if (typeof supabase === 'undefined') {
+            console.warn('Supabase client not available. Ensure the Supabase JS library is loaded.');
+        }
+        const sb = (typeof supabase !== 'undefined') ? supabase.createClient(SB_URL, SB_KEY) : null;
         const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reuben@dartvoice.app', 'callum@dartvoice.app', 'reubensharp18@gmail.com'];
         let _isAdmin = false;
         let _guestMode = false;
@@ -977,6 +981,7 @@
 
 
         (async function initAccount() {
+            if (!sb) { console.warn('Supabase client not initialized; skipping account init.'); return; }
             const { data: { session } } = await sb.auth.getSession();
 
             // Helper to show/hide demo timer
@@ -1140,48 +1145,74 @@
 
         function setExtensionLinked() {
             extensionDetected = true;
-            extGate.style.display = 'none';
-            extBadge.className = 'flex items-center gap-1.5 bg-green-500/10 text-green-500/80 px-2 py-0.5 rounded-full border border-green-500/20';
-            extBadgeDot.className = 'w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]';
-            extBadgeText.textContent = 'Extension Linked';
+            if (extGate && extGate.style) extGate.style.display = 'none';
+            if (extBadge) extBadge.className = 'flex items-center gap-1.5 bg-green-500/10 text-green-500/80 px-2 py-0.5 rounded-full border border-green-500/20';
+            if (extBadgeDot) extBadgeDot.className = 'w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]';
+            if (extBadgeText) extBadgeText.textContent = 'Extension Linked';
+            console.info('DartVoice extension detected and linked.');
         }
 
         function setExtensionMissing() {
-            extBadge.className = 'flex items-center gap-1.5 bg-red-500/10 text-red-500/80 px-2 py-0.5 rounded-full border border-red-500/20';
-            extBadgeDot.className = 'w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_#ef4444]';
-            extBadgeText.textContent = 'No Extension';
+            if (extBadge) extBadge.className = 'flex items-center gap-1.5 bg-red-500/10 text-red-500/80 px-2 py-0.5 rounded-full border border-red-500/20';
+            if (extBadgeDot) extBadgeDot.className = 'w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_#ef4444]';
+            if (extBadgeText) extBadgeText.textContent = 'No Extension';
+            console.warn('DartVoice extension not detected in iframe.');
         }
 
         // Listen for PONG from the extension inside the iframe
         window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'DARTVOICE_PONG' && !extensionDetected) {
+            const d = event.data;
+            // Accept multiple possible shapes: string 'DARTVOICE_PONG', or { type: 'DARTVOICE_PONG' }
+            if (!d) return;
+            const isPong = (typeof d === 'string' && d === 'DARTVOICE_PONG')
+                || (typeof d === 'object' && (d.type === 'DARTVOICE_PONG' || d.message === 'DARTVOICE_PONG'));
+            if (isPong && !extensionDetected) {
                 setExtensionLinked();
             }
         });
 
         // Ping the iframe periodically until we get a response
         let pingAttempts = 0;
+        const MAX_PING_ATTEMPTS = 40; // allow longer for slower loads (~20s)
         const pingInterval = setInterval(() => {
             if (extensionDetected) { clearInterval(pingInterval); return; }
             const frame = document.getElementById('scorer-frame');
             if (frame && frame.contentWindow) {
-                try { frame.contentWindow.postMessage({ type: 'DARTVOICE_PING' }, '*'); } catch(e) {}
+                try {
+                    frame.contentWindow.postMessage({ type: 'DARTVOICE_PING' }, '*');
+                    // debug
+                    // console.debug('Sent DARTVOICE_PING to scorer frame');
+                } catch(e) {
+                    console.debug('Ping postMessage failed', e);
+                }
             }
             pingAttempts++;
-            if (pingAttempts > 15) { // ~7.5 seconds
+            if (pingAttempts > MAX_PING_ATTEMPTS) {
                 clearInterval(pingInterval);
                 if (!extensionDetected) setExtensionMissing();
             }
         }, 500);
 
-        const btn = document.getElementById('toggle-listen');
-        const statusIndicator = document.getElementById('status-indicator');
-        const statusText = document.getElementById('status-text');
-        const transcriptBox = document.getElementById('transcript-box');
-        const liveScoresBox = document.getElementById('live-scores-box');
+        // Safe element getter — returns a lightweight shim when element missing to avoid runtime errors
+        function _safeEl(id) {
+            const el = document.getElementById(id);
+            if (el) return el;
+            // Minimal shim used by the script
+            return {
+                id, textContent: '', innerHTML: '', style: {}, scrollTop: 0,
+                classList: { add: ()=>{}, remove: ()=>{}, toggle: ()=>{}, contains: ()=>false },
+                prepend: ()=>{}, appendChild: ()=>{}, remove: ()=>{}, addEventListener: ()=>{}
+            };
+        }
+
+        const btn = _safeEl('toggle-listen');
+        const statusIndicator = _safeEl('status-indicator');
+        const statusText = _safeEl('status-text');
+        const transcriptBox = _safeEl('transcript-box');
+        const liveScoresBox = _safeEl('live-scores-box');
         
-        const waveVisualizer = document.getElementById('wave-visualizer');
-        const eqBars = document.querySelectorAll('.eq-bar');
+        const waveVisualizer = _safeEl('wave-visualizer');
+        const eqBars = document.querySelectorAll('.eq-bar') || [];
         
         let listening = false;
         let recognition = null;
@@ -1481,7 +1512,7 @@
                                 if (dartBuffer.length >= 3) {
                                     // All 3 darts in — give a short pause before submitting so user can say "cancel"
                                     if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
-                                    // 1.5s grace period to allow a cancel command
+                                    // grace period to allow a cancel command (configurable)
                                     dartBufferTimeout = setTimeout(() => {
                                         if (dartBuffer.length > 0) {
                                             const total = dartBuffer.reduce((a, b) => a + b, 0);
@@ -1492,10 +1523,10 @@
                                             statusText.textContent = 'Awaiting Score...';
                                             dartBufferTimeout = null;
                                         }
-                                    }, 2500);
+                                    }, AppConfig.perDartSubmitGraceMs);
                                     log('All 3 darts received — submitting shortly. Say "cancel" to abort.', false);
                                 } else {
-                                    // Auto-submit after 6s of silence (e.g. 2-dart visit)
+                                    // Auto-submit after configured silence (e.g. 2-dart visit)
                                     dartBufferTimeout = setTimeout(() => {
                                         if (dartBuffer.length > 0) {
                                             const total = dartBuffer.reduce((a, b) => a + b, 0);
@@ -1506,7 +1537,7 @@
                                             statusText.textContent = 'Awaiting Score...';
                                             dartBufferTimeout = null;
                                         }
-                                    }, 6000);
+                                    }, AppConfig.perDartSilenceMs);
                                 }
                             }
                         } else {
@@ -1627,8 +1658,10 @@
                  type: "DARTVOICE_CALIBRATE_START"
              }, "*");
         }
-        document.getElementById('recalibrate-btn').addEventListener('click', triggerCalibration);
-        document.getElementById('recalibrate-btn-2').addEventListener('click', triggerCalibration);
+        const _rc1 = document.getElementById('recalibrate-btn');
+        if (_rc1) _rc1.addEventListener('click', triggerCalibration);
+        const _rc2 = document.getElementById('recalibrate-btn-2');
+        if (_rc2) _rc2.addEventListener('click', triggerCalibration);
 
 
         function userHasActiveSubscription() {
@@ -1674,7 +1707,10 @@
             liveCheckoutEnabled: true,
             bustProtection: true,
             autoStartNextMatch: true,
-            audioChimes: false
+            audioChimes: false,
+            // Timing (ms) for per-dart auto-submit behaviour — configurable for testing
+            perDartSilenceMs: 6000, // auto-submit after silence for partial visits
+            perDartSubmitGraceMs: 1500 // grace period after 3rd dart before final submit
         };
 
         // --- INTERACTIVE UI LOGIC ---
@@ -1711,37 +1747,42 @@
         }
 
         // Toggles
-        document.getElementById('toggle-wake-word').addEventListener('change', (e) => {
+        const _tWake = document.getElementById('toggle-wake-word');
+        if (_tWake) _tWake.addEventListener('change', (e) => {
             AppConfig.wakeWordEnabled = e.target.checked;
             log(`Wake Word trigger ${AppConfig.wakeWordEnabled ? 'enabled' : 'disabled'}`);
         });
 
-        document.getElementById('toggle-cancel-word').addEventListener('change', (e) => {
+        const _tCancel = document.getElementById('toggle-cancel-word');
+        if (_tCancel) _tCancel.addEventListener('change', (e) => {
             AppConfig.cancelWordEnabled = e.target.checked;
             log(`Cancel trigger ${AppConfig.cancelWordEnabled ? 'enabled' : 'disabled'}`);
         });
 
-        document.getElementById('toggle-live-checkout').addEventListener('change', (e) => {
+        const _tLive = document.getElementById('toggle-live-checkout');
+        if (_tLive) _tLive.addEventListener('change', (e) => {
             AppConfig.liveCheckoutEnabled = e.target.checked;
             const checkoutPanel = document.getElementById('live-checkout-panel');
-            if(AppConfig.liveCheckoutEnabled) {
-                checkoutPanel.style.display = 'block';
-            } else {
-                checkoutPanel.style.display = 'none';
+            if (checkoutPanel) {
+                if(AppConfig.liveCheckoutEnabled) checkoutPanel.style.display = 'block';
+                else checkoutPanel.style.display = 'none';
             }
         });
         
-        document.getElementById('toggle-bust').addEventListener('change', (e) => {
+        const _tBust = document.getElementById('toggle-bust');
+        if (_tBust) _tBust.addEventListener('change', (e) => {
             AppConfig.bustProtection = e.target.checked;
             log(`Pro Setting: Bust Protection ${AppConfig.bustProtection ? 'enabled' : 'disabled'}`);
         });
 
-        document.getElementById('toggle-autostart').addEventListener('change', (e) => {
+        const _tAuto = document.getElementById('toggle-autostart');
+        if (_tAuto) _tAuto.addEventListener('change', (e) => {
             AppConfig.autoStartNextMatch = e.target.checked;
             log(`Pro Setting: Auto-Start Match ${AppConfig.autoStartNextMatch ? 'enabled' : 'disabled'}`);
         });
 
-        document.getElementById('toggle-chime').addEventListener('change', (e) => {
+        const _tChime = document.getElementById('toggle-chime');
+        if (_tChime) _tChime.addEventListener('change', (e) => {
             AppConfig.audioChimes = e.target.checked;
             log(`Pro Setting: Audio Chimes ${AppConfig.audioChimes ? 'enabled' : 'disabled'}`);
         });
