@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DARTVOICE_PROD"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
+        gtag('config', 'G-DARTVOICE_PROD');
     </script>
 
     <meta charset="UTF-8">
@@ -225,6 +224,7 @@
 
                 <div class="flex flex-wrap gap-3">
                     <a href="dartvoice-dashboard#ambassador"
+                       onclick="gtag('event', 'click_get_link', { 'location': 'referral_hero' })"
                        class="btn-brand inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white">
                         Get My Link
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -530,6 +530,7 @@
             <h2 class="display text-4xl sm:text-5xl mb-4">READY TO EARN?</h2>
             <p class="text-muted mb-8">Log in to your dashboard to grab your link and start earning.</p>
             <a href="dartvoice-dashboard#ambassador"
+               onclick="gtag('event', 'click_get_link', { 'location': 'referral_bottom' })"
                class="btn-brand inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-white">
                 Get My Referral Link
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

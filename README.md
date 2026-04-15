@@ -41,8 +41,8 @@ The UI/UX is functionally "Launch Ready." Focus should shift to deployment, back
 
 ### 1. Chrome Extension Submission ✅
 - ✅ Icons generated (16x16, 48x48, 128x128) and wired into `manifest.json`.
-- ✅ Extension folder archived as `dartvoice-extension.zip` — ready for Chrome Web Store upload.
-- ⬜ Once approved, update the `href` on the Chrome Extension download button in `dartvoice-dashboard.html` to the official Web Store URL.
+- ✅ Extension successfully published to the [Chrome Web Store](https://chromewebstore.google.com/detail/dartvoice-launchpad/igldnjophdpofihidpbblchgfamncpgb).
+- ✅ Updated `dartvoice-dashboard.html` and `guide.html` with the official store link for direct, managed installation.
 
 ### 2. Backend API Verification ⬜
 *Note: The frontend is currently static HTML. To make the dashboard and OTP logic functional:*

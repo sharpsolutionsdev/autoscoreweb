@@ -3,12 +3,12 @@
 
 <head>
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DARTVOICE_PROD"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
+        gtag('config', 'G-DARTVOICE_PROD');
     </script>
 
     <meta charset="UTF-8">
@@ -1624,6 +1624,11 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                                     </svg>
                                     .apk
                                 </span>
+                                <div class="w-px h-3 bg-white/10 mx-1"></div>
+                                <span class="flex items-center gap-1 text-[9px] font-bold text-success/80">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    Verified on Chrome Web Store
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -1813,7 +1818,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                             <span class="display text-5xl sm:text-6xl not-italic text-chalk">&pound;6.99</span>
                             <span class="text-muted text-sm">/mo</span>
                         </div>
-                        <p class="text-muted-2 text-xs">Billed monthly &middot; Cancel anytime</p>
+                        <p class="text-muted-2 text-xs text-brand font-bold">Earn &pound;5.00 per referral</p>
                     </div>
 
                     <!-- Feature list -->
@@ -1851,6 +1856,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     </div>
 
                     <a href="login?intent=subscribe&plan=monthly"
+                        onclick="gtag('event', 'click_subscribe', { 'plan': 'monthly' })"
                         class="btn-outline block text-center py-3 rounded-xl font-semibold text-sm text-chalk relative z-10">
                         Start Free Trial
                     </a>
@@ -1924,6 +1930,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     </div>
 
                     <a href="login?intent=subscribe&plan=6month"
+                        onclick="gtag('event', 'click_subscribe', { 'plan': '6month' })"
                         class="btn-brand block text-center py-3.5 rounded-xl font-semibold text-sm text-white relative z-10"
                         style="box-shadow: 0 0 25px rgba(204,11,32,0.35);">
                         Start 7-Day Free Trial
@@ -1997,6 +2004,7 @@ style="background:rgba(204,11,32,0.5);">3 Darts</span>
                     </div>
 
                     <a href="login?intent=subscribe&plan=12month"
+                        onclick="gtag('event', 'click_subscribe', { 'plan': '12month' })"
                         class="btn-brand block text-center py-3 rounded-xl font-semibold text-sm text-white relative z-10">
                         Start 7-Day Free Trial
                     </a>
