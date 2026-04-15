@@ -458,6 +458,30 @@
                             </div>
                         </div>
 
+                        <!-- Voice Accent / Language -->
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-medium block mb-1">Voice Accent</span>
+                            <select id="accent-select" class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none">
+                                <option value="en-GB">🇬🇧 English (UK)</option>
+                                <option value="en-IE">🇮🇪 English (Ireland)</option>
+                                <option value="en-US">🇺🇸 English (US)</option>
+                                <option value="en-AU">🇦🇺 English (Australia)</option>
+                                <option value="en-ZA">🇿🇦 English (South Africa)</option>
+                                <option value="en-IN">🇮🇳 English (India)</option>
+                                <option value="de-DE">🇩🇪 Deutsch (Germany)</option>
+                                <option value="nl-NL">🇳🇱 Nederlands (Netherlands)</option>
+                                <option value="nl-BE">🇧🇪 Nederlands (Belgium)</option>
+                                <option value="fr-FR">🇫🇷 Français (France)</option>
+                                <option value="da-DK">🇩🇰 Dansk (Denmark)</option>
+                                <option value="sv-SE">🇸🇪 Svenska (Sweden)</option>
+                                <option value="nb-NO">🇳🇴 Norsk (Norway)</option>
+                                <option value="pl-PL">🇵🇱 Polski (Poland)</option>
+                                <option value="es-ES">🇪🇸 Español (Spain)</option>
+                                <option value="pt-PT">🇵🇹 Português (Portugal)</option>
+                            </select>
+                            <p class="text-[9px] text-gray-500 mt-0.5">Helps speech recognition understand your accent better</p>
+                        </div>
+
                         <!-- Calibration Button -->
                         <div>
                             <button id="recalibrate-btn" class="w-full text-xs font-semibold py-1.5 bg-[#252530]/50 hover:bg-[#252530] border border-white/5 rounded text-white transition-all flex items-center justify-center gap-2">
@@ -1093,11 +1117,25 @@
 
         // --- VOICE SCORE PARSING LOGIC ---
         const _ONES = {
-            'zero': 0, 'oh': 0, 'one': 1, 'won': 1, 'two': 2, 'too': 2, 'to': 2,
-            'three': 3, 'free': 3, 'four': 4, 'for': 4, 'five': 5, 'six': 6,
-            'seven': 7, 'eight': 8, 'ate': 8, 'nine': 9, 'ten': 10,
-            'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14,
-            'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19
+            'zero': 0, 'oh': 0, 'nought': 0, 'nil': 0, 'naught': 0, 'no': 0,
+            'one': 1, 'won': 1, 'wan': 1,
+            'two': 2, 'too': 2, 'to': 2, 'tu': 2,
+            'three': 3, 'free': 3, 'tree': 3, 'tee': 3,
+            'four': 4, 'for': 4, 'fore': 4,
+            'five': 5, 'fife': 5, 'fiv': 5,
+            'six': 6, 'sicks': 6, 'seeks': 6,
+            'seven': 7, 'sebben': 7, 'seben': 7,
+            'eight': 8, 'ate': 8, 'ait': 8,
+            'nine': 9, 'nein': 9, 'nyne': 9,
+            'ten': 10, 'tin': 10,
+            'eleven': 11, 'twelve': 12,
+            'thirteen': 13, 'tirteen': 13, 'turteen': 13,
+            'fourteen': 14, 'forteen': 14,
+            'fifteen': 15, 'sixteen': 16, 'seventeen': 17,
+            'eighteen': 18, 'nineteen': 19,
+            // Common dart call-outs
+            'bull': 50, 'bullseye': 50, 'bulls': 50, 'bull\'s eye': 50,
+            'outer bull': 25, 'outer': 25, 'single bull': 25
         };
         const _TENS = {
             'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50,
@@ -1243,6 +1281,9 @@
             recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
+            // Set the language based on stored accent preference
+            const storedAccent = localStorage.getItem('dv-accent') || 'en-GB';
+            recognition.lang = storedAccent;
             
             recognition.onstart = function() {
                 listening = true;
@@ -1511,6 +1552,21 @@
                 log(`Input mode set to: ${AppConfig.inputMode}`);
             });
         });
+
+        // Accent / Language Selector
+        const accentSelect = document.getElementById('accent-select');
+        if (accentSelect) {
+            const storedAccent = localStorage.getItem('dv-accent') || 'en-GB';
+            accentSelect.value = storedAccent;
+            accentSelect.addEventListener('change', (e) => {
+                const newAccent = e.target.value;
+                localStorage.setItem('dv-accent', newAccent);
+                if (recognition) {
+                    recognition.lang = newAccent;
+                }
+                log(`Voice recognition language set to: ${newAccent}`);
+            });
+        }
 
         // Toggles
         document.getElementById('toggle-wake-word').addEventListener('change', (e) => {

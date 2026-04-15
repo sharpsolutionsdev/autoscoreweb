@@ -38,7 +38,10 @@ presplash.filename = icon.png
 presplash.color = #08080A
 
 # Android permissions
-android.permissions = RECORD_AUDIO, FOREGROUND_SERVICE, FOREGROUND_SERVICE_MICROPHONE, WAKE_LOCK, INTERNET, VIBRATE, SYSTEM_ALERT_WINDOW
+android.permissions = RECORD_AUDIO, WAKE_LOCK, INTERNET, VIBRATE, SYSTEM_ALERT_WINDOW
+
+# Custom Java code (for the WebView Microphone permission auto-grant)
+android.add_src = src
 
 # Deep-link intent filter — lets the browser hand the login session back
 # via dartvoice://auth?access_token=...&refresh_token=...&user_id=...&email=...

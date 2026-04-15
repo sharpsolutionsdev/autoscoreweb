@@ -1242,6 +1242,11 @@
 
         function dvCheckout(e, userId) {
             if (e) e.preventDefault();
+            // Prevent duplicate trials — if already subscribed, send to Stripe portal instead
+            if (_currentSub && ['active', 'trialing'].includes(_currentSub.status)) {
+                showToast('You already have an active subscription! Use "Manage Subscription" to update your plan.');
+                return;
+            }
             const params = new URLSearchParams(window.location.search);
             const plan = params.get('plan') || 'monthly';
             const baseUrl = PAYMENT_LINKS[plan];
@@ -1283,7 +1288,13 @@
                     _currentSub = sub;
                     renderSubscription(sub, userId);
                     showProfileBadge(sub.status === 'active' ? 'active' : 'trial');
-                    window.location.href = 'thanks.html?from=dashboard';
+                    // Auto-close the Stripe checkout popup after 2s so user sees success on the site
+                    if (popup && !popup.closed) {
+                        setTimeout(() => { try { popup.close(); } catch(_) {} }, 2000);
+                    }
+                    setTimeout(() => {
+                        window.location.href = 'thanks.html?from=dashboard';
+                    }, 2200);
                     return;
                 }
 
@@ -1362,10 +1373,11 @@
                 </div>`;
             document.body.appendChild(overlay);
             requestAnimationFrame(() => overlay.classList.add('open'));
+            // Slow, premium celebration — visible for 5 seconds
             setTimeout(() => {
                 overlay.classList.remove('open');
-                setTimeout(() => overlay.remove(), 400);
-            }, 2600);
+                setTimeout(() => overlay.remove(), 600);
+            }, 5000);
         }
 
         function showToast(msg) {

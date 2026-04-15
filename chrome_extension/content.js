@@ -865,10 +865,14 @@
   // --- WEB APP BRIDGE LISTENER ---
   const _TRUSTED_ORIGINS = ['https://dartvoice.app', 'https://www.dartvoice.app'];
   window.addEventListener('message', (event) => {
+    // Only accept control messages from dartvoice origins. Prevent local dartcounter console exploitation.
     if (!_TRUSTED_ORIGINS.includes(event.origin) && event.origin !== window.location.origin) return;
-    // If the parent Web App Dashboard is talking to us
+
     if (event.data && event.data.type) {
-      logTrace("Received Window Payload:", event.data);
+      // Don't log every ping/pong to avoid console spam, but log data for debugging
+      if (event.data.type !== "DARTVOICE_PING") {
+          logTrace("Received Window Payload:", event.data);
+      }
 
       // Extension detection handshake — reply so the parent knows we're alive
       if (event.data.type === "DARTVOICE_PING") {
@@ -881,6 +885,13 @@
       }
       
       if (event.data.type === "DARTVOICE_SCORE_INJECT") {
+        // SECURITY: Exploit prevention. Verify auth status locally in extension before allowing ANY score injection
+        if (!hasActiveSub() && dvAuth.demoUsedMs >= DEMO_LIMIT_MS) {
+            logTrace("CRITICAL SECURITY: Score injection blocked. Demo expired and no active subscription detected in extension storage.");
+            showLockout();
+            return;
+        }
+
         const score = event.data.score;
 
         // Handle cancel/undo command

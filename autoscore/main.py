@@ -1,53 +1,53 @@
-import sys, os, traceback
+import os
+from kivy.app import App
+from kivy.utils import platform
 
-# ── Crash logger ──────────────────────────────────────────────────────────────
-def _get_log_path():
-    """Write crash log to app-private storage (always accessible)."""
-    try:
-        if 'ANDROID_ARGUMENT' in os.environ:
-            from android.storage import app_storage_path  # type: ignore
-            return os.path.join(app_storage_path(), 'dartvoice_crash.txt')
-    except Exception:
-        pass
-    return os.path.join(os.path.expanduser('~'), 'dartvoice_crash.txt')
+class DartVoiceWebApp(App):
+    def build(self):
+        if platform == 'android':
+            from jnius import autoclass
+            from android.runnable import run_on_ui_thread
+            
+            Activity = autoclass('org.kivy.android.PythonActivity').mActivity
+            WebView = autoclass('android.webkit.WebView')
+            WebChromeClient = autoclass('com.dartvoice.DartvoiceWebChromeClient')
+            WebViewClient = autoclass('android.webkit.WebViewClient')
+            
+            @run_on_ui_thread
+            def create_webview():
+                webview = WebView(Activity)
+                settings = webview.getSettings()
+                
+                # Enable WebRTC and JavaScript features
+                settings.setJavaScriptEnabled(True)
+                settings.setDomStorageEnabled(True)
+                settings.setMediaPlaybackRequiresUserGesture(False)
+                settings.setAllowFileAccessFromFileURLs(True)
+                settings.setAllowUniversalAccessFromFileURLs(True)
+                
+                # Set custom clients
+                webview.setWebChromeClient(WebChromeClient())
+                
+                # External links handled in Java override
+                CustomWebViewClient = autoclass('com.dartvoice.DartvoiceWebViewClient')
+                webview.setWebViewClient(CustomWebViewClient())
+                
+                # Attach to Android Activity
+                Activity.setContentView(webview)
+                
+                # Load the DartVoice application
+                webview.loadUrl('https://dartvoice.app/web-app.html')
 
-def _crash_handler(exc_type, exc_value, exc_tb):
-    msg = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-    print('DARTVOICE CRASH:', msg, file=sys.stderr, flush=True)
-    try:
-        with open(_get_log_path(), 'w') as f:
-            f.write(msg)
-    except Exception:
-        pass
-    sys.__excepthook__(exc_type, exc_value, exc_tb)
+            create_webview()
 
-sys.excepthook = _crash_handler
+        from kivy.uix.widget import Widget
+        return Widget()
 
-# ── App entry ─────────────────────────────────────────────────────────────────
-try:
-    from dartvoice_android import DartVoiceAndroidApp
-    DartVoiceAndroidApp().run()
-except Exception:
-    # Import or startup failed — show error on screen using minimal Kivy
-    msg = traceback.format_exc()
-    print('DARTVOICE CRASH:\n' + msg, file=sys.stderr, flush=True)
-    try:
-        with open(_get_log_path(), 'w') as f:
-            f.write(msg)
-    except Exception:
-        pass
-    try:
-        from kivy.app import App
-        from kivy.uix.label import Label
-        from kivy.core.window import Window
-        Window.clearcolor = (0.05, 0.05, 0.07, 1)
-        class CrashApp(App):
-            def build(self):
-                lbl = Label(text=f'DARTVOICE CRASH\n\n{msg}',
-                            font_size='10sp', color=(1, 0.3, 0.3, 1),
-                            halign='left', valign='top')
-                lbl.bind(size=lambda i, v: setattr(i, 'text_size', v))
-                return lbl
-        CrashApp().run()
-    except Exception:
-        pass  # Kivy itself is broken — nothing we can do
+if __name__ == '__main__':
+    if platform == 'android':
+        from android.permissions import request_permissions, Permission
+        def perm_callback(permissions, results):
+            pass
+        request_permissions([Permission.RECORD_AUDIO], perm_callback)
+        
+    DartVoiceWebApp().run()
