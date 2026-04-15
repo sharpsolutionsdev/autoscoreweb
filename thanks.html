@@ -191,7 +191,8 @@
                 if (redirected) return;
                 redirected = true;
                 try { sessionStorage.setItem('dv-just-subscribed', '1'); } catch (_) {}
-                window.location.href = 'dartvoice-dashboard.html?checkout=success';
+                const isApk = sessionStorage.getItem('dv_apk_login') === '1';
+                window.location.href = isApk ? 'apk-gate.html' : 'dartvoice-dashboard.html?checkout=success';
             };
 
             try {

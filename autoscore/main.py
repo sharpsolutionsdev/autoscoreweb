@@ -45,8 +45,8 @@ class DartVoiceWebApp(App):
                 bridge = DartVoiceBridge(Activity, frame)
                 control_wv.addJavascriptInterface(bridge, 'DartVoiceBridge')
 
-                # Load the mobile-optimised control panel
-                control_wv.loadUrl('https://dartvoice.app/web-app-mobile.html')
+                # Load subscription gate first — gate redirects to app if active sub
+                control_wv.loadUrl('https://dartvoice.app/apk-gate.html')
 
                 # Add control panel to the root frame
                 frame.addView(control_wv, LayoutParams(

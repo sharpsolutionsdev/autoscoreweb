@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DartVoice — APK</title>
+<meta name="theme-color" content="#CC0B20">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+    --brand: #CC0B20;
+    --dark: #08080A;
+    --card: #111114;
+    --wire: #252530;
+    --chalk: #F0F0F5;
+    --muted: #6E6E82;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--dark);
+    color: var(--chalk);
+    min-height: 100vh; min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+}
+.display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+
+.bg {
+    position: fixed; inset: 0;
+    background-image: url('assets/media/mic-mesh-red.jpeg');
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.35) saturate(0.9);
+    z-index: 0;
+}
+.bg::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+        rgba(8,8,10,0.3) 0%,
+        rgba(8,8,10,0.7) 50%,
+        rgba(8,8,10,0.95) 100%);
+}
+
+.container {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    min-height: 100vh; min-height: 100dvh;
+    padding: calc(32px + var(--safe-top)) 24px calc(32px + var(--safe-bottom));
+    max-width: 520px; margin: 0 auto;
+}
+
+/* Header */
+.brand {
+    text-align: center; margin-bottom: auto;
+}
+.logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-style: italic;
+    font-size: clamp(42px, 9vw, 54px);
+    letter-spacing: -0.02em; text-transform: uppercase;
+    line-height: 1;
+}
+.logo .red { color: var(--brand); }
+.tagline {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--muted); margin-top: 10px;
+}
+
+/* Loading */
+.loading {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    margin: 40px 0;
+}
+.spinner {
+    width: 42px; height: 42px;
+    border: 3px solid var(--wire);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--muted);
+}
+
+/* Hero */
+.hero {
+    text-align: center; margin: 32px 0;
+}
+.hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-style: italic;
+    font-size: clamp(32px, 8vw, 44px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+}
+.hero h1 em { color: var(--brand); font-style: italic; }
+.hero p {
+    font-size: 14px; line-height: 1.5;
+    color: #c5c5cf;
+    max-width: 380px; margin: 0 auto;
+}
+
+/* Value prop pills */
+.features {
+    display: flex; flex-direction: column; gap: 10px;
+    margin: 24px 0;
+}
+.feature {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: rgba(17, 17, 20, 0.7);
+    border: 1px solid var(--wire);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.feature-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--brand) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--brand) 40%, transparent);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--brand);
+}
+.feature-icon svg { width: 16px; height: 16px; }
+.feature-text {
+    font-size: 12px; font-weight: 600;
+    color: var(--chalk);
+}
+.feature-text span {
+    display: block; font-size: 10px; font-weight: 500;
+    color: var(--muted); margin-top: 2px;
+}
+
+/* CTA */
+.cta-stack {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-top: auto;
+}
+.btn {
+    width: 100%; padding: 16px 20px;
+    border-radius: 14px; border: none; cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 14px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-primary {
+    background: var(--brand); color: white;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--brand) 40%, transparent);
+}
+.btn-primary:active { transform: scale(0.98); }
+.btn-secondary {
+    background: rgba(255,255,255,0.04);
+    color: var(--chalk);
+    border: 1px solid var(--wire);
+}
+.btn-secondary:active { transform: scale(0.98); }
+
+/* Error state */
+.error {
+    padding: 14px 16px; border-radius: 12px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+    font-size: 12px; font-weight: 600;
+    margin: 16px 0;
+    display: none;
+}
+.error.show { display: block; }
+
+/* Footer */
+.foot {
+    text-align: center;
+    font-size: 10px; color: var(--muted);
+    padding-top: 16px;
+    font-weight: 600; letter-spacing: 0.05em;
+}
+.foot a { color: var(--brand); text-decoration: none; }
+
+/* States */
+.view { display: none; flex-direction: column; flex: 1; }
+.view.active { display: flex; }
+
+/* Tablet / large screens */
+@media (min-width: 600px) {
+    .container { padding: 64px 40px; max-width: 560px; }
+    .hero h1 { font-size: 48px; }
+    .feature { padding: 14px 18px; }
+    .feature-icon { width: 36px; height: 36px; }
+    .feature-icon svg { width: 18px; height: 18px; }
+}
+@media (min-width: 900px) {
+    .container { max-width: 620px; }
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="container">
+    <!-- Loading view (default) -->
+    <div class="view active" id="view-loading">
+        <div class="brand">
+            <div class="logo">DART<span class="red">VOICE</span></div>
+            <div class="tagline">Mobile Auto-Scorer</div>
+        </div>
+        <div class="loading" style="margin-top: auto; margin-bottom: auto;">
+            <div class="spinner"></div>
+            <div class="loading-text">Verifying subscription...</div>
+        </div>
+        <div class="foot">dartvoice.app</div>
+    </div>
+
+    <!-- Gate view (no sub) -->
+    <div class="view" id="view-gate">
+        <div class="brand">
+            <div class="logo">DART<span class="red">VOICE</span></div>
+            <div class="tagline">Mobile Auto-Scorer</div>
+        </div>
+
+        <div class="hero">
+            <h1>Hands-free<br><em>dart scoring.</em></h1>
+            <p>A DartVoice subscription is required to use the mobile app. Start your 7-day free trial — no card charged until day 8.</p>
+        </div>
+
+        <div class="error" id="gate-error"></div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v7a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v1a7 7 0 01-14 0v-1M12 18v5m-4 0h8"/></svg>
+                </div>
+                <div class="feature-text">Voice-controlled scoring<span>Say "one eighty" — scored instantly</span></div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <div class="feature-text">Works with DartCounter<span>Auto-injects into your existing game</span></div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div class="feature-text">7 days free, then £6.99/mo<span>Cancel anytime — no lock-in</span></div>
+            </div>
+        </div>
+
+        <div class="cta-stack">
+            <button class="btn btn-primary" id="btn-trial">Start 7-Day Free Trial</button>
+            <button class="btn btn-secondary" id="btn-signin">I already have an account</button>
+        </div>
+
+        <div class="foot">Need help? <a href="mailto:support@dartvoice.com">support@dartvoice.com</a></div>
+    </div>
+
+    <!-- Retry view (error state) -->
+    <div class="view" id="view-retry">
+        <div class="brand">
+            <div class="logo">DART<span class="red">VOICE</span></div>
+            <div class="tagline">Mobile Auto-Scorer</div>
+        </div>
+        <div class="hero" style="margin-top: auto;">
+            <h1>Connection issue.</h1>
+            <p>We couldn't verify your subscription. Check your connection and try again.</p>
+        </div>
+        <div class="error show" id="retry-error" style="margin-top: 8px;">Waiting for network...</div>
+        <div class="cta-stack" style="margin-top: 20px;">
+            <button class="btn btn-primary" id="btn-retry">Try Again</button>
+            <button class="btn btn-secondary" id="btn-retry-signin">Sign in instead</button>
+        </div>
+        <div class="foot">dartvoice.app</div>
+    </div>
+</div>
+
+<script>
+(function(){
+    'use strict';
+
+    const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+    const sb = supabase.createClient(SB_URL, SB_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, storage: window.localStorage }
+    });
+
+    const views = {
+        loading: document.getElementById('view-loading'),
+        gate: document.getElementById('view-gate'),
+        retry: document.getElementById('view-retry'),
+    };
+    function show(name){
+        Object.values(views).forEach(v => v.classList.remove('active'));
+        views[name].classList.add('active');
+    }
+
+    function goTrial(){
+        window.location.href = 'https://dartvoice.app/login.html?source=apk&trial=1';
+    }
+    function goSignIn(){
+        window.location.href = 'https://dartvoice.app/login.html?source=apk';
+    }
+    function goApp(){
+        window.location.replace('https://dartvoice.app/web-app-mobile.html?apk=1');
+    }
+
+    document.getElementById('btn-trial').addEventListener('click', goTrial);
+    document.getElementById('btn-signin').addEventListener('click', goSignIn);
+    document.getElementById('btn-retry').addEventListener('click', verify);
+    document.getElementById('btn-retry-signin').addEventListener('click', goSignIn);
+
+    async function verify(){
+        show('loading');
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session || !session.user) {
+                show('gate');
+                return;
+            }
+            const { data: sub, error } = await sb
+                .from('dartvoice_subscriptions')
+                .select('status')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            if (error) {
+                document.getElementById('retry-error').textContent = 'Server error: ' + error.message;
+                show('retry');
+                return;
+            }
+
+            const active = sub && ['active', 'trialing'].includes(sub.status);
+            if (active) { goApp(); return; }
+            show('gate');
+        } catch (e) {
+            document.getElementById('retry-error').textContent = 'Network error — check your connection.';
+            show('retry');
+        }
+    }
+
+    verify();
+})();
+</script>
+</body>
+</html>

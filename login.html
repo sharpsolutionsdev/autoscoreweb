@@ -441,6 +441,10 @@
     const _appPlatform = (_urlParams.get('platform') || '').toLowerCase(); // 'android' uses deep-link handoff
     const _isAndroidApp = _appSource === 'app' && _appPlatform === 'android';
     const _isAppLogin = _appSource === 'app' && (_isAndroidApp || /^\d{4,5}$/.test(_appPort || ''));
+    // APK WebView login: session persists in Supabase storage; after auth,
+    // bounce back to apk-gate.html which re-checks subscription.
+    const _isApkLogin = _appSource === 'apk';
+    const _apkTrial = _isApkLogin && _urlParams.get('trial') === '1';
 
     // Deep-link URL that the Android app registers an Intent filter for.
     function _androidHandoffUrl(s) {
@@ -520,8 +524,11 @@
     }
 
     // Destination after auth
-function _authDest() {
-        const dest = _isSignUp ? 'dartvoice-dashboard?subscribe=1' : 'dartvoice-dashboard';
+    function _authDest() {
+        if (_isApkLogin) {
+            return _apkTrial ? 'dartvoice-dashboard.html?subscribe=1&apk=1' : 'apk-gate.html';
+        }
+        const dest = _isSignUp ? 'dartvoice-dashboard.html?subscribe=1' : 'dartvoice-dashboard.html';
         const plan = _urlParams.get('plan');
         return plan ? `${dest}${dest.includes('?') ? '&' : '?'}plan=${plan}` : dest;
     }
@@ -720,6 +727,14 @@ function _authDest() {
                     'Signed in! You can close this tab and return to the app.';
             }
             return;
+        }
+
+        if (_isApkLogin) {
+            sessionStorage.setItem('dv_apk_login', '1');
+            if (_apkTrial) {
+                setTimeout(() => window.location.replace(`${DV_CHECKOUT_URL}?prefilled_email=${encodeURIComponent(_email)}`), 1200);
+                return;
+            }
         }
 
         setTimeout(() => window.location.replace(_authDest()), 1200);

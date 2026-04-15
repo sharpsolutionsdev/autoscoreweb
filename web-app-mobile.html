@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -21,6 +21,7 @@
             --chalk: #F0F0F5;
             --muted: #6E6E82;
             --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,28 +41,21 @@
             text-transform: uppercase;
         }
 
-        /* ── Hero Glow ──────────────────────────────────── */
         .hero-glow {
             position: fixed; inset: 0;
             background: radial-gradient(ellipse 140% 80% at 50% -10%, color-mix(in srgb, var(--brand) 25%, transparent) 0%, transparent 70%);
             pointer-events: none; z-index: 0;
         }
 
-        /* ── Container ──────────────────────────────────── */
         .container {
             position: relative; z-index: 1;
             max-width: 600px;
             margin: 0 auto;
-            padding: 16px 16px calc(16px + var(--safe-bottom));
-            display: flex; flex-direction: column; gap: 16px;
+            padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+            display: flex; flex-direction: column; gap: 14px;
             min-height: 100vh; min-height: 100dvh;
         }
 
-        @media (min-width: 768px) {
-            .container { max-width: 540px; padding: 24px; gap: 20px; }
-        }
-
-        /* ── Header ─────────────────────────────────────── */
         .header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 4px 0;
@@ -93,7 +87,6 @@
             color: var(--muted);
         }
 
-        /* ── APK Badge ──────────────────────────────────── */
         .apk-badge {
             display: flex; align-items: center; gap: 6px;
             background: rgba(34, 197, 94, 0.08);
@@ -116,7 +109,6 @@
             background: #eab308; box-shadow: 0 0 6px #eab308;
         }
 
-        /* ── Cards ──────────────────────────────────────── */
         .card {
             background: var(--card);
             border: 1px solid var(--wire);
@@ -124,31 +116,64 @@
             padding: 20px;
         }
 
-        /* ── Main Control Card ──────────────────────────── */
         .control-card {
             text-align: center;
-            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
+            position: relative;
         }
 
-        .status-row {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 11px; font-weight: 700;
+        .state-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--wire);
+            border-radius: 999px;
+            font-size: 10px; font-weight: 800;
             text-transform: uppercase; letter-spacing: 0.1em;
             color: var(--muted);
+            transition: all 0.3s;
         }
-        .status-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background: #4A4A5A; transition: all 0.3s ease;
+        .state-pill .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #4A4A5A; transition: all 0.3s;
         }
         @keyframes pulseActive {
-            0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 40%, transparent); }
-            70% { box-shadow: 0 0 0 12px transparent; }
+            0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 55%, transparent); }
+            70% { box-shadow: 0 0 0 10px transparent; }
             100% { box-shadow: 0 0 0 0 transparent; }
         }
-        .status-dot.listening {
+        @keyframes pulseAmber {
+            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.55); }
+            70% { box-shadow: 0 0 0 10px transparent; }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+        .state-pill.listening {
+            color: var(--brand); border-color: color-mix(in srgb, var(--brand) 40%, var(--wire));
+            background: color-mix(in srgb, var(--brand) 8%, transparent);
+        }
+        .state-pill.listening .dot {
             background: var(--brand);
-            box-shadow: 0 0 14px color-mix(in srgb, var(--brand) 80%, transparent);
-            animation: pulseActive 1.5s infinite;
+            animation: pulseActive 1.4s infinite;
+        }
+        .state-pill.checkout {
+            color: #facc15; border-color: rgba(234, 179, 8, 0.4);
+            background: rgba(234, 179, 8, 0.08);
+        }
+        .state-pill.checkout .dot {
+            background: #facc15;
+            animation: pulseAmber 1.2s infinite;
+        }
+        .state-pill.cooldown {
+            color: #94a3b8; border-color: rgba(148, 163, 184, 0.3);
+        }
+        .state-pill.cooldown .dot { background: #94a3b8; }
+        .state-pill.recovering {
+            color: #f87171; border-color: rgba(248, 113, 113, 0.4);
+            background: rgba(239, 68, 68, 0.08);
+        }
+        .state-pill.recovering .dot {
+            background: #ef4444;
+            animation: pulseActive 0.8s infinite;
         }
 
         .interim-text {
@@ -157,7 +182,6 @@
             min-height: 22px; transition: opacity 0.2s;
         }
 
-        /* EQ Visualizer */
         .eq-wrap {
             display: flex; align-items: flex-end; gap: 3px;
             height: 24px; opacity: 0; transition: opacity 0.3s;
@@ -170,9 +194,8 @@
             height: 3px;
         }
 
-        /* Mic Button */
         .mic-btn {
-            width: 100%; padding: 16px 24px;
+            width: 100%; padding: 18px 24px;
             background: var(--brand);
             color: white; border: none; border-radius: 14px;
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -180,7 +203,8 @@
             text-transform: uppercase; letter-spacing: 0.05em;
             cursor: pointer; position: relative; overflow: hidden;
             transition: all 0.25s;
-            box-shadow: 0 0 20px color-mix(in srgb, var(--brand) 30%, transparent);
+            box-shadow: 0 8px 24px color-mix(in srgb, var(--brand) 30%, transparent);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .mic-btn::after {
             content: ''; position: absolute; inset: 0;
@@ -193,8 +217,8 @@
             background: var(--wire);
             box-shadow: none;
         }
+        .mic-btn svg { width: 18px; height: 18px; }
 
-        /* ── Open DartCounter Button ────────────────────── */
         .open-scorer-btn {
             width: 100%; padding: 16px 24px;
             background: transparent;
@@ -213,10 +237,7 @@
         .open-scorer-btn:active { transform: scale(0.97); }
         .open-scorer-btn svg { width: 20px; height: 20px; }
 
-        /* ── Score Log ──────────────────────────────────── */
-        .score-log {
-            flex: 1; min-height: 120px;
-        }
+        .score-log { flex: 1; min-height: 120px; }
         .score-log h4 {
             font-size: 10px; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.12em;
@@ -254,13 +275,16 @@
             border-left-color: #ef4444;
             color: #f87171;
         }
+        .log-entry.warn {
+            border-left-color: #facc15;
+            color: #facc15;
+        }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-4px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── Stats Row ──────────────────────────────────── */
         .stats-row {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
         }
@@ -280,7 +304,6 @@
             color: var(--muted); margin-top: 2px;
         }
 
-        /* ── Settings ───────────────────────────────────── */
         .settings-card { display: flex; flex-direction: column; gap: 14px; }
 
         .setting-row {
@@ -300,10 +323,10 @@
             padding: 8px 12px; font-size: 12px;
             font-family: 'Plus Jakarta Sans', sans-serif;
             outline: none; min-width: 140px;
+            max-width: 180px;
         }
         .setting-row select:focus { border-color: var(--brand); }
 
-        /* Toggle Switch */
         .toggle {
             width: 44px; height: 24px;
             background: var(--wire); border-radius: 12px;
@@ -316,14 +339,9 @@
             background: var(--chalk); top: 2px; left: 2px;
             transition: transform 0.2s;
         }
-        .toggle.on {
-            background: var(--brand);
-        }
-        .toggle.on::after {
-            transform: translateX(20px);
-        }
+        .toggle.on { background: var(--brand); }
+        .toggle.on::after { transform: translateX(20px); }
 
-        /* Mode Buttons */
         .mode-group {
             display: flex; gap: 4px;
             background: var(--dark); border-radius: 10px; padding: 3px;
@@ -341,16 +359,12 @@
             background: var(--wire); color: var(--chalk);
         }
 
-        /* ── Divider ────────────────────────────────────── */
         .divider {
             width: 100%; height: 1px;
             background: var(--wire); margin: 4px 0;
         }
 
-        /* ── Command Reference ──────────────────────────── */
-        .cmd-table {
-            width: 100%; border-collapse: collapse;
-        }
+        .cmd-table { width: 100%; border-collapse: collapse; }
         .cmd-table td {
             padding: 5px 8px; font-size: 11px;
             border-bottom: 1px solid rgba(255,255,255,0.03);
@@ -359,11 +373,8 @@
             font-weight: 700; color: var(--brand);
             font-family: monospace; white-space: nowrap;
         }
-        .cmd-table td:last-child {
-            color: var(--muted);
-        }
+        .cmd-table td:last-child { color: var(--muted); }
 
-        /* ── Footer ─────────────────────────────────────── */
         .footer {
             text-align: center;
             font-size: 10px; color: var(--muted);
@@ -371,6 +382,53 @@
             font-weight: 600; letter-spacing: 0.05em;
         }
         .footer a { color: var(--brand); text-decoration: none; }
+
+        @media (min-width: 600px) {
+            .container {
+                max-width: 700px;
+                padding: calc(24px + var(--safe-top)) 24px calc(24px + var(--safe-bottom));
+                gap: 18px;
+            }
+            .mic-btn { font-size: 17px; padding: 20px 24px; }
+            .mic-btn svg { width: 22px; height: 22px; }
+            .state-pill { font-size: 11px; padding: 8px 18px; }
+            .state-pill .dot { width: 9px; height: 9px; }
+            .stats-row { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+            .stat-val { font-size: 34px; }
+            .stat-label { font-size: 10px; }
+            .interim-text { font-size: 16px; min-height: 24px; }
+            .card { padding: 22px; border-radius: 18px; }
+        }
+
+        @media (min-width: 900px) {
+            .container {
+                max-width: 1040px;
+                display: grid;
+                grid-template-columns: 420px 1fr;
+                grid-template-areas:
+                    "header header"
+                    "badge  badge"
+                    "control log"
+                    "scorer  log"
+                    "stats   log"
+                    "settings settings"
+                    "commands commands"
+                    "footer footer";
+                gap: 16px 20px;
+                align-content: start;
+            }
+            .header { grid-area: header; }
+            .apk-badge { grid-area: badge; justify-self: center; }
+            .control-card { grid-area: control; }
+            .open-scorer-btn { grid-area: scorer; }
+            .stats-row { grid-area: stats; }
+            .score-log { grid-area: log; min-height: 400px; }
+            .score-log .log-list { max-height: 500px; }
+            .settings-card { grid-area: settings; }
+            details.card { grid-area: commands; }
+            .footer { grid-area: footer; }
+            .mic-btn { font-size: 18px; padding: 22px 24px; }
+        }
     </style>
 </head>
 
@@ -378,34 +436,30 @@
     <div class="hero-glow"></div>
 
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="logo">DART<span class="red">VOICE</span></div>
             <div class="account-pill" id="account-pill">
                 <div class="avatar" id="account-avatar">?</div>
                 <div>
                     <div class="account-name" id="account-name">Guest</div>
-                    <div class="account-status" id="account-status">Demo Mode</div>
+                    <div class="account-status" id="account-status">Loading</div>
                 </div>
             </div>
         </div>
 
-        <!-- APK Connection Badge -->
         <div class="apk-badge not-apk" id="apk-badge">
             <div class="dot"></div>
             <span id="apk-badge-text">Checking APK Bridge...</span>
         </div>
 
-        <!-- Main Control Card -->
         <div class="card control-card">
-            <div class="status-row">
-                <div class="status-dot" id="status-dot"></div>
-                <span id="status-text">Microphone Idle</span>
+            <div class="state-pill" id="state-pill">
+                <span class="dot"></span>
+                <span id="state-text">Microphone Idle</span>
             </div>
 
             <div class="interim-text" id="interim-text">&nbsp;</div>
 
-            <!-- EQ Visualizer -->
             <div class="eq-wrap" id="eq-wrap">
                 <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
                 <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
@@ -413,10 +467,12 @@
                 <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
             </div>
 
-            <button class="mic-btn" id="mic-btn">🎤 START LISTENING</button>
+            <button class="mic-btn" id="mic-btn">
+                <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v7a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v1a7 7 0 01-14 0v-1M12 18v5m-4 0h8"/></svg>
+                <span id="mic-btn-label">Start Listening</span>
+            </button>
         </div>
 
-        <!-- Open DartCounter -->
         <button class="open-scorer-btn" id="open-scorer-btn">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
@@ -424,7 +480,6 @@
             Open DartCounter
         </button>
 
-        <!-- Session Stats -->
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-val" id="stat-visits">0</div>
@@ -440,7 +495,6 @@
             </div>
         </div>
 
-        <!-- Score Log -->
         <div class="card score-log">
             <h4>
                 Activity Log
@@ -451,11 +505,9 @@
             </div>
         </div>
 
-        <!-- Settings -->
         <div class="card settings-card">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:4px;">Settings</div>
 
-            <!-- Input Mode -->
             <div>
                 <div class="setting-label" style="margin-bottom:8px;">Input Mode</div>
                 <div class="mode-group">
@@ -466,7 +518,18 @@
 
             <div class="divider"></div>
 
-            <!-- Voice Accent -->
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Microphone</div>
+                    <div class="setting-desc">Pick input source</div>
+                </div>
+                <select id="mic-select">
+                    <option value="">Default</option>
+                </select>
+            </div>
+
+            <div class="divider"></div>
+
             <div class="setting-row">
                 <div>
                     <div class="setting-label">Voice Accent</div>
@@ -484,7 +547,6 @@
 
             <div class="divider"></div>
 
-            <!-- Cancel Word -->
             <div class="setting-row">
                 <div>
                     <div class="setting-label">Cancel Word</div>
@@ -492,9 +554,18 @@
                 </div>
                 <div class="toggle on" id="toggle-cancel" data-key="cancelWord"></div>
             </div>
+
+            <div class="divider"></div>
+
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Checkout Assist</div>
+                    <div class="setting-desc">Auto-detect "how many darts" prompt</div>
+                </div>
+                <div class="toggle on" id="toggle-checkout" data-key="checkoutAssist"></div>
+            </div>
         </div>
 
-        <!-- Voice Commands Reference -->
         <details class="card" style="cursor:pointer;">
             <summary style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);list-style:none;display:flex;align-items:center;justify-content:space-between;">
                 Voice Commands
@@ -509,11 +580,14 @@
                 <tr><td>"bull" / "bullseye"</td><td>Score 50</td></tr>
                 <tr><td>"miss" / "zero"</td><td>Score 0</td></tr>
                 <tr><td>"cancel"</td><td>Undo last score</td></tr>
+                <tr><td colspan="2" style="padding-top:10px;color:#facc15;font-weight:700;">Checkout</td></tr>
+                <tr><td>"one"/"two"/"three"</td><td>Dart count used</td></tr>
+                <tr><td>"no score" / "busted"</td><td>Checkout failed</td></tr>
             </table>
         </details>
 
         <div class="footer">
-            DartVoice v2.0 · Mobile Edition · <a href="https://dartvoice.app">dartvoice.app</a>
+            DartVoice v2.1 · Mobile Edition · <a href="https://dartvoice.app">dartvoice.app</a>
         </div>
     </div>
 
@@ -521,7 +595,6 @@
     (function() {
         'use strict';
 
-        // ── APK Bridge Detection ────────────────────────────────────────────
         const isAPK = typeof window.DartVoiceBridge !== 'undefined';
         const badge = document.getElementById('apk-badge');
         const badgeText = document.getElementById('apk-badge-text');
@@ -534,7 +607,14 @@
             badgeText.textContent = 'Browser Mode (No Injection)';
         }
 
-        // ── DARTCOUNTER_DRIVER (Score injection JS) ─────────────────────────
+        const IMPOSSIBLE_TOTALS = new Set([163, 166, 169, 172, 173, 175, 176, 178, 179]);
+        function isValidDartTotal(n) {
+            if (typeof n !== 'number' || isNaN(n)) return false;
+            if (n < 0 || n > 180) return false;
+            if (!Number.isInteger(n)) return false;
+            return !IMPOSSIBLE_TOTALS.has(n);
+        }
+
         const DARTCOUNTER_DRIVER = `
 (function(val) {
     var SELECTORS = [
@@ -583,32 +663,32 @@
         if (desc && desc.set) { desc.set.call(el, String(value)); }
         else { el.value = String(value); }
     }
-    function fire(el, type, init) {
-        var e;
-        if (type === 'keydown' || type === 'keyup' || type === 'keypress') {
-            e = new KeyboardEvent(type, Object.assign({
-                key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true
-            }, init || {}));
-        } else {
-            e = new Event(type, { bubbles: true });
-        }
-        el.dispatchEvent(e);
+    function fire(el, type) {
+        el.dispatchEvent(new Event(type, { bubbles: true }));
     }
     function inject(input, val) {
-        try { input.focus(); } catch (e) {}
+        try { input.setAttribute('inputmode', 'none'); } catch(e) {}
+        try { input.readOnly = true; } catch(e) {}
         setReactValue(input, val);
         fire(input, 'input');
         fire(input, 'change');
-        fire(input, 'keydown');
-        fire(input, 'keypress');
-        fire(input, 'keyup');
         var submit = findSubmit();
-        if (submit) { try { submit.click(); } catch (e) {} }
-        var form = input.form;
-        if (form) {
-            try { form.requestSubmit ? form.requestSubmit() : form.submit(); }
-            catch (e) {}
+        var submitted = false;
+        if (submit) {
+            try { submit.click(); submitted = true; } catch (e) {}
         }
+        if (!submitted) {
+            var form = input.form;
+            if (form) {
+                try {
+                    if (form.requestSubmit) { form.requestSubmit(); }
+                    else { form.submit(); }
+                    submitted = true;
+                } catch (e) {}
+            }
+        }
+        try { input.readOnly = false; } catch(e) {}
+        setTimeout(function(){ try { input.blur(); } catch(e){} }, 50);
     }
     var input = findInput();
     if (input) { inject(input, val); return; }
@@ -621,7 +701,6 @@
     }, 100);
 })`;
 
-        // ── Score Parser (ported from web-app.html) ─────────────────────────
         const _ONES = {
             'zero':0,'oh':0,'nought':0,'nil':0,'naught':0,'no':0,
             'one':1,'won':1,'wan':1,
@@ -691,7 +770,7 @@
 
             if (['bull','bullseye','bulls eye','bull eye'].includes(text)) return 50;
             if (['outer bull','outer','twenty five'].includes(text)) return 25;
-            if (['miss','missed','nothing','zero','none','bounce','bounce out'].includes(text)) return 0;
+            if (['miss','missed','nothing','zero','none','bounce','bounce out','no score'].includes(text)) return 0;
 
             if (text.startsWith('ton ')) {
                 const rest = text.replace(/^ton\s+/,'').trim();
@@ -719,49 +798,111 @@
             return base;
         }
 
-        // ── DOM References ──────────────────────────────────────────────────
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('status-text');
+        function parseCheckoutCommand(text) {
+            text = text.toLowerCase().replace(/\s+/g,' ').trim();
+            if (/^(one|1|one dart|1 dart)$/.test(text)) return { type: 'darts', n: 1 };
+            if (/^(two|2|two darts|2 darts)$/.test(text)) return { type: 'darts', n: 2 };
+            if (/^(three|3|three darts|3 darts)$/.test(text)) return { type: 'darts', n: 3 };
+            if (/^(no score|zero|miss|missed|busted|bust|nothing)$/.test(text)) return { type: 'bust' };
+            return null;
+        }
+
+        const statePill = document.getElementById('state-pill');
+        const stateText = document.getElementById('state-text');
         const interimText = document.getElementById('interim-text');
         const micBtn = document.getElementById('mic-btn');
+        const micBtnLabel = document.getElementById('mic-btn-label');
         const eqWrap = document.getElementById('eq-wrap');
         const eqBars = document.querySelectorAll('.eq-bar');
         const logList = document.getElementById('log-list');
         const openScorerBtn = document.getElementById('open-scorer-btn');
+        const micSelect = document.getElementById('mic-select');
 
-        // ── State ───────────────────────────────────────────────────────────
-        let listening = false;
+        const STATE = {
+            IDLE: 'idle',
+            LISTENING: 'listening',
+            CHECKOUT: 'checkout',
+            COOLDOWN: 'cooldown',
+            RECOVERING: 'recovering',
+        };
+        let currentState = STATE.IDLE;
         let recognition = null;
         let eqInterval = null;
         let sessionScores = [];
         let dartBuffer = [];
         let dartBufferTimeout = null;
-        let inputMode = 'total'; // 'total' or 'per-dart'
-        let cancelWordEnabled = true;
+        let cooldownTimeout = null;
+        let watchdogTimeout = null;
+        let recoverTimeout = null;
+        let lastResultAt = 0;
 
-        // ── Config ──────────────────────────────────────────────────────────
         const AppConfig = {
             inputMode: 'total',
             cancelWordEnabled: true,
+            checkoutAssist: true,
+            cooldownMs: 1500,
+            watchdogMs: 8000,
         };
 
-        // ── Logging ─────────────────────────────────────────────────────────
+        function setState(next, labelOverride) {
+            currentState = next;
+            statePill.classList.remove('listening', 'checkout', 'cooldown', 'recovering');
+            switch (next) {
+                case STATE.IDLE:
+                    stateText.textContent = labelOverride || 'Microphone Idle';
+                    micBtnLabel.textContent = 'Start Listening';
+                    micBtn.classList.remove('stop');
+                    stopEQ();
+                    break;
+                case STATE.LISTENING:
+                    statePill.classList.add('listening');
+                    stateText.textContent = labelOverride || 'Listening';
+                    micBtnLabel.textContent = 'Stop Listening';
+                    micBtn.classList.add('stop');
+                    startEQ();
+                    break;
+                case STATE.CHECKOUT:
+                    statePill.classList.add('checkout');
+                    stateText.textContent = labelOverride || 'Checkout — say dart count';
+                    micBtnLabel.textContent = 'Stop Listening';
+                    micBtn.classList.add('stop');
+                    startEQ();
+                    break;
+                case STATE.COOLDOWN:
+                    statePill.classList.add('cooldown');
+                    stateText.textContent = labelOverride || 'Processing...';
+                    break;
+                case STATE.RECOVERING:
+                    statePill.classList.add('recovering');
+                    stateText.textContent = labelOverride || 'Mic lost — reconnecting';
+                    break;
+            }
+            if (isAPK && window.DartVoiceBridge && window.DartVoiceBridge.updateStatus) {
+                try { window.DartVoiceBridge.updateStatus(next); } catch(e) {}
+            }
+        }
+
         function log(msg, type) {
-            type = type || 'info'; // 'info', 'score', 'error'
+            type = type || 'info';
             const div = document.createElement('div');
-            div.className = 'log-entry' + (type === 'score' ? ' score' : type === 'error' ? ' error' : '');
+            div.className = 'log-entry' + (
+                type === 'score' ? ' score' :
+                type === 'error' ? ' error' :
+                type === 'warn'  ? ' warn' : ''
+            );
             div.textContent = msg;
-            // Prepend newest at top
             logList.prepend(div);
-            // Keep log manageable
             while (logList.children.length > 50) logList.removeChild(logList.lastChild);
         }
 
         document.getElementById('clear-log-btn').addEventListener('click', function() {
-            logList.innerHTML = '<div class="log-entry">Log cleared.</div>';
+            while (logList.firstChild) logList.removeChild(logList.firstChild);
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.textContent = 'Log cleared.';
+            logList.appendChild(div);
         });
 
-        // ── Session Stats ───────────────────────────────────────────────────
         function updateStats() {
             document.getElementById('stat-visits').textContent = sessionScores.length;
             if (sessionScores.length > 0) {
@@ -771,7 +912,6 @@
             }
         }
 
-        // ── EQ Visualizer ───────────────────────────────────────────────────
         function startEQ() {
             eqWrap.classList.add('active');
             if (eqInterval) clearInterval(eqInterval);
@@ -783,12 +923,21 @@
         }
         function stopEQ() {
             eqWrap.classList.remove('active');
-            if (eqInterval) clearInterval(eqInterval);
+            if (eqInterval) { clearInterval(eqInterval); eqInterval = null; }
             eqBars.forEach(bar => { bar.style.height = '3px'; });
         }
 
-        // ── Score Injection ─────────────────────────────────────────────────
         function injectScore(score) {
+            if (currentState === STATE.COOLDOWN) {
+                log('⚠ Cooldown active — ignoring "' + score + '"', 'warn');
+                return false;
+            }
+            if (!isValidDartTotal(score)) {
+                log('✗ Invalid dart total: ' + score, 'warn');
+                return false;
+            }
+            const prevState = currentState;
+            setState(STATE.COOLDOWN);
             if (isAPK) {
                 const js = DARTCOUNTER_DRIVER + '(' + score + ');';
                 try {
@@ -798,15 +947,23 @@
                     log('Bridge error: ' + e.message, 'error');
                 }
             } else {
-                log('Score: ' + score + ' (no APK bridge — browser preview)', 'score');
+                log('Score: ' + score + ' (browser preview)', 'score');
             }
             sessionScores.push(score);
             updateStats();
+
+            if (cooldownTimeout) clearTimeout(cooldownTimeout);
+            cooldownTimeout = setTimeout(function() {
+                if (currentState === STATE.COOLDOWN) {
+                    setState(prevState === STATE.CHECKOUT ? STATE.LISTENING : STATE.LISTENING);
+                }
+                cooldownTimeout = null;
+            }, AppConfig.cooldownMs);
+            return true;
         }
 
         function injectCancel() {
             if (isAPK) {
-                // Send backspace key event to DartCounter
                 const js = `(function(){
                     document.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Backspace',code:'Backspace',keyCode:8,which:8}));
                     document.dispatchEvent(new KeyboardEvent('keyup',{bubbles:true,key:'Backspace',code:'Backspace',keyCode:8,which:8}));
@@ -816,12 +973,14 @@
             log('⟲ Cancel — undo last score', 'info');
         }
 
-        // ── Open DartCounter ────────────────────────────────────────────────
         openScorerBtn.addEventListener('click', function() {
             if (isAPK) {
                 try {
                     window.DartVoiceBridge.openScorer();
                     log('Opened DartCounter scorer', 'info');
+                    if (window.DartVoiceBridge.suppressKeyboard) {
+                        window.DartVoiceBridge.suppressKeyboard();
+                    }
                 } catch(e) {
                     log('Failed to open scorer: ' + e.message, 'error');
                 }
@@ -831,7 +990,49 @@
             }
         });
 
-        // ── Speech Recognition ──────────────────────────────────────────────
+        window.onCheckoutDetected = function() {
+            if (!AppConfig.checkoutAssist) return;
+            if (currentState === STATE.LISTENING || currentState === STATE.COOLDOWN) {
+                setState(STATE.CHECKOUT);
+                log('⚐ Checkout detected — say "one", "two", "three" or "no score"', 'warn');
+            }
+        };
+        window.onCheckoutResolved = function() {
+            if (currentState === STATE.CHECKOUT) {
+                setState(STATE.LISTENING);
+                log('Checkout resolved — back to scoring', 'info');
+            }
+        };
+
+        function kickWatchdog() {
+            if (watchdogTimeout) clearTimeout(watchdogTimeout);
+            watchdogTimeout = setTimeout(function() {
+                if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
+                    const stale = Date.now() - lastResultAt;
+                    if (stale >= AppConfig.watchdogMs) {
+                        log('⚠ No voice activity in ' + Math.round(stale/1000) + 's — restarting mic', 'warn');
+                        recoverRecognition();
+                    } else {
+                        kickWatchdog();
+                    }
+                }
+            }, AppConfig.watchdogMs);
+        }
+
+        function recoverRecognition() {
+            setState(STATE.RECOVERING);
+            try { recognition.stop(); } catch(e) {}
+            if (recoverTimeout) clearTimeout(recoverTimeout);
+            recoverTimeout = setTimeout(function() {
+                try {
+                    recognition.start();
+                } catch(e) {
+                    log('Recovery failed: ' + e.message + ' — tap mic to retry', 'error');
+                    setState(STATE.IDLE);
+                }
+            }, 600);
+        }
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
@@ -840,42 +1041,85 @@
             recognition.lang = localStorage.getItem('dv-accent') || 'en-GB';
 
             recognition.onstart = function() {
-                listening = true;
-                micBtn.textContent = '⏹ STOP LISTENING';
-                micBtn.classList.add('stop');
-                statusDot.classList.add('listening');
-                statusText.textContent = 'Awaiting Score...';
-                startEQ();
-                log('🎤 Microphone activated — speak your score');
+                if (currentState === STATE.RECOVERING) {
+                    setState(STATE.LISTENING);
+                    log('✓ Mic reconnected', 'info');
+                } else {
+                    setState(STATE.LISTENING);
+                    log('🎤 Microphone activated — speak your score');
+                }
+                lastResultAt = Date.now();
+                kickWatchdog();
             };
 
             recognition.onresult = function(event) {
+                lastResultAt = Date.now();
+
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (!event.results[i].isFinal) {
-                        const interim = event.results[i][0].transcript.trim();
-                        interimText.textContent = interim ? '"' + interim + '"…' : '';
+                    const result = event.results[i];
+                    const transcript = result[0].transcript.trim();
+
+                    if (!result.isFinal) {
+                        interimText.textContent = transcript ? '"' + transcript + '"…' : '';
                         continue;
                     }
 
                     interimText.textContent = '';
-                    statusText.textContent = 'Awaiting Score...';
-                    const raw = event.results[i][0].transcript.trim().toLowerCase();
+                    const raw = transcript.toLowerCase();
 
-                    // Cancel trigger
+                    if (!raw) continue;
+
+                    if (currentState === STATE.COOLDOWN) {
+                        log('(cooldown) ignored: "' + raw + '"');
+                        continue;
+                    }
+
                     if (raw.includes('cancel') && AppConfig.cancelWordEnabled) {
                         if (AppConfig.inputMode === 'per-dart' && dartBuffer.length > 0) {
                             log('Cancel — cleared ' + dartBuffer.length + ' buffered dart(s)');
                             dartBuffer = [];
                             if (dartBufferTimeout) { clearTimeout(dartBufferTimeout); dartBufferTimeout = null; }
-                            statusText.textContent = 'Darts cleared. Speak again...';
                         } else {
                             injectCancel();
                         }
                         continue;
                     }
 
+                    if (currentState === STATE.CHECKOUT) {
+                        const cmd = parseCheckoutCommand(raw);
+                        if (!cmd) {
+                            log('(checkout) ignored: "' + raw + '"');
+                            continue;
+                        }
+                        if (cmd.type === 'darts') {
+                            log('Checkout: ' + cmd.n + ' dart(s)');
+                            if (isAPK) {
+                                const js = `(function(n){
+                                    var btns = document.querySelectorAll('button');
+                                    for (var i=0;i<btns.length;i++){
+                                        var t=(btns[i].textContent||'').trim().toLowerCase();
+                                        if(btns[i].offsetParent!==null && (t===String(n)||t===(n+' dart')||t===(n+' darts'))) {
+                                            btns[i].click(); return;
+                                        }
+                                    }
+                                })(${cmd.n});`;
+                                try { window.DartVoiceBridge.evaluateOnScorer(js); } catch(e) {}
+                            }
+                            setState(STATE.COOLDOWN);
+                            if (cooldownTimeout) clearTimeout(cooldownTimeout);
+                            cooldownTimeout = setTimeout(function() {
+                                if (currentState === STATE.COOLDOWN) setState(STATE.LISTENING);
+                                cooldownTimeout = null;
+                            }, AppConfig.cooldownMs);
+                        } else if (cmd.type === 'bust') {
+                            log('Checkout: busted', 'warn');
+                            injectScore(0);
+                        }
+                        continue;
+                    }
+
                     const score = parseSpokenScore(raw);
-                    if (score !== null && score >= 0 && score <= 180) {
+                    if (score !== null && isValidDartTotal(score)) {
                         if (AppConfig.inputMode === 'per-dart') {
                             if (score > 60) {
                                 log('"' + raw + '" (' + score + ') exceeds per-dart max, sending as visit total');
@@ -883,111 +1127,115 @@
                             } else {
                                 dartBuffer.push(score);
                                 log('Dart ' + dartBuffer.length + '/3: ' + score);
-                                statusText.textContent = 'Darts: ' + dartBuffer.join(' + ') + ' (' + dartBuffer.length + '/3)';
+                                stateText.textContent = 'Darts: ' + dartBuffer.join(' + ');
 
                                 if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
-
+                                const delay = dartBuffer.length >= 3 ? 2500 : 6000;
+                                dartBufferTimeout = setTimeout(function() {
+                                    if (dartBuffer.length > 0) {
+                                        const total = dartBuffer.reduce((a,b) => a+b, 0);
+                                        log(dartBuffer.join(' + ') + ' = ' + total);
+                                        injectScore(total);
+                                        dartBuffer = [];
+                                        dartBufferTimeout = null;
+                                    }
+                                }, delay);
                                 if (dartBuffer.length >= 3) {
-                                    dartBufferTimeout = setTimeout(function() {
-                                        if (dartBuffer.length > 0) {
-                                            const total = dartBuffer.reduce((a,b) => a+b, 0);
-                                            log(dartBuffer.join(' + ') + ' = ' + total);
-                                            injectScore(total);
-                                            dartBuffer = [];
-                                            statusText.textContent = 'Awaiting Score...';
-                                            dartBufferTimeout = null;
-                                        }
-                                    }, 2500);
                                     log('3 darts received — submitting shortly. Say "cancel" to abort.');
-                                } else {
-                                    dartBufferTimeout = setTimeout(function() {
-                                        if (dartBuffer.length > 0) {
-                                            const total = dartBuffer.reduce((a,b) => a+b, 0);
-                                            log(dartBuffer.join(' + ') + ' = ' + total + ' (auto-submitted)');
-                                            injectScore(total);
-                                            dartBuffer = [];
-                                            statusText.textContent = 'Awaiting Score...';
-                                            dartBufferTimeout = null;
-                                        }
-                                    }, 6000);
                                 }
                             }
                         } else {
                             log('Heard: "' + raw + '" → ' + score);
                             injectScore(score);
                         }
+                    } else if (score !== null) {
+                        log('✗ "' + raw + '" → ' + score + ' (invalid dart total)', 'warn');
                     } else {
                         log('Heard: "' + raw + '" (no match)');
                     }
                 }
+
+                kickWatchdog();
             };
 
             recognition.onerror = function(event) {
-                if (event.error !== 'aborted' && event.error !== 'no-speech') {
-                    log('Speech error: ' + event.error, 'error');
+                if (event.error === 'aborted') return;
+                if (event.error === 'no-speech') return;
+                log('Speech error: ' + event.error, 'error');
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    setState(STATE.IDLE);
+                    return;
                 }
-                if (event.error === 'not-allowed') {
-                    stopListening();
+                if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
+                    recoverRecognition();
                 }
             };
 
             recognition.onend = function() {
-                if (listening) {
+                if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
                     setTimeout(function() {
-                        if (listening && recognition) {
+                        if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
                             try { recognition.start(); } catch(e) {}
                         }
-                    }, 500);
+                    }, 300);
+                } else if (currentState === STATE.RECOVERING) {
+                    // handled by recoverRecognition
                 } else {
-                    stopListeningUI();
+                    setState(STATE.IDLE);
                 }
             };
         } else {
             log('Web Speech API not supported. Use Chrome.', 'error');
             micBtn.disabled = true;
-            micBtn.textContent = 'UNSUPPORTED BROWSER';
+            micBtnLabel.textContent = 'Unsupported';
         }
 
-        function stopListeningUI() {
-            statusDot.classList.remove('listening');
-            statusText.textContent = 'Microphone Idle';
-            micBtn.textContent = '🎤 START LISTENING';
-            micBtn.classList.remove('stop');
-            interimText.textContent = '';
-            stopEQ();
+        async function startListening() {
+            if (!recognition) return;
+            try {
+                const deviceId = localStorage.getItem('dv-mic-device');
+                const constraints = deviceId
+                    ? { audio: { deviceId: { exact: deviceId } } }
+                    : { audio: true };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                stream.getTracks().forEach(t => t.stop());
+            } catch(e) {
+                log('Mic permission: ' + e.message, 'error');
+                return;
+            }
+            try {
+                recognition.start();
+            } catch(e) {
+                log('Mic error: ' + e.message, 'error');
+            }
         }
 
         function stopListening() {
-            listening = false;
-            if (recognition) recognition.stop();
-            stopListeningUI();
+            if (watchdogTimeout) { clearTimeout(watchdogTimeout); watchdogTimeout = null; }
+            if (recoverTimeout) { clearTimeout(recoverTimeout); recoverTimeout = null; }
+            if (cooldownTimeout) { clearTimeout(cooldownTimeout); cooldownTimeout = null; }
+            setState(STATE.IDLE);
+            if (recognition) { try { recognition.stop(); } catch(e) {} }
             log('Microphone stopped');
         }
 
         micBtn.addEventListener('click', function() {
-            if (listening) {
-                stopListening();
+            if (currentState === STATE.IDLE) {
+                startListening();
             } else {
-                if (recognition) {
-                    try { recognition.start(); } catch(e) {
-                        log('Mic error: ' + e.message, 'error');
-                    }
-                }
+                stopListening();
             }
         });
 
-        // ── Settings Handlers ───────────────────────────────────────────────
-        // Input Mode
         document.querySelectorAll('.mode-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('active'); });
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 AppConfig.inputMode = btn.dataset.mode;
                 log('Input mode: ' + AppConfig.inputMode);
             });
         });
 
-        // Accent
         const accentSelect = document.getElementById('accent-select');
         accentSelect.value = localStorage.getItem('dv-accent') || 'en-GB';
         accentSelect.addEventListener('change', function() {
@@ -996,23 +1244,64 @@
             log('Voice accent: ' + accentSelect.value);
         });
 
-        // Toggle switches
         document.querySelectorAll('.toggle').forEach(function(el) {
             el.addEventListener('click', function() {
                 el.classList.toggle('on');
                 const key = el.dataset.key;
-                if (key === 'cancelWord') AppConfig.cancelWordEnabled = el.classList.contains('on');
+                const on = el.classList.contains('on');
+                if (key === 'cancelWord') AppConfig.cancelWordEnabled = on;
+                if (key === 'checkoutAssist') AppConfig.checkoutAssist = on;
+                log(key + ': ' + (on ? 'on' : 'off'));
             });
         });
 
-        // ── Supabase Auth ───────────────────────────────────────────────────
+        async function populateMicList() {
+            try {
+                const tmp = await navigator.mediaDevices.getUserMedia({ audio: true });
+                tmp.getTracks().forEach(t => t.stop());
+
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const mics = devices.filter(d => d.kind === 'audioinput');
+                const saved = localStorage.getItem('dv-mic-device') || '';
+                while (micSelect.firstChild) micSelect.removeChild(micSelect.firstChild);
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = 'Default';
+                micSelect.appendChild(defaultOpt);
+                mics.forEach(function(m, i) {
+                    const opt = document.createElement('option');
+                    opt.value = m.deviceId;
+                    opt.textContent = m.label || ('Microphone ' + (i+1));
+                    if (m.deviceId === saved) opt.selected = true;
+                    micSelect.appendChild(opt);
+                });
+            } catch(e) {
+                // silent — list populates once permission is granted
+            }
+        }
+        micSelect.addEventListener('change', function() {
+            localStorage.setItem('dv-mic-device', micSelect.value);
+            log('Mic: ' + (micSelect.options[micSelect.selectedIndex].textContent));
+        });
+        populateMicList();
+
         const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
         const sb = supabase.createClient(SB_URL, SB_KEY);
 
         (async function initAccount() {
             const { data: { session } } = await sb.auth.getSession();
-            if (!session || !session.user) return; // Stay as Guest
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromApk = isAPK || urlParams.get('apk') === '1';
+
+            if (!session || !session.user) {
+                if (fromApk) {
+                    window.location.replace('apk-gate.html');
+                    return;
+                }
+                return;
+            }
 
             const user = session.user;
             const email = user.email;
@@ -1025,6 +1314,11 @@
             const displayName = profile?.display_name?.trim() || email.split('@')[0];
             const initials = displayName.split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
             const isActive = sub && ['active','trialing'].includes(sub.status);
+
+            if (fromApk && !isActive) {
+                window.location.replace('apk-gate.html');
+                return;
+            }
 
             document.getElementById('account-avatar').textContent = initials;
             document.getElementById('account-name').textContent = displayName;
