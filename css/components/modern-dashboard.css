@@ -1,0 +1,70 @@
+/* Modern Dashboard overrides — Apple-like micro-interactions & motion
+   - Adds gentle fade-up entrance animations
+   - Softer glass surfaces, refined card lift, and subtle button gradients
+   - Keeps changes scoped to dashboard via selectors already used in the page
+*/
+:root{
+  --brand:#e60d24;
+  --brand-2:#ff3b47;
+  --brand-rgb:230,13,36;
+  --bg:#08080a;
+  --card-bg:rgba(255,255,255,0.02);
+  --muted:#6e6e82;
+  --glass-blur:16px;
+  --ease-apple:cubic-bezier(.2,.9,.3,1);
+  --trans-slow:420ms;
+  --trans-fast:220ms;
+}
+
+/* Reduce motion preference
+   Respect user settings
+*/
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:1ms!important;animation-duration:1ms!important}
+}
+
+/* Fade-up entrance used across dashboard */
+@keyframes dvFadeUp{from{opacity:0;transform:translateY(10px) scale(.994);filter:blur(2px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+.fade-up,.fade-up-0,.fade-up-1,.fade-up-2,.fade-up-3,.fade-up-4,.fade-up-5{animation-name:dvFadeUp;animation-duration:560ms;animation-fill-mode:both;animation-timing-function:var(--ease-apple)}
+.fade-up-1{animation-delay:80ms}.fade-up-2{animation-delay:160ms}.fade-up-3{animation-delay:240ms}.fade-up-4{animation-delay:320ms}.fade-up-5{animation-delay:400ms}
+
+/* Modern card lift */
+.card-panel{
+  background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.008));
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow:0 8px 30px rgba(3,3,3,0.5),0 1px 0 rgba(255,255,255,0.03) inset;
+  transition:transform var(--trans-slow) var(--ease-apple),box-shadow var(--trans-slow) var(--ease-apple),border-color var(--trans-fast);
+  will-change:transform,box-shadow;border-radius:18px;
+}
+.card-panel:hover{transform:translateY(-10px);box-shadow:0 30px 80px rgba(3,3,3,0.65),0 0 36px rgba(var(--brand-rgb),0.12);border-color:rgba(var(--brand-rgb),0.18)}
+
+/* Button polish */
+.btn-brand{background:linear-gradient(90deg,rgba(var(--brand-rgb),1),rgba(var(--brand-rgb),0.92));box-shadow:0 8px 30px rgba(var(--brand-rgb),0.12);border:none;transition:transform var(--trans-fast) var(--ease-apple),box-shadow var(--trans-fast)}
+.btn-brand:active{transform:translateY(1px) scale(.997)}
+
+/* Slightly nicer tab underline */
+.tab-btn{position:relative;transition:color var(--trans-fast) var(--ease-apple)}
+.tab-btn::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:3px;background:linear-gradient(90deg,rgba(var(--brand-rgb),0.95),rgba(var(--brand-rgb),0.6));transform:scaleX(0);transform-origin:left;transition:transform var(--trans-fast) var(--ease-apple)}
+.tab-btn.active::after{transform:scaleX(1)}
+
+/* Icon micro-movement */
+.dl-card svg,.card-panel svg{transition:transform var(--trans-fast) var(--ease-apple),opacity var(--trans-fast)}
+.card-panel:hover svg{transform:translateY(-2px);opacity:.98}
+
+/* Avatar rim pulse */
+.dv-avatar.pro::before{animation:rimPulse 2.6s var(--ease-apple) infinite;transform-origin:center}
+@keyframes rimPulse{0%{opacity:.5;transform:scale(1);filter:blur(6px)}50%{opacity:.95;transform:scale(1.03);filter:blur(10px)}100%{opacity:.5;transform:scale(1);filter:blur(6px)}}
+
+/* Small utility: pulse dot glow used in badges */
+.pulse-dot::after{content:'';position:absolute;inset:-6px;border-radius:50%;background:rgba(var(--brand-rgb),0.12);filter:blur(6px);opacity:0;transition:opacity .4s}
+.pro-profile-card:hover .pulse-dot::after{opacity:1}
+
+/* Hero tweaks */
+#dash-greeting{letter-spacing:.12em;color:var(--muted);transition:color var(--trans-fast)}
+.display{text-transform:uppercase;letter-spacing:-0.02em;font-weight:800}
+
+/* Slightly stronger focus state for inputs */
+.dv-input.pro:focus{outline:none;box-shadow:0 6px 28px rgba(var(--brand-rgb),0.08);border-color:rgba(var(--brand-rgb),0.28)}
+
+/* Respect reduced-motion for the animations */
+@media (prefers-reduced-motion: reduce){.fade-up{animation:none!important}}
