@@ -101,6 +101,121 @@
             box-shadow: 0 12px 52px rgba(0, 0, 0, 0.55), 0 0 36px rgba(204,11,32,0.08), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
         }
 
+        /* ── Pro Profile ── */
+        .pro-profile-card {
+            background: linear-gradient(160deg, #131317 0%, #0f0f12 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            transition: all .3s cubic-bezier(0.25,0.8,0.25,1);
+        }
+        .pro-profile-card:hover, .pro-profile-card.focus {
+            transform: translateY(-4px);
+            box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 40px rgba(204,11,32,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+            border-color: rgba(204,11,32,0.3);
+        }
+        .pro-profile-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            border-radius: 24px;
+            background: linear-gradient(140deg, rgba(204,11,32,0.4), transparent 35%, transparent 65%, rgba(204,11,32,0.2));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: exclude;
+            mask-composite: subtract;
+            opacity: 0;
+            transition: opacity .4s ease;
+            z-index: 1;
+        }
+        .pro-profile-card:hover::before {
+            opacity: 1;
+        }
+        .dv-avatar.pro {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-style: italic;
+            width: 72px; height: 72px;
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-user-select: none; user-select: none; letter-spacing: -0.01em;
+            box-shadow: 
+                0 8px 32px rgba(204,11,32,0.4), 
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -8px 16px rgba(0,0,0,0.4);
+            background: linear-gradient(140deg, rgba(255,255,255,0.2), transparent 50%);
+            position: relative;
+            font-size: 1.4rem;
+        }
+        .dv-avatar.pro::before {
+            content: '';
+            position: absolute; inset: -1px;
+            border-radius: inherit;
+            background: conic-gradient(from 210deg at 25% 25%, #e60d24, transparent 40%, transparent 60%, #e60d24);
+            filter: blur(8px); opacity: .6; z-index: -1;
+            animation: avatarRimPulse 2s ease-in-out infinite alternate;
+        }
+        @keyframes avatarRimPulse { to { opacity: 1; } }
+        .dv-input.pro {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-size: 15px; font-weight: 500;
+            color: #F0F0F5;
+            transition: all .2s ease;
+        }
+        .dv-input.pro:focus {
+            outline: none; border-color: rgba(var(--brand-rgb), 0.4);
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.1);
+            background: rgba(255,255,255,0.05);
+        }
+        .phone-status-badge {
+            text-transform: uppercase; font-size: 10px; font-weight: 700;
+            letter-spacing: 0.08em; padding: 4px 10px; border-radius: 20px;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .phone-verified { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: #22c55e; }
+        .phone-pending { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; }
+        .dl-apple-card {
+            border-radius: 24px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 20px;
+            transition: all .3s cubic-bezier(0.25,0.8,0.25,1);
+            position: relative; overflow: hidden;
+        }
+        .dl-apple-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(145deg, rgba(255,255,255,0.02), transparent);
+            opacity: 0; transition: opacity .4s ease;
+            pointer-events: none;
+        }
+        .dl-apple-card::after {
+            content: '';
+            position: absolute; inset: 1px; left: 1px; top: 1px; right: 1px; bottom: 1px;
+            background: 
+                radial-gradient(ellipse at top-left, rgba(255,255,255,0.1), transparent 50%),
+                radial-gradient(ellipse at bottom-right, rgba(255,255,255,0.05), transparent 50%);
+            border-radius: 22px; opacity: 0; transition: opacity .3s ease;
+        }
+        .dl-apple-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(var(--brand-rgb),0.2);
+            border-color: rgba(var(--brand-rgb),0.3);
+        }
+        .dl-apple-card:hover::before { opacity: 1; }
+        .dl-apple-card:hover::after { opacity: 1; }
+        .dl-apple-card:active { transform: translateY(-2px) scale(1.01); }
+
         .dl-card {
             background: #0d0d10;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -173,30 +288,118 @@
             border-bottom-color: var(--brand);
         }
 
-        /* ── Avatar ── */
-        .dv-avatar {
+        /* ── Pro Profile ── */
+        .pro-profile-card {
+            background: linear-gradient(160deg, #131317 0%, #0f0f12 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            position: relative;
+            transition: all .3s cubic-bezier(0.25,0.8,0.25,1);
+        }
+        .pro-profile-card:hover, .pro-profile-card.focus {
+            transform: translateY(-4px);
+            box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 40px rgba(204,11,32,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+            border-color: rgba(204,11,32,0.3);
+        }
+        .pro-profile-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            border-radius: 24px;
+            background: linear-gradient(140deg, rgba(204,11,32,0.4), transparent 35%, transparent 65%, rgba(204,11,32,0.2));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: exclude;
+            mask-composite: subtract;
+            opacity: 0;
+            transition: opacity .4s ease;
+            z-index: 1;
+        }
+        .pro-profile-card:hover::before {
+            opacity: 1;
+        }
+        .dv-avatar.pro {
             font-family: 'Barlow Condensed', sans-serif;
             font-weight: 900;
             font-style: italic;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            letter-spacing: -0.01em;
+            width: 72px; height: 72px;
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            user-select: none; letter-spacing: -0.01em;
+            box-shadow: 
+                0 8px 32px rgba(204,11,32,0.4), 
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -8px 16px rgba(0,0,0,0.4);
+            background: linear-gradient(140deg, rgba(255,255,255,0.2), transparent 50%);
             position: relative;
-            box-shadow: 0 4px 16px rgba(204,11,32,0.35), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -6px 12px rgba(0,0,0,0.25);
-            background-image: linear-gradient(140deg, rgba(255,255,255,0.15), transparent 45%);
+            font-size: 1.4rem;
         }
-        .dv-avatar::after {
+        .dv-avatar.pro::before {
             content: '';
-            position: absolute;
-            inset: -2px;
+            position: absolute; inset: -1px;
             border-radius: inherit;
-            background: conic-gradient(from 210deg, rgba(204,11,32,0.55), rgba(204,11,32,0) 40%, rgba(204,11,32,0) 60%, rgba(204,11,32,0.55));
-            filter: blur(6px);
-            opacity: .5;
-            z-index: -1;
+            background: conic-gradient(from 210deg at 25% 25%, #e60d24, transparent 40%, transparent 60%, #e60d24);
+            filter: blur(8px); opacity: .6; z-index: -1;
+            animation: avatarRimPulse 2s ease-in-out infinite alternate;
         }
+        @keyframes avatarRimPulse { to { opacity: 1; } }
+        .dv-input.pro {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-size: 15px; font-weight: 500;
+            color: #F0F0F5;
+            transition: all .2s ease;
+        }
+        .dv-input.pro:focus {
+            outline: none; border-color: rgba(var(--brand-rgb), 0.4);
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.1);
+            background: rgba(255,255,255,0.05);
+        }
+        .phone-status-badge {
+            text-transform: uppercase; font-size: 10px; font-weight: 700;
+            letter-spacing: 0.08em; padding: 4px 10px; border-radius: 20px;
+            backdrop-filter: blur(12px);
+        }
+        .phone-verified { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: #22c55e; }
+        .phone-pending { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; }
+        .dl-apple-card {
+            border-radius: 24px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            transition: all .3s cubic-bezier(0.25,0.8,0.25,1);
+            position: relative; overflow: hidden;
+        }
+        .dl-apple-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(145deg, rgba(255,255,255,0.02), transparent);
+            opacity: 0; transition: opacity .4s ease;
+            pointer-events: none;
+        }
+        .dl-apple-card::after {
+            content: '';
+            position: absolute; inset: 1px; left: 1px; top: 1px; right: 1px; bottom: 1px;
+            background: 
+                radial-gradient(ellipse at top-left, rgba(255,255,255,0.1), transparent 50%),
+                radial-gradient(ellipse at bottom-right, rgba(255,255,255,0.05), transparent 50%);
+            border-radius: 22px; opacity: 0; transition: opacity .3s ease;
+        }
+        .dl-apple-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(var(--brand-rgb),0.2);
+            border-color: rgba(var(--brand-rgb),0.3);
+        }
+        .dl-apple-card:hover::before { opacity: 1; }
+        .dl-apple-card:hover::after { opacity: 1; }
+        .dl-apple-card:active { transform: translateY(-2px) scale(1.01); }
 
         /* ── Toast ── */
         @keyframes toastIn {
@@ -1021,8 +1224,8 @@
             <div id="tab-profile" class="hidden">
                 <div class="w-full max-w-sm">
 
-                    <!-- Profile card -->
-                    <div class="card-panel fade-up-2">
+                    <!-- Pro Profile Card -->
+                    <div class="pro-profile-card fade-up-2">
                         <div class="sub-accent"></div>
                         <div class="p-6">
                             <p class="text-[10px] font-bold uppercase tracking-widest mb-5" style="color:#4A4A5A;">Your
@@ -1031,13 +1234,13 @@
                             <!-- Avatar + info row -->
                             <div class="flex items-center gap-4 mb-6">
                                 <div id="profile-avatar"
-                                    class="dv-avatar w-14 h-14 rounded-2xl shrink-0 text-2xl text-white"
+                                    class="dv-avatar pro shrink-0 text-white"
                                     style="background:var(--brand);"></div>
                                 <div class="min-w-0 flex-1">
                                     <p id="profile-display-name-show" class="font-semibold text-chalk text-sm truncate">
                                         —</p>
                                     <p id="profile-email-show" class="text-muted text-xs mt-0.5 truncate"></p>
-                                    <div class="mt-1.5">
+                                    <div class="mt-1.5 flex flex-wrap gap-2">
                                         <span id="profile-badge-active"
                                             class="hidden inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/15 tracking-wide"><span
                                                 class="w-1 h-1 rounded-full bg-success inline-block"></span>PRO
@@ -1052,27 +1255,59 @@
                                         <span id="profile-badge-none"
                                             class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-muted-2 tracking-wide">NOT
                                             SUBSCRIBED</span>
+                                        <span id="profile-phone-badge" class="hidden phone-status-badge"></span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Display name field -->
+                            <!-- Profile form -->
                             <div class="space-y-4">
                                 <div>
                                     <label
                                         class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">Display
                                         Name</label>
                                     <input id="input-display-name" type="text" placeholder="Your name" maxlength="40"
-                                        class="dv-input w-full px-4 py-3 rounded-xl text-sm"
+                                        class="dv-input pro w-full"
                                         oninput="updateAvatarPreview()">
                                 </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">Phone (Optional)
+                                        <span class="text-[9px] text-muted ml-1">(for notifications)</span>
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input id="input-phone" type="tel" placeholder="+44 7xx xxx xxxx" maxlength="20"
+                                            class="dv-input pro flex-1">
+                                        <button onclick="verifyPhone()" id="btn-verify-phone"
+                                            class="px-4 py-[14px] bg-brand/80 hover:bg-brand text-white font-semibold text-sm rounded-2xl shrink-0 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-200">
+                                            Verify
+                                        </button>
+                                    </div>
+                                    <p id="phone-msg" class="text-xs mt-2 hidden"></p>
+                                </div>
                                 <button onclick="saveProfile()" id="btn-save-profile"
-                                    class="btn-brand w-full py-2.5 rounded-xl text-white font-semibold text-sm">
+                                    class="btn-brand w-full py-3 rounded-2xl text-white font-semibold text-sm shadow-2xl">
                                     Save Profile
                                 </button>
                                 <p id="profile-save-msg" class="text-xs text-center hidden"></p>
                             </div>
                         </div>
+
+                        <!-- Footer row -->
+                        <div class="px-6 py-4 flex items-center justify-between gap-3"
+                            style="border-top:1px solid rgba(255,255,255,0.05);background:rgba(15,15,15,0.5);">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-3.5 h-3.5 text-muted-2 shrink-0" fill="none" stroke="currentColor"
+                                    stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <span id="profile-email-footer"
+                                    class="text-xs text-muted truncate max-w-[200px]"></span>
+                            </div>
+                            <button onclick="signOut()"
+                                class="text-xs text-muted hover:text-brand transition shrink-0">Sign out</button>
+                        </div>
+                    </div>
 
                         <!-- Footer row -->
                         <div class="px-6 py-4 flex items-center justify-between gap-3"
