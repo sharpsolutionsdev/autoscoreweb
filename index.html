@@ -105,6 +105,7 @@
                 </a>
             </div>
             <div id="nav-auth-desktop" class="hidden sm:flex items-center gap-3 ml-2">
+                <div data-dv-currency-mount></div>
                 <a href="dartvoice-dashboard"
                     class="text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
@@ -267,7 +268,7 @@
                     </div>
 
                     <p class="text-muted-2 text-xs fade-up-5">Live 10-min demo &middot; then 7-day free trial &middot;
-                        &pound;6.99/mo after &middot; Cancel anytime</p>
+                        <span class="dv-price" data-gbp="6.99" data-suffix="/mo">&pound;6.99/mo</span> after &middot; Cancel anytime</p>
 
                     <div class="fade-up-5 mt-4 flex flex-wrap items-center gap-2.5">
                         <span class="text-[10px] font-bold tracking-widest text-muted uppercase">Platforms</span>
@@ -1730,6 +1731,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                 <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Pricing</p>
                 <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 text-chalk">CHOOSE YOUR PLAN.</h2>
                 <p class="text-muted text-sm">Everything included on every plan. Just pick your billing cycle.</p>
+                <div class="mt-5 flex items-center justify-center gap-2">
+                    <span class="text-[10px] text-muted-2 font-bold uppercase tracking-widest">Show prices in</span>
+                    <div data-dv-currency-mount></div>
+                </div>
+                <p class="text-[10px] text-muted-2 mt-2 opacity-70">Displayed in your currency &middot; billed in local currency at checkout via Stripe</p>
             </div>
 
             <!-- Competitor comparison row -->
@@ -1815,7 +1821,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     <div class="mb-6">
                         <p class="text-[9px] font-bold tracking-[0.3em] text-muted uppercase mb-4">Monthly</p>
                         <div class="flex items-baseline gap-1.5 mb-1">
-                            <span class="display text-5xl sm:text-6xl not-italic text-chalk">&pound;6.99</span>
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk dv-price" data-gbp="6.99">&pound;6.99</span>
                             <span class="text-muted text-sm">/mo</span>
                         </div>
                         <p class="text-muted-2 text-xs text-brand font-bold">Earn &pound;5.00 per referral</p>
@@ -1878,11 +1884,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     <div class="mb-6 mt-2">
                         <p class="text-[9px] font-bold tracking-[0.3em] text-brand uppercase mb-4">6-Month</p>
                         <div class="flex items-baseline gap-1.5 mb-1">
-                            <span class="display text-5xl sm:text-6xl not-italic text-chalk neon-white">&pound;34.99</span>
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk neon-white dv-price" data-gbp="34.99">&pound;34.99</span>
                             <span class="text-muted text-sm">/6mo</span>
                         </div>
                         <div class="flex items-center gap-2 mt-1">
-                            <p class="text-muted-2 text-xs">That&rsquo;s &pound;5.83/mo</p>
+                            <p class="text-muted-2 text-xs">That&rsquo;s <span class="dv-price" data-gbp="5.83">&pound;5.83</span>/mo</p>
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold"
                                 style="background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.2);">SAVE 17%</span>
                         </div>
@@ -1925,7 +1931,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                             <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(34,197,94,0.15)">
                                 <svg viewBox="0 0 24 24" width="10" height="10" stroke="#22c55e" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
-                            <span class="text-chalk/80 font-semibold">Save &pound;6.95 vs monthly</span>
+                            <span class="text-chalk/80 font-semibold">Save <span class="dv-price" data-gbp="6.95">&pound;6.95</span> vs monthly</span>
                         </div>
                     </div>
 
@@ -1935,7 +1941,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         style="box-shadow: 0 0 25px rgba(var(--brand-rgb), 0.35);">
                         Start 7-Day Free Trial
                     </a>
-                    <p class="text-muted-2 text-[10px] text-center mt-2">Then &pound;34.99 every 6 months</p>
+                    <p class="text-muted-2 text-[10px] text-center mt-2">Then <span class="dv-price" data-gbp="34.99">&pound;34.99</span> every 6 months</p>
                 </div>
 
                 <!-- PLAN 3: 12-Month (BEST VALUE) -->
@@ -1952,11 +1958,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     <div class="mb-6 mt-2">
                         <p class="text-[9px] font-bold tracking-[0.3em] text-muted uppercase mb-4">12-Month</p>
                         <div class="flex items-baseline gap-1.5 mb-1">
-                            <span class="display text-5xl sm:text-6xl not-italic text-chalk">&pound;59.99</span>
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk dv-price" data-gbp="59.99">&pound;59.99</span>
                             <span class="text-muted text-sm">/yr</span>
                         </div>
                         <div class="flex items-center gap-2 mt-1">
-                            <p class="text-muted-2 text-xs">That&rsquo;s &pound;5.00/mo</p>
+                            <p class="text-muted-2 text-xs">That&rsquo;s <span class="dv-price" data-gbp="5.00">&pound;5.00</span>/mo</p>
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold"
                                 style="background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.2);">SAVE 28%</span>
                         </div>
@@ -1999,7 +2005,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                             <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(34,197,94,0.15)">
                                 <svg viewBox="0 0 24 24" width="10" height="10" stroke="#22c55e" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
-                            <span class="text-chalk/80 font-semibold">Save &pound;23.89 vs monthly</span>
+                            <span class="text-chalk/80 font-semibold">Save <span class="dv-price" data-gbp="23.89">&pound;23.89</span> vs monthly</span>
                         </div>
                     </div>
 
@@ -2008,7 +2014,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         class="btn-brand block text-center py-3 rounded-xl font-semibold text-sm text-white relative z-10">
                         Start 7-Day Free Trial
                     </a>
-                    <p class="text-muted-2 text-[10px] text-center mt-2">Then &pound;59.99 every 12 months</p>
+                    <p class="text-muted-2 text-[10px] text-center mt-2">Then <span class="dv-price" data-gbp="59.99">&pound;59.99</span> every 12 months</p>
                 </div>
 
             </div>
@@ -2077,7 +2083,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         </svg>
                     </div>
                     <div class="faq-answer text-muted text-sm leading-relaxed">
-                        After your trial ends, your subscription begins at &pound;6.99/month. You can cancel anytime
+                        After your trial ends, your subscription begins at <span class="dv-price" data-gbp="6.99" data-suffix="/month">&pound;6.99/month</span>. You can cancel anytime
                         from your dashboard — no questions asked, no hidden fees.
                     </div>
                 </div>
@@ -2386,7 +2392,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     Open Dashboard
                 </a>
             </div>
-            <p class="text-muted-2 text-xs mt-4 relative">10 min demo &middot; 7 days free &middot; &pound;6.99/mo after
+            <p class="text-muted-2 text-xs mt-4 relative">10 min demo &middot; 7 days free &middot; <span class="dv-price" data-gbp="6.99" data-suffix="/mo">&pound;6.99/mo</span> after
                 &middot; Cancel anytime</p>
 
             <!-- Animated waveform under CTA -->
@@ -2514,6 +2520,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     </script>
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
+    <script src="dv-currency.js"></script>
 </body>
 
 </html>
