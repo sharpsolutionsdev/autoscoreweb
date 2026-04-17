@@ -466,6 +466,16 @@
                     </div>
                 </div>
 
+                <!-- App Controls -->
+                <div class="hud-card p-4 border border-brand/20 bg-brand/5 mb-4">
+                    <div class="text-[10px] font-bold text-brand tracking-[0.2em] uppercase mb-3">App Controls</div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button id="sidebar-collapse-btn" type="button" class="bg-[#111114] border border-[#252530] text-gray-300 px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider hover:bg-[#252530] hover:text-white active:scale-95 transition-all w-fit rounded"><svg width="12" height="12" class="inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>Collapse</button>
+                        <button id="fullscreen-btn" type="button" class="bg-[#111114] border border-[#252530] text-gray-300 px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider hover:bg-[#252530] hover:text-white active:scale-95 transition-all w-fit rounded"><svg width="12" height="12" class="inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg>Fullscreen</button>
+                        <button id="cam-help-btn" type="button" class="bg-brand/20 text-brand border border-brand/40 px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider hover:bg-brand/30 active:scale-95 transition-all w-fit rounded"><svg width="12" height="12" class="inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Cam Help</button>
+                    </div>
+                </div>
+
                 <!-- Live Checkout -->
                 <div id="live-checkout-panel" class="hud-card p-4 mb-4 border border-white/5 transition-all flex-shrink-0">
                     <div class="flex justify-between items-center mb-1">
@@ -749,25 +759,10 @@
     <!-- Main iFrame Area -->
     <div class="main-content">
         <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock"></iframe>
-        <div style="position:absolute;top:12px;right:12px;z-index:50;display:flex;gap:6px;">
-            <button id="sidebar-collapse-btn" type="button" title="Collapse sidebar (\\)"
-                style="background:rgba(17,17,20,0.85);color:#fff;border:1px solid #252530;border-radius:9999px;padding:6px 10px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
-            </button>
-            <button id="fullscreen-btn" type="button" title="Fullscreen scorer (F)"
-                style="background:rgba(17,17,20,0.85);color:#fff;border:1px solid #252530;border-radius:9999px;padding:6px 10px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg>
-            </button>
-        <button id="cam-help-btn" type="button" title="Camera not connecting?"
-            style="background:rgba(17,17,20,0.85);color:#fff;border:1px solid #252530;border-radius:9999px;padding:6px 12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            Camera help
-        </button>
-        </div>
         <script>
             (function(){
                 var b=document.getElementById('cam-help-btn'),m=document.getElementById('cam-help-modal');
-                if(b&&m){b.addEventListener('click',function(){m.style.display='flex';});
+                if(b&&m){b.addEventListener('click',function(ev){ev.stopPropagation();m.style.display='flex';});
                 m.addEventListener('click',function(e){if(e.target===m)m.style.display='none';});}
             })();
         </script>
