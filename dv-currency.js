@@ -188,6 +188,31 @@
         document.head.appendChild(s);
     }
 
+    function observe() {
+        if (!('MutationObserver' in window)) return;
+        let pending = false;
+        const obs = new MutationObserver((muts) => {
+            for (const m of muts) {
+                for (const n of m.addedNodes) {
+                    if (n.nodeType !== 1) continue;
+                    if (n.classList && n.classList.contains('dv-price')) { pending = true; break; }
+                    if (n.querySelector && n.querySelector('.dv-price')) { pending = true; break; }
+                    if (n.hasAttribute && n.hasAttribute('data-dv-currency-mount')) {
+                        buildPicker(n);
+                    } else if (n.querySelectorAll) {
+                        n.querySelectorAll('[data-dv-currency-mount]').forEach(buildPicker);
+                    }
+                }
+                if (pending) break;
+            }
+            if (pending) {
+                pending = false;
+                renderPrices(localStorage.getItem(LS_KEY) || DEFAULT);
+            }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+    }
+
     async function init() {
         injectStyles();
         const stored = localStorage.getItem(LS_KEY);
@@ -195,6 +220,7 @@
         renderPrices(initial);
 
         document.querySelectorAll('[data-dv-currency-mount]').forEach(buildPicker);
+        observe();
 
         if (!stored) {
             const detected = await autoDetect();

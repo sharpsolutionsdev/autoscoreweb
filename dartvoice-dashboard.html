@@ -278,6 +278,8 @@
             <div class="flex items-center gap-3">
                 <a href="/" class="text-xs text-muted hover:text-white transition hidden sm:block">Home</a>
                 <a href="guide" class="text-xs text-muted hover:text-white transition hidden sm:block">Guide</a>
+                <a href="contact" class="text-xs text-muted hover:text-white transition hidden sm:block">Contact</a>
+                <div data-dv-currency-mount class="hidden sm:block"></div>
                 <div class="w-px h-4 bg-white/10 hidden sm:block"></div>
                 <span id="nav-email" class="hidden text-xs text-muted truncate max-w-[160px]"></span>
                 <button id="btn-signout" onclick="signOut()"
@@ -1688,7 +1690,7 @@
                     <button onclick="dvCheckout(event, '${userId}')"
                             class="btn-brand w-full xs:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm min-h-[48px]">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Start 7-Day Free Trial &mdash; &pound;6.99/mo
+                        Start 7-Day Free Trial &mdash; <span class="dv-price" data-gbp="6.99" data-suffix="/mo">&pound;6.99/mo</span>
                     </button>
 <button id="btn-refresh-status" onclick="manualSyncStatus('${userId}')"
                             class="btn-ghost px-4 py-2.5 rounded-xl text-xs font-medium text-muted hover:text-white flex items-center gap-2">
@@ -1713,7 +1715,7 @@
                 <div class="trial-bar-track mt-3 mb-2">
                     <div class="trial-bar-fill" style="width:${pct}%"></div>
                 </div>
-                <p class="text-muted-2 text-xs">Converts to &pound;6.99/mo on ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
+                <p class="text-muted-2 text-xs">Converts to <span class="dv-price" data-gbp="6.99" data-suffix="/mo">&pound;6.99/mo</span> on ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`;
                 actions.innerHTML = `
                 <button type="button" onclick="openStripePortal(this)"
                    class="btn-ghost inline-block px-5 py-2 rounded-xl text-sm font-medium text-white">
@@ -2262,6 +2264,7 @@
     </script>
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
+    <script src="dv-currency.js"></script>
 </body>
 
 </html>
