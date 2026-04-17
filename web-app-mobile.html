@@ -616,89 +616,51 @@
         }
 
         const DARTCOUNTER_DRIVER = `
-(function(val) {
-    var SELECTORS = [
-        'input[name="score"]',
-        'input[data-testid="score-input"]',
-        'input[aria-label*="score" i]',
-        'input.score-input',
-        'input[type="number"]',
-        'input[type="tel"]',
-        'input[inputmode="numeric"]'
-    ];
-    function findInput() {
-        for (var i = 0; i < SELECTORS.length; i++) {
-            var el = document.querySelector(SELECTORS[i]);
-            if (el && el.offsetParent !== null) return el;
-        }
-        return null;
-    }
-    function findSubmit() {
-        var candidates = [
-            'button[type="submit"]',
-            'button[data-testid="submit-score"]',
-            'button[aria-label*="submit" i]',
-            'button[aria-label*="ok" i]',
-            'button.score-submit'
-        ];
-        for (var i = 0; i < candidates.length; i++) {
-            var el = document.querySelector(candidates[i]);
-            if (el && el.offsetParent !== null) return el;
-        }
+(function(valStr) {
+    var str = String(valStr);
+    
+    function clickNumpadDigit(digit) {
         var btns = document.querySelectorAll('button');
-        for (var j = 0; j < btns.length; j++) {
-            var t = (btns[j].textContent || '').trim().toLowerCase();
-            if (btns[j].offsetParent !== null &&
-                (t === 'ok' || t === 'enter' || t === 'submit' || t === 'send')) {
-                return btns[j];
+        for (var i = 0; i < btns.length; i++) {
+            var txt = (btns[i].textContent || '').trim();
+            // Numpad elements usually have exact text like "1", "2" and are visible
+            if (txt === digit && btns[i].offsetParent !== null) {
+                btns[i].click();
+                return true;
             }
         }
-        return null;
+        return false;
     }
-    function setReactValue(el, value) {
-        var proto = (el.tagName === 'TEXTAREA')
-            ? window.HTMLTextAreaElement.prototype
-            : window.HTMLInputElement.prototype;
-        var desc = Object.getOwnPropertyDescriptor(proto, 'value');
-        if (desc && desc.set) { desc.set.call(el, String(value)); }
-        else { el.value = String(value); }
-    }
-    function fire(el, type) {
-        el.dispatchEvent(new Event(type, { bubbles: true }));
-    }
-    function inject(input, val) {
-        try { input.setAttribute('inputmode', 'none'); } catch(e) {}
-        try { input.readOnly = true; } catch(e) {}
-        setReactValue(input, val);
-        fire(input, 'input');
-        fire(input, 'change');
-        var submit = findSubmit();
-        var submitted = false;
-        if (submit) {
-            try { submit.click(); submitted = true; } catch (e) {}
-        }
-        if (!submitted) {
-            var form = input.form;
-            if (form) {
-                try {
-                    if (form.requestSubmit) { form.requestSubmit(); }
-                    else { form.submit(); }
-                    submitted = true;
-                } catch (e) {}
+    
+    function clickSubmit() {
+        var btns = document.querySelectorAll('button');
+        for (var i = 0; i < btns.length; i++) {
+            var txt = (btns[i].textContent || '').trim().toLowerCase();
+            if ((txt === 'ok' || txt === 'enter' || txt === 'submit' || txt === '✓') && btns[i].offsetParent !== null) {
+                btns[i].click();
+                return true;
             }
         }
-        try { input.readOnly = false; } catch(e) {}
-        setTimeout(function(){ try { input.blur(); } catch(e){} }, 50);
+        return false;
     }
-    var input = findInput();
-    if (input) { inject(input, val); return; }
-    var attempts = 0;
-    var iv = setInterval(function() {
-        attempts++;
-        var el = findInput();
-        if (el) { clearInterval(iv); inject(el, val); }
-        else if (attempts >= 20) { clearInterval(iv); }
-    }, 100);
+
+    // Sequentially simulate tapping the onscreen numpad
+    var success = true;
+    for (var i = 0; i < str.length; i++) {
+        if (!clickNumpadDigit(str[i])) {
+            success = false;
+            break;
+        }
+    }
+    
+    if (success) {
+        // Slight delay to allow React state to settle before clicking OK
+        setTimeout(function() {
+            clickSubmit();
+        }, 50);
+    } else {
+        console.warn("DartVoice: Unable to find complete numpad buttons for score " + str);
+    }
 })`;
 
         const _ONES = {
@@ -1033,14 +995,13 @@
             }, 600);
         }
 
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = localStorage.getItem('dv-accent') || 'en-GB';
+        // --- Speech Recognition Flow --- Provide Native Android Hooks
 
-            recognition.onstart = function() {
+        window.onSpeechEvent = function(type, payload) {
+            kickWatchdog();
+            lastResultAt = Date.now();
+
+            if (type === 'start') {
                 if (currentState === STATE.RECOVERING) {
                     setState(STATE.LISTENING);
                     log('✓ Mic reconnected', 'info');
@@ -1048,155 +1009,159 @@
                     setState(STATE.LISTENING);
                     log('🎤 Microphone activated — speak your score');
                 }
-                lastResultAt = Date.now();
-                kickWatchdog();
-            };
-
-            recognition.onresult = function(event) {
-                lastResultAt = Date.now();
-
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    const result = event.results[i];
-                    const transcript = result[0].transcript.trim();
-
-                    if (!result.isFinal) {
-                        interimText.textContent = transcript ? '"' + transcript + '"…' : '';
-                        continue;
-                    }
-
-                    interimText.textContent = '';
-                    const raw = transcript.toLowerCase();
-
-                    if (!raw) continue;
-
-                    if (currentState === STATE.COOLDOWN) {
-                        log('(cooldown) ignored: "' + raw + '"');
-                        continue;
-                    }
-
-                    if (raw.includes('cancel') && AppConfig.cancelWordEnabled) {
-                        if (AppConfig.inputMode === 'per-dart' && dartBuffer.length > 0) {
-                            log('Cancel — cleared ' + dartBuffer.length + ' buffered dart(s)');
-                            dartBuffer = [];
-                            if (dartBufferTimeout) { clearTimeout(dartBufferTimeout); dartBufferTimeout = null; }
-                        } else {
-                            injectCancel();
-                        }
-                        continue;
-                    }
-
-                    if (currentState === STATE.CHECKOUT) {
-                        const cmd = parseCheckoutCommand(raw);
-                        if (!cmd) {
-                            log('(checkout) ignored: "' + raw + '"');
-                            continue;
-                        }
-                        if (cmd.type === 'darts') {
-                            log('Checkout: ' + cmd.n + ' dart(s)');
-                            if (isAPK) {
-                                const js = `(function(n){
-                                    var btns = document.querySelectorAll('button');
-                                    for (var i=0;i<btns.length;i++){
-                                        var t=(btns[i].textContent||'').trim().toLowerCase();
-                                        if(btns[i].offsetParent!==null && (t===String(n)||t===(n+' dart')||t===(n+' darts'))) {
-                                            btns[i].click(); return;
-                                        }
-                                    }
-                                })(${cmd.n});`;
-                                try { window.DartVoiceBridge.evaluateOnScorer(js); } catch(e) {}
-                            }
-                            setState(STATE.COOLDOWN);
-                            if (cooldownTimeout) clearTimeout(cooldownTimeout);
-                            cooldownTimeout = setTimeout(function() {
-                                if (currentState === STATE.COOLDOWN) setState(STATE.LISTENING);
-                                cooldownTimeout = null;
-                            }, AppConfig.cooldownMs);
-                        } else if (cmd.type === 'bust') {
-                            log('Checkout: busted', 'warn');
-                            injectScore(0);
-                        }
-                        continue;
-                    }
-
-                    const score = parseSpokenScore(raw);
-                    if (score !== null && isValidDartTotal(score)) {
-                        if (AppConfig.inputMode === 'per-dart') {
-                            if (score > 60) {
-                                log('"' + raw + '" (' + score + ') exceeds per-dart max, sending as visit total');
-                                injectScore(score);
-                            } else {
-                                dartBuffer.push(score);
-                                log('Dart ' + dartBuffer.length + '/3: ' + score);
-                                stateText.textContent = 'Darts: ' + dartBuffer.join(' + ');
-
-                                if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
-                                const delay = dartBuffer.length >= 3 ? 2500 : 6000;
-                                dartBufferTimeout = setTimeout(function() {
-                                    if (dartBuffer.length > 0) {
-                                        const total = dartBuffer.reduce((a,b) => a+b, 0);
-                                        log(dartBuffer.join(' + ') + ' = ' + total);
-                                        injectScore(total);
-                                        dartBuffer = [];
-                                        dartBufferTimeout = null;
-                                    }
-                                }, delay);
-                                if (dartBuffer.length >= 3) {
-                                    log('3 darts received — submitting shortly. Say "cancel" to abort.');
-                                }
-                            }
-                        } else {
-                            log('Heard: "' + raw + '" → ' + score);
-                            injectScore(score);
-                        }
-                    } else if (score !== null) {
-                        log('✗ "' + raw + '" → ' + score + ' (invalid dart total)', 'warn');
-                    } else {
-                        log('Heard: "' + raw + '" (no match)');
-                    }
-                }
-
-                kickWatchdog();
-            };
-
-            recognition.onerror = function(event) {
-                if (event.error === 'aborted') return;
-                if (event.error === 'no-speech') return;
-                log('Speech error: ' + event.error, 'error');
-                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                    setState(STATE.IDLE);
-                    return;
-                }
-                if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
-                    recoverRecognition();
-                }
-            };
-
-            recognition.onend = function() {
+            } else if (type === 'end') {
                 if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
                     setTimeout(function() {
                         if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
-                            try { recognition.start(); } catch(e) {}
+                            if (isAPK && window.DartVoiceBridge) window.DartVoiceBridge.startListening();
+                            else if (recognition) { try { recognition.start(); } catch(e) {} }
                         }
                     }, 300);
-                } else if (currentState === STATE.RECOVERING) {
-                    // handled by recoverRecognition
                 } else {
                     setState(STATE.IDLE);
                 }
+            } else if (type === 'error') {
+                log('Speech error: ' + payload, 'error');
+                if (payload === 'not-allowed' || payload === 'service-not-allowed') {
+                    setState(STATE.IDLE);
+                } else if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
+                    recoverRecognition();
+                }
+            }
+        };
+
+        window.onSpeechResult = function(transcript, isFinal) {
+            lastResultAt = Date.now();
+            kickWatchdog();
+
+            if (!isFinal) {
+                interimText.textContent = transcript ? '"' + transcript + '"…' : '';
+                return;
+            }
+
+            interimText.textContent = '';
+            const raw = transcript.toLowerCase().trim();
+            if (!raw) return;
+
+            if (currentState === STATE.COOLDOWN) {
+                log('(cooldown) ignored: "' + raw + '"');
+                return;
+            }
+
+            if (raw.includes('cancel') && AppConfig.cancelWordEnabled) {
+                if (AppConfig.inputMode === 'per-dart' && dartBuffer.length > 0) {
+                    log('Cancel — cleared ' + dartBuffer.length + ' buffered dart(s)');
+                    dartBuffer = [];
+                    if (dartBufferTimeout) { clearTimeout(dartBufferTimeout); dartBufferTimeout = null; }
+                } else {
+                    injectCancel();
+                }
+                return;
+            }
+
+            if (currentState === STATE.CHECKOUT) {
+                const cmd = parseCheckoutCommand(raw);
+                if (!cmd) { log('(checkout) ignored: "' + raw + '"'); return; }
+                if (cmd.type === 'darts') {
+                    log('Checkout: ' + cmd.n + ' dart(s)');
+                    if (isAPK) {
+                        const js = `(function(n){
+                            var btns = document.querySelectorAll('button');
+                            for (var i=0;i<btns.length;i++){
+                                var t=(btns[i].textContent||'').trim().toLowerCase();
+                                if(btns[i].offsetParent!==null && (t===String(n)||t===(n+' dart')||t===(n+' darts'))) {
+                                    btns[i].click(); return;
+                                }
+                            }
+                        })(${cmd.n});`;
+                        try { window.DartVoiceBridge.evaluateOnScorer(js); } catch(e) {}
+                    }
+                    setState(STATE.COOLDOWN);
+                    if (cooldownTimeout) clearTimeout(cooldownTimeout);
+                    cooldownTimeout = setTimeout(function() {
+                        if (currentState === STATE.COOLDOWN) setState(STATE.LISTENING);
+                        cooldownTimeout = null;
+                    }, AppConfig.cooldownMs);
+                } else if (cmd.type === 'bust') {
+                    log('Checkout: busted', 'warn');
+                    injectScore(0);
+                }
+                return;
+            }
+
+            const score = parseSpokenScore(raw);
+            if (score !== null && isValidDartTotal(score)) {
+                if (AppConfig.inputMode === 'per-dart') {
+                    if (score > 60) {
+                        log('"' + raw + '" (' + score + ') exceeds per-dart max, sending as visit total');
+                        injectScore(score);
+                    } else {
+                        dartBuffer.push(score);
+                        log('Dart ' + dartBuffer.length + '/3: ' + score);
+                        stateText.textContent = 'Darts: ' + dartBuffer.join(' + ');
+                        if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
+                        const delay = dartBuffer.length >= 3 ? 2500 : 6000;
+                        dartBufferTimeout = setTimeout(function() {
+                            if (dartBuffer.length > 0) {
+                                const total = dartBuffer.reduce((a,b) => a+b, 0);
+                                log(dartBuffer.join(' + ') + ' = ' + total);
+                                injectScore(total);
+                                dartBuffer = [];
+                                dartBufferTimeout = null;
+                            }
+                        }, delay);
+                        if (dartBuffer.length >= 3) {
+                            log('3 darts received — submitting shortly. Say "cancel" to abort.');
+                        }
+                    }
+                } else {
+                    log('Heard: "' + raw + '" → ' + score);
+                    injectScore(score);
+                }
+            } else if (score !== null) {
+                log('✗ "' + raw + '" → ' + score + ' (invalid dart total)', 'warn');
+            } else {
+                log('Heard: "' + raw + '" (no match)');
+            }
+        };
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = localStorage.getItem('dv-accent') || 'en-GB';
+            
+            recognition.onstart = () => window.onSpeechEvent('start');
+            recognition.onend = () => window.onSpeechEvent('end');
+            recognition.onerror = (e) => {
+                if (e.error === 'aborted' || e.error === 'no-speech') return;
+                window.onSpeechEvent('error', e.error);
+            };
+            recognition.onresult = (e) => {
+                for (let i = e.resultIndex; i < e.results.length; ++i) {
+                    window.onSpeechResult(e.results[i][0].transcript, e.results[i].isFinal);
+                }
             };
         } else {
-            log('Web Speech API not supported. Use Chrome.', 'error');
-            micBtn.disabled = true;
-            micBtnLabel.textContent = 'Unsupported';
+            if (!isAPK) {
+                log('Web Speech API not supported. Use Chrome.', 'error');
+                micBtn.disabled = true;
+                micBtnLabel.textContent = 'Unsupported';
+            }
         }
 
         async function startListening() {
+            if (isAPK && window.DartVoiceBridge) {
+                // Route directly to native Android Java Speech Engine, skips broken WebView permissions
+                window.DartVoiceBridge.startListening();
+                return;
+            }
+
             if (!recognition) return;
             try {
                 const deviceId = localStorage.getItem('dv-mic-device');
-                const constraints = deviceId
-                    ? { audio: { deviceId: { exact: deviceId } } }
-                    : { audio: true };
+                const constraints = deviceId ? { audio: { deviceId: { exact: deviceId } } } : { audio: true };
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 stream.getTracks().forEach(t => t.stop());
             } catch(e) {
@@ -1215,7 +1180,12 @@
             if (recoverTimeout) { clearTimeout(recoverTimeout); recoverTimeout = null; }
             if (cooldownTimeout) { clearTimeout(cooldownTimeout); cooldownTimeout = null; }
             setState(STATE.IDLE);
-            if (recognition) { try { recognition.stop(); } catch(e) {} }
+            
+            if (isAPK && window.DartVoiceBridge) {
+                window.DartVoiceBridge.stopListening();
+            } else if (recognition) { 
+                try { recognition.stop(); } catch(e) {} 
+            }
             log('Microphone stopped');
         }
 

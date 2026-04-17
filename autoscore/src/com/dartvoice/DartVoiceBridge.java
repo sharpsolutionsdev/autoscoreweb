@@ -21,6 +21,11 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.content.Intent;
+import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 
 /**
  * JavaScript bridge between the DartVoice mobile control panel
@@ -43,10 +48,72 @@ public class DartVoiceBridge {
     private String currentState = "idle";
     private Runnable checkoutPoller;
 
+    private SpeechRecognizer speechRecognizer;
+    private Intent speechRecognizerIntent;
+
     public DartVoiceBridge(Activity activity, FrameLayout rootFrame) {
         this.activity = activity;
         this.rootFrame = rootFrame;
         this.uiHandler = new Handler(Looper.getMainLooper());
+        
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                initSpeechRecognizer();
+            }
+        });
+    }
+
+    private void initSpeechRecognizer() {
+        if (!SpeechRecognizer.isRecognitionAvailable(activity)) {
+            Log.e(TAG, "Speech recognition not available on this device!");
+            return;
+        }
+
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(activity);
+        speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+
+        speechRecognizer.setRecognitionListener(new RecognitionListener() {
+            @Override public void onReadyForSpeech(Bundle params) {
+                notifyControlPanel("if(window.onSpeechEvent) window.onSpeechEvent('start');");
+            }
+            @Override public void onBeginningOfSpeech() {}
+            @Override public void onRmsChanged(float rmsdB) {}
+            @Override public void onBufferReceived(byte[] buffer) {}
+            @Override public void onEndOfSpeech() {}
+            
+            @Override public void onError(int error) {
+                String errorMsg = "error_" + error;
+                if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+                    errorMsg = "no-speech";
+                }
+                final String payload = errorMsg;
+                notifyControlPanel("if(window.onSpeechEvent) window.onSpeechEvent('error', '" + payload + "');");
+            }
+            
+            @Override public void onResults(Bundle results) {
+                java.util.ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (matches != null && !matches.isEmpty()) {
+                    String clean = matches.get(0).replace("'", "\\'");
+                    notifyControlPanel("if(window.onSpeechResult) window.onSpeechResult('" + clean + "', true);");
+                }
+                notifyControlPanel("if(window.onSpeechEvent) window.onSpeechEvent('end');");
+            }
+            
+            @Override public void onPartialResults(Bundle partialResults) {
+                java.util.ArrayList<String> matches = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (matches != null && !matches.isEmpty()) {
+                    String clean = matches.get(0).replace("'", "\\'");
+                    notifyControlPanel("if(window.onSpeechResult) window.onSpeechResult('" + clean + "', false);");
+                }
+            }
+            
+            @Override public void onEvent(int eventType, Bundle params) {}
+        });
     }
 
     // ── Scorer WebView (lazy init) ──────────────────────────────────────
@@ -353,6 +420,37 @@ public class DartVoiceBridge {
             public void run() {
                 injectScorerHelpers(scorerView);
                 hideKeyboard();
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void startListening() {
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (speechRecognizer != null) {
+                    try {
+                        speechRecognizer.stopListening();
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error starting speech recognition", e);
+                    }
+                }
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void stopListening() {
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (speechRecognizer != null) {
+                    try {
+                        speechRecognizer.stopListening();
+                    } catch (Exception e) {}
+                }
             }
         });
     }
