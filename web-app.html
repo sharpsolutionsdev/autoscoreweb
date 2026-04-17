@@ -653,7 +653,7 @@
                         <span class="text-gray-500">Treble</span><span class="text-gray-300 font-mono">"treble twenty"</span>
                         <span class="text-gray-500">Double</span><span class="text-gray-300 font-mono">"double sixteen"</span>
                         <span class="text-gray-500">Bullseye</span><span class="text-gray-300 font-mono">"bullseye"</span>
-                        <span class="text-gray-500">Miss</span><span class="text-gray-300 font-mono">"miss"</span>
+                        <span class="text-gray-500">Miss/Bust</span><span class="text-gray-300 font-mono">"miss" · "bust"</span>
                         <span class="text-gray-500">Undo</span><span class="text-gray-300 font-mono">"cancel"</span>
                     </div>
                 </div>
@@ -1714,7 +1714,7 @@
             // Handle special keywords (bulls / misses)
             if (['bull', 'bullseye', 'bulls eye', 'bull eye'].includes(text)) return 50;
             if (['outer bull', 'outer', 'twenty five', 'twenty five'].includes(text)) return 25;
-            if (['miss', 'missed', 'nothing', 'zero', 'none', 'bounce', 'bounce out'].includes(text)) return 0;
+            if (['miss', 'missed', 'nothing', 'zero', 'none', 'bounce', 'bounce out', 'bust', 'busted', 'no score', 'no-score', 'noscore', 'nil', 'null', 'zilch', 'naught', 'nought', 'off', 'off board', 'off the board', 'out'].includes(text)) return 0;
 
             // Handle "ton" combinations
             if (text.startsWith('ton ')) {

@@ -216,6 +216,7 @@ _CRICKET_TARGETS = {
     'fifteen':'15','fifteens':'15','15':'15',
     'bull':'b','bullseye':'b','bulls':'b','bowl':'b','bold':'b','pull':'b','full':'b',
     'miss':'miss','zero':'miss','nothing':'miss','none':'miss','missed':'miss',
+    'bust':'miss','busted':'miss','nil':'miss','null':'miss','zilch':'miss','naught':'miss','nought':'miss',
 }
 _CRICKET_MODS = {
     'single':'s','double':'d','treble':'t','triple':'t',
@@ -272,8 +273,10 @@ def parse_single_dart(text):
     if t in ('outer bull', 'twenty five', 'twenty-five', 'half bull', 'single bull',
              'single twenty five', 'green bull', 'twenty-five points'):
         return (25, '25')
-    if t in ('miss', 'missed', 'zero', 'nothing', 'none', 'no score',
-             'outside', 'bounce out', 'bounce', 'bounced out'):
+    if t in ('miss', 'missed', 'zero', 'nothing', 'none', 'no score', 'no-score',
+             'outside', 'bounce out', 'bounce', 'bounced out',
+             'bust', 'busted', 'nil', 'null', 'zilch', 'naught', 'nought',
+             'off', 'off board', 'off the board', 'out'):
         return (0, 'Miss')
     words = t.split()
     mod, pfx = 1, ''
