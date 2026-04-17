@@ -545,7 +545,7 @@
                     <div class="mt-3 pt-3 border-t border-white/5 relative z-10 space-y-2">
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest shrink-0">Trigger</span>
-                            <input id="trigger-word-input-dash" type="text" maxlength="24" placeholder="dartvoice"
+                            <input id="trigger-word-input-dash" type="text" maxlength="24" placeholder="score"
                                 class="flex-1 min-w-0 bg-[#08080A] border border-[#252530] text-[11px] text-white px-2 py-1 rounded outline-none focus:border-brand/50 transition-colors placeholder:text-gray-600">
                             <label class="relative inline-flex items-center cursor-pointer shrink-0" title="Enable trigger word">
                                 <input type="checkbox" id="toggle-wake-word-dash" class="sr-only peer" checked title="Enable trigger word" aria-label="Enable trigger word">
@@ -773,7 +773,7 @@
                                     <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                                 </label>
                             </div>
-                            <input id="trigger-word-input" type="text" maxlength="24" placeholder="dartvoice" value="dartvoice"
+                            <input id="trigger-word-input" type="text" maxlength="24" placeholder="score" value="score"
                                 class="w-full bg-[#08080A] border border-[#252530] text-[11px] text-white p-1.5 rounded outline-none focus:border-brand/50 transition-colors placeholder:text-gray-600">
                             <p class="text-[9px] text-gray-500 leading-tight">When on, only utterances containing this word are scored. Disable for "always-on" mode.</p>
                         </div>
@@ -2130,7 +2130,7 @@
         const AppConfig = {
             inputMode: 'total', // 'total' or 'per-dart'
             wakeWordEnabled: true,
-            triggerWord: 'dartvoice',
+            triggerWord: 'score',
             cancelWordEnabled: true,
             liveCheckoutEnabled: true,
             checkoutDialogEnabled: true,

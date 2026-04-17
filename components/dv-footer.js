@@ -2,7 +2,7 @@
 class DvFooter extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
-        <footer class="border-t border-wire/60 pt-16 pb-8">
+        <footer class="border-t border-wire/60 pt-16 pb-6">
             <div class="max-w-6xl mx-auto px-5">
 
                 <!-- Top grid: logo + 3 columns -->
@@ -217,3 +217,8 @@ class DvFooter extends HTMLElement {
   }
 }
 customElements.define("dv-footer", DvFooter);
+
+// Ensure the custom element behaves as a block so it doesn't leave baseline whitespace
+const __dvFooterStyle = document.createElement('style');
+__dvFooterStyle.textContent = 'dv-footer{display:block}';
+document.head.appendChild(__dvFooterStyle);
