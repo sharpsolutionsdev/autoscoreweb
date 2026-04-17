@@ -138,6 +138,7 @@
             color: #6E6E82;
             border-bottom: 2px solid transparent;
             margin-bottom: -1px;
+        }
 
         /* ── Glass cards (glassmorphism) ── */
         .glass-card {
@@ -157,8 +158,21 @@
             background: linear-gradient(120deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.00) 45%, rgba(255,255,255,0.01) 55%, rgba(255,255,255,0.00) 100%);
             mix-blend-mode: overlay;
         }
-            padding-bottom: 10px;
-        }
+
+        /* Profile & microinteraction styles */
+        .profile-head { display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
+        .profile-avatar { width:64px; height:64px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 24px rgba(0,0,0,0.6); background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); display:flex; align-items:center; justify-content:center; }
+        .profile-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+        #ref-link-text { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em; color: #EDEDED; font-weight:600; }
+        #btn-copy-link { box-shadow: 0 6px 16px rgba(0,0,0,0.45); transition: transform 0.12s ease, box-shadow 0.12s ease; }
+        #btn-copy-link:active { transform: scale(0.98); box-shadow: 0 10px 20px rgba(0,0,0,0.55); }
+        #amb-status-badge span { display:inline-block; position:relative; overflow:visible; }
+        #amb-status-badge span::before { content:''; position:absolute; inset:-6px; border-radius:8px; background: radial-gradient(ellipse at center, rgba(34,197,94,0.06), transparent 40%); filter: blur(6px); opacity:0; transition: opacity 0.3s; z-index:-1; }
+        #amb-status-badge:hover span::before { opacity:1; }
+        .micro-cta { transition: transform 0.14s ease, box-shadow 0.14s ease; border-radius:12px; }
+        .micro-cta:active { transform: translateY(1px) scale(0.995); }
+        .gloss-shine { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.00) 60%); mix-blend-mode: overlay; opacity:0; transition: opacity 0.4s, transform 0.6s; transform: translateX(-30%); }
+        .card-panel:hover .gloss-shine { opacity:1; transform: translateX(0%); }
 
         .tab-btn:hover {
             color: #F0F0F5;
@@ -817,14 +831,18 @@
             <div id="tab-ambassador" class="hidden space-y-5">
 
                 <!-- Referral link card -->
-                <div class="card-panel fade-up-2">
+                <div class="card-panel fade-up-2 relative">
+                    <div class="gloss-shine" aria-hidden="true"></div>
                     <div class="sub-accent"></div>
                     <div class="p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#4A4A5A;">
-                                    Ambassador Program</p>
-                                <h2 class="display text-2xl" style="color:#F0F0F5;">YOUR REFERRAL LINK</h2>
+                            <div class="profile-head">
+                                <div class="profile-avatar dv-avatar">DV</div>
+                                <div>
+                                    <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#4A4A5A;">
+                                        Ambassador Program</p>
+                                    <h2 class="display text-2xl" style="color:#F0F0F5;">YOUR REFERRAL LINK</h2>
+                                </div>
                             </div>
                             <span id="amb-status-badge" class="shrink-0">
                                 <div class="skeleton w-20 h-6 rounded-full"></div>
@@ -2359,6 +2377,36 @@
             return d.innerHTML;
         }
 
+        // Reveal observer: animate elements with .reveal when they enter viewport
+        function initRevealObserver() {
+            try {
+                const obs = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(e => {
+                        if (e.isIntersecting) {
+                            e.target.classList.add('visible');
+                            observer.unobserve(e.target);
+                        }
+                    });
+                }, { threshold: 0.12 });
+                document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+            } catch (e) { /* noop */ }
+        }
+
+        // Micro-interactions: small click/tap animations
+        function initMicroInteractions() {
+            const copyBtn = document.getElementById('btn-copy-link');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    try { copyBtn.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.98)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' }); } catch(e){}
+                });
+            }
+            document.querySelectorAll('.micro-cta').forEach(c => {
+                c.addEventListener('pointerdown', () => c.classList.add('active'));
+                c.addEventListener('pointerup', () => c.classList.remove('active'));
+                c.addEventListener('pointerleave', () => c.classList.remove('active'));
+            });
+        }
+
         // ── Init ──────────────────────────────────────────────────────
         (async function init() {
             const { data: { session } } = await sb.auth.getSession();
@@ -2378,7 +2426,9 @@
                 }
 
                 _ambUserId = session.user.id;
-                loadDashboard(session.user);
+                await loadDashboard(session.user);
+                initRevealObserver();
+                initMicroInteractions();
                 // If URL hash is #ambassador, switch tab after load
                 if (window.location.hash === '#ambassador') {
                     setTimeout(() => switchTab('ambassador'), 300);
