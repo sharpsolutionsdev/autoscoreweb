@@ -24,7 +24,7 @@
     <meta name="twitter:title" content="Setup Guide | DartVoice">
     <meta name="twitter:description" content="Step-by-step guide to calibrating DartVoice for X01 and Cricket scoring.">
     <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
-    <meta name="theme-color" content="var(--brand)">
+    <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -40,7 +40,7 @@
                         mono:    ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        brand:  'var(--brand, var(--brand))',
+                        brand:  'var(--brand, #CC0B20)',
                         dark:   '#08080A',
                         card:   '#111114',
                         card2:  '#18181C',
@@ -75,7 +75,7 @@
         }
         .data-stream {
             position: absolute; inset: 0;
-            background: linear-gradient(to bottom, transparent, rgba(var(--brand-rgb), 0.2) 50%, transparent);
+            background: linear-gradient(to bottom, transparent, rgba(204,11,32,0.2) 50%, transparent);
             animation: scanline 4s linear infinite;
             pointer-events: none;
             mix-blend-mode: screen;
@@ -106,8 +106,8 @@
         /* Voice command code */
         .voice-cmd {
             font-family: 'JetBrains Mono', monospace;
-            background: rgba(var(--brand-rgb), 0.08);
-            border: 1px solid rgba(var(--brand-rgb), 0.15);
+            background: rgba(204,11,32,0.08);
+            border: 1px solid rgba(204,11,32,0.15);
             color: #F0F0F5;
         }
 
@@ -119,8 +119,8 @@
 
         /* Callouts */
         .callout {
-            background: rgba(var(--brand-rgb), 0.05);
-            border-left: 3px solid var(--brand);
+            background: rgba(204,11,32,0.05);
+            border-left: 3px solid #CC0B20;
         }
         .callout-info {
             background: rgba(59,130,246,0.05);
@@ -129,7 +129,7 @@
 
         /* TOC links */
         .toc-link { transition: all 0.2s; }
-        .toc-link:hover { color: var(--brand); padding-left: 4px; }
+        .toc-link:hover { color: #CC0B20; padding-left: 4px; }
 
         /* Anchor offset for fixed nav */
         [id] { scroll-margin-top: 72px; }
@@ -153,7 +153,7 @@
             display: block;
             width: 4px;
             height: 1.5em;
-            background: var(--brand);
+            background: #CC0B20;
             border-radius: 2px;
             flex-shrink: 0;
         }
@@ -173,7 +173,7 @@
         <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2.5 group">
                 <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                    <rect width="36" height="36" rx="9" fill="var(--brand)"/>
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
                     <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="3" fill="white"/>
@@ -228,7 +228,7 @@
 
     <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <header class="pt-28 pb-14 border-b border-wire/60"
-            style="background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(var(--brand-rgb), 0.08) 0%, transparent 70%); animation: floatSlow 15s ease-in-out infinite;">
+            style="background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(204,11,32,0.08) 0%, transparent 70%); animation: floatSlow 15s ease-in-out infinite;">
         <div class="max-w-3xl mx-auto px-6">
             <p class="text-brand text-xs font-semibold tracking-widest uppercase mb-3">Setup Guide</p>
             <h1 class="display text-4xl sm:text-5xl mb-3">CALIBRATION &amp; VOICE COMMANDS</h1>

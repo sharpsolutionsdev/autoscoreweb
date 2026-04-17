@@ -216,7 +216,25 @@
             min-width: 0;
         }
         iframe { width: 100%; height: 100%; border: none; background-color: #ffffff; }
-        
+
+        /* Sidebar collapse */
+        .sidebar { transition: width .25s ease, min-width .25s ease, opacity .2s ease, padding .25s ease; }
+        body.sidebar-collapsed .sidebar { width: 0 !important; min-width: 0 !important; padding: 0 !important; opacity: 0; pointer-events: none; overflow: hidden; }
+        body.sidebar-collapsed .resizer { display: none; }
+
+        /* QoL: subtle button polish */
+        .btn-brand { transition: background .15s ease, box-shadow .2s ease, transform .1s ease; }
+        .btn-brand:active { transform: scale(.98); }
+        .hud-card { transition: border-color .2s ease, background .2s ease; }
+
+        /* Toast notifications */
+        #dv-toast-host { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .dv-toast { background: rgba(17,17,20,0.95); color: #fff; border: 1px solid #252530; border-radius: 10px; padding: 8px 14px; font-size: 12px; font-weight: 600; backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(0,0,0,.5); animation: dvToastIn .25s ease, dvToastOut .25s ease 1.6s forwards; pointer-events: auto; }
+        .dv-toast.success { border-color: rgba(34,197,94,.4); color: #bbf7d0; }
+        .dv-toast.warn { border-color: rgba(234,179,8,.4); color: #fde68a; }
+        @keyframes dvToastIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+        @keyframes dvToastOut { to { opacity: 0; transform: translateY(8px);} }
+
         /* Transcript HUD */
         .hud-card {
             background: rgba(17, 17, 20, 0.4);
@@ -404,11 +422,21 @@
                     </div>
                     
                     <!-- Microphone Selector -->
-                    <div class="mb-4 relative z-10">
+                    <div class="mb-2 relative z-10">
                         <select id="mic-select" class="w-full bg-[#08080A] border border-[#252530] text-[11px] text-gray-300 p-2 rounded outline-none focus:border-brand/50 transition-colors">
                             <option>Default Microphone Array</option>
                             <option>USB External Headset</option>
                         </select>
+                    </div>
+                    <!-- Live mic level meter -->
+                    <div class="mb-4 relative z-10" title="Live microphone input level">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Mic</span>
+                            <div class="flex-1 h-1.5 bg-[#08080A] rounded-full overflow-hidden border border-[#252530]">
+                                <div id="mic-level-bar" class="h-full w-0 transition-[width] duration-75" style="background:linear-gradient(90deg,#22c55e 0%,#eab308 65%,#ef4444 100%);"></div>
+                            </div>
+                            <span id="mic-level-pct" class="text-[9px] text-gray-500 font-mono w-7 text-right">0%</span>
+                        </div>
                     </div>
 
                     <button id="toggle-listen" class="btn-brand shadow-[0_0_15px_rgba(204,11,32,0.3)] w-full py-2.5 text-sm tracking-wide relative z-10">START LISTENING</button>
@@ -496,7 +524,14 @@
                             <svg class="w-4 h-4 text-brand opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             Live Transcript
                         </h3>
-                        <button onclick="clearTranscript()" class="text-[9px] text-gray-500 hover:text-gray-300 font-bold uppercase tracking-widest transition-colors" title="Clear log">Clear</button>
+                        <div class="flex items-center gap-3">
+                            <button id="undo-last-btn" class="text-[9px] text-gray-500 hover:text-brand font-bold uppercase tracking-widest transition-colors flex items-center gap-1" title="Undo last score (U)">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6-6M3 10l6 6"/></svg>
+                                Undo
+                            </button>
+                            <button id="copy-transcript-btn" class="text-[9px] text-gray-500 hover:text-gray-300 font-bold uppercase tracking-widest transition-colors" title="Copy last 10 lines">Copy</button>
+                            <button onclick="clearTranscript()" class="text-[9px] text-gray-500 hover:text-gray-300 font-bold uppercase tracking-widest transition-colors" title="Clear log">Clear</button>
+                        </div>
                     </div>
                     <div class="hud-card p-4 flex-1">
                         <div id="transcript-box" class="h-full max-h-[300px]">
@@ -529,8 +564,9 @@
                                 <span class="text-[10px] text-gray-400 font-medium block mb-1">Game Type</span>
                                 <select class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none">
                                     <option>X01</option>
-                                    <option>Cricket</option>
+                                    <option disabled style="color:#666">Cricket — Windows app only</option>
                                 </select>
+                                <span class="text-[9px] text-gray-500 block mt-1 leading-tight">Cricket scoring is available in the <a href="downloads" class="text-brand hover:underline">Windows desktop app</a>.</span>
                             </div>
                         </div>
 
@@ -558,14 +594,6 @@
                             <p class="text-[9px] text-gray-500 mt-0.5">Helps speech recognition understand your accent better</p>
                         </div>
 
-                        <!-- Calibration Button -->
-                        <div>
-                            <button id="recalibrate-btn" class="w-full text-xs font-semibold py-1.5 bg-[#252530]/50 hover:bg-[#252530] border border-white/5 rounded text-white transition-all flex items-center justify-center gap-2">
-                                <svg class="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                Re-Calibrate Grid
-                            </button>
-                        </div>
-                        
                         <!-- Input Mode (Per dart vs 3 dart) -->
                         <div class="flex items-center justify-between border-t border-white/5 pt-2">
                             <span class="text-xs text-gray-300 font-medium">Input Mode</span>
@@ -644,8 +672,7 @@
                             <span class="text-white font-bold text-[10px] block mb-1 flex items-center gap-1.5"><svg class="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 019-9"></path></svg> CHROME EXTENSION REQUIRED</span>
                             <span class="text-gray-400 text-[9.5px] block mb-2 leading-relaxed">The <b>DartVoice Launchpad</b> extension unblocks the scorer iframe and injects your voice scores.</span>
                             <a href="https://chromewebstore.google.com/detail/dartvoice-launchpad/igldnjophdpofihidpbblchgfamncpgb" target="_blank" rel="noopener"
-                               class="w-full text-center block text-[10px] font-bold py-1.5 bg-brand hover:bg-[#e60d24] rounded transition-colors text-white uppercase tracking-widest mb-2">Download Extension</a>
-                            <button id="recalibrate-btn-2" class="w-full text-center block text-[10px] font-bold py-1.5 bg-[#252530] hover:bg-[#30303b] rounded transition-colors text-white uppercase tracking-widest">Re-Calibrate Grid</button>
+                               class="w-full text-center block text-[10px] font-bold py-1.5 bg-brand hover:bg-[#e60d24] rounded transition-colors text-white uppercase tracking-widest">Download Extension</a>
                         </div>
                     </div>
                 </div>
@@ -683,7 +710,53 @@
 
     <!-- Main iFrame Area -->
     <div class="main-content">
-        <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; screen-wake-lock"></iframe>
+        <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock"></iframe>
+        <div style="position:absolute;top:12px;right:12px;z-index:50;display:flex;gap:6px;">
+            <button id="sidebar-collapse-btn" type="button" title="Collapse sidebar (\\)"
+                style="background:rgba(17,17,20,0.85);color:#fff;border:1px solid #252530;border-radius:9999px;padding:6px 10px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+            </button>
+            <button id="fullscreen-btn" type="button" title="Fullscreen scorer (F)"
+                style="background:rgba(17,17,20,0.85);color:#fff;border:1px solid #252530;border-radius:9999px;padding:6px 10px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg>
+            </button>
+        <button id="cam-help-btn" type="button" title="Camera not connecting?"
+            style="background:rgba(17,17,20,0.85);color:#fff;border:1px solid #252530;border-radius:9999px;padding:6px 12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            Camera help
+        </button>
+        </div>
+        <script>
+            (function(){
+                var b=document.getElementById('cam-help-btn'),m=document.getElementById('cam-help-modal');
+                if(b&&m){b.addEventListener('click',function(){m.style.display='flex';});
+                m.addEventListener('click',function(e){if(e.target===m)m.style.display='none';});}
+            })();
+        </script>
+
+        <!-- Camera Help Modal -->
+        <div id="cam-help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99997;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+            <div style="background:#111114;border:1px solid #252530;border-radius:16px;max-width:480px;width:100%;padding:24px;font-family:'Plus Jakarta Sans',sans-serif;color:#fff;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h3 style="font-size:18px;font-weight:700;margin:0;">Connect Your Camera</h3>
+                    <button onclick="document.getElementById('cam-help-modal').style.display='none'" style="background:none;border:none;color:#888;font-size:24px;cursor:pointer;line-height:1;">&times;</button>
+                </div>
+                <p style="font-size:13px;color:#aaa;margin:0 0 16px;line-height:1.5;">
+                    If <b>"Link own camera"</b> isn't working, use your phone instead:
+                </p>
+                <ol style="font-size:13px;color:#ddd;margin:0 0 16px;padding-left:20px;line-height:1.7;">
+                    <li>On your phone's browser, open:
+                        <div style="margin:8px 0;display:flex;gap:6px;align-items:center;">
+                            <code style="background:#1a1a1f;border:1px solid #252530;border-radius:6px;padding:6px 10px;font-size:12px;color:var(--brand,#CC0B20);flex:1;word-break:break-all;">https://app.dartcounter.net/connect</code>
+                            <button onclick="navigator.clipboard.writeText('https://app.dartcounter.net/connect');this.textContent='Copied'" style="background:var(--brand,#CC0B20);color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">Copy</button>
+                        </div>
+                    </li>
+                    <li>Pick your camera and activate it. A code will appear.</li>
+                    <li>Back here, choose <b>"External camera"</b> and enter that code.</li>
+                </ol>
+                <button onclick="document.getElementById('cam-help-modal').style.display='none'" style="width:100%;background:var(--brand,#CC0B20);color:#fff;border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;">Got it</button>
+            </div>
+        </div>
     </div>
     </div>
 
@@ -1650,19 +1723,6 @@
             });
         });
 
-        // Handle Calibration Buttons
-        function triggerCalibration() {
-             log("Triggering Calibration inside Scorer Frame...", false);
-             const targetIframe = document.getElementById('scorer-frame');
-             targetIframe.contentWindow.postMessage({
-                 type: "DARTVOICE_CALIBRATE_START"
-             }, "*");
-        }
-        const _rc1 = document.getElementById('recalibrate-btn');
-        if (_rc1) _rc1.addEventListener('click', triggerCalibration);
-        const _rc2 = document.getElementById('recalibrate-btn-2');
-        if (_rc2) _rc2.addEventListener('click', triggerCalibration);
-
 
         function userHasActiveSubscription() {
             if (_isAdmin && !_guestMode) return true;
@@ -1695,7 +1755,7 @@
                 type: "DARTVOICE_SCORE_INJECT",
                 score: scoreString
             }, "*");
-            // Demo countdown log no longer shown in transcript
+            if (typeof window.dvPlayChime === 'function' && scoreString !== '__CANCEL__') window.dvPlayChime();
         }
         
 
@@ -1943,6 +2003,215 @@
                 const dy = e.changedTouches[0].clientY - touchStartY;
                 if (dy > 80) toggleMobilePanel(false);
             }, { passive: true });
+        })();
+
+        /* ─────────────────────────────────────────────
+           Quality-of-life: shortcuts, persistence, mic meter,
+           undo/copy, chime, fullscreen, sidebar collapse, tab pause
+           ───────────────────────────────────────────── */
+        (function dvQoL(){
+            // Toast host
+            if (!document.getElementById('dv-toast-host')) {
+                const h = document.createElement('div');
+                h.id = 'dv-toast-host';
+                document.body.appendChild(h);
+            }
+            window.dvToast = function(msg, kind){
+                const t = document.createElement('div');
+                t.className = 'dv-toast' + (kind ? ' ' + kind : '');
+                t.textContent = msg;
+                document.getElementById('dv-toast-host').appendChild(t);
+                setTimeout(() => t.remove(), 2000);
+            };
+
+            const $ = (id) => document.getElementById(id);
+            const listenBtn = $('toggle-listen');
+
+            // ── Persist settings ──
+            const STORAGE_KEY = 'dv-app-config-v1';
+            const persistKeys = ['inputMode','wakeWordEnabled','cancelWordEnabled','liveCheckoutEnabled','bustProtection','autoStartNextMatch','audioChimes'];
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                persistKeys.forEach(k => { if (k in saved && typeof AppConfig !== 'undefined') AppConfig[k] = saved[k]; });
+                // reflect into UI
+                const togMap = {
+                    wakeWordEnabled:'toggle-wake-word',
+                    cancelWordEnabled:'toggle-cancel-word',
+                    liveCheckoutEnabled:'toggle-live-checkout',
+                    bustProtection:'toggle-bust',
+                    autoStartNextMatch:'toggle-autostart',
+                    audioChimes:'toggle-chime'
+                };
+                Object.keys(togMap).forEach(k => { const el = $(togMap[k]); if (el && k in saved) el.checked = !!saved[k]; });
+                if (saved.inputMode) {
+                    document.querySelectorAll('.mode-btn').forEach(b => {
+                        const on = b.dataset.mode === saved.inputMode;
+                        b.classList.toggle('bg-[#252530]', on);
+                        b.classList.toggle('text-white', on);
+                        b.classList.toggle('active', on);
+                        b.classList.toggle('text-gray-400', !on);
+                    });
+                }
+            } catch(e){}
+            function saveSettings(){
+                const out = {};
+                persistKeys.forEach(k => { if (typeof AppConfig !== 'undefined' && k in AppConfig) out[k] = AppConfig[k]; });
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(out)); } catch(e){}
+            }
+            // Hook every toggle change to persist
+            ['toggle-wake-word','toggle-cancel-word','toggle-live-checkout','toggle-bust','toggle-autostart','toggle-chime'].forEach(id => {
+                const el = $(id); if (el) el.addEventListener('change', saveSettings);
+            });
+            document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', saveSettings));
+
+            // ── Mic level meter ──
+            let audioCtx = null, micAnalyser = null, micRaf = null, micStream = null;
+            const bar = $('mic-level-bar'), pct = $('mic-level-pct');
+            async function startMicMeter(){
+                if (micAnalyser) return;
+                try {
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const src = audioCtx.createMediaStreamSource(micStream);
+                    micAnalyser = audioCtx.createAnalyser();
+                    micAnalyser.fftSize = 512;
+                    src.connect(micAnalyser);
+                    const data = new Uint8Array(micAnalyser.frequencyBinCount);
+                    function tick(){
+                        if (!micAnalyser) return;
+                        micAnalyser.getByteTimeDomainData(data);
+                        let peak = 0;
+                        for (let i = 0; i < data.length; i++) {
+                            const v = Math.abs(data[i] - 128);
+                            if (v > peak) peak = v;
+                        }
+                        const level = Math.min(100, Math.round((peak / 128) * 100 * 1.6));
+                        if (bar) bar.style.width = level + '%';
+                        if (pct) pct.textContent = level + '%';
+                        micRaf = requestAnimationFrame(tick);
+                    }
+                    tick();
+                } catch(e) {
+                    if (pct) pct.textContent = 'off';
+                }
+            }
+            function stopMicMeter(){
+                if (micRaf) cancelAnimationFrame(micRaf);
+                micRaf = null;
+                if (micStream) micStream.getTracks().forEach(t => t.stop());
+                micStream = null; micAnalyser = null;
+                if (audioCtx && audioCtx.state !== 'closed') { try { audioCtx.close(); } catch(e){} }
+                audioCtx = null;
+                if (bar) bar.style.width = '0%';
+                if (pct) pct.textContent = '0%';
+            }
+            // Start when listening starts; stop when stops
+            const _origToggleListen = listenBtn ? listenBtn.onclick : null;
+            if (listenBtn) {
+                const obs = new MutationObserver(() => {
+                    if (listenBtn.textContent.includes('STOP')) startMicMeter();
+                    else stopMicMeter();
+                });
+                obs.observe(listenBtn, { childList: true, characterData: true, subtree: true });
+            }
+
+            // ── Audio chime on score injection ──
+            let chimeCtx = null;
+            function playChime(){
+                if (typeof AppConfig === 'undefined' || !AppConfig.audioChimes) return;
+                try {
+                    chimeCtx = chimeCtx || new (window.AudioContext || window.webkitAudioContext)();
+                    const o = chimeCtx.createOscillator(), g = chimeCtx.createGain();
+                    o.type = 'sine'; o.frequency.value = 880;
+                    g.gain.setValueAtTime(0.0001, chimeCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.15, chimeCtx.currentTime + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.0001, chimeCtx.currentTime + 0.18);
+                    o.connect(g); g.connect(chimeCtx.destination);
+                    o.start(); o.stop(chimeCtx.currentTime + 0.2);
+                } catch(e){}
+            }
+            window.dvPlayChime = playChime;
+
+            // ── Undo button + Copy transcript button ──
+            const undoBtn = $('undo-last-btn');
+            if (undoBtn) undoBtn.addEventListener('click', () => {
+                if (typeof blastScoreToIframe === 'function') {
+                    blastScoreToIframe('__CANCEL__');
+                    if (typeof log === 'function') log('Undo (manual)', false);
+                    dvToast('Undo sent', 'success');
+                }
+            });
+            const copyBtn = $('copy-transcript-btn');
+            if (copyBtn) copyBtn.addEventListener('click', () => {
+                const box = $('transcript-box');
+                if (!box) return;
+                const lines = Array.from(box.children).slice(0, 10).map(el => el.textContent.trim()).filter(Boolean);
+                navigator.clipboard.writeText(lines.join('\n')).then(() => dvToast('Copied last ' + lines.length + ' lines', 'success'));
+            });
+
+            // ── Fullscreen scorer ──
+            const fsBtn = $('fullscreen-btn');
+            if (fsBtn) fsBtn.addEventListener('click', () => {
+                const el = document.querySelector('.main-content');
+                if (!el) return;
+                if (!document.fullscreenElement) {
+                    (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+                } else {
+                    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+                }
+            });
+
+            // ── Sidebar collapse ──
+            const collapseBtn = $('sidebar-collapse-btn');
+            const COLLAPSE_KEY = 'dv-sidebar-collapsed';
+            if (localStorage.getItem(COLLAPSE_KEY) === '1') document.body.classList.add('sidebar-collapsed');
+            if (collapseBtn) collapseBtn.addEventListener('click', () => {
+                const c = document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem(COLLAPSE_KEY, c ? '1' : '0');
+            });
+
+            // ── Auto-pause mic on tab blur ──
+            let pausedByBlur = false;
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && typeof listening !== 'undefined' && listening) {
+                    pausedByBlur = true;
+                    if (typeof stopListening === 'function') stopListening();
+                    dvToast('Mic paused (tab hidden)', 'warn');
+                } else if (!document.hidden && pausedByBlur) {
+                    pausedByBlur = false;
+                    if (typeof recognition !== 'undefined' && recognition && typeof listening !== 'undefined' && !listening) {
+                        try { listening = true; recognition.start(); dvToast('Mic resumed', 'success'); } catch(e){}
+                    }
+                }
+            });
+
+            // ── Keyboard shortcuts ──
+            document.addEventListener('keydown', (e) => {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable)) return;
+                if (e.metaKey || e.ctrlKey || e.altKey) return;
+                const k = e.key.toLowerCase();
+                if (k === ' ' || k === 'm') {
+                    e.preventDefault();
+                    if (listenBtn) listenBtn.click();
+                } else if (k === 'u') {
+                    e.preventDefault();
+                    if (undoBtn) undoBtn.click();
+                } else if (k === 'f') {
+                    e.preventDefault();
+                    if (fsBtn) fsBtn.click();
+                } else if (k === '\\') {
+                    e.preventDefault();
+                    if (collapseBtn) collapseBtn.click();
+                } else if (k === '?') {
+                    e.preventDefault();
+                    dvToast('Shortcuts: Space/M = mic · U = undo · F = fullscreen · \\ = collapse', 'success');
+                }
+            });
+
+            // First-time hint
+            if (!localStorage.getItem('dv-shortcut-hint-shown')) {
+                setTimeout(() => { dvToast('Tip: press ? for keyboard shortcuts'); localStorage.setItem('dv-shortcut-hint-shown', '1'); }, 2500);
+            }
         })();
     </script>
     <script src="theme.js"></script>

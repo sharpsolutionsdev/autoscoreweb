@@ -23,7 +23,7 @@
     <meta name="twitter:title" content="Ambassador Program | DartVoice">
     <meta name="twitter:description" content="Refer a mate, give them 30 days free, earn £5 cash when they subscribe.">
     <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
-    <meta name="theme-color" content="var(--brand)">
+    <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -38,7 +38,7 @@
                         sans:    ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
                     colors: {
-                        brand:  'var(--brand, var(--brand))',
+                        brand:  'var(--brand, #CC0B20)',
                         dark:   '#08080A',
                         card:   '#111114',
                         card2:  '#18181C',
@@ -59,7 +59,7 @@
         .display-normal { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: -0.01em; text-transform: uppercase; }
 
         .btn-brand {
-            background: var(--brand); transition: all 0.25s;
+            background: #CC0B20; transition: all 0.25s;
             position: relative; overflow: hidden;
         }
         .btn-brand::after {
@@ -69,8 +69,8 @@
         }
         .btn-brand:hover::after { opacity: 1; }
         .btn-brand:hover {
-            background: var(--brand-light);
-            box-shadow: 0 0 36px rgba(var(--brand-rgb), 0.4), 0 4px 16px rgba(var(--brand-rgb), 0.2);
+            background: #e60d24;
+            box-shadow: 0 0 36px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
             transform: translateY(-2px);
         }
 
@@ -85,7 +85,7 @@
             background: #111114; border: 1px solid #252530;
             transition: border-color 0.25s;
         }
-        .stat-card:hover { border-color: rgba(var(--brand-rgb), 0.25); }
+        .stat-card:hover { border-color: rgba(204,11,32,0.25); }
 
         .reveal {
             opacity: 0; transform: translateY(24px);
@@ -110,7 +110,7 @@
         }
         .pulse-ring {
             position: absolute; inset: -4px;
-            border-radius: inherit; border: 1px solid rgba(var(--brand-rgb), 0.5);
+            border-radius: inherit; border: 1px solid rgba(204,11,32,0.5);
             animation: pulse-ring 2s ease-out infinite;
         }
 
@@ -131,7 +131,7 @@
         <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2.5 group">
                 <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                    <rect width="36" height="36" rx="9" fill="var(--brand)"/>
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
                     <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="3" fill="white"/>
@@ -186,17 +186,17 @@
 
     <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <header class="pt-32 pb-16 relative overflow-hidden"
-            style="background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(var(--brand-rgb), 0.1) 0%, transparent 70%)">
+            style="background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(204,11,32,0.1) 0%, transparent 70%)">
 
         <!-- Decorative dartboard rings -->
         <div class="absolute right-0 top-0 w-[500px] h-[500px] pointer-events-none opacity-[0.03]" style="transform: translate(30%, -30%)">
             <svg viewBox="0 0 400 400" fill="none">
-                <circle cx="200" cy="200" r="190" stroke="var(--brand)" stroke-width="2"/>
-                <circle cx="200" cy="200" r="155" stroke="var(--brand)" stroke-width="2"/>
-                <circle cx="200" cy="200" r="120" stroke="var(--brand)" stroke-width="2"/>
-                <circle cx="200" cy="200" r="80" stroke="var(--brand)" stroke-width="2"/>
-                <circle cx="200" cy="200" r="40" stroke="var(--brand)" stroke-width="2"/>
-                <circle cx="200" cy="200" r="15" fill="var(--brand)"/>
+                <circle cx="200" cy="200" r="190" stroke="#CC0B20" stroke-width="2"/>
+                <circle cx="200" cy="200" r="155" stroke="#CC0B20" stroke-width="2"/>
+                <circle cx="200" cy="200" r="120" stroke="#CC0B20" stroke-width="2"/>
+                <circle cx="200" cy="200" r="80" stroke="#CC0B20" stroke-width="2"/>
+                <circle cx="200" cy="200" r="40" stroke="#CC0B20" stroke-width="2"/>
+                <circle cx="200" cy="200" r="15" fill="#CC0B20"/>
             </svg>
         </div>
 
@@ -377,7 +377,7 @@
                                     <p class="text-[10px] text-muted uppercase tracking-wider mt-0.5">Pending £</p>
                                 </div>
                                 <div class="stat-card rounded-xl p-4 text-center border-brand/20"
-                                     style="border-color: rgba(var(--brand-rgb), 0.2);">
+                                     style="border-color: rgba(204,11,32,0.2);">
                                     <p class="display text-2xl not-italic font-black text-green-400">£45</p>
                                     <p class="text-[10px] text-muted uppercase tracking-wider mt-0.5">Confirmed £</p>
                                 </div>
@@ -525,7 +525,7 @@
     </section>
 
     <!-- ━━━ CTA STRIP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section class="py-16 border-t border-wire/60" style="background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(var(--brand-rgb), 0.07) 0%, transparent 70%)">
+    <section class="py-16 border-t border-wire/60" style="background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(204,11,32,0.07) 0%, transparent 70%)">
         <div class="max-w-2xl mx-auto px-5 text-center reveal">
             <h2 class="display text-4xl sm:text-5xl mb-4">READY TO EARN?</h2>
             <p class="text-muted mb-8">Log in to your dashboard to grab your link and start earning.</p>

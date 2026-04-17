@@ -138,7 +138,7 @@
         var css = document.createElement('style');
         css.id = 'dv-tp-css';
         css.textContent =
-            '#dv-theme-picker{position:fixed;bottom:20px;right:20px;z-index:99999;font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif}' +
+            '#dv-theme-picker{position:fixed;bottom:20px;right:80px;z-index:99999;font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif}' +
             '#dv-tp-panel{position:absolute;bottom:52px;right:0;background:#111114;border:1px solid #252530;border-radius:16px;padding:16px;min-width:196px;' +
             'box-shadow:0 16px 48px rgba(0,0,0,.65);opacity:0;transform:translateY(8px) scale(.95);pointer-events:none;transition:opacity .2s ease,transform .2s ease}' +
             '#dv-tp-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}' +
@@ -151,7 +151,7 @@
             'outline:none;transition:background .2s,box-shadow .25s,transform .15s}' +
             '#dv-tp-btn:hover{transform:scale(1.1)}' +
             '#dv-tp-btn:active{transform:scale(.93)}' +
-            '@media(max-width:640px){#dv-theme-picker{bottom:16px;right:16px}' +
+            '@media(max-width:640px){#dv-theme-picker{bottom:16px;right:72px}' +
             '#dv-tp-panel{min-width:176px;padding:14px}.dv-sw{width:32px;height:32px}#dv-tp-btn{width:38px;height:38px}}';
         document.head.appendChild(css);
 

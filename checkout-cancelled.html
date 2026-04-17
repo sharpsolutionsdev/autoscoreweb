@@ -24,7 +24,7 @@
     <meta name="twitter:title" content="Checkout Cancelled | DartVoice">
     <meta name="twitter:description" content="Your checkout was cancelled. No charges were made.">
     <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
-    <meta name="theme-color" content="var(--brand)">
+    <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand:  'var(--brand, var(--brand))',
+                        brand:  'var(--brand, #CC0B20)',
                         dark:   '#08080A',
                         card:   '#111114',
                         wire:   '#252530',
@@ -60,7 +60,7 @@
         .fade-up-2 { animation: fadeUp 0.5s 0.12s ease-out both; }
 
         .btn-brand {
-            background: var(--brand);
+            background: #CC0B20;
             transition: all 0.25s;
             position: relative; overflow: hidden;
         }
@@ -71,8 +71,8 @@
         }
         .btn-brand:hover::after { opacity: 1; }
         .btn-brand:hover {
-            background: var(--brand-light);
-            box-shadow: 0 0 36px rgba(var(--brand-rgb), 0.4), 0 4px 16px rgba(var(--brand-rgb), 0.2);
+            background: #e60d24;
+            box-shadow: 0 0 36px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
             transform: translateY(-2px);
         }
 
@@ -92,7 +92,7 @@
         <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2.5 group">
                 <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                    <rect width="36" height="36" rx="9" fill="var(--brand)"/>
+                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
                     <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="3" fill="white"/>
