@@ -829,6 +829,25 @@
                             </button>
                         </div>
 
+                        <!-- Email + Phone (optional verification) -->
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex-1 text-sm text-muted-2">Email: <span id="amb-email" class="text-chalk ml-2">—</span></div>
+                            <div class="flex items-center gap-2">
+                                <input id="input-phone" type="tel" placeholder="+44 7xxx xxx xxx"
+                                    class="px-3 py-2 rounded-lg bg-dark border border-white/[0.06] text-sm text-chalk placeholder:text-muted-2 outline-none focus:border-brand transition" />
+                                <button id="btn-send-phone" onclick="sendPhoneVerification()" class="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-sm">Save &amp; Request</button>
+                                <button id="btn-mark-phone" onclick="markPhoneVerified()" class="px-3 py-2 rounded-lg bg-green-600 text-white text-sm hidden">Mark verified</button>
+                            </div>
+                        </div>
+                        <div id="phone-verify-row" class="hidden items-center gap-2 mt-2">
+                            <input id="input-phone-code" type="text" maxlength="6" placeholder="Enter 6‑digit code"
+                                class="px-3 py-2 rounded-lg bg-dark border border-white/[0.06] text-sm text-chalk placeholder:text-muted-2 outline-none focus:border-brand transition w-48" />
+                            <button id="btn-verify-phone" onclick="verifyPhoneCode()" class="px-3 py-2 rounded-lg bg-brand text-white text-sm">Verify code</button>
+                            <button id="btn-resend-phone" onclick="resendPhoneOtp()" class="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-sm hidden">Resend</button>
+                        </div>
+                            </div>
+                        </div>
+
                         <!-- Stats row -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div class="p-4 rounded-xl text-center"
@@ -883,6 +902,30 @@
                                 </svg>
                                 Share Link
                             </button>
+                            <button onclick="shareFacebook()"
+                                class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:border-white/15 text-sm font-medium transition min-h-[44px]">
+                                <svg class="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.2v-2.9h2.2V9.5c0-2.2 1.3-3.4 3.3-3.4.95 0 1.95.17 1.95.17v2.1h-1.07c-1.05 0-1.38.66-1.38 1.33v1.59h2.35l-.38 2.9h-1.97V22A10 10 0 0022 12z"/></svg>
+                                Facebook
+                            </button>
+                            <button onclick="openInstagram()"
+                                class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:border-white/15 text-sm font-medium transition min-h-[44px]">
+                                <svg class="w-4 h-4 text-pink-400 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 6.5A4.5 4.5 0 1016.5 13 4.5 4.5 0 0012 8.5zM18.5 6a1.5 1.5 0 11-1.5-1.5A1.5 1.5 0 0118.5 6z"/></svg>
+                                Instagram
+                            </button>
+                            <button onclick="openDartCounter()"
+                                class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:border-white/15 text-sm font-medium transition min-h-[44px]">
+                                <svg class="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v6l4-4-4 4-4-4 4 4V2zM4 20h16v-2H4v2z"/></svg>
+                                DartCounter
+                            </button>
+                        </div>
+
+                        <div class="px-4 sm:px-6 py-3" style="border-top:1px solid rgba(255,255,255,0.03);background:transparent">
+                            <label class="text-[11px] text-muted-2 mb-2 block">Message template</label>
+                            <textarea id="share-template" class="w-full p-3 rounded-lg bg-dark border border-white/[0.04] text-sm text-chalk placeholder:text-muted-2" rows="3">Hey — try DartVoice for scoring darts by voice. Use my link: {LINK} — it's brilliant for quick pub games and practice.</textarea>
+                            <div class="mt-2 flex gap-2">
+                                <button onclick="copyShareMessage()" class="px-3 py-2 rounded-lg bg-brand text-white text-sm">Copy message</button>
+                                <button onclick="shareFacebook(true)" class="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-sm">Share with Facebook</button>
+                            </div>
                         </div>
                         <p class="text-[11px]" style="color:#4A4A5A;">£5 per paying referral &middot; no limit</p>
                     </div>
@@ -1814,6 +1857,17 @@
             const url = code ? `https://dartvoice.app/login?ref=${code}` : '—';
             $('ref-link-text').textContent = url;
 
+            // Email + phone UI
+            $('amb-email').textContent = profile?.email || '—';
+            if (profile?.phone_number) $('input-phone').value = profile.phone_number;
+            if (profile?.phone_verified) {
+                document.getElementById('btn-mark-phone').classList.add('hidden');
+                // show simple verified badge next to status
+                $('amb-status-badge').innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 tracking-wide">VERIFIED PHONE</span>`;
+            } else {
+                document.getElementById('btn-mark-phone').classList.remove('hidden');
+            }
+
             // Fetch ALL referrals to compute stats client-side
             const { data: refs } = await sb.from('dartvoice_referrals')
                 .select('referred_email, status, reward_amount, created_at')
@@ -1937,6 +1991,96 @@
             } else {
                 copyRefLink();
             }
+        }
+
+        function shareFacebook(useTemplate = false) {
+            const link = $('ref-link-text').textContent;
+            const tpl = document.getElementById('share-template')?.value || '';
+            const msg = encodeURIComponent(useTemplate ? tpl.replace('{LINK}', link) : `Try DartVoice: ${link}`);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}&quote=${msg}`, '_blank');
+        }
+
+        function openInstagram() {
+            window.open('https://instagram.com/dartvoiceapp', '_blank');
+        }
+
+        function openDartCounter() {
+            window.open('https://app.dartcounter.net', '_blank');
+        }
+
+        function copyShareMessage() {
+            const link = $('ref-link-text').textContent;
+            const tpl = document.getElementById('share-template')?.value || '';
+            const text = tpl.replace('{LINK}', link);
+            navigator.clipboard.writeText(text).then(() => showToast('Share message copied'));
+        }
+
+        async function sendPhoneVerification() {
+            const phone = $('input-phone').value.trim();
+            if (!phone) return showToast('Enter a phone number');
+            if (!_ambUserId) return showToast('Please sign in first');
+            // Save phone (mark unverified)
+            const { error: saveErr } = await sb.from('dartvoice_profiles').update({ phone_number: phone, phone_verified: false }).eq('id', _ambUserId);
+            if (saveErr) return showToast('Error saving phone');
+
+            // Try to send OTP via Supabase Auth (uses project's configured SMS provider)
+            const { error: sendErr } = await sb.auth.signInWithOtp({ phone });
+            if (sendErr) {
+                showToast('Could not send SMS: ' + (sendErr.message || 'check phone number'));
+                // fallback: allow manual marking
+                document.getElementById('btn-mark-phone').classList.remove('hidden');
+                return;
+            }
+
+            showToast('Verification code sent via SMS');
+            document.getElementById('phone-verify-row').classList.remove('hidden');
+            document.getElementById('btn-mark-phone').classList.remove('hidden');
+        }
+
+        async function verifyPhoneCode() {
+            const phone = $('input-phone').value.trim();
+            const token = $('input-phone-code').value.trim();
+            if (!phone || !token) return showToast('Enter the verification code');
+            const btn = $('btn-verify-phone');
+            btn.disabled = true;
+            btn.textContent = 'Verifying…';
+            const { error } = await sb.auth.verifyOtp({ phone, token, type: 'sms' });
+            btn.disabled = false;
+            btn.textContent = 'Verify code';
+            if (error) {
+                showToast(error.message || 'Invalid code — try again');
+                return;
+            }
+            // mark phone_verified true in profile
+            const { error: err2 } = await sb.from('dartvoice_profiles').update({ phone_verified: true }).eq('id', _ambUserId);
+            if (err2) {
+                showToast('Verified but failed to update profile');
+                return;
+            }
+            showToast('Phone verified');
+            document.getElementById('phone-verify-row').classList.add('hidden');
+            document.getElementById('btn-mark-phone').classList.add('hidden');
+            $('amb-status-badge').innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 tracking-wide">VERIFIED PHONE</span>`;
+        }
+
+        async function resendPhoneOtp() {
+            const phone = $('input-phone').value.trim();
+            if (!phone) return showToast('Enter phone');
+            const btn = $('btn-resend-phone');
+            btn.disabled = true;
+            const { error } = await sb.auth.signInWithOtp({ phone });
+            btn.disabled = false;
+            if (error) return showToast('Error resending code');
+            showToast('Verification code resent');
+        }
+
+        async function markPhoneVerified() {
+            if (!_ambUserId) return showToast('Please sign in');
+            const { error } = await sb.from('dartvoice_profiles').update({ phone_verified: true }).eq('id', _ambUserId);
+            if (error) return showToast('Error marking verified');
+            document.getElementById('btn-mark-phone').classList.add('hidden');
+            $('amb-status-badge').innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 tracking-wide">VERIFIED PHONE</span>`;
+            showToast('Phone marked verified');
         }
 
         async function requestPayout() {
