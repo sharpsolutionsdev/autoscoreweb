@@ -53,6 +53,18 @@
             }
         }
     </script>
+    <script>
+        // Preserve referral code early so it survives multi-step OTP redirects
+        (function preserveRef() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const ref = params.get('ref');
+                if (ref && !sessionStorage.getItem('dv_ref_code')) {
+                    sessionStorage.setItem('dv_ref_code', ref);
+                }
+            } catch (e) { /* ignore */ }
+        })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="components/dv-footer.js"></script>
     <style>
