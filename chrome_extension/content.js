@@ -528,8 +528,8 @@
   function logTrace(msg, data) {
     const timestamp = new Date().toLocaleTimeString();
     const prefix = `[DartVoice Bridge ${frameID}]`;
-    if (data) console.log(`${prefix} ${msg}`, data);
-    else console.log(`${prefix} ${msg}`);
+    if (data) console.debug(`${prefix} ${msg}`, data);
+    else console.debug(`${prefix} ${msg}`);
   }
 
   logTrace("Extension Script Injected and Ready.");
