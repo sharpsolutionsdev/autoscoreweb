@@ -835,7 +835,7 @@
                             <div class="flex items-center gap-2">
                                 <input id="input-phone" type="tel" placeholder="+44 7xxx xxx xxx"
                                     class="px-3 py-2 rounded-lg bg-dark border border-white/[0.06] text-sm text-chalk placeholder:text-muted-2 outline-none focus:border-brand transition" />
-                                <button id="btn-send-phone" onclick="sendPhoneVerification()" class="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-sm">Save &amp; Request</button>
+                                <button id="btn-send-phone" onclick="sendPhoneVerification()" class="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-sm">Save</button>
                                 <button id="btn-mark-phone" onclick="markPhoneVerified()" class="px-3 py-2 rounded-lg bg-green-600 text-white text-sm hidden">Mark verified</button>
                             </div>
                         </div>
@@ -2019,21 +2019,13 @@
             const phone = $('input-phone').value.trim();
             if (!phone) return showToast('Enter a phone number');
             if (!_ambUserId) return showToast('Please sign in first');
-            // Save phone (mark unverified)
+            // Save phone (store as optional, unverified)
             const { error: saveErr } = await sb.from('dartvoice_profiles').update({ phone_number: phone, phone_verified: false }).eq('id', _ambUserId);
             if (saveErr) return showToast('Error saving phone');
-
-            // Try to send OTP via Supabase Auth (uses project's configured SMS provider)
-            const { error: sendErr } = await sb.auth.signInWithOtp({ phone });
-            if (sendErr) {
-                showToast('Could not send SMS: ' + (sendErr.message || 'check phone number'));
-                // fallback: allow manual marking
-                document.getElementById('btn-mark-phone').classList.remove('hidden');
-                return;
-            }
-
-            showToast('Verification code sent via SMS');
-            document.getElementById('phone-verify-row').classList.remove('hidden');
+            showToast('Phone saved (verification disabled).');
+            // Ensure SMS UI is hidden since we are not sending codes
+            document.getElementById('phone-verify-row').classList.add('hidden');
+            // Keep manual verify button visible for admin/manual workflows
             document.getElementById('btn-mark-phone').classList.remove('hidden');
         }
 
