@@ -24,7 +24,7 @@
     <meta name="twitter:title" content="Welcome to DartVoice">
     <meta name="twitter:description" content="Your subscription is active. Download the app and start scoring.">
     <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
-    <meta name="theme-color" content="#CC0B20">
+    <meta name="theme-color" content="var(--brand)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand:  'var(--brand, #CC0B20)',
+                        brand:  'var(--brand, var(--brand))',
                         dark:   '#08080A',
                         card:   '#111114',
                         wire:   '#252530',
@@ -74,7 +74,7 @@
         }
 
         .btn-brand {
-            background: #CC0B20;
+            background: var(--brand);
             transition: all 0.25s;
             position: relative; overflow: hidden;
         }
@@ -85,8 +85,8 @@
         }
         .btn-brand:hover::after { opacity: 1; }
         .btn-brand:hover {
-            background: #e60d24;
-            box-shadow: 0 0 36px rgba(204,11,32,0.4), 0 4px 16px rgba(204,11,32,0.2);
+            background: var(--brand-light);
+            box-shadow: 0 0 36px rgba(var(--brand-rgb), 0.4), 0 4px 16px rgba(var(--brand-rgb), 0.2);
             transform: translateY(-2px);
         }
 
@@ -110,7 +110,7 @@
     
     <!-- Main -->
     <main class="flex-1 flex items-center justify-center p-6 pt-24"
-          style="background: radial-gradient(ellipse 60% 50% at 50% 20%, rgba(204,11,32,0.06) 0%, transparent 70%)">
+          style="background: radial-gradient(ellipse 60% 50% at 50% 20%, rgba(var(--brand-rgb), 0.06) 0%, transparent 70%)">
         <div class="text-center max-w-sm w-full">
 
             <!-- Success icon -->
@@ -172,7 +172,7 @@
             const el = document.createElement('div');
             el.style.cssText = `
                 position: fixed; left: 50%; top: -10px; 
-                width: 8px; height: 8px; background: #CC0B20; border-radius: 50%;
+                width: 8px; height: 8px; background: var(--brand); border-radius: 50%;
                 pointer-events: none; z-index: 9999;
                 animation: confettiDot 1.5s ${0.05 + i * 0.04}s ease-out forwards;
             `;

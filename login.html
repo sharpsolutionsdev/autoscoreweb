@@ -24,7 +24,7 @@
     <meta name="twitter:title" content="Sign In | DartVoice">
     <meta name="twitter:description" content="Sign in or create your DartVoice account.">
     <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
-    <meta name="theme-color" content="#CC0B20">
+    <meta name="theme-color" content="var(--brand)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -39,8 +39,8 @@
                         sans:    ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
                     colors: {
-                        brand:      'var(--brand, #CC0B20)',
-                        'brand-light': 'var(--brand-light, #e60d24)',
+                        brand:      'var(--brand, var(--brand))',
+                        'brand-light': 'var(--brand-light, var(--brand-light))',
                         dark:       '#08080A',
                         card:       '#111114',
                         'card-2':   '#18181C',
@@ -63,8 +63,8 @@
         /* Glow */
         .hero-glow {
             background:
-                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(204,11,32,0.13) 0%, transparent 65%),
-                radial-gradient(ellipse 50% 35% at 50% 10%,  rgba(204,11,32,0.06) 0%, transparent 60%);
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(var(--brand-rgb), 0.13) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 35% at 50% 10%,  rgba(var(--brand-rgb), 0.06) 0%, transparent 60%);
         }
 
         /* Subtle grid */
@@ -99,7 +99,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner {
             border: 2px solid rgba(255,255,255,0.08);
-            border-top-color: #CC0B20;
+            border-top-color: var(--brand);
             border-radius: 50%;
             width: 18px; height: 18px;
             display: inline-block;
@@ -116,7 +116,7 @@
 
         /* Buttons */
         .btn-brand {
-            background: #CC0B20;
+            background: var(--brand);
             transition: all 0.25s;
             position: relative; overflow: hidden;
         }
@@ -127,8 +127,8 @@
         }
         .btn-brand:hover::after { opacity: 1; }
         .btn-brand:hover {
-            background: #e60d24;
-            box-shadow: 0 0 32px rgba(204,11,32,0.35), 0 4px 16px rgba(204,11,32,0.2);
+            background: var(--brand-light);
+            box-shadow: 0 0 32px rgba(var(--brand-rgb), 0.35), 0 4px 16px rgba(var(--brand-rgb), 0.2);
             transform: translateY(-1px);
         }
         .btn-brand:active { transform: translateY(0); }
@@ -157,8 +157,8 @@
         }
         .dv-input::placeholder { color: rgba(255,255,255,0.22); }
         .dv-input:focus {
-            border-color: #CC0B20;
-            box-shadow: 0 0 0 3px rgba(204,11,32,0.1), 0 0 20px rgba(204,11,32,0.05);
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.1), 0 0 20px rgba(var(--brand-rgb), 0.05);
         }
         .dv-input.otp {
             text-align: center;
@@ -182,7 +182,7 @@
         .nav-link { position: relative; }
         .nav-link::after {
             content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
-            height: 1px; background: #CC0B20;
+            height: 1px; background: var(--brand);
             transform: scaleX(0); transition: transform 0.2s;
         }
         .nav-link:hover::after { transform: scaleX(1); }
@@ -206,11 +206,11 @@
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         .otp-char:focus {
-            border-color: #CC0B20;
-            box-shadow: 0 0 0 3px rgba(204,11,32,0.12);
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.12);
         }
         .otp-char.filled {
-            border-color: rgba(204,11,32,0.35);
+            border-color: rgba(var(--brand-rgb), 0.35);
         }
 
         /* Divider with text */
@@ -233,7 +233,7 @@
 
             <a href="/" class="flex items-center gap-2.5 group">
                 <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                    <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                    <rect width="36" height="36" rx="9" fill="var(--brand)"/>
                     <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
                     <circle cx="18" cy="18" r="3" fill="white"/>
@@ -282,9 +282,9 @@
         <div class="w-full max-w-[420px]">
 
             <!-- Auth card -->
-            <div id="auth-card" class="bg-card rounded-2xl overflow-hidden fade-up" style="border: 1px solid #252530; box-shadow: 0 0 0 1px rgba(204,11,32,0.08), 0 24px 64px rgba(0,0,0,0.5);">
+            <div id="auth-card" class="bg-card rounded-2xl overflow-hidden fade-up" style="border: 1px solid #252530; box-shadow: 0 0 0 1px rgba(var(--brand-rgb), 0.08), 0 24px 64px rgba(0,0,0,0.5);">
                 <!-- Red accent bar — solid, visible -->
-                <div style="height:3px; background: linear-gradient(90deg, #CC0B20 0%, rgba(204,11,32,0.25) 100%);"></div>
+                <div style="height:3px; background: linear-gradient(90deg, var(--brand) 0%, rgba(var(--brand-rgb), 0.25) 100%);"></div>
 
                 <!-- ── Step 1: Email ── -->
                 <div id="step-email" class="p-7 sm:p-9">
@@ -293,7 +293,7 @@
                     <div class="text-center mb-7">
                         <div class="inline-flex items-center gap-2.5 mb-5">
                             <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                                <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                                <rect width="36" height="36" rx="9" fill="var(--brand)"/>
                                 <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
                                 <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
                                 <circle cx="18" cy="18" r="3" fill="white"/>

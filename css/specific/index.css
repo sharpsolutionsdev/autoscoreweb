@@ -29,12 +29,12 @@ body {
   background:
     radial-gradient(
       ellipse 80% 60% at 50% -10%,
-      rgba(204, 11, 32, 0.14) 0%,
+      rgba(var(--brand-rgb), 0.14) 0%,
       transparent 65%
     ),
     radial-gradient(
       ellipse 50% 35% at 50% 10%,
-      rgba(204, 11, 32, 0.07) 0%,
+      rgba(var(--brand-rgb), 0.07) 0%,
       transparent 60%
     );
 }
@@ -58,9 +58,9 @@ body {
 /* ── Neon score text (hub) ── */
 .neon-score {
   text-shadow:
-    0 0 12px rgba(204, 11, 32, 0.9),
-    0 0 24px rgba(204, 11, 32, 0.5),
-    0 0 48px rgba(204, 11, 32, 0.2);
+    0 0 12px rgba(var(--brand-rgb), 0.9),
+    0 0 24px rgba(var(--brand-rgb), 0.5),
+    0 0 48px rgba(var(--brand-rgb), 0.2);
 }
 
 .neon-white {
@@ -347,7 +347,7 @@ body {
 
 /* ── Buttons ── */
 .btn-brand {
-  background: #cc0b20;
+  background: var(--brand);
   transition: all 0.25s;
   position: relative;
   overflow: hidden;
@@ -371,10 +371,10 @@ body {
 }
 
 .btn-brand:hover {
-  background: #e60d24;
+  background: var(--brand-light);
   box-shadow:
-    0 0 36px rgba(204, 11, 32, 0.45),
-    0 4px 16px rgba(204, 11, 32, 0.2);
+    0 0 36px rgba(var(--brand-rgb), 0.45),
+    0 4px 16px rgba(var(--brand-rgb), 0.2);
   transform: translateY(-2px);
 }
 
@@ -411,7 +411,7 @@ body {
   border-radius: inherit;
   background: radial-gradient(
     ellipse at top left,
-    rgba(204, 11, 32, 0.1) 0%,
+    rgba(var(--brand-rgb), 0.1) 0%,
     transparent 70%
   );
   opacity: 0;
@@ -420,11 +420,11 @@ body {
 }
 
 .feature-card:hover {
-  border-color: rgba(204, 11, 32, 0.4);
+  border-color: rgba(var(--brand-rgb), 0.4);
   transform: translateY(-8px) scale(1.02);
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.7),
-    0 0 35px rgba(204, 11, 32, 0.15);
+    0 0 35px rgba(var(--brand-rgb), 0.15);
   z-index: 10;
 }
 
@@ -438,7 +438,7 @@ body {
 
 .feature-card:hover svg {
   transform: scale(1.15) rotate(-5deg);
-  stroke: #e60d24;
+  stroke: var(--brand-light);
 }
 
 /* ── Pricing card ── */
@@ -514,7 +514,7 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: #cc0b20;
+  background: var(--brand);
   transform: scaleX(0);
   transition: transform 0.2s;
 }
@@ -576,12 +576,12 @@ body {
 /* ── Laptop mockup ── */
 .laptop-frame {
   background: #0c0c0f;
-  border: 2px solid rgba(204, 11, 32, 0.25);
+  border: 2px solid rgba(var(--brand-rgb), 0.25);
   border-radius: 12px;
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(204, 11, 32, 0.08),
-    0 0 0 1px rgba(204, 11, 32, 0.1) inset;
+    0 0 30px rgba(var(--brand-rgb), 0.08),
+    0 0 0 1px rgba(var(--brand-rgb), 0.1) inset;
   position: relative;
   overflow: hidden;
 }
@@ -724,15 +724,15 @@ body {
   0%,
   100% {
     box-shadow:
-      0 0 15px rgba(204, 11, 32, 0.08),
-      inset 0 0 15px rgba(204, 11, 32, 0.03);
+      0 0 15px rgba(var(--brand-rgb), 0.08),
+      inset 0 0 15px rgba(var(--brand-rgb), 0.03);
   }
 
   50% {
     box-shadow:
-      0 0 40px rgba(204, 11, 32, 0.25),
-      0 0 80px rgba(204, 11, 32, 0.08),
-      inset 0 0 30px rgba(204, 11, 32, 0.06);
+      0 0 40px rgba(var(--brand-rgb), 0.25),
+      0 0 80px rgba(var(--brand-rgb), 0.08),
+      inset 0 0 30px rgba(var(--brand-rgb), 0.06);
   }
 }
 
@@ -878,7 +878,7 @@ body {
   border-radius: inherit;
   background: radial-gradient(
     ellipse at top left,
-    rgba(204, 11, 32, 0.06) 0%,
+    rgba(var(--brand-rgb), 0.06) 0%,
     transparent 60%
   );
   opacity: 0;
@@ -887,11 +887,11 @@ body {
 }
 
 .bento-card:hover {
-  border-color: rgba(204, 11, 32, 0.3);
+  border-color: rgba(var(--brand-rgb), 0.3);
   transform: translateY(-4px);
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.6),
-    0 0 32px rgba(204, 11, 32, 0.06);
+    0 0 32px rgba(var(--brand-rgb), 0.06);
 }
 
 .bento-card:hover::before {
@@ -915,7 +915,7 @@ body {
   height: 28px;
   background: linear-gradient(
     180deg,
-    rgba(204, 11, 32, 0.04) 0%,
+    rgba(var(--brand-rgb), 0.04) 0%,
     transparent 100%
   );
   pointer-events: none;

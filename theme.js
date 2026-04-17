@@ -49,51 +49,41 @@
             .replace(/#e60d24/gi, light)
             .replace(/#1A0608/gi, dark)
             .replace(/rgba\(\s*204\s*,\s*11\s*,\s*32/gi, 'rgba(' + t.r + ',' + t.g + ',' + t.b)
-            .replace(/rgba\(\s*204,\s*11,\s*32/gi, 'rgba(' + t.r + ',' + t.g + ',' + t.b);
+            .replace(/rgba\(\s*204,\s*11,\s*32/gi, 'rgba(' + t.r + ',' + t.g + ',' + t.b)
+            .replace(/rgba\s*\(\s*var\(\s*--brand-rgb\s*\)\s*,/gi, 'rgba(' + t.r + ', ' + t.g + ', ' + t.b + ',');
     }
 
-    /* ── Snapshots: <style> blocks + inline + SVG ── */
+    /* ── Snapshots: SVG elements that can't use CSS variables ── */
     var snapshots = null;
 
     function match(s) {
-        return /#CC0B20/i.test(s) || /rgba\(\s*204[\s,]+11[\s,]+32/i.test(s) || /#e60d24/i.test(s) || /#1A0608/i.test(s);
+        return /#CC0B20|#e60d24|#1A0608|rgba\(\s*204[\s,]+11[\s,]+32|rgba\(\s*var\(\s*--brand-rgb/i.test(s);
     }
 
     function takeSnapshots() {
-        snapshots = { styles: [], inlines: [], svgs: [] };
+        snapshots = { svgs: [] };
 
-        /* 1) <style> blocks */
-        var styles = document.querySelectorAll('style');
-        for (var i = 0; i < styles.length; i++) {
-            var st = styles[i];
-            if (st.closest && st.closest('#dv-theme-picker')) continue;
-            if (st.id === 'dv-tp-css') continue;
-            var txt = st.textContent;
-            if (txt && match(txt)) {
-                snapshots.styles.push({ el: st, orig: txt });
+        /* Only snapshot SVG attributes (they don't respond to CSS variables) */
+        var svgParents = document.querySelectorAll('svg');
+        for (var k = 0; k < svgParents.length; k++) {
+            if (svgParents[k].closest && (svgParents[k].closest('#dv-theme-picker') || svgParents[k].closest('[data-no-theme]'))) continue;
+            
+            // Check parent SVG element itself
+            var svgF = (svgParents[k].getAttribute('fill') || '').toUpperCase();
+            var svgS = (svgParents[k].getAttribute('stroke') || '').toUpperCase();
+            if (svgF === '#CC0B20' || svgS === '#CC0B20' || svgF.indexOf('204') > -1 || svgS.indexOf('204') > -1) {
+                snapshots.svgs.push({ el: svgParents[k], origFill: svgParents[k].getAttribute('fill'), origStroke: svgParents[k].getAttribute('stroke') });
             }
-        }
-
-        /* 2) Inline style="" */
-        var styled = document.querySelectorAll('[style]');
-        for (var j = 0; j < styled.length; j++) {
-            var el = styled[j];
-            if (el.closest && el.closest('#dv-theme-picker')) continue;
-            var raw = el.getAttribute('style');
-            if (raw && match(raw)) {
-                snapshots.inlines.push({ el: el, orig: raw });
-            }
-        }
-
-        /* 3) SVG fill/stroke attributes */
-        var svgEls = document.querySelectorAll('svg [fill], svg [stroke]');
-        for (var k = 0; k < svgEls.length; k++) {
-            var se = svgEls[k];
-            if (se.closest && se.closest('#dv-theme-picker')) continue;
-            var f = (se.getAttribute('fill') || '').toUpperCase();
-            var s = (se.getAttribute('stroke') || '').toUpperCase();
-            if (f === '#CC0B20' || s === '#CC0B20') {
-                snapshots.svgs.push({ el: se, origFill: se.getAttribute('fill'), origStroke: se.getAttribute('stroke') });
+            
+            // Check all child elements
+            var allChildren = svgParents[k].querySelectorAll('*');
+            for (var m = 0; m < allChildren.length; m++) {
+                var se = allChildren[m];
+                var f = (se.getAttribute('fill') || '').toUpperCase();
+                var s = (se.getAttribute('stroke') || '').toUpperCase();
+                if (f === '#CC0B20' || s === '#CC0B20' || f.indexOf('204') > -1 || s.indexOf('204') > -1) {
+                    snapshots.svgs.push({ el: se, origFill: se.getAttribute('fill'), origStroke: se.getAttribute('stroke') });
+                }
             }
         }
     }
@@ -102,23 +92,17 @@
         if (!snapshots) return;
         var i;
 
-        /* <style> blocks */
-        for (i = 0; i < snapshots.styles.length; i++) {
-            var ss = snapshots.styles[i];
-            ss.el.textContent = recolorStr(ss.orig, t);
-        }
-
-        /* Inline styles */
-        for (i = 0; i < snapshots.inlines.length; i++) {
-            var sn = snapshots.inlines[i];
-            sn.el.setAttribute('style', recolorStr(sn.orig, t));
-        }
-
         /* SVG attributes */
         for (i = 0; i < snapshots.svgs.length; i++) {
             var sv = snapshots.svgs[i];
-            if (sv.origFill && sv.origFill.toUpperCase() === '#CC0B20') sv.el.setAttribute('fill', t.hex);
-            if (sv.origStroke && sv.origStroke.toUpperCase() === '#CC0B20') sv.el.setAttribute('stroke', t.hex);
+            if (sv.origFill) {
+                var newFill = recolorStr(sv.origFill, t);
+                if (newFill !== sv.origFill) sv.el.setAttribute('fill', newFill);
+            }
+            if (sv.origStroke) {
+                var newStroke = recolorStr(sv.origStroke, t);
+                if (newStroke !== sv.origStroke) sv.el.setAttribute('stroke', newStroke);
+            }
         }
     }
 
@@ -134,11 +118,13 @@
         ds.setProperty('--brand-r', String(t.r));
         ds.setProperty('--brand-g', String(t.g));
         ds.setProperty('--brand-b', String(t.b));
+        ds.setProperty('--brand-rgb', String(t.r) + ', ' + String(t.g) + ', ' + String(t.b));
         ds.setProperty('--brand-light', lighten(t.hex, 12));
 
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute('content', t.hex);
 
+        // Apply SVG snapshots only (CSS variables handle inline styles automatically)
         applySnapshots(t);
         updatePicker(id);
     }
