@@ -61,5 +61,18 @@ The UI/UX is functionally "Launch Ready." Focus should shift to deployment, back
   # PowerShell (run from project root)
   Get-ChildItem *.html | ForEach-Object { (Get-Content $_.FullName) -replace 'G-XXXXXXXXXX','G-YOUR_REAL_ID' | Set-Content $_.FullName }
   ```
+
+  ## Local Preview & Config
+
+  - To preview the frontend locally from the project root:
+
+  ```powershell
+  cd c:\Users\vrynw\Documents\GitHub\dartvoice\testomg
+  python -m http.server 8000
+  # then open http://127.0.0.1:8000/dartvoice-dashboard.html
+  ```
+
+  - Supabase keys are centralized in `js/config.js` for easier management. For local development, you can create `js/config.local.js` and set `window.SUPABASE_URL` / `window.SUPABASE_KEY` there to override defaults. Do not commit secrets — rotate keys if you remove them from the repo.
+
 1
 
