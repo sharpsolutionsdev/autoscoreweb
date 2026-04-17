@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Google Analytics -->
@@ -14,11 +14,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Sign In | DartVoice</title>
-    <meta name="description" content="Sign in or create your DartVoice account. No password needed — we'll send you a 6-digit code.">
+    <meta name="description" content="Sign in or create your DartVoice account. No password needed â€” we'll send you a 6-digit code.">
     <meta property="og:title" content="Sign In | DartVoice">
-    <meta property="og:description" content="Sign in or create your DartVoice account. No password needed — we'll send you a 6-digit code.">
+    <meta property="og:description" content="Sign in or create your DartVoice account. No password needed â€” we'll send you a 6-digit code.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/login.html">
+    <meta property="og:url" content="https://dartvoice.app/html/login.html">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Sign In | DartVoice">
@@ -240,7 +240,7 @@
 </head>
 <body class="antialiased noise grid-bg-soft hero-glow min-h-screen">
 
-    <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- â”â”â” NAV â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” -->
     <nav class="fixed top-0 w-full z-50 bg-dark/80 backdrop-blur-xl border-b border-wire/60">
         <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
 
@@ -256,7 +256,7 @@
             </a>
 
             <div class="hidden sm:flex items-center gap-1">
-                <a href="index.html"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Home</a>
+                <a href="html/index.html"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Home</a>
                 <a href="/#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
                 <a href="guide"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
                 <a href="referral" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
@@ -279,7 +279,7 @@
         </div>
         <div id="mob-nav" class="mobile-menu sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
             <div class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-1">
-                <a href="index.html"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Home</a>
+                <a href="html/index.html"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Home</a>
                 <a href="/#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
                 <a href="guide"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
                 <a href="referral" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
@@ -293,16 +293,16 @@
         </div>
     </nav>
 
-    <!-- ━━━ MAIN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- â”â”â” MAIN â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” -->
     <main class="pt-16 min-h-screen flex items-center justify-center px-5 py-16">
         <div class="w-full max-w-[420px]">
 
             <!-- Auth card -->
             <div id="auth-card" class="bg-card rounded-2xl overflow-hidden fade-up" style="border: 1px solid #252530; box-shadow: 0 0 0 1px rgba(var(--brand-rgb), 0.08), 0 24px 64px rgba(0,0,0,0.5);">
-                <!-- Red accent bar — solid, visible -->
+                <!-- Red accent bar â€” solid, visible -->
                 <div style="height:3px; background: linear-gradient(90deg, var(--brand) 0%, rgba(var(--brand-rgb), 0.25) 100%);"></div>
 
-                <!-- ── Step 1: Email ── -->
+                <!-- â”€â”€ Step 1: Email â”€â”€ -->
                 <div id="step-email" class="p-7 sm:p-9">
 
                     <!-- Logo + heading -->
@@ -318,7 +318,7 @@
                             <span class="display text-xl tracking-wide text-chalk">DARTVOICE</span>
                         </div>
                         <h1 id="auth-heading" class="display text-5xl mb-2">SIGN IN</h1>
-                        <p id="auth-subtext" class="text-muted text-sm">We'll send a 6-digit code to your email — no password needed.</p>
+                        <p id="auth-subtext" class="text-muted text-sm">We'll send a 6-digit code to your email â€” no password needed.</p>
                     </div>
 
                     <div class="space-y-4">
@@ -332,7 +332,7 @@
 
                         <button id="btn-send" onclick="sendOtp()"
                                 class="btn-brand w-full py-3.5 rounded-xl text-white font-semibold text-sm">
-                            Continue →
+                            Continue â†’
                         </button>
 
                         <p id="email-error" class="text-red-400 text-xs text-center hidden"></p>
@@ -340,7 +340,7 @@
                     </div>
                 </div>
 
-                <!-- ── Step 2: OTP ── -->
+                <!-- â”€â”€ Step 2: OTP â”€â”€ -->
                 <div id="step-otp" class="hidden p-7 sm:p-9">
 
                     <div class="text-center mb-6">
@@ -375,7 +375,7 @@
 
                     <button id="btn-verify" onclick="verifyOtp()" disabled
                             class="btn-brand w-full py-3.5 rounded-xl text-white font-semibold text-sm mb-3">
-                        Verify Code →
+                        Verify Code â†’
                     </button>
 
                     <p id="otp-error" class="text-red-400 text-xs text-center hidden mb-3"></p>
@@ -390,7 +390,7 @@
                     </div>
                 </div>
 
-                <!-- ── Step 3: Redirecting ── -->
+                <!-- â”€â”€ Step 3: Redirecting â”€â”€ -->
                 <div id="step-success" class="hidden p-7 sm:p-9">
                     <div class="text-center py-4">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-2xl mb-5">
@@ -399,11 +399,11 @@
                             </svg>
                         </div>
                         <h2 id="success-heading" class="display text-3xl mb-2">SIGNED IN</h2>
-                        <p id="success-subtext" class="text-muted text-sm">Taking you to your dashboard…</p>
+                        <p id="success-subtext" class="text-muted text-sm">Taking you to your dashboardâ€¦</p>
                         <div id="android-return" class="hidden mt-6">
                             <a id="android-return-btn" href="#"
                                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:bg-brand/90 transition">
-                                OPEN DARTVOICE APP  →
+                                OPEN DARTVOICE APP  â†’
                             </a>
                             <p class="text-muted text-[11px] mt-3">If nothing happens, tap the button above.</p>
                         </div>
@@ -418,11 +418,11 @@
             <div id="bottom-nudge" class="mt-5 fade-up-2 flex items-center justify-between gap-3 px-4 py-3 rounded-xl" style="border: 1px solid #252530; background: rgba(17,17,20,0.6);">
                 <div>
                     <p class="text-[11px] text-muted">Don't have an account?</p>
-                    <p class="text-[12px] text-chalk font-semibold mt-0.5">7-day free trial — no card needed</p>
+                    <p class="text-[12px] text-chalk font-semibold mt-0.5">7-day free trial â€” no card needed</p>
                 </div>
                 <a href="login?intent=subscribe"
                    class="shrink-0 px-3.5 py-1.5 rounded-lg bg-brand text-white text-xs font-bold hover:bg-brand-light transition">
-                    Sign Up →
+                    Sign Up â†’
                 </a>
             </div>
 
@@ -439,7 +439,7 @@
 
     <dv-footer></dv-footer>
 
-    <!-- ━━━ JAVASCRIPT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- â”â”â” JAVASCRIPT â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” -->
     <script>
     const SUPABASE_URL = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : (window.SUPABASE_URL || 'https://poyjykgqsvgimssbhsuz.supabase.co'));
     const SUPABASE_KEY = (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : (window.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA'));
@@ -448,7 +448,7 @@
     let _email = '';
     let _resendTimer = null;
 
-    // ── App login callback (Windows/Android desktop apps) ─────────────────
+    // â”€â”€ App login callback (Windows/Android desktop apps) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // When ?source=app&port=XXXX is present, after auth we POST session
     // tokens to localhost:PORT/auth-callback so the native app picks them up.
     const _urlParams  = new URLSearchParams(window.location.search);
@@ -458,7 +458,7 @@
     const _isAndroidApp = _appSource === 'app' && _appPlatform === 'android';
     const _isAppLogin = _appSource === 'app' && (_isAndroidApp || /^\d{4,5}$/.test(_appPort || ''));
     // APK WebView login: session persists in Supabase storage; after auth,
-    // bounce back to apk-gate.html which re-checks subscription.
+    // bounce back to html/apk-gate.html which re-checks subscription.
     const _isApkLogin = _appSource === 'apk';
     const _apkTrial = _isApkLogin && _urlParams.get('trial') === '1';
 
@@ -484,18 +484,18 @@
         if (btn)  btn.href = url;
         if (wrap) wrap.classList.remove('hidden');
         if (spin) spin.classList.add('hidden');
-        // Try to auto-open — works when we're in a fresh user-gesture
-        // context (right after "Verify Code →").
+        // Try to auto-open â€” works when we're in a fresh user-gesture
+        // context (right after "Verify Code â†’").
         try { window.location.href = url; } catch (_) {}
     }
 
-    // Detect intent from URL: ?intent=subscribe → sign-up mode, else sign-in mode
+    // Detect intent from URL: ?intent=subscribe â†’ sign-up mode, else sign-in mode
     const _intent = _urlParams.get('intent');
     const _isSignUp = _intent === 'subscribe';
 
     // Adapt UI for sign-up vs sign-in
     if (_isSignUp) {
-        // Swap nav CTA to "Sign In" — user is already on the sign-up page
+        // Swap nav CTA to "Sign In" â€” user is already on the sign-up page
         document.querySelectorAll('a.btn-brand[onclick*="dvCheckout"]').forEach(el => {
             el.textContent = 'Sign In';
             el.href = 'login';
@@ -504,9 +504,9 @@
             el.classList.add('btn-outline');
         });
         document.getElementById('auth-heading').textContent = 'START FREE TRIAL';
-        document.getElementById('auth-subtext').textContent = 'Create your account to start your 7-day free trial — no card needed.';
+        document.getElementById('auth-subtext').textContent = 'Create your account to start your 7-day free trial â€” no card needed.';
         document.getElementById('success-heading').textContent = 'ACCOUNT READY';
-        document.getElementById('success-subtext').textContent = 'Setting up your trial…';
+        document.getElementById('success-subtext').textContent = 'Setting up your trialâ€¦';
         // Replace bottom nudge with sign-in prompt
         document.getElementById('bottom-nudge').innerHTML = `
             <div>
@@ -514,16 +514,16 @@
                 <p class="text-[12px] text-chalk font-semibold mt-0.5">Sign in to your existing account</p>
             </div>
             <a href="login" class="shrink-0 px-3.5 py-1.5 rounded-lg border border-wire/80 text-chalk text-xs font-bold hover:border-muted transition">
-                Sign In →
+                Sign In â†’
             </a>`;
     }
 
     // Adapt UI when launched from the native app
     if (_isAppLogin) {
         document.getElementById('auth-subtext').textContent =
-            'Sign in here — your session will sync back to the DartVoice app automatically.';
+            'Sign in here â€” your session will sync back to the DartVoice app automatically.';
         const _platNote = _isAndroidApp
-            ? "We'll reopen the DartVoice app automatically — tap the button on the next screen if nothing happens."
+            ? "We'll reopen the DartVoice app automatically â€” tap the button on the next screen if nothing happens."
             : 'Your session will sync back automatically after sign-in.';
         const _nudge = document.getElementById('bottom-nudge');
         _nudge.replaceChildren();
@@ -542,14 +542,14 @@
     // Destination after auth
     function _authDest() {
         if (_isApkLogin) {
-            return _apkTrial ? 'dartvoice-dashboard.html?subscribe=1&apk=1' : 'apk-gate.html';
+            return _apkTrial ? 'html/dartvoice-dashboard.html?subscribe=1&apk=1' : 'html/apk-gate.html';
         }
-        const dest = _isSignUp ? 'dartvoice-dashboard.html?subscribe=1' : 'dartvoice-dashboard.html';
+        const dest = _isSignUp ? 'html/dartvoice-dashboard.html?subscribe=1' : 'html/dartvoice-dashboard.html';
         const plan = _urlParams.get('plan');
         return plan ? `${dest}${dest.includes('?') ? '&' : '?'}plan=${plan}` : dest;
     }
 
-    // Check if already signed in → skip to dashboard (respecting intent)
+    // Check if already signed in â†’ skip to dashboard (respecting intent)
     // For app logins, still push the session to the callback server
     sb.auth.getSession().then(async ({ data }) => {
         if (data?.session?.user) {
@@ -558,7 +558,7 @@
                     document.getElementById('step-email').classList.add('hidden');
                     document.getElementById('step-success').classList.remove('hidden');
                     document.getElementById('success-heading').textContent = 'ALREADY SIGNED IN';
-                    document.getElementById('success-subtext').textContent = 'Returning to DartVoice app…';
+                    document.getElementById('success-subtext').textContent = 'Returning to DartVoice appâ€¦';
                     _androidHandoff(data.session);
                     return;
                 }
@@ -584,7 +584,7 @@
         }
     });
 
-    // ── OTP char boxes ─────────────────────────────────────────────────────────
+    // â”€â”€ OTP char boxes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function initOtpBoxes() {
         const boxes = document.querySelectorAll('.otp-char');
         boxes.forEach((box, i) => {
@@ -640,7 +640,7 @@
         document.getElementById('btn-verify').disabled = true;
     }
 
-    // ── Send OTP ───────────────────────────────────────────────────────────────
+    // â”€â”€ Send OTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function sendOtp() {
         const email = document.getElementById('input-email').value.trim().toLowerCase();
         const errEl = document.getElementById('email-error');
@@ -655,12 +655,12 @@
         }
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span>Sending…';
+        btn.innerHTML = '<span class="spinner"></span>Sendingâ€¦';
 
         const { error } = await sb.auth.signInWithOtp({ email });
 
         btn.disabled = false;
-        btn.innerHTML = 'Continue →';
+        btn.innerHTML = 'Continue â†’';
 
         if (error) {
             errEl.textContent = error.message;
@@ -677,7 +677,7 @@
         startResendTimer(60);
     }
 
-    // ── Verify OTP ────────────────────────────────────────────────────────────
+    // â”€â”€ Verify OTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function verifyOtp() {
         const token = getOtpCode();
         if (token.length !== 6) return;
@@ -685,16 +685,16 @@
         const btn    = document.getElementById('btn-verify');
         const errEl  = document.getElementById('otp-error');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span>Verifying…';
+        btn.innerHTML = '<span class="spinner"></span>Verifyingâ€¦';
         errEl.classList.add('hidden');
 
         const { error } = await sb.auth.verifyOtp({ email: _email, token, type: 'email' });
 
         btn.disabled = false;
-        btn.innerHTML = 'Verify Code →';
+        btn.innerHTML = 'Verify Code â†’';
 
         if (error) {
-            errEl.textContent = error.message || 'Invalid code — please try again.';
+            errEl.textContent = error.message || 'Invalid code â€” please try again.';
             errEl.classList.remove('hidden');
             clearOtpBoxes();
             document.querySelector('.otp-char').focus();
@@ -706,20 +706,20 @@
         document.getElementById('step-success').classList.remove('hidden');
         if (_resendTimer) clearInterval(_resendTimer);
 
-        // Preserve referral code across the redirect (referrer gets £5 on conversion; referred user gets standard 7-day trial only)
+        // Preserve referral code across the redirect (referrer gets Â£5 on conversion; referred user gets standard 7-day trial only)
         const urlParams = new URLSearchParams(window.location.search);
         const refCode   = urlParams.get('ref');
         if (refCode) sessionStorage.setItem('dv_ref_code', refCode);
 
-        // ── App login: hand tokens back to the native app ───────────────
+        // â”€â”€ App login: hand tokens back to the native app â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (_isAppLogin) {
             document.getElementById('success-heading').textContent = 'SIGNED IN';
-            document.getElementById('success-subtext').textContent = 'Returning to DartVoice app…';
+            document.getElementById('success-subtext').textContent = 'Returning to DartVoice appâ€¦';
             try {
                 const { data: { session } } = await sb.auth.getSession();
                 if (session) {
                     if (_isAndroidApp) {
-                        // Deep link — Android routes this to the DartVoice
+                        // Deep link â€” Android routes this to the DartVoice
                         // Activity's Intent handler, bringing it to the
                         // foreground with the session tokens attached.
                         _androidHandoff(session);
@@ -756,7 +756,7 @@
         setTimeout(() => window.location.replace(_authDest()), 1200);
     }
 
-    // ── Resend / back ─────────────────────────────────────────────────────────
+    // â”€â”€ Resend / back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function resendOtp() {
         const btn = document.getElementById('btn-resend');
         btn.disabled = true;
@@ -815,3 +815,4 @@
     <script src="dv-currency.js"></script>
 </body>
 </html>
+

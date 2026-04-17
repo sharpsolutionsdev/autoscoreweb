@@ -1,4 +1,4 @@
-import os
+﻿import os
 from kivy.app import App
 from kivy.utils import platform
 
@@ -21,7 +21,7 @@ class DartVoiceWebApp(App):
                 # Root container for both WebViews
                 frame = FrameLayout(Activity)
 
-                # ── Control Panel WebView (web-app-mobile.html) ──
+                # â”€â”€ Control Panel WebView (html/web-app-mobile.html) â”€â”€
                 control_wv = WebView(Activity)
                 settings = control_wv.getSettings()
                 settings.setJavaScriptEnabled(True)
@@ -39,14 +39,14 @@ class DartVoiceWebApp(App):
                 except Exception:
                     pass
 
-                # ── Create the JS Bridge ──
+                # â”€â”€ Create the JS Bridge â”€â”€
                 # The bridge lazily creates the DartCounter WebView
                 # and handles score injection between the two WebViews.
                 bridge = DartVoiceBridge(Activity, frame)
                 control_wv.addJavascriptInterface(bridge, 'DartVoiceBridge')
 
-                # Load subscription gate first — gate redirects to app if active sub
-                control_wv.loadUrl('https://dartvoice.app/apk-gate.html')
+                # Load subscription gate first â€” gate redirects to app if active sub
+                control_wv.loadUrl('https://dartvoice.app/html/apk-gate.html')
 
                 # Add control panel to the root frame
                 frame.addView(control_wv, LayoutParams(
@@ -70,3 +70,4 @@ if __name__ == '__main__':
         request_permissions([Permission.RECORD_AUDIO], perm_callback)
 
     DartVoiceWebApp().run()
+

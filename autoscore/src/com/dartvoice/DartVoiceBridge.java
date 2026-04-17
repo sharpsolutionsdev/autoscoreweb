@@ -1,4 +1,4 @@
-package com.dartvoice;
+﻿package com.dartvoice;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -29,7 +29,7 @@ import android.speech.SpeechRecognizer;
 
 /**
  * JavaScript bridge between the DartVoice mobile control panel
- * (web-app-mobile.html) and the DartCounter scorer WebView.
+ * (html/web-app-mobile.html) and the DartCounter scorer WebView.
  *
  * Exposed to JS as window.DartVoiceBridge via addJavascriptInterface().
  */
@@ -116,7 +116,7 @@ public class DartVoiceBridge {
         });
     }
 
-    // ── Scorer WebView (lazy init) ──────────────────────────────────────
+    // â”€â”€ Scorer WebView (lazy init) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void ensureScorerView() {
         if (scorerCreated) return;
@@ -161,7 +161,7 @@ public class DartVoiceBridge {
         Log.d(TAG, "Scorer WebView created (lazy)");
     }
 
-    // ── Status Pill (replaces BACK button, shows live voice state) ──────
+    // â”€â”€ Status Pill (replaces BACK button, shows live voice state) â”€â”€â”€â”€â”€â”€
 
     private void createStatusPill() {
         statusPill = new LinearLayout(activity);
@@ -259,7 +259,7 @@ public class DartVoiceBridge {
         statusDot.setBackground(dotBg);
     }
 
-    // ── Keyboard suppression + checkout detection injected into scorer ──
+    // â”€â”€ Keyboard suppression + checkout detection injected into scorer â”€â”€
 
     private void injectScorerHelpers(WebView view) {
         // Suppress soft keyboard by overriding focus + adding inputmode=none
@@ -348,7 +348,7 @@ public class DartVoiceBridge {
         } catch (Exception e) { }
     }
 
-    // ── JS Interface Methods ────────────────────────────────────────────
+    // â”€â”€ JS Interface Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @JavascriptInterface
     public void evaluateOnScorer(final String js) {
@@ -455,3 +455,4 @@ public class DartVoiceBridge {
         });
     }
 }
+

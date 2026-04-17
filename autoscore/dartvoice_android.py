@@ -1,4 +1,4 @@
-"""
+﻿"""
 DartVoice for Android
 Standalone darts scorer with voice recognition (Vosk) and TTS.
 Build with Buildozer:  buildozer android debug deploy run
@@ -11,14 +11,14 @@ try:
 except ImportError:
     pass
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Platform detection
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ANDROID = sys.platform == 'linux' and 'ANDROID_ARGUMENT' in os.environ
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Kivy config must be set BEFORE any kivy imports
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 os.environ.setdefault('KIVY_NO_ENV_CONFIG', '1')
 # Force SDL2 GL backend for predictable, crisp rendering on every Android
 # device.  4x MSAA removes jaggies on rounded rectangles / ellipses at every
@@ -46,9 +46,9 @@ from kivy.metrics import dp, sp
 from kivy.graphics import Color, Rectangle, RoundedRectangle, Ellipse, Line
 from kivy.animation import Animation
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Palette (matches desktop app)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 BG   = (0.031, 0.031, 0.039, 1)      # #08080A
 CARD = (0.067, 0.067, 0.078, 1)      # #111114
 CARD2= (0.094, 0.094, 0.110, 1)      # #18181C
@@ -72,12 +72,12 @@ def hex_to_kivy(h):
     h = h.lstrip('#')
     return tuple(int(h[i:i+2], 16) / 255 for i in (0, 2, 4)) + (1,)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Responsive helpers — tablet vs phone
-# Android convention: shortest-side ≥ 600dp = "large screen" (tablet).
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Responsive helpers â€” tablet vs phone
+# Android convention: shortest-side â‰¥ 600dp = "large screen" (tablet).
 # We use this to cap card widths so the login/paywall don't stretch halfway
 # across a 10" tablet, while leaving phone layouts untouched.
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def shortest_side_dp():
     try:
         from kivy.metrics import Metrics
@@ -96,9 +96,9 @@ def card_max_width():
     """Pixel width cap for centred cards (login, paywall, modals)."""
     return dp(440) if is_tablet() else Window.width * 0.92
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Player themes  (mirrors Windows app exactly)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 THEMES = {
     'Littler': {
         'player': 'Luke Littler', 'nickname': 'The Nuke',
@@ -227,7 +227,7 @@ def _apply_theme(name, custom_hex='#FFFFFF'):
         STOP_BDR   = hex_to_kivy(t['stop_bdr'])
         WIRE_HINT  = hex_to_kivy(t['wire_hint'])
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 try:
     from shared import (load_config, save_config, _ensure_model,
                         parse_score, parse_cricket_darts, parse_single_dart,
@@ -238,9 +238,9 @@ except ImportError:
     CRICKET_TARGETS = ['20', '19', '18', '17', '16', '15', 'b']
     MOD_HITS = {'s': 1, 'd': 2, 't': 3}
 
-# ─────────────────────────────────────────────────────────────────────────────
-# In-game Score Toast — animated floating popup on score
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# In-game Score Toast â€” animated floating popup on score
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class ScoreToast(Label):
     """Animated floating score popup. Fades up and out like a game HUD."""
 
@@ -280,9 +280,9 @@ class ScoreToast(Label):
         (a1 + a2 + a3).start(self)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Visual Calibration Overlay (premium dark theme)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class CalibrationOverlay(FloatLayout):
     def __init__(self, on_calibrated, **kwargs):
         super().__init__(**kwargs)
@@ -399,9 +399,9 @@ class CalibrationOverlay(FloatLayout):
             self.parent.remove_widget(self)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Speech listener thread
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class SpeechListener(threading.Thread):
     def __init__(self, model_path, cfg, on_score, on_status,
                  on_cancel=None, on_new_leg=None):
@@ -434,7 +434,7 @@ class SpeechListener(threading.Thread):
         else:
             self._run_desktop(rec)
 
-    # ── Android audio via AudioRecord ────────────────────────────────────────
+    # â”€â”€ Android audio via AudioRecord â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _run_android(self, rec):
         try:
             from jnius import autoclass  # type: ignore
@@ -473,7 +473,7 @@ class SpeechListener(threading.Thread):
                         partial = json.loads(rec.PartialResult()).get('partial', '')
                         trigger = self.cfg.get('trigger', 'score').lower()
                         if self.cfg.get('require_trigger', True) and trigger in partial:
-                            self.on_status('Trigger heard…')
+                            self.on_status('Trigger heardâ€¦')
             except Exception:
                 continue
 
@@ -483,7 +483,7 @@ class SpeechListener(threading.Thread):
         except Exception:
             pass
 
-    # ── Desktop audio via PyAudio (for testing) ──────────────────────────────
+    # â”€â”€ Desktop audio via PyAudio (for testing) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _run_desktop(self, rec):
         try:
             import pyaudio
@@ -508,7 +508,7 @@ class SpeechListener(threading.Thread):
                     partial = json.loads(rec.PartialResult()).get('partial', '')
                     trigger = self.cfg.get('trigger', 'score').lower()
                     if self.cfg.get('require_trigger', True) and trigger in partial:
-                        self.on_status('Trigger heard…')
+                        self.on_status('Trigger heardâ€¦')
             except Exception:
                 continue
         stream.stop_stream()
@@ -540,7 +540,7 @@ class SpeechListener(threading.Thread):
 
         mode = self.cfg.get('game_mode', 'X01')
 
-        # "enter" command — submit accumulated darts early in per-dart mode
+        # "enter" command â€” submit accumulated darts early in per-dart mode
         if after == 'enter' or text.strip() == 'enter':
             if self.on_status: self.on_status("Enter pressed")
             if self.cfg.get('per_dart_mode', False):
@@ -560,9 +560,9 @@ class SpeechListener(threading.Thread):
             if score is not None and 0 <= score <= 180:
                 self.on_score(score)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # UI helpers
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _card_bg(widget, color=CARD, radius=12):
     with widget.canvas.before:
         Color(*color)
@@ -625,19 +625,19 @@ def _ghost_btn(text, on_press):
     btn.bind(on_press=lambda *_: on_press())
     return btn
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Cricket grid widget
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class CricketGrid(GridLayout):
     LABELS = ['20', '19', '18', '17', '16', '15', 'B']
 
     # Mark display: open = dimmed, 1-2 hits = partial, closed = accent + checkmark
-    _MARKS  = ['·', '/', 'X', '\u2713']
+    _MARKS  = ['Â·', '/', 'X', '\u2713']
     _COLORS = [
-        (0.3, 0.3, 0.38, 1),   # 0 hits — very dim
+        (0.3, 0.3, 0.38, 1),   # 0 hits â€” very dim
         (0.75, 0.75, 0.82, 1), # 1 hit
         (0.94, 0.94, 0.96, 1), # 2 hits
-        None,                   # 3+ hits — uses ACCENT
+        None,                   # 3+ hits â€” uses ACCENT
     ]
 
     def __init__(self, state, **kwargs):
@@ -670,9 +670,9 @@ class CricketGrid(GridLayout):
             lbl.text  = self._mark_text(tgt)
             lbl.color = self._mark_color(tgt)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# KvToggle — custom sliding toggle switch
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# KvToggle â€” custom sliding toggle switch
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class KvToggle(Widget):
     """iOS-style toggle switch with smooth knob + track animation."""
     active = False
@@ -735,9 +735,9 @@ class KvToggle(Widget):
         return super().on_touch_down(touch)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Settings overlay
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class SettingsOverlay(FloatLayout):
     """Slide-up settings panel. Touch-blocks the game UI beneath it."""
 
@@ -750,12 +750,12 @@ class SettingsOverlay(FloatLayout):
         self._apply_theme  = apply_theme_cb
         self._build()
 
-    # ── touch blocking ────────────────────────────────────────────────────────
+    # â”€â”€ touch blocking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def on_touch_down(self, touch): super().on_touch_down(touch); return True
     def on_touch_move(self, touch): super().on_touch_move(touch); return True
     def on_touch_up(self, touch):   super().on_touch_up(touch);   return True
 
-    # ── entrance / exit ───────────────────────────────────────────────────────
+    # â”€â”€ entrance / exit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def enter(self):
         Animation(pos_hint={'x': 0, 'y': 0}, duration=0.35, transition='out_back').start(self)
 
@@ -767,7 +767,7 @@ class SettingsOverlay(FloatLayout):
         anim.bind(on_complete=lambda *_: _remove())
         anim.start(self)
 
-    # ── build UI ──────────────────────────────────────────────────────────────
+    # â”€â”€ build UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _build(self):
         # Dim backdrop (tappable to close)
         backdrop = Button(size_hint=(1, 1), background_normal='',
@@ -775,7 +775,7 @@ class SettingsOverlay(FloatLayout):
                           on_press=lambda *_: self._close())
         self.add_widget(backdrop)
 
-        # Panel card — bottom 78% of screen, rounded top with accent glow
+        # Panel card â€” bottom 78% of screen, rounded top with accent glow
         panel = FloatLayout(size_hint=(1, 0.78), pos_hint={'x': 0, 'y': 0})
         with panel.canvas.before:
             # Top accent glow strip
@@ -811,7 +811,7 @@ class SettingsOverlay(FloatLayout):
         content.bind(minimum_height=content.setter('height'))
         scroll.add_widget(content)
 
-        # ── Drag handle indicator ─────────────────────────────────────────────
+        # â”€â”€ Drag handle indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         handle_wrap = Widget(size_hint=(1, None), height=dp(20))
         with handle_wrap.canvas:
             Color(*FG3)
@@ -823,7 +823,7 @@ class SettingsOverlay(FloatLayout):
         handle_wrap.bind(pos=_upd_handle, size=_upd_handle)
         content.add_widget(handle_wrap)
 
-        # ── Header ────────────────────────────────────────────────────────────
+        # â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         hdr = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(8))
         # Accent bar left of title
         hdr_bar = Widget(size_hint=(None, None), size=(dp(3), dp(20)))
@@ -837,7 +837,7 @@ class SettingsOverlay(FloatLayout):
         hdr.add_widget(Label(text='Settings', font_size=sp(18), bold=True,
                              color=FG, halign='left', valign='middle',
                              size_hint_x=1, text_size=(None, None)))
-        close_btn = Button(text='✕', font_size=sp(14),
+        close_btn = Button(text='âœ•', font_size=sp(14),
                            size_hint=(None, None), size=(dp(34), dp(34)),
                            background_normal='', background_color=(0, 0, 0, 0),
                            color=FG2, on_press=lambda *_: self._close())
@@ -859,7 +859,7 @@ class SettingsOverlay(FloatLayout):
         hdr.add_widget(close_btn)
         content.add_widget(hdr)
 
-        # ── Section: Player Theme ─────────────────────────────────────────────
+        # â”€â”€ Section: Player Theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('COLOUR THEME'))
 
         active_theme = self._cfg.get('theme', 'Littler')
@@ -872,7 +872,7 @@ class SettingsOverlay(FloatLayout):
             surname = t_data['player'].split()[-1] if not t_data.get('_custom') else 'Custom'
             nickname = t_data.get('nickname', '')
 
-            # ── Theme card (taller, richer design) ────────────────────────
+            # â”€â”€ Theme card (taller, richer design) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             card = BoxLayout(orientation='vertical', size_hint_y=None,
                              height=dp(96), padding=[dp(6), dp(8), dp(6), dp(6)],
                              spacing=dp(3))
@@ -910,7 +910,7 @@ class SettingsOverlay(FloatLayout):
             _upd = _make_upd(card)
             card.bind(pos=_upd, size=_upd)
 
-            # ── Accent dot with ring + glow ────────────────────────────────
+            # â”€â”€ Accent dot with ring + glow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             dot_wrap = Widget(size_hint=(1, None), height=dp(34))
             with dot_wrap.canvas:
                 # Outer glow (only selected)
@@ -957,7 +957,7 @@ class SettingsOverlay(FloatLayout):
             ))
 
             # Nickname subtitle (dim)
-            nick_text = nickname[:12] + '…' if len(nickname) > 12 else nickname
+            nick_text = nickname[:12] + 'â€¦' if len(nickname) > 12 else nickname
             card.add_widget(Label(
                 text=nick_text if nickname else '',
                 font_size=sp(7), bold=False,
@@ -1022,7 +1022,7 @@ class SettingsOverlay(FloatLayout):
         hex_row.add_widget(apply_btn)
         content.add_widget(hex_row)
 
-        # ── Divider ───────────────────────────────────────────────────────────
+        # â”€â”€ Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         _div1 = Widget(size_hint_y=None, height=dp(1))
         with _div1.canvas:
             Color(*SEP)
@@ -1033,7 +1033,7 @@ class SettingsOverlay(FloatLayout):
         content.add_widget(_div1)
         content.add_widget(Widget(size_hint_y=None, height=dp(2)))
 
-        # ── Section: Voice ────────────────────────────────────────────────────
+        # â”€â”€ Section: Voice â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('VOICE'))
 
         content.add_widget(self._switch_row(
@@ -1045,7 +1045,7 @@ class SettingsOverlay(FloatLayout):
             self._cfg.get('voice_stats', True),
             lambda v: self._save('voice_stats', v)))
 
-        # ── Voice volume slider ───────────────────────────────────────────────
+        # â”€â”€ Voice volume slider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('VOICE VOLUME'))
         vol = self._cfg.get('voice_volume', 0.9)
         self._vol_lbl = Label(text=f'{int(vol * 100)}%', font_size=sp(11),
@@ -1058,7 +1058,7 @@ class SettingsOverlay(FloatLayout):
             on_change=lambda v: self._on_slider('voice_volume', v,
                                                 self._vol_lbl, '%', 100)))
 
-        # ── Speech speed slider ───────────────────────────────────────────────
+        # â”€â”€ Speech speed slider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('SPEECH SPEED'))
         rate = self._cfg.get('voice_rate', 170)
         self._rate_lbl = Label(text=f'{int(rate)} wpm', font_size=sp(11),
@@ -1071,7 +1071,7 @@ class SettingsOverlay(FloatLayout):
             on_change=lambda v: self._on_slider('voice_rate', v * 400,
                                                 self._rate_lbl, ' wpm', 1)))
 
-        # ── Section: Smart Browser ──────────────────────────────────────────────
+        # â”€â”€ Section: Smart Browser â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('SMART BROWSER'))
 
         # Smart Browser row: [status dot] [info text] [Launch button]
@@ -1113,7 +1113,7 @@ class SettingsOverlay(FloatLayout):
         sb_row.add_widget(sb_tap)
         content.add_widget(sb_row)
 
-        # ── Divider ───────────────────────────────────────────────────────────
+        # â”€â”€ Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         _div3 = Widget(size_hint_y=None, height=dp(1))
         with _div3.canvas:
             Color(*SEP)
@@ -1124,7 +1124,7 @@ class SettingsOverlay(FloatLayout):
         content.add_widget(_div3)
         content.add_widget(Widget(size_hint_y=None, height=dp(2)))
 
-        # ── Section: Gameplay ─────────────────────────────────────────────────
+        # â”€â”€ Section: Gameplay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('GAMEPLAY'))
 
         content.add_widget(self._switch_row(
@@ -1144,7 +1144,7 @@ class SettingsOverlay(FloatLayout):
             self._cfg.get('require_trigger', True),
             lambda v: self._save('require_trigger', v)))
 
-        # ── Trigger word input ────────────────────────────────────────────────
+        # â”€â”€ Trigger word input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('TRIGGER WORD'))
         tw_wrap = BoxLayout(size_hint_y=None, height=dp(46))
         with tw_wrap.canvas.before:
@@ -1174,7 +1174,7 @@ class SettingsOverlay(FloatLayout):
         tw_wrap.add_widget(tw_input)
         content.add_widget(tw_wrap)
 
-        # ── Cancel word input ─────────────────────────────────────────────────
+        # â”€â”€ Cancel word input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         content.add_widget(self._section_label('CANCEL WORD'))
         cw_sub = Label(text='Say to undo last dart / score', font_size=sp(9),
                        color=FG2, size_hint_y=None, height=dp(18),
@@ -1220,7 +1220,7 @@ class SettingsOverlay(FloatLayout):
         elif self.parent and self.parent.parent and hasattr(self.parent.parent, '_launch_smart_browser'):
             self.parent.parent._launch_smart_browser()
 
-    # ── helpers ───────────────────────────────────────────────────────────────
+    # â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _section_label(self, text):
         """Section header with accent bar (matches Windows _section helper)."""
         row = BoxLayout(size_hint_y=None, height=dp(32), spacing=dp(8),
@@ -1314,9 +1314,9 @@ class SettingsOverlay(FloatLayout):
             self._apply_theme('Custom', raw)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Paywall overlay
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class PaywallOverlay(FloatLayout):
     """
     Full-screen overlay shown when the demo has expired and the user has
@@ -1337,7 +1337,7 @@ class PaywallOverlay(FloatLayout):
         self._build()
 
     def on_touch_down(self, touch):
-        """Absorb all touches — nothing beneath us should be reachable."""
+        """Absorb all touches â€” nothing beneath us should be reachable."""
         super().on_touch_down(touch)
         return True
 
@@ -1476,12 +1476,12 @@ class PaywallOverlay(FloatLayout):
     def _open_checkout(self):
         import webbrowser
         webbrowser.open('https://dartvoice.app')
-        self._sub_btn.text = 'Waiting for payment…'
+        self._sub_btn.text = 'Waiting for paymentâ€¦'
         # Auto-poll after a short delay (checks Supabase for active subscription)
         self._start_polling(max_attempts=12, interval=8)
 
     def _check_now(self):
-        self._status_lbl.text = 'Checking…'
+        self._status_lbl.text = 'Checkingâ€¦'
         self._start_polling(max_attempts=5, interval=4)
 
     def _start_polling(self, max_attempts: int, interval: float):
@@ -1509,7 +1509,7 @@ class PaywallOverlay(FloatLayout):
                     self._poll_event.cancel()
                 Clock.schedule_once(lambda dt: setattr(
                     self._status_lbl, 'text',
-                    'Not activated yet — retry or check your email.'
+                    'Not activated yet â€” retry or check your email.'
                 ))
                 Clock.schedule_once(lambda dt: setattr(
                     self._sub_btn, 'text', 'Start 7-Day Free Trial'
@@ -1517,7 +1517,7 @@ class PaywallOverlay(FloatLayout):
 
         check_subscription_async(_got)
 
-    # ── Sign-in flow ──────────────────────────────────────────────────────────
+    # â”€â”€ Sign-in flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def _show_signin(self):
         """Open the DartVoice website login in the system browser."""
@@ -1605,7 +1605,7 @@ class PaywallOverlay(FloatLayout):
             Clock.schedule_once(lambda dt: self._on_unlocked())
         else:
             Clock.schedule_once(lambda dt: self._show_subscribe(
-                msg='Signed in — no active subscription found.\nStart a trial to continue.'
+                msg='Signed in â€” no active subscription found.\nStart a trial to continue.'
             ))
 
     def _show_subscribe(self, msg=''):
@@ -1618,9 +1618,9 @@ class PaywallOverlay(FloatLayout):
             self._status_lbl.text = msg
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Main UI
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class DartVoiceLayout(FloatLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1678,7 +1678,7 @@ class DartVoiceLayout(FloatLayout):
         try:
             from billing import billing_status, check_subscription_async
         except Exception:
-            # billing module unavailable (no Supabase on Android) — skip paywall
+            # billing module unavailable (no Supabase on Android) â€” skip paywall
             self.status_lbl.text = 'Ready'
             return
 
@@ -1701,11 +1701,11 @@ class DartVoiceLayout(FloatLayout):
             secs = bs.get('demo_secs', 0)
             mins = int(secs // 60)
             self.status_lbl.text = (
-                f"Demo — {mins} min{'s' if mins != 1 else ''} remaining"
+                f"Demo â€” {mins} min{'s' if mins != 1 else ''} remaining"
             )
             return
 
-        # Demo expired — show blocking paywall
+        # Demo expired â€” show blocking paywall
         self._show_paywall()
 
     def _on_billing_checked(self, subscribed: bool, account=None):
@@ -1768,28 +1768,28 @@ class DartVoiceLayout(FloatLayout):
     def _remove_paywall(self):
         if hasattr(self, '_paywall_overlay') and self._paywall_overlay.parent:
             self.remove_widget(self._paywall_overlay)
-        self.status_lbl.text = 'Subscription active — welcome!'
+        self.status_lbl.text = 'Subscription active â€” welcome!'
 
     def _build(self):
         import math
-        # ── Background fill ───────────────────────────────────────────────
+        # â”€â”€ Background fill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         with self.canvas.before:
             Color(*BG)
             self._bg_fill = RoundedRectangle(pos=self.pos, size=self.size, radius=[0])
         self.bind(pos=lambda *_: setattr(self._bg_fill, 'pos', self.pos),
                   size=lambda *_: setattr(self._bg_fill, 'size', self.size))
 
-        # ── Dartboard wire background (subtle overlay) ────────────────────
+        # â”€â”€ Dartboard wire background (subtle overlay) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         def _draw_wire(*_):
             pass  # Removed wire background for a sleeker look
         self.bind(size=_draw_wire, pos=_draw_wire)
 
-        # ── Layout constants ──────────────────────────────────────────────
+        # â”€â”€ Layout constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         ACCENT_H  = dp(3)
         HDR_H     = dp(52)
         DECK_FRAC = 0.44   # bottom deck is 44% of screen height
 
-        # ── Top accent bar ────────────────────────────────────────────────
+        # â”€â”€ Top accent bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         accent_bar = Widget(size_hint=(1, None), height=ACCENT_H,
                             pos_hint={'x': 0, 'top': 1})
         with accent_bar.canvas:
@@ -1801,7 +1801,7 @@ class DartVoiceLayout(FloatLayout):
         self._accent_bar = accent_bar
         self.add_widget(accent_bar)
 
-        # ── Header nav bar ────────────────────────────────────────────────
+        # â”€â”€ Header nav bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         hdr = BoxLayout(
             orientation='horizontal', size_hint=(1, None), height=HDR_H,
             padding=[dp(14), dp(8), dp(14), dp(8)], spacing=dp(10),
@@ -1872,7 +1872,7 @@ class DartVoiceLayout(FloatLayout):
         self._hdr = hdr
         self.add_widget(hdr)
 
-        # ── Top stage: score display ──────────────────────────────────────
+        # â”€â”€ Top stage: score display â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         top_stage = BoxLayout(
             orientation='vertical', spacing=dp(6),
             padding=[dp(24), dp(8), dp(24), dp(8)],
@@ -2015,7 +2015,7 @@ class DartVoiceLayout(FloatLayout):
         Clock.schedule_once(self._redraw_score_glow, 0)
         Clock.schedule_once(_upd_status_pill, 0)
 
-        # ── Cricket grid (hidden initially, overlays top stage) ───────────
+        # â”€â”€ Cricket grid (hidden initially, overlays top stage) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         self.cricket_card = BoxLayout(
             orientation='vertical', size_hint=(1, None),
             height=dp(260), padding=dp(10), spacing=dp(4), opacity=0,
@@ -2028,7 +2028,7 @@ class DartVoiceLayout(FloatLayout):
         self.cricket_card.add_widget(self.cricket_grid)
         self.add_widget(self.cricket_card)
 
-        # ── History box (hidden; exists for _add_history compatibility) ────
+        # â”€â”€ History box (hidden; exists for _add_history compatibility) â”€â”€â”€â”€
         self.history_box = BoxLayout(
             orientation='vertical', size_hint=(None, None),
             size=(0, 0), spacing=0, opacity=0,
@@ -2036,7 +2036,7 @@ class DartVoiceLayout(FloatLayout):
         self.history_box.bind(minimum_height=self.history_box.setter('height'))
         self.add_widget(self.history_box)
 
-        # ── Bottom deck (44% screen, rounded top card) ────────────────────
+        # â”€â”€ Bottom deck (44% screen, rounded top card) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         # Extra bottom padding on Android to clear the system navigation bar
         _nav_pad = dp(48) if ANDROID else 0
         deck = BoxLayout(
@@ -2061,7 +2061,7 @@ class DartVoiceLayout(FloatLayout):
             deck._bg.size  = (deck.width - p*2, deck.height - p)
         deck.bind(pos=_upd_deck, size=_upd_deck)
 
-        # ── Stats grid: [AVG] [DARTS] [LAST] ─────────────────────────────
+        # â”€â”€ Stats grid: [AVG] [DARTS] [LAST] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         stats_grid = GridLayout(cols=3, spacing=dp(8),
                                 size_hint_y=None, height=dp(82))
 
@@ -2084,7 +2084,7 @@ class DartVoiceLayout(FloatLayout):
             card.add_widget(Label(text=header_text, font_size=sp(9), bold=True,
                                    color=FG2, halign='center', valign='middle',
                                    size_hint=(1, None), height=dp(16)))
-            val = Label(text='—', font_size=sp(17), bold=True, color=FG,
+            val = Label(text='â€”', font_size=sp(17), bold=True, color=FG,
                         halign='center', valign='middle')
             card.add_widget(val)
             return card, val
@@ -2099,7 +2099,7 @@ class DartVoiceLayout(FloatLayout):
         stats_grid.add_widget(last_card)
         deck.add_widget(stats_grid)
 
-        # ── Button row: [Settings] [Listen btn] [Undo] ─────────────────
+        # â”€â”€ Button row: [Settings] [Listen btn] [Undo] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         btn_row = BoxLayout(orientation='horizontal', spacing=dp(12),
                             size_hint_y=None, height=dp(62))
 
@@ -2150,11 +2150,11 @@ class DartVoiceLayout(FloatLayout):
 
         self._refresh_mode_ui()
 
-        # ── PiP mode detection ────────────────────────────────────────────
+        # â”€â”€ PiP mode detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Window.bind(size=lambda *_: Clock.schedule_once(
             lambda dt: self._check_pip_mode(), 0.1))
 
-    # ── Icon widget factory ───────────────────────────────────────────────────
+    # â”€â”€ Icon widget factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _create_icon_widget(self, icon_name, color=None, size=None):
         """Return a Widget with the named icon drawn via Kivy canvas primitives."""
         import math as _math
@@ -2175,14 +2175,14 @@ class DartVoiceLayout(FloatLayout):
                 Color(*color)
                 if icon_name == 'mic':
                     # Body: rounded rectangle outline
-                    # SVG rect (9,2)-(15,14) → Kivy bottom-left (cx-3s, cy-2s), 6s×12s
+                    # SVG rect (9,2)-(15,14) â†’ Kivy bottom-left (cx-3s, cy-2s), 6sÃ—12s
                     Line(rounded_rectangle=(cx - 3*s, cy - 2*s, 6*s, 12*s, 3*s), width=lw)
-                    # Stand arc: bottom semicircle centred at SVG(12,11) → Kivy(cx, cy+s)
+                    # Stand arc: bottom semicircle centred at SVG(12,11) â†’ Kivy(cx, cy+s)
                     # radius 7s; angle_start=180, angle_end=360 draws the lower half
                     Line(ellipse=(cx - 7*s, cy + s - 7*s, 14*s, 14*s, 180, 360), width=lw)
-                    # Stem: SVG (12,19)→(12,23) → Kivy (cx, cy-7s)→(cx, cy-11s)
+                    # Stem: SVG (12,19)â†’(12,23) â†’ Kivy (cx, cy-7s)â†’(cx, cy-11s)
                     Line(points=[cx, cy - 7*s, cx, cy - 11*s], width=lw)
-                    # Base: SVG (8,23)→(16,23) → Kivy (cx-4s, cy-11s)→(cx+4s, cy-11s)
+                    # Base: SVG (8,23)â†’(16,23) â†’ Kivy (cx-4s, cy-11s)â†’(cx+4s, cy-11s)
                     Line(points=[cx - 4*s, cy - 11*s, cx + 4*s, cy - 11*s], width=lw)
 
                 elif icon_name == 'settings':
@@ -2199,11 +2199,11 @@ class DartVoiceLayout(FloatLayout):
                     Line(ellipse=(cx - 3.5*s, cy - 3.5*s, 7*s, 7*s), width=lw)
 
                 elif icon_name == 'rotate-ccw':
-                    # 270° counterclockwise arc (Kivy angles: 0=right, 90=up)
-                    # Start at 60°, sweep CCW to 330° (= 270° of arc)
+                    # 270Â° counterclockwise arc (Kivy angles: 0=right, 90=up)
+                    # Start at 60Â°, sweep CCW to 330Â° (= 270Â° of arc)
                     Line(ellipse=(cx - 8*s, cy - 8*s, 16*s, 16*s, 60, 330), width=lw)
                     # L-shaped arrowhead at arc start (SVG top-left, ~(3,7))
-                    # SVG (3,7) → Kivy (cx-9s, cy+5s); (9,7)→(cx-3s, cy+5s); (3,13)→(cx-9s, cy-s)
+                    # SVG (3,7) â†’ Kivy (cx-9s, cy+5s); (9,7)â†’(cx-3s, cy+5s); (3,13)â†’(cx-9s, cy-s)
                     Line(points=[cx - 3*s, cy + 5*s,
                                  cx - 9*s, cy + 5*s,
                                  cx - 9*s, cy - s], width=lw)
@@ -2211,7 +2211,7 @@ class DartVoiceLayout(FloatLayout):
         w.bind(pos=_draw, size=_draw)
         return w
 
-    # ── Mode switching ────────────────────────────────────────────────────────
+    # â”€â”€ Mode switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _on_mode_change(self, spinner, value):
         self.cfg['game_mode'] = value
         save_config(self.cfg)
@@ -2238,7 +2238,7 @@ class DartVoiceLayout(FloatLayout):
         if hasattr(self, 'dart_row_lbl'):
             self.dart_row_lbl.opacity = 1 if is_pdart else 0
 
-    # ── Listening toggle ──────────────────────────────────────────────────────
+    # â”€â”€ Listening toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _toggle(self):
         if self._active:
             self._stop_listening()
@@ -2247,7 +2247,7 @@ class DartVoiceLayout(FloatLayout):
 
     def _redraw_score_glow(self, *_):
         """Redraw radial background glow, corner brackets, and text glow
-        behind the score label — mirrors the Windows _redraw_score canvas."""
+        behind the score label â€” mirrors the Windows _redraw_score canvas."""
         gw = self._glow_widget
         gw.canvas.clear()
 
@@ -2259,7 +2259,7 @@ class DartVoiceLayout(FloatLayout):
         w, h = gw.width, gw.height
 
         with gw.canvas:
-            # ── Radial background glow (only when listening) ──────────────
+            # â”€â”€ Radial background glow (only when listening) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if self._active:
                 ar, ag, ab = ACCENT[0], ACCENT[1], ACCENT[2]
                 bgr, bgg, bgb = BG[0], BG[1], BG[2]
@@ -2274,7 +2274,7 @@ class DartVoiceLayout(FloatLayout):
                     Ellipse(pos=(gw.center_x - ew / 2, gw.center_y - eh / 2),
                             size=(ew, eh))
 
-            # ── Corner brackets ───────────────────────────────────────────
+            # â”€â”€ Corner brackets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             arm = dp(14)
             lw = dp(1.5)
             col = ACCENT if self._active else SEP
@@ -2288,7 +2288,7 @@ class DartVoiceLayout(FloatLayout):
             Line(points=[x1 - arm, y1, x1, y1, x1, y1 - arm],
                  width=lw, cap='round')
 
-        # ── Text glow label ───────────────────────────────────────────────
+        # â”€â”€ Text glow label â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if hasattr(self, '_glow_lbl'):
             self._glow_lbl.text = self.score_lbl.text
             self._glow_lbl.font_size = self.score_lbl.font_size
@@ -2297,7 +2297,7 @@ class DartVoiceLayout(FloatLayout):
             else:
                 self._glow_lbl.color = (0, 0, 0, 0)
 
-    # ── PiP mode (compact pill) ─────────────────────────────────────────────
+    # â”€â”€ PiP mode (compact pill) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _check_pip_mode(self):
         """Detect Picture-in-Picture by window size and toggle layout."""
         w, h = Window.size
@@ -2442,7 +2442,7 @@ class DartVoiceLayout(FloatLayout):
                     radius=[dp(12 if not active else 11)],
                 )
         else:
-            # Canvas already exists — just update border presence and rebuild
+            # Canvas already exists â€” just update border presence and rebuild
             btn.canvas.before.clear()
             with btn.canvas.before:
                 if active:
@@ -2457,7 +2457,7 @@ class DartVoiceLayout(FloatLayout):
                     radius=[dp(12 if not active else 11)],
                 )
 
-        # Rebind size/pos updates — remove previous binding first
+        # Rebind size/pos updates â€” remove previous binding first
         prev = getattr(btn, '_toggle_upd_cb', None)
         if prev is not None:
             btn.unbind(pos=prev, size=prev)
@@ -2516,7 +2516,7 @@ class DartVoiceLayout(FloatLayout):
                             Clock.schedule_once(lambda dt: self._set_status('Mic permission denied. Please check Android Settings.'))
                         ),
                     )
-                    self._set_status('Requesting mic permission…')
+                    self._set_status('Requesting mic permissionâ€¦')
                     return
             except Exception:
                 pass
@@ -2565,7 +2565,7 @@ class DartVoiceLayout(FloatLayout):
         self._set_toggle_style(active=False)
         self._set_status('Stopped')
 
-    # ── threaded vosk listener ────────────────────────────────────────────────
+    # â”€â”€ threaded vosk listener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _vosk_loop(self):
         from kivy.clock import mainthread
         import json
@@ -2578,7 +2578,7 @@ class DartVoiceLayout(FloatLayout):
         def _handle_result(text):
             self._process_text(text)
 
-        _post_status('Loading model…')
+        _post_status('Loading modelâ€¦')
         model_path = self._find_model()
         if not model_path:
             _post_status('Model not found')
@@ -2618,7 +2618,7 @@ class DartVoiceLayout(FloatLayout):
 
         _post_status('Listening')
 
-        # Use short[] instead of byte[] — pyjnius reliably writes back into
+        # Use short[] instead of byte[] â€” pyjnius reliably writes back into
         # Java short arrays, whereas Python bytearray passed to Java byte[]
         # may not receive the recorded data on all pyjnius versions.
         import struct
@@ -2640,7 +2640,7 @@ class DartVoiceLayout(FloatLayout):
                     partial = json.loads(rec.PartialResult()).get('partial', '')
                     trigger = self.cfg.get('trigger', 'score').lower()
                     if self.cfg.get('require_trigger', True) and partial and trigger in partial:
-                        _post_status('Trigger heard…')
+                        _post_status('Trigger heardâ€¦')
             except Exception as e:
                 import traceback
                 print(f'DARTVOICE vosk_loop error: {e}', flush=True)
@@ -2681,7 +2681,7 @@ class DartVoiceLayout(FloatLayout):
 
         mode = cfg.get('game_mode', 'X01')
 
-        # "enter" command — submit accumulated darts early
+        # "enter" command â€” submit accumulated darts early
         if after == 'enter' or text.strip() == 'enter':
             if cfg.get('per_dart_mode', False):
                 self._on_score(('dart_submit',))
@@ -2730,7 +2730,7 @@ class DartVoiceLayout(FloatLayout):
             PythonActivity = autoclass('org.kivy.android.PythonActivity')
             LayoutParams = autoclass('android.view.ViewGroup$LayoutParams')
 
-            # chrome://inspect debugging — lets us inspect the live DOM from
+            # chrome://inspect debugging â€” lets us inspect the live DOM from
             # desktop Chrome so we can update DARTCOUNTER_DRIVER selectors when
             # app.dartcounter.net's markup changes.
             try:
@@ -2814,16 +2814,16 @@ class DartVoiceLayout(FloatLayout):
 
     def _find_model(self):
         """Locate (and extract if needed) the Vosk model directory."""
-        self._set_status('Loading model…')
+        self._set_status('Loading modelâ€¦')
         path = _ensure_model()
         if not path:
             self._set_status('Vosk model not found')
         return path
 
-    # ── Score callbacks ───────────────────────────────────────────────────────
+    # â”€â”€ Score callbacks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @staticmethod
     def _haptic_pulse():
-        """Short 50 ms vibration — silently skipped on non-Android platforms."""
+        """Short 50 ms vibration â€” silently skipped on non-Android platforms."""
         try:
             from plyer import vibrator
             vibrator.vibrate(time=0.05)
@@ -2882,7 +2882,7 @@ class DartVoiceLayout(FloatLayout):
                     self.avg_lbl.text   = f'Avg {avg:.1f}'
                     self.darts_lbl.text = f'Darts {darts}'
                 else:
-                    self.avg_lbl.text   = 'Avg —'
+                    self.avg_lbl.text   = 'Avg â€”'
                     self.darts_lbl.text = 'Darts 0'
                 self._set_status(f"Undid {removed}")
             else:
@@ -2900,7 +2900,7 @@ class DartVoiceLayout(FloatLayout):
                 self.dart_row_lbl.text    = ''
                 self.dart_row_lbl.opacity = 0
             self._update_checkout_display()
-            self._set_status(f"New leg — {start} remaining")
+            self._set_status(f"New leg â€” {start} remaining")
         Clock.schedule_once(_do)
 
     def _apply_dart(self, dart_val, dart_disp):
@@ -2929,12 +2929,12 @@ class DartVoiceLayout(FloatLayout):
             speak(f"Average {avg:.0f}", self.cfg)
 
     def _update_dart_display(self):
-        """Show current dart slots (e.g. 'T19  15  —') in per-dart mode."""
+        """Show current dart slots (e.g. 'T19  15  â€”') in per-dart mode."""
         if not self.cfg.get('per_dart_mode', False):
             return
         slots = [d for _, d in self._current_darts]
         while len(slots) < 3:
-            slots.append('—')
+            slots.append('â€”')
         self.dart_row_lbl.text    = '   '.join(slots)
         self.dart_row_lbl.opacity = 1
 
@@ -2945,7 +2945,7 @@ class DartVoiceLayout(FloatLayout):
         rem = self._x01_remaining if self._x01_remaining is not None else self.state.remaining
         self.score_lbl.text = str(max(0, rem))
         hint = checkout_hint(rem)
-        self.checkout_lbl.text = hint or ('—' if isinstance(rem, int) and 2 <= rem <= 170 else '')
+        self.checkout_lbl.text = hint or ('â€”' if isinstance(rem, int) and 2 <= rem <= 170 else '')
 
     def _apply_x01(self, score):
         result = self.state.apply_x01(score)
@@ -2972,7 +2972,7 @@ class DartVoiceLayout(FloatLayout):
             self.avg_lbl.text   = f'Avg {avg:.1f}'
             self.darts_lbl.text = f'Darts {darts}'
         self._add_history(self.state.history[-1] if self.state.history else '')
-        # ── In-game score toast popup ─────────────────────────────────────
+        # â”€â”€ In-game score toast popup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         self._show_score_toast(score, result)
         if result == 'bust':
             self._set_status('BUST!')
@@ -3001,17 +3001,17 @@ class DartVoiceLayout(FloatLayout):
             self._set_status('All closed!')
             speak('All closed!', self.cfg)
 
-    # ── History ───────────────────────────────────────────────────────────────
+    # â”€â”€ History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _add_history(self, text):
-        # Try to split "label  →  remaining" or just show full text
+        # Try to split "label  â†’  remaining" or just show full text
         row = BoxLayout(
             orientation='horizontal', size_hint_y=None, height=dp(38),
             padding=[dp(12), 0, dp(12), 0], spacing=dp(8),
         )
         _card_bg(row, color=(0.09, 0.09, 0.11, 1), radius=8)
 
-        # Parse optional "score  →  remaining" format
-        parts = text.split('→') if '→' in text else [text, '']
+        # Parse optional "score  â†’  remaining" format
+        parts = text.split('â†’') if 'â†’' in text else [text, '']
         left_text  = parts[0].strip()
         right_text = parts[1].strip() if len(parts) > 1 else ''
 
@@ -3046,7 +3046,7 @@ class DartVoiceLayout(FloatLayout):
         self.history_box.add_widget(sep,  index=0)
         self.history_box.add_widget(row,  index=0)  # newest at top
 
-    # ── In-game score toast ───────────────────────────────────────────────────
+    # â”€â”€ In-game score toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _show_score_toast(self, score, result=None):
         """Show a floating score popup in the top stage area."""
         if result == 'bust':
@@ -3064,11 +3064,11 @@ class DartVoiceLayout(FloatLayout):
         center_x = self.width / 2
         toast.show(self, center_x, start_y)
 
-    # ── Status ────────────────────────────────────────────────────────────────
+    # â”€â”€ Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _set_status(self, msg):
         Clock.schedule_once(lambda dt: setattr(self.status_lbl, 'text', msg))
 
-    # ── Reset ─────────────────────────────────────────────────────────────────
+    # â”€â”€ Reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _reset(self):
         self.state.reset()
         self._current_darts = []
@@ -3087,10 +3087,10 @@ class DartVoiceLayout(FloatLayout):
             self.dart_row_lbl.opacity = 0
         if hasattr(self, 'checkout_lbl'):
             self.checkout_lbl.text = ''
-        self.avg_lbl.text    = 'Avg —'
+        self.avg_lbl.text    = 'Avg â€”'
         self.darts_lbl.text  = 'Darts 0'
         if hasattr(self, 'last_lbl'):
-            self.last_lbl.text = '—'
+            self.last_lbl.text = 'â€”'
         if hasattr(self, 'history_box'):
             self.history_box.clear_widgets()
         if hasattr(self, 'cricket_grid'):
@@ -3105,9 +3105,9 @@ class DartVoiceLayout(FloatLayout):
 
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Discord-style Loading Screen
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class LoadingScreen(FloatLayout):
     """Premium Discord-inspired loading sequence with animated logo and taglines."""
     taglines = [
@@ -3147,7 +3147,7 @@ class LoadingScreen(FloatLayout):
         self.add_widget(self.hero_card)
 
         self.badge_lbl = Label(
-            text='VOICE SCORING — PREMIUM',
+            text='VOICE SCORING â€” PREMIUM',
             font_size=sp(10), bold=True, color=ACCENT,
             pos_hint={'center_x': 0.5, 'center_y': 0.66},
             halign='center', valign='middle',
@@ -3287,14 +3287,14 @@ class LoadingScreen(FloatLayout):
         Animation(opacity=0, duration=0.8).start(self)
         Clock.schedule_once(lambda dt: self.on_complete(), 0.8)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Login / OTP Screen — opens dartvoice.app in the browser
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Login / OTP Screen â€” opens dartvoice.app in the browser
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class LoginScreen(FloatLayout):
     """
-    Full-screen login view that opens dartvoice.app/login.html in the
+    Full-screen login view that opens dartvoice.app/html/login.html in the
     system browser.  A local HTTP callback server receives the session
-    tokens automatically — the same polished web login the user sees on
+    tokens automatically â€” the same polished web login the user sees on
     desktop, with consistent styling.
     """
     def __init__(self, on_login, **kwargs):
@@ -3307,7 +3307,7 @@ class LoginScreen(FloatLayout):
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=self._update_bg, pos=self._update_bg)
 
-        # Card background — capped width so it doesn't stretch across tablets.
+        # Card background â€” capped width so it doesn't stretch across tablets.
         self.auth_card = Widget(
             size_hint=(None, None),
             size=(min(card_max_width(), dp(440)), dp(380)),
@@ -3464,9 +3464,9 @@ class LoginScreen(FloatLayout):
 
         login_via_web(callback=_on_result)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # App entry point
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class DartVoiceAndroidApp(App):
     def build(self):
         Window.clearcolor = BG
@@ -3515,17 +3515,17 @@ class DartVoiceAndroidApp(App):
             self.root.add_widget(self._crash_layout(traceback.format_exc()))
 
     def on_start(self):
-        """Called after window is shown — Activity is fully ready for permissions."""
+        """Called after window is shown â€” Activity is fully ready for permissions."""
         if ANDROID:
             Clock.schedule_once(lambda dt: self._request_mic_permission(), 0.5)
             # Handle any dartvoice://auth Intent that launched this activity,
             # and listen for future ones when the browser hands us tokens.
             self._install_deeplink_bridge()
 
-    # ─────────────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     # Deep-link bridge  (dartvoice://auth?access_token=...&refresh_token=...
     #                              &user_id=...&email=...)
-    # ─────────────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _install_deeplink_bridge(self):
         try:
             from jnius import autoclass  # type: ignore
@@ -3533,7 +3533,7 @@ class DartVoiceAndroidApp(App):
             PythonActivity = autoclass('org.kivy.android.PythonActivity')
             # Drain whatever Intent launched the activity (cold start case).
             self._consume_intent(PythonActivity.mActivity.getIntent())
-            # Register for subsequent Intents (warm start — app already alive).
+            # Register for subsequent Intents (warm start â€” app already alive).
             android_activity.bind(on_new_intent=self._consume_intent)
         except Exception as e:
             print(f'DEEPLINK bridge install failed: {e}', flush=True)
@@ -3575,7 +3575,7 @@ class DartVoiceAndroidApp(App):
             except Exception as e:
                 print(f'DEEPLINK save failed: {e}', flush=True)
 
-            # Advance the UI: drop the "Waiting for browser…" screen and
+            # Advance the UI: drop the "Waiting for browserâ€¦" screen and
             # move the user straight to the main app.
             Clock.schedule_once(lambda dt: self.do_login(uid), 0)
         except Exception as e:
@@ -3645,7 +3645,7 @@ class DartVoiceAndroidApp(App):
             # Check overlay permission before creating the overlay
             Settings = autoclass('android.provider.Settings')
             if not Settings.canDrawOverlays(PythonActivity.mActivity):
-                # Skip overlay — permission not granted (non-blocking)
+                # Skip overlay â€” permission not granted (non-blocking)
                 return
 
             Context = autoclass('android.content.Context')
@@ -3715,3 +3715,4 @@ class DartVoiceAndroidApp(App):
 
 if __name__ == '__main__':
     DartVoiceAndroidApp().run()
+

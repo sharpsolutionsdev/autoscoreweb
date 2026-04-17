@@ -1,30 +1,30 @@
-"""
-DartVoice — client-side billing module
+﻿"""
+DartVoice â€” client-side billing module
 =======================================
-Account system:  Supabase Auth  (email OTP — 6-digit code via Resend)
+Account system:  Supabase Auth  (email OTP â€” 6-digit code via Resend)
 Subscription:    Stripe (auto-billed monthly, 7-week trial)
 Status check:    Supabase  dartvoice_subscriptions table (anon key, RLS)
 
 Flow
 ----
-1. User enters email  →  send_otp(email)
+1. User enters email  â†’  send_otp(email)
    Supabase fires a Resend email with a 6-digit code.
 
-2. User enters code   →  verify_otp(email, code)
+2. User enters code   â†’  verify_otp(email, code)
    Returns a session.  Stored locally.  Subscription auto-restored.
 
-3. On every launch    →  refresh_session()
+3. On every launch    â†’  refresh_session()
    Re-uses stored session to fetch subscription status directly from
    Supabase (no separate billing server call needed for status).
 
-4. Checkout           →  get_checkout_url(user_id, install_id)
+4. Checkout           â†’  get_checkout_url(user_id, install_id)
    Opens billing server which creates a Stripe Checkout session.
    Stripe webhook writes back to Supabase on payment.
 
 Required env vars (baked into the app at build time):
-  SUPABASE_URL            — https://poyjykgqsvgimssbhsuz.supabase.co
-  SUPABASE_ANON_KEY       — publishable anon key
-  DV_BILLING_URL          — https://billing.dartvoice.app  (for checkout redirect)
+  SUPABASE_URL            â€” https://poyjykgqsvgimssbhsuz.supabase.co
+  SUPABASE_ANON_KEY       â€” publishable anon key
+  DV_BILLING_URL          â€” https://billing.dartvoice.app  (for checkout redirect)
 """
 
 import os, json, time, uuid, hashlib, threading
@@ -47,7 +47,7 @@ def _open_browser(url):
             pass
     webbrowser.open(url)
 
-# ── Supabase client (graceful fallback) ───────────────────────────────────────
+# â”€â”€ Supabase client (graceful fallback) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Catch Exception (not just ImportError) because pydantic-core can throw
 # OSError / RuntimeError when its compiled .so is missing or wrong-arch.
 try:
@@ -66,13 +66,13 @@ DEMO_MINUTES     = 10   # free demo window before subscription required
 _SALT            = 'dartvoice-billing-v1-8f3a'
 _ACTIVE_STATUSES = {'active', 'trialing'}
 
-# ── Admin bypass (dev/testing only) ──────────────────────────────────────────
-# sha256("DV-ADMIN-2026") — change the raw passcode to rotate it
+# â”€â”€ Admin bypass (dev/testing only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# sha256("DV-ADMIN-2026") â€” change the raw passcode to rotate it
 _ADMIN_HASH = '252772e3ca1a02b2dc9718fc087849969d1b0bb5721fd9e878d21e8d6fccdd5a'
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Storage
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _billing_dir() -> str:
     if os.name == 'nt':
         base = os.environ.get('APPDATA', os.path.expanduser('~'))
@@ -91,9 +91,9 @@ def _billing_dir() -> str:
 def _store_path() -> str:
     return os.path.join(_billing_dir(), 'billing.json')
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Tamper-evident local store
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _sign(data: dict) -> str:
     payload = json.dumps({k: v for k, v in data.items() if k != '_sig'},
                          sort_keys=True) + _SALT
@@ -115,9 +115,9 @@ def _save(data: dict):
     with open(_store_path(), 'w') as f:
         json.dump(data, f, indent=2)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Install ID (stable per device, used before account login)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def get_install_id() -> str:
     d = _load()
     if not d.get('install_id'):
@@ -126,9 +126,9 @@ def get_install_id() -> str:
         _save(d)
     return d['install_id']
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Supabase client
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 _sb: '_SBClient | None' = None
 
 def _client():
@@ -146,9 +146,9 @@ def _client():
                 pass
     return _sb
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Auth — email OTP (magic code, not magic link — works in desktop apps)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Auth â€” email OTP (magic code, not magic link â€” works in desktop apps)
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def send_otp(email: str) -> tuple[bool, str]:
     """
     Send a 6-digit OTP to the given email via Supabase Auth (Resend SMTP).
@@ -238,9 +238,9 @@ def refresh_session() -> bool:
         pass
     return False
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Subscription lookup (direct Supabase query, RLS-protected)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _fetch_sub_status() -> str:
     """Query dartvoice_subscriptions for the current user.  Returns status string."""
     sb = _client()
@@ -306,9 +306,9 @@ def is_subscribed() -> bool:
         return True
     return _cached_status() in _ACTIVE_STATUSES
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Demo window (10 minutes, device-local, before subscription required)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def demo_seconds_remaining() -> float:
     d     = _load()
     start = d.get('trial_start', time.time())
@@ -318,9 +318,9 @@ def demo_seconds_remaining() -> float:
 def demo_active() -> bool:
     return demo_seconds_remaining() > 0
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Async subscription check
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def check_subscription_async(callback):
     """
     Background thread: refresh session, then fetch subscription status.
@@ -329,7 +329,7 @@ def check_subscription_async(callback):
     def _do():
         account = get_account()
         if not account:
-            # Not logged in — fall back to trial / local cache
+            # Not logged in â€” fall back to trial / local cache
             callback(is_subscribed(), None)
             return
         refresh_session()
@@ -341,18 +341,18 @@ def check_subscription_async(callback):
         callback(status in _ACTIVE_STATUSES, account)
     threading.Thread(target=_do, daemon=True).start()
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Checkout URL
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def get_checkout_url() -> str:
     d = _load()
     uid        = d.get('sb_user_id', '')
     install_id = get_install_id()
     return f'{BILLING_SERVER}/checkout?user_id={uid}&install_id={install_id}'
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Convenience summary
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def billing_status() -> dict:
     admin      = is_admin_unlocked()
     account    = get_account()
@@ -373,16 +373,16 @@ def billing_status() -> dict:
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Web-based login (localhost callback)
-# ─────────────────────────────────────────────────────────────────────────────
-# Both Windows and Android open the browser to login.html?source=app&port=PORT.
-# After the user authenticates, login.html POSTs session tokens back to
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Both Windows and Android open the browser to html/login.html?source=app&port=PORT.
+# After the user authenticates, html/login.html POSTs session tokens back to
 # http://127.0.0.1:PORT/auth-callback.  This server catches that single
 # request, stores the tokens, then shuts down.
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-_LOGIN_SITE = 'https://dartvoice.app/login.html'
+_LOGIN_SITE = 'https://dartvoice.app/html/login.html'
 
 class _AuthCallbackHandler(BaseHTTPRequestHandler):
     """Handles the single POST /auth-callback from the browser."""
@@ -448,7 +448,7 @@ def login_via_web(callback=None, intent=''):
     ----------
     callback : callable(success: bool, account: dict | None)
         Called when auth completes (or times out).  May be called from a
-        background thread — use Clock/after to bounce to the UI thread.
+        background thread â€” use Clock/after to bounce to the UI thread.
     intent : str
         Optional 'subscribe' to open the sign-up variant.
 
@@ -456,8 +456,8 @@ def login_via_web(callback=None, intent=''):
     """
     # Android can't reliably receive a POST on 127.0.0.1 (app gets suspended
     # when it goes to the background, so the browser's POST is dropped).
-    # Instead, login.html redirects to dartvoice://auth?... and the Activity's
-    # Intent handler picks up the tokens — see _consume_intent in
+    # Instead, html/login.html redirects to dartvoice://auth?... and the Activity's
+    # Intent handler picks up the tokens â€” see _consume_intent in
     # dartvoice_android.py.  We just open the browser and poll the billing
     # store for the session to appear.
     if 'ANDROID_ARGUMENT' in os.environ:
@@ -467,7 +467,7 @@ def login_via_web(callback=None, intent=''):
                 params += f'&intent={intent}'
             _open_browser(f'{_LOGIN_SITE}?{params}')
 
-            # Poll the billing store for ~5 minutes — the Intent handler
+            # Poll the billing store for ~5 minutes â€” the Intent handler
             # writes the tokens there when the browser redirects back.
             deadline = time.time() + 300
             while time.time() < deadline:
@@ -511,3 +511,4 @@ def login_via_web(callback=None, intent=''):
                 callback(False, None)
 
     threading.Thread(target=_run, daemon=True).start()
+

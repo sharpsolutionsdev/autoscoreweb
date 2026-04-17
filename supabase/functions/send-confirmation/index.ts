@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SUPABASE EDGE FUNCTION: send-confirmation
  *
  * Triggered by database webhook on dartvoice_subscriptions INSERT/UPDATE.
@@ -7,9 +7,9 @@
  * Delegates to send-dartvoice-email edge function for actual email delivery.
  *
  * Environment:
- *   SUPABASE_URL             — auto-set
- *   SUPABASE_SERVICE_ROLE_KEY — service role key
- *   RESEND_API_KEY           — Resend API key (used by send-dartvoice-email)
+ *   SUPABASE_URL             â€” auto-set
+ *   SUPABASE_SERVICE_ROLE_KEY â€” service role key
+ *   RESEND_API_KEY           â€” Resend API key (used by send-dartvoice-email)
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
 
     switch (newStatus) {
       case "trialing":
-        // New trial — send welcome email
+        // New trial â€” send welcome email
         if (!oldStatus || oldStatus === "none") {
           emailType = "welcome";
         }
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
           month: "long",
           year: "numeric",
         });
-        emailData.billing_portal_url = "https://dartvoice.app/dartvoice-dashboard.html";
+        emailData.billing_portal_url = "https://dartvoice.app/html/dartvoice-dashboard.html";
         break;
 
       case "canceled":
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
     }
 
     if (!emailType) {
-      console.log(`No email for status transition: ${oldStatus} → ${newStatus}`);
+      console.log(`No email for status transition: ${oldStatus} â†’ ${newStatus}`);
       return new Response(
         JSON.stringify({ skipped: `no email for ${newStatus}` }),
         { status: 200 }
@@ -132,17 +132,17 @@ Deno.serve(async (req) => {
     const TEMPLATE_MAP: Record<string, { file: string; subject: string; from: string }> = {
       welcome: {
         file: "email-welcome.html",
-        subject: "Welcome to DartVoice — your trial is active",
+        subject: "Welcome to DartVoice â€” your trial is active",
         from: "DartVoice <welcome@dartvoice.app>",
       },
       "subscription-active": {
         file: "email-subscription-active.html",
-        subject: "Subscription confirmed — DartVoice Pro",
+        subject: "Subscription confirmed â€” DartVoice Pro",
         from: "DartVoice <noreply@dartvoice.app>",
       },
       "payment-failed": {
         file: "email-payment-failed.html",
-        subject: "Action needed — DartVoice payment failed",
+        subject: "Action needed â€” DartVoice payment failed",
         from: "DartVoice <noreply@dartvoice.app>",
       },
       cancelled: {
@@ -221,3 +221,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+

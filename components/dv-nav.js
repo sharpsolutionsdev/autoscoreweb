@@ -1,4 +1,4 @@
-// components/dv-nav.js
+﻿// components/dv-nav.js
 class DvNav extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
@@ -15,8 +15,8 @@ class DvNav extends HTMLElement {
                     <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
                 </a>
                 <div class="hidden sm:flex items-center gap-1">
-                    <a href="/index.html#features"     class="text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
-                    <a href="/index.html#pricing"      class="text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
+                    <a href="/html/index.html#features"     class="text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
+                    <a href="/html/index.html#pricing"      class="text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
                     <a href="guide"               class="text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
                     <a href="referral"            class="text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ambassador
@@ -37,8 +37,8 @@ class DvNav extends HTMLElement {
                 style="max-height:0;overflow:hidden;transition:max-height .35s ease"
                 class="sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
                 <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
-                    <a href="/index.html#features"  class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Features</a>
-                    <a href="/index.html#pricing"   class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Pricing</a>
+                    <a href="/html/index.html#features"  class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Features</a>
+                    <a href="/html/index.html#pricing"   class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Pricing</a>
                     <a href="guide"            class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Setup Guide</a>
                     <a href="referral"         class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 flex items-center gap-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
@@ -60,3 +60,4 @@ class DvNav extends HTMLElement {
   }
 }
 customElements.define("dv-nav", DvNav);
+

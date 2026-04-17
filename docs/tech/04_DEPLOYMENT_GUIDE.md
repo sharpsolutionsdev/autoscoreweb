@@ -1,4 +1,4 @@
-# Deployment & Compilation Guide
+﻿# Deployment & Compilation Guide
 
 This document outlines how to safely package and deploy the three discrete clients and the marketing website.
 
@@ -7,7 +7,7 @@ This document outlines how to safely package and deploy the three discrete clien
 The website consists entirely of static HTML, CSS, and JS. It requires no Node backend or heavy server architecture.
 - **Hosting:** Deploy directly to a CDN via Vercel, Netlify, or AWS S3 Cloudfront.
 - **Environment Targeting:** Ensure `gtag.js` identifiers are active on the production domain before shipping.
-- **Stripe Updates:** To change pricing or checkout routing, generate a new Payment Link in the Stripe Developer Dashboard and update the `href` on `index.html`.
+- **Stripe Updates:** To change pricing or checkout routing, generate a new Payment Link in the Stripe Developer Dashboard and update the `href` on `html/index.html`.
 
 ## 2. Packaging the Windows Executable (.exe)
 
@@ -42,3 +42,4 @@ The Chrome extension requires no compilation, only archiving.
 3. Zip the entire `/chrome_extension` folder.
    > **Note:** The compiled zip should already exist in `/build_artifacts` if no recent code changes were made.
 4. Upload the zip to the Chrome Web Store Developer Dashboard. Fill out the "Broad Host Permissions" justification to ensure the extension is allowed to inject scripts across multiple dart scoring domains.
+

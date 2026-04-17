@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SUPABASE EDGE FUNCTION: create-stripe-session
  *
  * Creates a Stripe Checkout session for DartVoice Pro subscriptions.
@@ -8,12 +8,12 @@
  *   { successUrl?, cancelUrl? }
  *
  * Environment:
- *   STRIPE_SECRET_KEY       — Stripe secret key
- *   STRIPE_PRICE_ID         — DartVoice Pro price ID
- *   SITE_URL                — https://dartvoice.app
- *   SUPABASE_URL            — auto-set by Supabase
- *   SUPABASE_ANON_KEY       — auto-set by Supabase
- *   SUPABASE_SERVICE_ROLE_KEY — service role key
+ *   STRIPE_SECRET_KEY       â€” Stripe secret key
+ *   STRIPE_PRICE_ID         â€” DartVoice Pro price ID
+ *   SITE_URL                â€” https://dartvoice.app
+ *   SUPABASE_URL            â€” auto-set by Supabase
+ *   SUPABASE_ANON_KEY       â€” auto-set by Supabase
+ *   SUPABASE_SERVICE_ROLE_KEY â€” service role key
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -35,7 +35,7 @@ serve(async (req) => {
     // Manual auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new Error("Not authenticated — please sign in first");
+      throw new Error("Not authenticated â€” please sign in first");
     }
 
     const supabaseClient = createClient(
@@ -49,7 +49,7 @@ serve(async (req) => {
       error: authError,
     } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      throw new Error("Not authenticated — please sign in first");
+      throw new Error("Not authenticated â€” please sign in first");
     }
 
     const { successUrl, cancelUrl } = await req.json();
@@ -94,8 +94,8 @@ serve(async (req) => {
       },
       client_reference_id: user.id,
       success_url:
-        successUrl || `${siteUrl}/thanks.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${siteUrl}/checkout-cancelled.html`,
+        successUrl || `${siteUrl}/html/thanks.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${siteUrl}/html/checkout-cancelled.html`,
       allow_promotion_codes: true,
     });
 
@@ -114,3 +114,4 @@ serve(async (req) => {
     });
   }
 });
+

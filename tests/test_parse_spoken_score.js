@@ -1,5 +1,5 @@
-// Simple Node test harness for parseSpokenScore
-// Mirrors logic from web-app.html (parseUnder100 + parseSpokenScore)
+﻿// Simple Node test harness for parseSpokenScore
+// Mirrors logic from html/web-app.html (parseUnder100 + parseSpokenScore)
 
 const _ONES = {
     'zero': 0, 'oh': 0, 'one': 1, 'won': 1, 'two': 2, 'too': 2, 'to': 2,
@@ -102,9 +102,9 @@ tests.forEach(([input, expected], i) => {
     const pass = (got === expected) || (Number.isNaN(got) && Number.isNaN(expected));
     if (!pass) {
         failures++;
-        console.error(`FAIL ${i + 1}: "${input}" → expected ${expected}, got ${got}`);
+        console.error(`FAIL ${i + 1}: "${input}" â†’ expected ${expected}, got ${got}`);
     } else {
-        console.log(`ok ${i + 1}: "${input}" → ${got}`);
+        console.log(`ok ${i + 1}: "${input}" â†’ ${got}`);
     }
 });
 
@@ -115,3 +115,4 @@ if (failures > 0) {
     console.log('\nAll tests passed.');
     process.exit(0);
 }
+

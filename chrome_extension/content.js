@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   // Kill any previous instance's recognition to prevent dual-mic fighting
   if (window.__dartvoiceRecognition) {
     try { window.__dartvoiceRecognition.abort(); } catch(e) {}
@@ -192,7 +192,7 @@
     dvAuth.micDeviceId = d.dv_mic_device_id || null;
   });
 
-  const isDartVoiceParent = window.location.href.includes('web-app.html') || window.location.href.includes('dartvoice-dashboard.html');
+  const isDartVoiceParent = window.location.href.includes('html/web-app.html') || window.location.href.includes('html/dartvoice-dashboard.html');
   const isIframe = window !== window.top;
 
   if (isDartVoiceParent) {
@@ -390,7 +390,7 @@
   panel.innerHTML = `
     <div class="header">
       <h3>DART<span class="text-red">VOICE</span> overlay</h3>
-      <span class="close-btn" id="dv-close">✖</span>
+      <span class="close-btn" id="dv-close">âœ–</span>
     </div>
     <div class="status-row">
       <span id="dv-status-text">Microphone Idle</span>
@@ -410,7 +410,7 @@
     <div class="lockout-overlay" id="dv-lockout" style="display:none;">
       <h4>Demo Expired</h4>
       <p>Your 10-minute demo has ended.<br>Sign in &amp; subscribe to continue.</p>
-      <a href="https://dartvoice.app/login.html" target="_blank">Sign In →</a>
+      <a href="https://dartvoice.app/html/login.html" target="_blank">Sign In â†’</a>
     </div>
   `;
   shadow.appendChild(panel);
@@ -611,7 +611,7 @@
         return;
     }
 
-    // Don't run voice on the DartVoice parent page - web-app.html handles it
+    // Don't run voice on the DartVoice parent page - html/web-app.html handles it
     if (isDartVoiceParent) {
         logTrace("Mic initialization blocked on DartVoice parent page.");
         return;
@@ -659,7 +659,7 @@
           _rapidRestarts = 0;
         }
         if (_rapidRestarts >= 5) {
-          logTrace('Recognition restarting too rapidly — stopping. Click Start Listening to retry.');
+          logTrace('Recognition restarting too rapidly â€” stopping. Click Start Listening to retry.');
           toggleMicBtn.dataset.intendedState = 'off';
           _rapidRestarts = 0;
           return;
@@ -776,7 +776,7 @@
     }
   }
 
-  // Retry wrapper — DartCounter may briefly hide the input after a submission
+  // Retry wrapper â€” DartCounter may briefly hide the input after a submission
   function injectScoreDirectDOMWithRetry(scoreStr, attempt) {
     attempt = attempt || 1;
     let el = document.querySelector('input[inputmode="numeric"]')
@@ -929,7 +929,7 @@
           logTrace("Received Window Payload:", event.data);
       }
 
-      // Extension detection handshake — reply so the parent knows we're alive
+      // Extension detection handshake â€” reply so the parent knows we're alive
       if (event.data.type === "DARTVOICE_PING") {
         event.source.postMessage({ type: "DARTVOICE_PONG" }, event.origin);
         return;
@@ -1024,3 +1024,4 @@
   } catch (e) { }
 
 })();
+

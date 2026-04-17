@@ -1,12 +1,12 @@
-"""
+﻿"""
 DartVoice Billing Server
 ========================
 Responsibilities:
-  1. /checkout  — creates a Stripe Checkout session for the given user
-  2. /webhook   — receives Stripe events, writes subscription state to Supabase
+  1. /checkout  â€” creates a Stripe Checkout session for the given user
+  2. /webhook   â€” receives Stripe events, writes subscription state to Supabase
 
 Database:  Supabase  (dartvoice_subscriptions table, service-role key)
-Email:     Resend  via Supabase Auth SMTP — no direct Resend calls needed here;
+Email:     Resend  via Supabase Auth SMTP â€” no direct Resend calls needed here;
            Supabase handles OTP delivery automatically once SMTP is configured.
 
 Environment variables  (see .env.example):
@@ -15,8 +15,8 @@ Environment variables  (see .env.example):
   STRIPE_PRICE_ID          price_...
   SUPABASE_URL             https://poyjykgqsvgimssbhsuz.supabase.co
   SUPABASE_SERVICE_KEY     service_role secret key (never ships in the app)
-    SUCCESS_URL              https://dartvoice.app/thanks.html
-    CANCEL_URL               https://dartvoice.app/checkout-cancelled.html
+    SUCCESS_URL              https://dartvoice.app/html/thanks.html
+    CANCEL_URL               https://dartvoice.app/html/checkout-cancelled.html
 """
 
 import json
@@ -34,23 +34,23 @@ CORS(app, origins=[
     'https://www.dartvoice.app',
 ])
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 stripe.api_key      = os.environ['STRIPE_SECRET_KEY']
 _WEBHOOK_SECRET     = os.environ['STRIPE_WEBHOOK_SECRET']
 _PRICE_ID           = os.environ['STRIPE_PRICE_ID']
 TRIAL_DAYS          = 7
-SUCCESS_URL         = os.environ.get('SUCCESS_URL', 'https://dartvoice.app/thanks.html')
-CANCEL_URL          = os.environ.get('CANCEL_URL',  'https://dartvoice.app/checkout-cancelled.html')
+SUCCESS_URL         = os.environ.get('SUCCESS_URL', 'https://dartvoice.app/html/thanks.html')
+CANCEL_URL          = os.environ.get('CANCEL_URL',  'https://dartvoice.app/html/checkout-cancelled.html')
 
-# ── Supabase admin client (service key — server only, never in the app) ───────
+# â”€â”€ Supabase admin client (service key â€” server only, never in the app) â”€â”€â”€â”€â”€â”€â”€
 _sb = create_client(
     os.environ['SUPABASE_URL'],
     os.environ['SUPABASE_SERVICE_KEY'],
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Supabase helpers
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _upsert_sub(user_id: str, **fields):
     """Insert or update a subscription row for the given Supabase user_id."""
     fields['user_id']    = user_id
@@ -123,20 +123,20 @@ def _get_sub_row(user_id: str) -> dict | None:
     return None
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Routes
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/health')
 def health():
     """
-    Deep health check — verifies Stripe API access and Supabase DB connectivity.
+    Deep health check â€” verifies Stripe API access and Supabase DB connectivity.
     Returns HTTP 200 with {'ok': True, 'checks': {...}} on success,
     or HTTP 503 with details of what failed.
     """
     checks = {}
     ok = True
 
-    # ── 1. Stripe connectivity ────────────────────────────────────────────────
+    # â”€â”€ 1. Stripe connectivity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try:
         stripe.Account.retrieve()
         checks['stripe'] = 'ok'
@@ -147,9 +147,9 @@ def health():
         checks['stripe'] = f'error: {e}'
         ok = False
 
-    # ── 2. Supabase DB connectivity (read-only — service key required) ────────
+    # â”€â”€ 2. Supabase DB connectivity (read-only â€” service key required) â”€â”€â”€â”€â”€â”€â”€â”€
     try:
-        # A lightweight count query — verifies the DB is reachable and
+        # A lightweight count query â€” verifies the DB is reachable and
         # the service key has access to the subscriptions table.
         _sb.table('dartvoice_subscriptions').select('id', count='exact').limit(0).execute()
         checks['supabase'] = 'ok'
@@ -157,7 +157,7 @@ def health():
         checks['supabase'] = f'error: {e}'
         ok = False
 
-    # ── 3. Stripe price configured ───────────────────────────────────────────
+    # â”€â”€ 3. Stripe price configured â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try:
         stripe.Price.retrieve(_PRICE_ID)
         checks['stripe_price'] = 'ok'
@@ -278,7 +278,7 @@ def portal():
     try:
         session = stripe.billing_portal.Session.create(
             customer=customer_id,
-            return_url='https://dartvoice.app/dartvoice-dashboard.html',
+            return_url='https://dartvoice.app/html/dartvoice-dashboard.html',
         )
         return redirect(session.url, code=303)
     except stripe.StripeError as e:
@@ -314,7 +314,7 @@ def webhook():
     app.logger.info('Received Stripe event %s id=%s', etype, event_id)
     obj = (evt.get('data') or {}).get('object', {})
 
-    # ── Checkout completed ────────────────────────────────────────────────────
+    # â”€â”€ Checkout completed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if etype == 'checkout.session.completed':
         user_id    = obj.get('client_reference_id')
         cust_id    = obj.get('customer')
@@ -350,7 +350,7 @@ def webhook():
 
             # Emails are handled by the DB trigger (send-confirmation edge function)
 
-    # ── Subscription updated / created ────────────────────────────────────────
+    # â”€â”€ Subscription updated / created â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     elif etype in ('customer.subscription.created',
                    'customer.subscription.updated'):
         cust_id = obj.get('customer')
@@ -381,14 +381,14 @@ def webhook():
             _upsert_sub(user_id, **fields)
             # Emails are handled by the DB trigger (send-confirmation edge function)
 
-    # ── Subscription deleted ──────────────────────────────────────────────────
+    # â”€â”€ Subscription deleted â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     elif etype == 'customer.subscription.deleted':
         cust_id = obj.get('customer')
         user_id = _user_id_for_customer(cust_id)
         if user_id:
             _upsert_sub(user_id, status='canceled')
 
-    # ── First invoice paid (trial converts to active) ─────────────────────────
+    # â”€â”€ First invoice paid (trial converts to active) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     elif etype == 'invoice.payment_succeeded':
         cust_id = obj.get('customer')
         sub_id = obj.get('subscription')
@@ -411,7 +411,7 @@ def webhook():
             except Exception:
                 pass
 
-            # ── Referral conversion: credit the ambassador ────────────
+            # â”€â”€ Referral conversion: credit the ambassador â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             try:
                 ref_resp = _sb.table('dartvoice_referrals') \
                     .select('id, status') \
@@ -426,7 +426,7 @@ def webhook():
             except Exception:
                 pass
 
-    # ── Payment failed ────────────────────────────────────────────────────────
+    # â”€â”€ Payment failed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     elif etype == 'invoice.payment_failed':
         cust_id = obj.get('customer')
         user_id = _user_id_for_customer(cust_id)
@@ -438,3 +438,4 @@ def webhook():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8000)), debug=False)
+

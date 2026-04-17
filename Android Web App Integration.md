@@ -1,4 +1,4 @@
-# Chat Conversation
+﻿# Chat Conversation
 
 Note: _This is purely the output of the chat conversation and does not contain any raw data, codebase snippets, etc. used to generate the output._
 
@@ -276,7 +276,7 @@ Continue
 
 Continue
 
-*Viewed [web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/web-app.html) *
+*Viewed [html/web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/web-app.html) *
 
 *Listed directory [autoscore](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/autoscore) *
 
@@ -333,7 +333,7 @@ Now let me look at the Chrome extension's content.js to understand what it injec
 
 *Viewed [content.js](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/chrome_extension/content.js) *
 
-*Viewed [web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/web-app.html) *
+*Viewed [html/web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/web-app.html) *
 
 ### User Input
 
@@ -350,15 +350,15 @@ Now I have a complete picture of the architecture. Let me create the implementat
 Here's my plan for making the APK run the web app without needing the Chrome extension. The key idea:
 
 **Dual-WebView Architecture:**
-- **WebView 1** loads a new simplified mobile page (`web-app-mobile.html`) — your command center with voice controls, score log, and settings
-- **WebView 2** loads DartCounter directly — the APK handles score injection via `evaluateJavascript()` (the same capability the extension provides, but built into the APK)
-- A **JavaScript bridge** (`DartVoiceBridge`) connects them — when the mobile page recognizes a score, it calls the bridge, which tells the APK to inject it into DartCounter
+- **WebView 1** loads a new simplified mobile page (`html/web-app-mobile.html`) â€” your command center with voice controls, score log, and settings
+- **WebView 2** loads DartCounter directly â€” the APK handles score injection via `evaluateJavascript()` (the same capability the extension provides, but built into the APK)
+- A **JavaScript bridge** (`DartVoiceBridge`) connects them â€” when the mobile page recognizes a score, it calls the bridge, which tells the APK to inject it into DartCounter
 
-The mobile page would be **much simpler** — single-column layout, big listen button, no sidebar/iframe split, no extension gate, no mobile gate. Just the essentials.
+The mobile page would be **much simpler** â€” single-column layout, big listen button, no sidebar/iframe split, no extension gate, no mobile gate. Just the essentials.
 
 Please review the implementation plan and let me know:
 1. Are you happy with the dual-WebView approach or would you prefer a different UX (e.g. tabs, split screen)?
-2. Should I host the page online at `dartvoice.app` (recommended — always up-to-date) or bundle it in the APK?
+2. Should I host the page online at `dartvoice.app` (recommended â€” always up-to-date) or bundle it in the APK?
 3. Should I start with Web Speech API for voice and add Vosk fallback later if needed?
 
 ### User Input
@@ -389,17 +389,17 @@ Now let me look at the buildozer.spec to understand how Java sources are include
 
 ### Planner Response
 
-Good. I can see `android.add_src = src` which means our Java files in `src/com/dartvoice/` get compiled. Now let me look at how web-app.html starts (header/meta) to match the style system:
+Good. I can see `android.add_src = src` which means our Java files in `src/com/dartvoice/` get compiled. Now let me look at how html/web-app.html starts (header/meta) to match the style system:
 
-*Viewed [web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/web-app.html) *
+*Viewed [html/web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/web-app.html) *
 
 ### Planner Response
 
-Let me see more of the web-app.html to get the scoring logic I'll need to port:
+Let me see more of the html/web-app.html to get the scoring logic I'll need to port:
 
-*Viewed [web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/web-app.html) *
+*Viewed [html/web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/web-app.html) *
 
-*Viewed [web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/web-app.html) *
+*Viewed [html/web-app.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/web-app.html) *
 
 ### User Input
 
@@ -446,7 +446,7 @@ Let me build everything now and then trigger the APK build. Starting with all th
 
 ### Planner Response
 
-Good — I can see the workflow triggers on push to `main` or `working` branches, or on `workflow_dispatch`. Now let me create all three files. Starting with the largest — the mobile web page:
+Good â€” I can see the workflow triggers on push to `main` or `working` branches, or on `workflow_dispatch`. Now let me create all three files. Starting with the largest â€” the mobile web page:
 
 *Edited relevant file*
 
@@ -476,7 +476,7 @@ Now updating `main.py` with the dual-WebView architecture:
 
 ### Planner Response
 
-Now I need to update the Android build workflow to trigger on main.py changes (it already does) and also add the `web-app-mobile.html` path. Let me also add `main.py` to the trigger paths list and ensure the Java bridge gets compiled. Let me commit and push to trigger the build:
+Now I need to update the Android build workflow to trigger on main.py changes (it already does) and also add the `html/web-app-mobile.html` path. Let me also add `main.py` to the trigger paths list and ensure the Java bridge gets compiled. Let me commit and push to trigger the build:
 
 *Edited relevant file*
 
@@ -514,22 +514,22 @@ Continue
 
 ### Planner Response
 
-Browser preview unavailable — let me commit and push to trigger the APK build workflow:
+Browser preview unavailable â€” let me commit and push to trigger the APK build workflow:
 
 *User accepted the command `git status --short`*
 
-*User accepted the command `git add web-app-mobile.html autoscore/src/com/dartvoice/DartVoiceBridge.java autoscore/main.py .github/workflows/build-android.yml`*
+*User accepted the command `git add html/web-app-mobile.html autoscore/src/com/dartvoice/DartVoiceBridge.java autoscore/main.py .github/workflows/build-android.yml`*
 
 *User accepted the command `git commit -m "feat: APK-embedded mobile scorer with dual-WebView architecture
 
-- Add web-app-mobile.html: mobile-first control panel with Web Speech API
+- Add html/web-app-mobile.html: mobile-first control panel with Web Speech API
   voice recognition, score parsing, session stats, and DartVoiceBridge integration
 - Add DartVoiceBridge.java: JS bridge with evaluateOnScorer(), openScorer(),
   closeScorer() for dual-WebView score injection
 - Update main.py: FrameLayout root with control WebView + bridge wiring
 - Update build-android.yml: add main.py and src/** to trigger paths
 
-No Chrome extension needed — the APK handles injection directly via
+No Chrome extension needed â€” the APK handles injection directly via
 evaluateJavascript() on the DartCounter WebView."`*
 
 *User accepted the command `git push origin working`*
@@ -556,8 +556,8 @@ Pushed successfully! The APK build workflow should be running now. Let me verify
 
 Both workflows are running:
 
-1. **Build Android APK** (run #45) — `status: "in_progress"` ✅ Building the APK with the new dual-WebView architecture
-2. **Pages build and deployment** (run #130) — `status: "in_progress"` ✅ Deploying `web-app-mobile.html` to dartvoice.app
+1. **Build Android APK** (run #45) â€” `status: "in_progress"` âœ… Building the APK with the new dual-WebView architecture
+2. **Pages build and deployment** (run #130) â€” `status: "in_progress"` âœ… Deploying `html/web-app-mobile.html` to dartvoice.app
 
 Now let me update the task list:
 
@@ -567,27 +567,27 @@ Now let me update the task list:
 
 Everything is built and deployed. Here's the summary:
 
-## ✅ All Code Complete — APK Building
+## âœ… All Code Complete â€” APK Building
 
 ### What was created:
 
 | File | Purpose |
 |------|---------|
-| **`web-app-mobile.html`** | Mobile-first control dashboard — dark theme, big mic button, EQ visualizer, score log, session stats, settings, voice commands reference. No extension gate, no mobile gate. Responsive for phone + tablet. |
-| **`DartVoiceBridge.java`** | Java bridge class exposed as `window.DartVoiceBridge` in JS. Methods: `evaluateOnScorer(js)`, `openScorer()`, `closeScorer()`, `isScorerOpen()`. Lazily creates the DartCounter WebView with a floating "← BACK TO CONTROLS" button. |
-| **`main.py`** | Simplified entry point — FrameLayout root → control WebView loads `dartvoice.app/web-app-mobile.html` with bridge wired → bridge manages hidden scorer WebView. |
+| **`html/web-app-mobile.html`** | Mobile-first control dashboard â€” dark theme, big mic button, EQ visualizer, score log, session stats, settings, voice commands reference. No extension gate, no mobile gate. Responsive for phone + tablet. |
+| **`DartVoiceBridge.java`** | Java bridge class exposed as `window.DartVoiceBridge` in JS. Methods: `evaluateOnScorer(js)`, `openScorer()`, `closeScorer()`, `isScorerOpen()`. Lazily creates the DartCounter WebView with a floating "â† BACK TO CONTROLS" button. |
+| **`main.py`** | Simplified entry point â€” FrameLayout root â†’ control WebView loads `dartvoice.app/html/web-app-mobile.html` with bridge wired â†’ bridge manages hidden scorer WebView. |
 
 ### Architecture:
 ```
-APK opens → WebView 1 (control panel @ dartvoice.app/web-app-mobile.html)
-                ↓ User taps "Open DartCounter"
-            WebView 2 (DartCounter @ app.dartcounter.net) — full-screen overlay
-                ↑ Scores injected via evaluateJavascript()
+APK opens â†’ WebView 1 (control panel @ dartvoice.app/html/web-app-mobile.html)
+                â†“ User taps "Open DartCounter"
+            WebView 2 (DartCounter @ app.dartcounter.net) â€” full-screen overlay
+                â†‘ Scores injected via evaluateJavascript()
 ```
 
 ### Status:
-- 🔄 **APK Build** — [Run #45 in progress](https://github.com/sharpsolutionsdev/autoscoreweb/actions/runs/24442552352) (~30-60 min)
-- 🔄 **GitHub Pages** — deploying `web-app-mobile.html` to dartvoice.app
+- ðŸ”„ **APK Build** â€” [Run #45 in progress](https://github.com/sharpsolutionsdev/autoscoreweb/actions/runs/24442552352) (~30-60 min)
+- ðŸ”„ **GitHub Pages** â€” deploying `html/web-app-mobile.html` to dartvoice.app
 - Will be downloadable at: `https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk`
 
 ### User Input
@@ -602,7 +602,7 @@ The "Manage Subscription" button is failing to open the Stripe billing portal. L
 
 *Grep searched codebase*
 
-*Viewed [dartvoice-dashboard.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/dartvoice-dashboard.html) *
+*Viewed [html/dartvoice-dashboard.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/dartvoice-dashboard.html) *
 
 ### Planner Response
 
@@ -652,13 +652,13 @@ Found the issue! The logs show:
 POST | 401 | create-stripe-portal
 ```
 
-The `create-stripe-portal` function has `verify_jwt: true`, which means Supabase's API gateway rejects the request with 401 **before** the function code even runs — because the dashboard sends the JWT as `Authorization: Bearer <token>`, but Supabase is rejecting it at the gateway level.
+The `create-stripe-portal` function has `verify_jwt: true`, which means Supabase's API gateway rejects the request with 401 **before** the function code even runs â€” because the dashboard sends the JWT as `Authorization: Bearer <token>`, but Supabase is rejecting it at the gateway level.
 
 The issue is likely that the dashboard's `openStripePortal` function catches the 401 as a generic error (it falls into the catch block which shows "Could not open billing portal. Try again."). But the real problem is the 401 from Supabase's JWT verification gateway.
 
-Let me check — the function has `verify_jwt: true`, but the dashboard sends `Authorization: Bearer <session.access_token>`. This should work. But looking more carefully at the error toast message in the screenshot — it says "Could not open billing portal. **Try again.**" — that's different from the code at line 1422 which says "Could not open billing portal. **Please contact support.**"
+Let me check â€” the function has `verify_jwt: true`, but the dashboard sends `Authorization: Bearer <session.access_token>`. This should work. But looking more carefully at the error toast message in the screenshot â€” it says "Could not open billing portal. **Try again.**" â€” that's different from the code at line 1422 which says "Could not open billing portal. **Please contact support.**"
 
-Wait, looking at the code again at line 1422, it says "Please contact support." but the screenshot says "Try again." Let me check if there's a second version of this toast. Actually the toast message doesn't match exactly — the screenshot shows "Could not open billing portal. Try again." but the code says "Could not open billing portal. Please contact support." This might mean the code has been updated since or there's another error path.
+Wait, looking at the code again at line 1422, it says "Please contact support." but the screenshot says "Try again." Let me check if there's a second version of this toast. Actually the toast message doesn't match exactly â€” the screenshot shows "Could not open billing portal. Try again." but the code says "Could not open billing portal. Please contact support." This might mean the code has been updated since or there's another error path.
 
 Regardless, the root cause is clear from the logs: **401 on `create-stripe-portal`**. The function has `verify_jwt: true`, and the JWT is being rejected. The fix is to redeploy with `verify_jwt: false` (the function already does its own auth check internally), matching how `sync-stripe-subscription` was fixed (it went from v5 with 401s to v9 working fine).
 
@@ -688,15 +688,15 @@ to match the pattern used by sync-stripe-subscription and other functions."`*
 
 ### Planner Response
 
-## ✅ Billing portal fixed
+## âœ… Billing portal fixed
 
 **Root cause:** The `create-stripe-portal` edge function had `verify_jwt: true`, which caused Supabase's API gateway to reject the request with a **401** before the function code even ran. The logs showed:
 
 ```
-POST | 401 | create-stripe-portal  (×2 attempts)
+POST | 401 | create-stripe-portal  (Ã—2 attempts)
 ```
 
-**Fix:** Redeployed with `verify_jwt: false` (v4 → v5). The function already does its own auth verification internally via `supabase.auth.getUser()`, matching the same pattern used by `sync-stripe-subscription` and other working functions.
+**Fix:** Redeployed with `verify_jwt: false` (v4 â†’ v5). The function already does its own auth verification internally via `supabase.auth.getUser()`, matching the same pattern used by `sync-stripe-subscription` and other working functions.
 
 The "Manage Subscription" button should now open the Stripe billing portal correctly. Try it now!
 
@@ -716,13 +716,13 @@ ok apk is pretty decent, we could do with slightly more protection, like i cant 
 
 Good feedback! Let me look at the current mobile page and bridge to fix these issues:
 
-1. **Remove demo mode** → require subscribed account
-2. **Fix injection** → no keypad/keyboard showing, direct button clicks
-3. **Filter empty scores** → don't submit noise/blanks
-4. **Improve reliability** → better state management
+1. **Remove demo mode** â†’ require subscribed account
+2. **Fix injection** â†’ no keypad/keyboard showing, direct button clicks
+3. **Filter empty scores** â†’ don't submit noise/blanks
+4. **Improve reliability** â†’ better state management
 
-*Viewed [web-app-mobile.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/web-app-mobile.html) *
+*Viewed [html/web-app-mobile.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/web-app-mobile.html) *
 
 *Viewed [DartVoiceBridge.java](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/autoscore/src/com/dartvoice/DartVoiceBridge.java) *
 
-*Viewed [web-app-mobile.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/web-app-mobile.html) *
+*Viewed [html/web-app-mobile.html](file:///c:/Users/vrynw/Documents/GitHub/dartvoice/testomg/html/web-app-mobile.html) *

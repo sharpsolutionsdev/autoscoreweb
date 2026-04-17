@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Google Analytics -->
@@ -18,7 +18,7 @@
     <meta property="og:title" content="Welcome to DartVoice">
     <meta property="og:description" content="Your subscription is active. Download the app and start scoring with your voice.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/thanks.html">
+    <meta property="og:url" content="https://dartvoice.app/html/thanks.html">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Welcome to DartVoice">
@@ -181,7 +181,7 @@
             confetti.push(el);
         }
         
-        // Sync Stripe subscription — poll DB until the webhook lands (or up to ~12s),
+        // Sync Stripe subscription â€” poll DB until the webhook lands (or up to ~12s),
         // fall back to the sync-stripe-subscription function if needed, then redirect.
         (async function() {
             const SUPABASE_URL = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : (window.SUPABASE_URL || 'https://poyjykgqsvgimssbhsuz.supabase.co'));
@@ -193,7 +193,7 @@
                 redirected = true;
                 try { sessionStorage.setItem('dv-just-subscribed', '1'); } catch (_) {}
                 const isApk = sessionStorage.getItem('dv_apk_login') === '1';
-                window.location.href = isApk ? 'apk-gate.html' : 'dartvoice-dashboard.html?checkout=success';
+                window.location.href = isApk ? 'html/apk-gate.html' : 'html/dartvoice-dashboard.html?checkout=success';
             };
 
             try {
@@ -216,7 +216,7 @@
                     body: '{}',
                 }).catch(e => console.warn('sync call failed:', e));
 
-                // Poll dartvoice_subscriptions up to 12 attempts × 1s = 12s.
+                // Poll dartvoice_subscriptions up to 12 attempts Ã— 1s = 12s.
                 for (let i = 0; i < 12; i++) {
                     await new Promise(r => setTimeout(r, 1000));
                     const { data: sub } = await sb
@@ -230,7 +230,7 @@
                         return;
                     }
                 }
-                // Fallback: redirect anyway — dashboard will try one more sync.
+                // Fallback: redirect anyway â€” dashboard will try one more sync.
                 redirect();
             } catch (e) {
                 console.warn('thanks sync failed:', e);
@@ -240,3 +240,4 @@
     </script>
 </body>
 </html>
+

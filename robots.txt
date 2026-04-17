@@ -1,7 +1,7 @@
-User-agent: *
+﻿User-agent: *
 Allow: /
 
-Disallow: /dartvoice-dashboard.html
+Disallow: /html/dartvoice-dashboard.html
 Disallow: /prototypes/
 Disallow: /logs/
 Disallow: /migrations/
@@ -9,3 +9,4 @@ Disallow: /autoscore/
 Disallow: /build_artifacts/
 
 Sitemap: https://dartvoice.app/sitemap.xml
+

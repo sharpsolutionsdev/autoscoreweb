@@ -1,13 +1,13 @@
-/**
+﻿/**
  * SUPABASE EDGE FUNCTION: notify-contact
  *
  * Sends a notification email to support when someone submits the contact form.
- * Called from contact.html via fetch().
+ * Called from html/contact.html via fetch().
  *
  * POST body: { subject, email, message }
  *
  * Environment:
- *   RESEND_API_KEY — Resend API key (dartvoice.app domain verified)
+ *   RESEND_API_KEY â€” Resend API key (dartvoice.app domain verified)
  */
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -115,3 +115,4 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+

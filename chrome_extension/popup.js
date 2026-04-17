@@ -1,7 +1,7 @@
-// popup.js — DartVoice extension popup
+﻿// popup.js â€” DartVoice extension popup
 var DEMO_LIMIT_MS = 10 * 60 * 1000;
 
-// ── DOM refs ─────────────────────────────────────────────────────────────────
+// â”€â”€ DOM refs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 var viewNormal      = document.getElementById('view-normal');
 var viewLockout     = document.getElementById('view-lockout');
 var acctSignedOut   = document.getElementById('acct-signed-out');
@@ -25,7 +25,7 @@ function formatTime(ms) {
     return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
-// ── State ────────────────────────────────────────────────────────────────────
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getState() {
     return new Promise(function (resolve) {
         chrome.runtime.sendMessage({ type: 'DV_GET_STATE' }, function (resp) {
@@ -34,7 +34,7 @@ function getState() {
     });
 }
 
-// ── Mic enumeration ──────────────────────────────────────────────────────────
+// â”€â”€ Mic enumeration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadMics() {
     try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -65,7 +65,7 @@ micSelect.addEventListener('change', function () {
     chrome.runtime.sendMessage({ type: 'DV_SET_MIC', deviceId: micSelect.value });
 });
 
-// ── Render UI ────────────────────────────────────────────────────────────────
+// â”€â”€ Render UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function render() {
     var state = await getState();
     var hasSub = state.sub === 'active' || state.sub === 'trialing';
@@ -86,10 +86,10 @@ async function render() {
         acctSignedIn.classList.remove('hidden');
         acctEmail.textContent = state.email;
         if (state.sub === 'active') {
-            acctSub.textContent = '✓ Active subscription';
+            acctSub.textContent = 'âœ“ Active subscription';
             acctSub.className = 'account-sub sub-active';
         } else if (state.sub === 'trialing') {
-            acctSub.textContent = '✓ Free trial active';
+            acctSub.textContent = 'âœ“ Free trial active';
             acctSub.className = 'account-sub sub-trial';
         } else {
             acctSub.textContent = 'No active subscription';
@@ -116,7 +116,7 @@ async function render() {
     }
 }
 
-// ── Launch overlay ───────────────────────────────────────────────────────────
+// â”€â”€ Launch overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 btnLaunch.addEventListener('click', async function () {
     var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     var tab = tabs[0];
@@ -135,7 +135,7 @@ btnLaunch.addEventListener('click', async function () {
     // Try sending config to an already-running content script first
     chrome.tabs.sendMessage(tab.id, config, function (response) {
         if (chrome.runtime.lastError || !response || !response.ok) {
-            // Content script not loaded — inject it, then send config
+            // Content script not loaded â€” inject it, then send config
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ['content.js']
@@ -151,9 +151,9 @@ btnLaunch.addEventListener('click', async function () {
     });
 });
 
-// ── Navigation ───────────────────────────────────────────────────────────────
+// â”€â”€ Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openSignIn() {
-    chrome.tabs.create({ url: 'https://dartvoice.app/login.html' });
+    chrome.tabs.create({ url: 'https://dartvoice.app/html/login.html' });
     window.close();
 }
 
@@ -161,7 +161,7 @@ btnSignIn.addEventListener('click', openSignIn);
 btnLockoutSignin.addEventListener('click', openSignIn);
 
 btnLockoutPlans.addEventListener('click', function () {
-    chrome.tabs.create({ url: 'https://dartvoice.app/index.html#pricing' });
+    chrome.tabs.create({ url: 'https://dartvoice.app/html/index.html#pricing' });
     window.close();
 });
 
@@ -172,8 +172,9 @@ btnSignOut.addEventListener('click', async function () {
     render();
 });
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 loadMics();
 render();
 chrome.runtime.sendMessage({ type: 'DV_CHECK_SUB' });
+
 

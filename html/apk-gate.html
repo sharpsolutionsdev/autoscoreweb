@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DartVoice — APK</title>
+<title>DartVoice â€” APK</title>
 <meta name="theme-color" content="var(--brand)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,7 +234,7 @@ html, body {
 
         <div class="hero">
             <h1>Hands-free<br><em>dart scoring.</em></h1>
-            <p>A DartVoice subscription is required to use the mobile app. Start your 7-day free trial — no card charged until day 8.</p>
+            <p>A DartVoice subscription is required to use the mobile app. Start your 7-day free trial â€” no card charged until day 8.</p>
         </div>
 
         <div class="error" id="gate-error"></div>
@@ -244,7 +244,7 @@ html, body {
                 <div class="feature-icon">
                     <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v7a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v1a7 7 0 01-14 0v-1M12 18v5m-4 0h8"/></svg>
                 </div>
-                <div class="feature-text">Voice-controlled scoring<span>Say "one eighty" — scored instantly</span></div>
+                <div class="feature-text">Voice-controlled scoring<span>Say "one eighty" â€” scored instantly</span></div>
             </div>
             <div class="feature">
                 <div class="feature-icon">
@@ -256,7 +256,7 @@ html, body {
                 <div class="feature-icon">
                     <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <div class="feature-text">7 days free, then £6.99/mo<span>Cancel anytime — no lock-in</span></div>
+                <div class="feature-text">7 days free, then Â£6.99/mo<span>Cancel anytime â€” no lock-in</span></div>
             </div>
         </div>
 
@@ -308,13 +308,13 @@ html, body {
     }
 
     function goTrial(){
-        window.location.href = 'https://dartvoice.app/login.html?source=apk&trial=1';
+        window.location.href = 'https://dartvoice.app/html/login.html?source=apk&trial=1';
     }
     function goSignIn(){
-        window.location.href = 'https://dartvoice.app/login.html?source=apk';
+        window.location.href = 'https://dartvoice.app/html/login.html?source=apk';
     }
     function goApp(){
-        window.location.replace('https://dartvoice.app/web-app-mobile.html?apk=1');
+        window.location.replace('https://dartvoice.app/html/web-app-mobile.html?apk=1');
     }
 
     document.getElementById('btn-trial').addEventListener('click', goTrial);
@@ -346,7 +346,7 @@ html, body {
             if (active) { goApp(); return; }
             show('gate');
         } catch (e) {
-            document.getElementById('retry-error').textContent = 'Network error — check your connection.';
+            document.getElementById('retry-error').textContent = 'Network error â€” check your connection.';
             show('retry');
         }
     }
@@ -356,3 +356,4 @@ html, body {
 </script>
 </body>
 </html>
+

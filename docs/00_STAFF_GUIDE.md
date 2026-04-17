@@ -1,9 +1,9 @@
-# DartVoice: Internal Overview & Staff Guide
+﻿# DartVoice: Internal Overview & Staff Guide
 
 Welcome to the DartVoice team. This document provides a comprehensive overview of the DartVoice application, our core value proposition to users, our monetization model, our acquisition funnel, and our strategic advertising and marketing blueprint. This is essential reading for all internal staff to align our efforts across development, support, and growth.
 
 ## 1. General Overview
-DartVoice is a revolutionary voice-controlled auto-scoring system designed specifically for darts players. Traditional digital scoring requires players to manually tap their scores into software applications—disrupting their rhythm, focus, and practice flow. DartVoice solves this by acting as a universal, hands-free voice interface.
+DartVoice is a revolutionary voice-controlled auto-scoring system designed specifically for darts players. Traditional digital scoring requires players to manually tap their scores into software applicationsâ€”disrupting their rhythm, focus, and practice flow. DartVoice solves this by acting as a universal, hands-free voice interface.
 
 The proprietary system listens for standardized darts terminology (e.g., "Triple twenty", "Ton eighty", "Two marks on nineteen") and translates those spoken commands into automated system-level inputs or precise browser clicks.
 
@@ -32,7 +32,7 @@ DartVoice follows a straightforward Software-as-a-Service (SaaS) subscription mo
 Our primary goal is to drive prospective players efficiently from initial curiosity to active subscription and retention.
 
 * **Top of Funnel (Awareness):** The target audience encounters DartVoice content through social media clips (e.g., TikTok, Instagram Reels) showing seamless voice scoring in action, or via targeted SEO queries ("auto dart scorer", "voice dart app").
-* **Middle of Funnel (Consideration):** Users arrive at `index.html`, our highly optimized, premium dark-mode marketing page. High-quality visuals, sleek glassmorphism, and clear conversion copy build immediate trust.
+* **Middle of Funnel (Consideration):** Users arrive at `html/index.html`, our highly optimized, premium dark-mode marketing page. High-quality visuals, sleek glassmorphism, and clear conversion copy build immediate trust.
 * **Bottom of Funnel (Conversion):** Clear Call-To-Action (CTA) buttons link directly to the Stripe checkout. No complex multi-step sign-up forms exist to block the sale. 
 * **Customer Onboarding & Retention:**
   - Post-purchase, users navigate to the Dashboard to authenticate via Email OTP.
@@ -47,3 +47,4 @@ We target dedicated hobbyists and semi-pro darts players who play highly repetit
 * **SEO & Digital Footprint:** Optimizing our landing pages with accurate metadata and structured tags. By owning long-tail queries regarding "hands-free dart software" and "integrate Target DartCounter with voice", we capture high-intent search traffic.
 * **App Store Optimization (ASO):** For the Android application and Chrome Extension, we will maintain clear, keyword-rich descriptions and actively leverage positive user reviews to drive organic visibility.
 * **Retargeting Campaigns:** Utilizing our embedded Google Analytics (`gtag.js`) tracking to build audience loops, serving display or social ads to users who visited the landing page but didn't click through to the Stripe checkout.
+

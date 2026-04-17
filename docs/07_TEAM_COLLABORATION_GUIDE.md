@@ -1,4 +1,4 @@
-# Team Collaboration & Development Workflow
+﻿# Team Collaboration & Development Workflow
 
 As the DartVoice project grows from a solo-founder prototype to a collaborative engineering effort, standardizing how you develop, use AI, and work alongside new programmers is critical to prevent code conflicts and maintain momentum.
 
@@ -6,7 +6,7 @@ As the DartVoice project grows from a solo-founder prototype to a collaborative 
 This project was conceptualized alongside advanced AI. To maintain that speed, you should leverage modern AI-assisted engineering tools:
 
 - **AI-Native IDEs:** Tools like **Cursor**, **Gemini Code Assist**, or **GitHub Copilot** are essential. They allow you to point an AI at your entire workspace so it understands the relationship between your `dartvoice_v2.py` and your `.json` configs simultaneously.
-- **The Core AI Workflow:** Never ask an AI to "build a feature" blindly. Always provide the AI with your static HTML prototype (e.g., `web-app.html`) and explicitly tell it to translate the UI into Python/JavaScript using the rules laid out in `05_UI_ENGINEERING_GUIDE.md`.
+- **The Core AI Workflow:** Never ask an AI to "build a feature" blindly. Always provide the AI with your static HTML prototype (e.g., `html/web-app.html`) and explicitly tell it to translate the UI into Python/JavaScript using the rules laid out in `05_UI_ENGINEERING_GUIDE.md`.
 - **Modular Prompts:** Continue building single, isolated features at a time. If you want to add a feature, prototype the visual design in Frontend HTML first, then have the AI translate it.
 
 ## 2. Setting Up Collaborative Environments
@@ -33,3 +33,4 @@ If you are collaborating with a systems programmer, you must draw a strict line 
 - **Core Algorithms:** They refine complex systems like the PyAutoGUI coordinate math, the Vosk threaded listeners, or potential anti-cheat algorithms. 
 
 By splitting these roles, you can continuously push HTML updates to the website and tweak the colors of the Desktop App, while the Programmer works strictly on the backend APIs and data flow under the hood.
+

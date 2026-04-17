@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Backup Supabase tables: dartvoice_profiles, dartvoice_referrals, dartvoice_ambassador_payouts
 Writes JSON and CSV to backups/<timestamp>/
@@ -6,7 +6,7 @@ Writes JSON and CSV to backups/<timestamp>/
 Usage: python scripts/backup_supabase_tables.py
 
 The script will look for SUPABASE_URL and SUPABASE_KEY in the environment.
-If not found it will try to extract `SB_URL` and `SB_KEY` from `contact.html` in the repo.
+If not found it will try to extract `SB_URL` and `SB_KEY` from `html/contact.html` in the repo.
 """
 import os
 import re
@@ -28,15 +28,15 @@ def find_supabase_creds():
     key = os.environ.get('SUPABASE_KEY') or os.environ.get('SUPABASE_ANON_KEY') or os.environ.get('SB_KEY')
     if url and key:
         return url.rstrip('/'), key
-    # fallback to reading contact.html
-    p = pathlib.Path('contact.html')
+    # fallback to reading html/contact.html
+    p = pathlib.Path('html/contact.html')
     if p.exists():
         txt = p.read_text(encoding='utf-8')
         m_url = re.search(r"var\s+SB_URL\s*=\s*'([^']+)'", txt)
         m_key = re.search(r"var\s+SB_KEY\s*=\s*'([^']+)'", txt)
         if m_url and m_key:
             return m_url.group(1).rstrip('/'), m_key.group(1)
-    print('Supabase credentials not found in environment or contact.html. Set SUPABASE_URL and SUPABASE_KEY.', file=sys.stderr)
+    print('Supabase credentials not found in environment or html/contact.html. Set SUPABASE_URL and SUPABASE_KEY.', file=sys.stderr)
     sys.exit(2)
 
 
@@ -91,3 +91,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -24,7 +24,7 @@
 
     .content { position: relative; z-index: 1; padding: 20px; }
 
-    /* ── Header ── */
+    /* â”€â”€ Header â”€â”€ */
     .brand {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 16px; padding-bottom: 14px;
@@ -41,7 +41,7 @@
     }
     .red { color: #CC0B20; }
 
-    /* ── Account card ── */
+    /* â”€â”€ Account card â”€â”€ */
     .account {
       background: #111114; border: 1px solid rgba(255,255,255,0.05);
       border-radius: 12px; padding: 14px; margin-bottom: 14px;
@@ -66,7 +66,7 @@
     }
     .sign-out-link:hover { color: #F0F0F5; }
 
-    /* ── Demo timer ── */
+    /* â”€â”€ Demo timer â”€â”€ */
     .demo-section { margin-bottom: 14px; }
     .demo-label {
       font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
@@ -84,7 +84,7 @@
     .demo-time { font-size: 11px; color: #aaabbb; font-weight: 500; }
     .demo-time b { color: #F0F0F5; }
 
-    /* ── Settings ── */
+    /* â”€â”€ Settings â”€â”€ */
     .setting { margin-bottom: 14px; }
     .setting-label {
       font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
@@ -102,7 +102,7 @@
     }
     select:focus { border-color: #CC0B20; box-shadow: 0 0 0 2px rgba(204,11,32,0.1); }
 
-    /* ── Buttons ── */
+    /* â”€â”€ Buttons â”€â”€ */
     .btn {
       width: 100%; border: none; border-radius: 10px;
       padding: 13px 16px; font-size: 12px;
@@ -130,7 +130,7 @@
     }
     .btn-secondary:hover { background: rgba(37,37,48,0.8); }
 
-    /* ── Lockout ── */
+    /* â”€â”€ Lockout â”€â”€ */
     .lockout { text-align: center; padding: 20px 10px; }
     .lockout-icon { font-size: 36px; margin-bottom: 10px; }
     .lockout h2 {
@@ -142,7 +142,7 @@
       font-size: 12px; color: #6E6E82; line-height: 1.5; margin-bottom: 16px;
     }
 
-    /* ── Footer ── */
+    /* â”€â”€ Footer â”€â”€ */
     .footer {
       display: flex; justify-content: space-between; align-items: center;
       padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 14px;
@@ -160,10 +160,10 @@
   <div class="content">
     <div class="brand">
       <h1>DART<span class="red">VOICE</span></h1>
-      <span class="version">v2.0 · Launchpad</span>
+      <span class="version">v2.0 Â· Launchpad</span>
     </div>
 
-    <!-- ── Normal view ── -->
+    <!-- â”€â”€ Normal view â”€â”€ -->
     <div id="view-normal">
 
       <!-- Account -->
@@ -196,7 +196,7 @@
       <div class="setting">
         <div class="setting-label">Microphone</div>
         <select id="mic-select">
-          <option value="">Loading devices…</option>
+          <option value="">Loading devicesâ€¦</option>
         </select>
       </div>
 
@@ -207,25 +207,26 @@
       </button>
     </div>
 
-    <!-- ── Lockout view ── -->
+    <!-- â”€â”€ Lockout view â”€â”€ -->
     <div id="view-lockout" class="hidden">
       <div class="lockout">
-        <div class="lockout-icon">⏱</div>
+        <div class="lockout-icon">â±</div>
         <h2>Demo Expired</h2>
         <p>Your 10-minute demo has ended.<br>Sign in &amp; subscribe to keep using DartVoice.</p>
-        <button class="btn btn-primary" id="btn-lockout-signin" style="margin-bottom:10px;">Sign In →</button>
-        <button class="btn btn-secondary" id="btn-lockout-plans">View Plans →</button>
+        <button class="btn btn-primary" id="btn-lockout-signin" style="margin-bottom:10px;">Sign In â†’</button>
+        <button class="btn btn-secondary" id="btn-lockout-plans">View Plans â†’</button>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
       <a href="https://dartvoice.app" target="_blank">dartvoice.app</a>
-      <a href="https://dartvoice.app/dartvoice-dashboard.html" target="_blank">Dashboard</a>
-      <a href="https://dartvoice.app/guide.html" target="_blank">Guide</a>
+      <a href="https://dartvoice.app/html/dartvoice-dashboard.html" target="_blank">Dashboard</a>
+      <a href="https://dartvoice.app/html/guide.html" target="_blank">Guide</a>
     </div>
   </div>
   <script src="popup.js"></script>
 </body>
 </html>
 </html>
+

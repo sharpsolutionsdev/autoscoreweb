@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DartVoice — Mobile Scorer</title>
-    <meta name="description" content="DartVoice mobile scorer — voice-controlled darts scoring for Android.">
+    <title>DartVoice â€” Mobile Scorer</title>
+    <meta name="description" content="DartVoice mobile scorer â€” voice-controlled darts scoring for Android.">
     <meta name="theme-color" content="var(--brand)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -486,11 +486,11 @@
                 <div class="stat-label">Visits</div>
             </div>
             <div class="stat-card">
-                <div class="stat-val" id="stat-avg">—</div>
+                <div class="stat-val" id="stat-avg">â€”</div>
                 <div class="stat-label">Average</div>
             </div>
             <div class="stat-card">
-                <div class="stat-val" id="stat-high">—</div>
+                <div class="stat-val" id="stat-high">â€”</div>
                 <div class="stat-label">Highest</div>
             </div>
         </div>
@@ -536,12 +536,12 @@
                     <div class="setting-desc">Match your spoken accent</div>
                 </div>
                 <select id="accent-select">
-                    <option value="en-GB">🇬🇧 English (UK)</option>
-                    <option value="en-US">🇺🇸 English (US)</option>
-                    <option value="en-AU">🇦🇺 English (AU)</option>
-                    <option value="en-IE">🇮🇪 English (IE)</option>
-                    <option value="nl-NL">🇳🇱 Dutch</option>
-                    <option value="de-DE">🇩🇪 German</option>
+                    <option value="en-GB">ðŸ‡¬ðŸ‡§ English (UK)</option>
+                    <option value="en-US">ðŸ‡ºðŸ‡¸ English (US)</option>
+                    <option value="en-AU">ðŸ‡¦ðŸ‡º English (AU)</option>
+                    <option value="en-IE">ðŸ‡®ðŸ‡ª English (IE)</option>
+                    <option value="nl-NL">ðŸ‡³ðŸ‡± Dutch</option>
+                    <option value="de-DE">ðŸ‡©ðŸ‡ª German</option>
                 </select>
             </div>
 
@@ -569,7 +569,7 @@
         <details class="card" style="cursor:pointer;">
             <summary style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);list-style:none;display:flex;align-items:center;justify-content:space-between;">
                 Voice Commands
-                <span style="font-size:14px;">▸</span>
+                <span style="font-size:14px;">â–¸</span>
             </summary>
             <table class="cmd-table" style="margin-top:12px;">
                 <tr><td>"sixty"</td><td>Score 60</td></tr>
@@ -587,7 +587,7 @@
         </details>
 
         <div class="footer">
-            DartVoice v2.1 · Mobile Edition · <a href="https://dartvoice.app">dartvoice.app</a>
+            DartVoice v2.1 Â· Mobile Edition Â· <a href="https://dartvoice.app">dartvoice.app</a>
         </div>
     </div>
 
@@ -636,7 +636,7 @@
         var btns = document.querySelectorAll('button');
         for (var i = 0; i < btns.length; i++) {
             var txt = (btns[i].textContent || '').trim().toLowerCase();
-            if ((txt === 'ok' || txt === 'enter' || txt === 'submit' || txt === '✓') && btns[i].offsetParent !== null) {
+            if ((txt === 'ok' || txt === 'enter' || txt === 'submit' || txt === 'âœ“') && btns[i].offsetParent !== null) {
                 btns[i].click();
                 return true;
             }
@@ -825,7 +825,7 @@
                     break;
                 case STATE.CHECKOUT:
                     statePill.classList.add('checkout');
-                    stateText.textContent = labelOverride || 'Checkout — say dart count';
+                    stateText.textContent = labelOverride || 'Checkout â€” say dart count';
                     micBtnLabel.textContent = 'Stop Listening';
                     micBtn.classList.add('stop');
                     startEQ();
@@ -836,7 +836,7 @@
                     break;
                 case STATE.RECOVERING:
                     statePill.classList.add('recovering');
-                    stateText.textContent = labelOverride || 'Mic lost — reconnecting';
+                    stateText.textContent = labelOverride || 'Mic lost â€” reconnecting';
                     break;
             }
             if (isAPK && window.DartVoiceBridge && window.DartVoiceBridge.updateStatus) {
@@ -891,11 +891,11 @@
 
         function injectScore(score) {
             if (currentState === STATE.COOLDOWN) {
-                log('⚠ Cooldown active — ignoring "' + score + '"', 'warn');
+                log('âš  Cooldown active â€” ignoring "' + score + '"', 'warn');
                 return false;
             }
             if (!isValidDartTotal(score)) {
-                log('✗ Invalid dart total: ' + score, 'warn');
+                log('âœ— Invalid dart total: ' + score, 'warn');
                 return false;
             }
             const prevState = currentState;
@@ -904,7 +904,7 @@
                 const js = DARTCOUNTER_DRIVER + '(' + score + ');';
                 try {
                     window.DartVoiceBridge.evaluateOnScorer(js);
-                    log('✓ Sent ' + score + ' to DartCounter', 'score');
+                    log('âœ“ Sent ' + score + ' to DartCounter', 'score');
                 } catch(e) {
                     log('Bridge error: ' + e.message, 'error');
                 }
@@ -932,7 +932,7 @@
                 })();`;
                 try { window.DartVoiceBridge.evaluateOnScorer(js); } catch(e) {}
             }
-            log('⟲ Cancel — undo last score', 'info');
+            log('âŸ² Cancel â€” undo last score', 'info');
         }
 
         openScorerBtn.addEventListener('click', function() {
@@ -956,13 +956,13 @@
             if (!AppConfig.checkoutAssist) return;
             if (currentState === STATE.LISTENING || currentState === STATE.COOLDOWN) {
                 setState(STATE.CHECKOUT);
-                log('⚐ Checkout detected — say "one", "two", "three" or "no score"', 'warn');
+                log('âš Checkout detected â€” say "one", "two", "three" or "no score"', 'warn');
             }
         };
         window.onCheckoutResolved = function() {
             if (currentState === STATE.CHECKOUT) {
                 setState(STATE.LISTENING);
-                log('Checkout resolved — back to scoring', 'info');
+                log('Checkout resolved â€” back to scoring', 'info');
             }
         };
 
@@ -972,7 +972,7 @@
                 if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
                     const stale = Date.now() - lastResultAt;
                     if (stale >= AppConfig.watchdogMs) {
-                        log('⚠ No voice activity in ' + Math.round(stale/1000) + 's — restarting mic', 'warn');
+                        log('âš  No voice activity in ' + Math.round(stale/1000) + 's â€” restarting mic', 'warn');
                         recoverRecognition();
                     } else {
                         kickWatchdog();
@@ -989,7 +989,7 @@
                 try {
                     recognition.start();
                 } catch(e) {
-                    log('Recovery failed: ' + e.message + ' — tap mic to retry', 'error');
+                    log('Recovery failed: ' + e.message + ' â€” tap mic to retry', 'error');
                     setState(STATE.IDLE);
                 }
             }, 600);
@@ -1004,10 +1004,10 @@
             if (type === 'start') {
                 if (currentState === STATE.RECOVERING) {
                     setState(STATE.LISTENING);
-                    log('✓ Mic reconnected', 'info');
+                    log('âœ“ Mic reconnected', 'info');
                 } else {
                     setState(STATE.LISTENING);
-                    log('🎤 Microphone activated — speak your score');
+                    log('ðŸŽ¤ Microphone activated â€” speak your score');
                 }
             } else if (type === 'end') {
                 if (currentState === STATE.LISTENING || currentState === STATE.CHECKOUT) {
@@ -1035,7 +1035,7 @@
             kickWatchdog();
 
             if (!isFinal) {
-                interimText.textContent = transcript ? '"' + transcript + '"…' : '';
+                interimText.textContent = transcript ? '"' + transcript + '"â€¦' : '';
                 return;
             }
 
@@ -1050,7 +1050,7 @@
 
             if (raw.includes('cancel') && AppConfig.cancelWordEnabled) {
                 if (AppConfig.inputMode === 'per-dart' && dartBuffer.length > 0) {
-                    log('Cancel — cleared ' + dartBuffer.length + ' buffered dart(s)');
+                    log('Cancel â€” cleared ' + dartBuffer.length + ' buffered dart(s)');
                     dartBuffer = [];
                     if (dartBufferTimeout) { clearTimeout(dartBufferTimeout); dartBufferTimeout = null; }
                 } else {
@@ -1111,15 +1111,15 @@
                             }
                         }, delay);
                         if (dartBuffer.length >= 3) {
-                            log('3 darts received — submitting shortly. Say "cancel" to abort.');
+                            log('3 darts received â€” submitting shortly. Say "cancel" to abort.');
                         }
                     }
                 } else {
-                    log('Heard: "' + raw + '" → ' + score);
+                    log('Heard: "' + raw + '" â†’ ' + score);
                     injectScore(score);
                 }
             } else if (score !== null) {
-                log('✗ "' + raw + '" → ' + score + ' (invalid dart total)', 'warn');
+                log('âœ— "' + raw + '" â†’ ' + score + ' (invalid dart total)', 'warn');
             } else {
                 log('Heard: "' + raw + '" (no match)');
             }
@@ -1246,7 +1246,7 @@
                     micSelect.appendChild(opt);
                 });
             } catch(e) {
-                // silent — list populates once permission is granted
+                // silent â€” list populates once permission is granted
             }
         }
         micSelect.addEventListener('change', function() {
@@ -1267,7 +1267,7 @@
 
             if (!session || !session.user) {
                 if (fromApk) {
-                    window.location.replace('apk-gate.html');
+                    window.location.replace('html/apk-gate.html');
                     return;
                 }
                 return;
@@ -1286,7 +1286,7 @@
             const isActive = sub && ['active','trialing'].includes(sub.status);
 
             if (fromApk && !isActive) {
-                window.location.replace('apk-gate.html');
+                window.location.replace('html/apk-gate.html');
                 return;
             }
 
@@ -1306,3 +1306,4 @@
     <script src="theme.js"></script>
 </body>
 </html>
+

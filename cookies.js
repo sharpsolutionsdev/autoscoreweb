@@ -1,4 +1,4 @@
-/* cookies.js — Cookie consent banner (v1, cosmetic only) */
+﻿/* cookies.js â€” Cookie consent banner (v1, cosmetic only) */
 (function () {
     if (localStorage.getItem('dv-cookie-consent')) return;
 
@@ -15,7 +15,7 @@
     bar.innerHTML =
         '<p style="margin:0;color:#9E9EB0;font-size:13px;max-width:480px;line-height:1.5;text-align:center;">' +
             'We use cookies to improve your experience. ' +
-            '<a href="terms.html" style="color:#CC0B20;text-decoration:underline;">Learn more</a>' +
+            '<a href="html/terms.html" style="color:#CC0B20;text-decoration:underline;">Learn more</a>' +
         '</p>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">' +
             '<button data-cc="all" style="' + btnStyle('#CC0B20', '#fff') + '">Accept All</button>' +
@@ -57,7 +57,7 @@
             'font-size:13px;font-weight:600;color:#22c55e;' +
             'box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:dvCookieIn .3s ease'
         );
-        toast.textContent = '✓ Preferences saved';
+        toast.textContent = 'âœ“ Preferences saved';
         document.body.appendChild(toast);
         setTimeout(function () {
             toast.style.animation = 'dvCookieOut .3s ease forwards';
@@ -65,3 +65,4 @@
         }, 2000);
     }
 })();
+

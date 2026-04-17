@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -18,7 +18,7 @@
     <meta property="og:title" content="Dashboard | DartVoice">
     <meta property="og:description" content="Manage your DartVoice subscription, download apps, and track your Ambassador referrals.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/dartvoice-dashboard.html">
+    <meta property="og:url" content="https://dartvoice.app/html/dartvoice-dashboard.html">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Dashboard | DartVoice">
@@ -70,7 +70,7 @@
             padding-bottom: max(5rem, env(safe-area-inset-bottom, 5rem));
         }
 
-        /* ── Cards ── */
+        /* â”€â”€ Cards â”€â”€ */
         .card-panel {
             background: #111114;
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -94,7 +94,7 @@
             box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 24px rgba(204, 11, 32, 0.07);
         }
 
-        /* ── Step connector ── */
+        /* â”€â”€ Step connector â”€â”€ */
         .step-line {
             position: absolute;
             left: 13px;
@@ -104,13 +104,13 @@
             background: linear-gradient(to bottom, rgba(204, 11, 32, 0.3), transparent);
         }
 
-        /* ── Subscription accent bar ── */
+        /* â”€â”€ Subscription accent bar â”€â”€ */
         .sub-accent {
             background: linear-gradient(90deg, var(--brand) 0%, rgba(204, 11, 32, 0.25) 60%, transparent 100%);
             height: 2px;
         }
 
-        /* ── Trial countdown bar ── */
+        /* â”€â”€ Trial countdown bar â”€â”€ */
         .trial-bar-track {
             background: rgba(255, 255, 255, 0.06);
             border-radius: 999px;
@@ -127,21 +127,21 @@
         }
 
 
-        /* ── Scoreboard pip ── */
+        /* â”€â”€ Scoreboard pip â”€â”€ */
         .score-pip {
             font-family: 'Barlow Condensed', sans-serif;
             font-weight: 900;
             font-style: italic;
         }
 
-        /* ── Tabs ── */
+        /* â”€â”€ Tabs â”€â”€ */
         .tab-btn {
             color: #6E6E82;
             border-bottom: 2px solid transparent;
             margin-bottom: -1px;
         }
 
-        /* ── Glass cards (glassmorphism) ── */
+        /* â”€â”€ Glass cards (glassmorphism) â”€â”€ */
         .glass-card {
             background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.012));
             border: 1px solid rgba(255,255,255,0.06);
@@ -184,7 +184,7 @@
             border-bottom-color: var(--brand);
         }
 
-        /* ── Avatar ── */
+        /* â”€â”€ Avatar â”€â”€ */
         .dv-avatar {
             font-family: 'Barlow Condensed', sans-serif;
             font-weight: 900;
@@ -196,7 +196,7 @@
             letter-spacing: -0.01em;
         }
 
-        /* ── Toast ── */
+        /* â”€â”€ Toast â”€â”€ */
         @keyframes toastIn {
             from {
                 opacity: 0;
@@ -213,7 +213,7 @@
             animation: toastIn 0.3s ease-out;
         }
 
-        /* ── Pro activation celebration overlay ── */
+        /* â”€â”€ Pro activation celebration overlay â”€â”€ */
         .dv-pro-celebrate {
             position: fixed;
             inset: 0;
@@ -290,7 +290,7 @@
 
 <body class="min-h-screen text-white antialiased noise" style="background:#08080A;">
 
-    <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- â”â”â” NAV â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” -->
     <nav class="border-b border-white/[0.05] sticky top-0 z-50"
         style="background:rgba(8,8,10,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
         <div class="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
@@ -324,20 +324,20 @@
         </div>
     </nav>
 
-    <!-- ━━━ LOADING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- â”â”â” LOADING â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” -->
     <div id="view-loading" class="flex flex-col items-center justify-center gap-4" style="height:calc(100vh - 56px)">
         <div class="spinner"></div>
         <p class="text-muted text-xs tracking-widest uppercase">Loading</p>
     </div>
 
-    <!-- ━━━ AUTH VIEW (redirect only) ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- â”â”â” AUTH VIEW (redirect only) â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” -->
     <div id="view-auth" class="hidden">
         <div class="min-h-[calc(100vh-56px)] flex items-center justify-center px-5">
-            <p class="text-muted text-sm">Redirecting to sign in…</p>
+            <p class="text-muted text-sm">Redirecting to sign inâ€¦</p>
         </div>
     </div>
 
-    <!-- ━━━ DASHBOARD VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- â”â”â” DASHBOARD VIEW â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” -->
     <div id="view-dashboard" class="hidden">
 
         <!-- Hero band with red glow -->
@@ -357,10 +357,10 @@
                             </svg>
                         </div>
                         <div class="flex-1">
-                            <p class="font-semibold text-sm" style="color:#F0F0F5;">You're in — welcome to DartVoice!
+                            <p class="font-semibold text-sm" style="color:#F0F0F5;">You're in â€” welcome to DartVoice!
                             </p>
                             <p class="text-xs mt-0.5 leading-relaxed" style="color:#6E6E82;">Start your 7-day free trial
-                                below to download the app and get scoring. No charge until day 8 — cancel any time.</p>
+                                below to download the app and get scoring. No charge until day 8 â€” cancel any time.</p>
                         </div>
                         <button onclick="this.closest('#welcome-banner').classList.add('hidden')"
                             class="transition shrink-0 mt-0.5" style="color:#6E6E82;"
@@ -414,7 +414,7 @@
 
         <div class="max-w-5xl mx-auto px-5 sm:px-8 pt-8 pb-safe">
 
-            <!-- ── Tab nav ──────────────────────────────────────── -->
+            <!-- â”€â”€ Tab nav â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="mb-6 fade-up overflow-x-auto" style="border-bottom:1px solid rgba(255,255,255,0.06);">
                 <div class="flex gap-1 min-w-max">
                     <button onclick="switchTab('overview')" id="tab-btn-overview"
@@ -442,9 +442,9 @@
                 </div>
             </div>
 
-            <!-- ── TAB: Overview ─────────────────────────────────── -->
+            <!-- â”€â”€ TAB: Overview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div id="tab-overview">
-                <!-- ── Main grid ─────────────────────────────────────── -->
+                <!-- â”€â”€ Main grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
                 <div class="grid lg:grid-cols-[1fr_340px] gap-5">
 
                     <!-- Left column -->
@@ -464,7 +464,7 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-xs font-bold text-brand uppercase tracking-widest mb-0.5">Ambassador Program</p>
-                                    <p class="text-sm font-semibold text-chalk">Invite your mates. Earn £5.00 for every one that signs up.</p>
+                                    <p class="text-sm font-semibold text-chalk">Invite your mates. Earn Â£5.00 for every one that signs up.</p>
                                 </div>
                                 <svg class="w-5 h-5 text-muted-2 group-hover:text-brand transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -576,7 +576,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
-                                    Read the full setup &amp; calibration guide →
+                                    Read the full setup &amp; calibration guide â†’
                                 </a>
                             </div>
                         </div>
@@ -828,7 +828,7 @@
                 </div>
             </div><!-- /tab-overview -->
 
-            <!-- ── TAB: Ambassador ───────────────────────────────── -->
+            <!-- â”€â”€ TAB: Ambassador â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div id="tab-ambassador" class="hidden space-y-5">
 
                 <!-- Referral link card -->
@@ -859,7 +859,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                 </svg>
-                                <span id="ref-link-text" class="truncate text-chalk/80">Loading…</span>
+                                <span id="ref-link-text" class="truncate text-chalk/80">Loadingâ€¦</span>
                             </div>
                             <button id="btn-copy-link" onclick="copyRefLink()"
                                 class="shrink-0 w-full xs:w-auto px-4 py-3 rounded-xl bg-brand hover:bg-brand-light text-white text-sm font-bold transition">
@@ -869,7 +869,7 @@
 
                         <!-- Email + Phone (optional verification) -->
                         <div class="flex items-center gap-3 mb-4">
-                            <div class="flex-1 text-sm text-muted-2">Email: <span id="amb-email" class="text-chalk ml-2">—</span></div>
+                            <div class="flex-1 text-sm text-muted-2">Email: <span id="amb-email" class="text-chalk ml-2">â€”</span></div>
                             <div class="flex items-center gap-2">
                                 <input id="input-phone" type="tel" placeholder="+44 7xxx xxx xxx"
                                     class="px-3 py-2 rounded-lg bg-dark border border-white/[0.06] text-sm text-chalk placeholder:text-muted-2 outline-none focus:border-brand transition" />
@@ -878,7 +878,7 @@
                             </div>
                         </div>
                         <div id="phone-verify-row" class="hidden items-center gap-2 mt-2">
-                            <input id="input-phone-code" type="text" maxlength="6" placeholder="Enter 6‑digit code"
+                            <input id="input-phone-code" type="text" maxlength="6" placeholder="Enter 6â€‘digit code"
                                 class="px-3 py-2 rounded-lg bg-dark border border-white/[0.06] text-sm text-chalk placeholder:text-muted-2 outline-none focus:border-brand transition w-48" />
                             <button id="btn-verify-phone" onclick="verifyPhoneCode()" class="px-3 py-2 rounded-lg bg-brand text-white text-sm">Verify code</button>
                             <button id="btn-resend-phone" onclick="resendPhoneOtp()" class="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-sm hidden">Resend</button>
@@ -892,28 +892,28 @@
                                 style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
                                 <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
                                     style="color:#4A4A5A;">Pending</p>
-                                <p id="amb-pending-referrals" class="display text-3xl" style="color:#F0F0F5;">—</p>
+                                <p id="amb-pending-referrals" class="display text-3xl" style="color:#F0F0F5;">â€”</p>
                                 <p class="text-[10px] mt-1" style="color:#4A4A5A;">referrals</p>
                             </div>
                             <div class="p-4 rounded-xl text-center"
                                 style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
                                 <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
                                     style="color:#4A4A5A;">Confirmed</p>
-                                <p id="amb-confirmed-referrals" class="display text-3xl" style="color:#F0F0F5;">—</p>
+                                <p id="amb-confirmed-referrals" class="display text-3xl" style="color:#F0F0F5;">â€”</p>
                                 <p class="text-[10px] mt-1" style="color:#4A4A5A;">referrals</p>
                             </div>
                             <div class="p-4 rounded-xl text-center"
                                 style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
                                 <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
                                     style="color:#f59e0b;">Pending</p>
-                                <p id="amb-pending-earnings" class="display text-3xl" style="color:#f59e0b;">£—</p>
+                                <p id="amb-pending-earnings" class="display text-3xl" style="color:#f59e0b;">Â£â€”</p>
                                 <p class="text-[10px] mt-1" style="color:#4A4A5A;">earnings</p>
                             </div>
                             <div class="p-4 rounded-xl text-center"
                                 style="background:#08080A;border:1px solid rgba(255,255,255,0.05);">
                                 <p class="text-[10px] font-bold uppercase tracking-widest mb-1.5"
                                     style="color:#22c55e;">Confirmed</p>
-                                <p id="amb-confirmed-earnings" class="display text-3xl" style="color:#22c55e;">£—</p>
+                                <p id="amb-confirmed-earnings" class="display text-3xl" style="color:#22c55e;">Â£â€”</p>
                                 <p class="text-[10px] mt-1" style="color:#4A4A5A;">earnings</p>
                             </div>
                         </div>
@@ -959,13 +959,13 @@
 
                         <div class="px-4 sm:px-6 py-3" style="border-top:1px solid rgba(255,255,255,0.03);background:transparent">
                             <label class="text-[11px] text-muted-2 mb-2 block">Message template</label>
-                            <textarea id="share-template" class="w-full p-3 rounded-lg bg-dark border border-white/[0.04] text-sm text-chalk placeholder:text-muted-2" rows="3">Hey — try DartVoice for scoring darts by voice. Use my link: {LINK} — it's brilliant for quick pub games and practice.</textarea>
+                            <textarea id="share-template" class="w-full p-3 rounded-lg bg-dark border border-white/[0.04] text-sm text-chalk placeholder:text-muted-2" rows="3">Hey â€” try DartVoice for scoring darts by voice. Use my link: {LINK} â€” it's brilliant for quick pub games and practice.</textarea>
                             <div class="mt-2 flex gap-2">
                                 <button onclick="copyShareMessage()" class="px-3 py-2 rounded-lg bg-brand text-white text-sm">Copy message</button>
                                 <button onclick="shareFacebook(true)" class="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-sm">Share with Facebook</button>
                             </div>
                         </div>
-                        <p class="text-[11px]" style="color:#4A4A5A;">£5 per paying referral &middot; no limit</p>
+                        <p class="text-[11px]" style="color:#4A4A5A;">Â£5 per paying referral &middot; no limit</p>
                     </div>
                 </div>
 
@@ -977,8 +977,8 @@
 
                         <div id="payout-locked" class="hidden">
                             <div class="p-4 rounded-xl bg-dark/60 border border-white/[0.04] text-center">
-                                <p class="text-muted text-sm">Minimum £5 confirmed earnings to request a payout</p>
-                                <p class="text-muted-2 text-xs mt-1">Keep referring — each confirmed referral adds £5 to your earnings.</p>
+                                <p class="text-muted text-sm">Minimum Â£5 confirmed earnings to request a payout</p>
+                                <p class="text-muted-2 text-xs mt-1">Keep referring â€” each confirmed referral adds Â£5 to your earnings.</p>
                             </div>
                         </div>
 
@@ -1043,7 +1043,7 @@
                                 <div>
                                     <p class="text-sm font-semibold">They get 7 days free</p>
                                     <p class="text-muted text-xs mt-0.5 leading-relaxed">Your friend gets the standard
-                                        free trial — no card needed.</p>
+                                        free trial â€” no card needed.</p>
                                 </div>
                             </div>
                             <div class="flex gap-3">
@@ -1051,9 +1051,9 @@
                                     class="w-7 h-7 rounded-lg bg-brand/15 border border-brand/20 text-brand flex items-center justify-center shrink-0 score-pip text-lg">
                                     3</div>
                                 <div>
-                                    <p class="text-sm font-semibold">You earn £5 cash</p>
+                                    <p class="text-sm font-semibold">You earn Â£5 cash</p>
                                     <p class="text-muted text-xs mt-0.5 leading-relaxed">Once they pay their first
-                                        month, £5 goes to your balance.</p>
+                                        month, Â£5 goes to your balance.</p>
                                 </div>
                             </div>
                         </div>
@@ -1062,7 +1062,7 @@
 
             </div><!-- /tab-ambassador -->
 
-            <!-- ── TAB: Profile ─────────────────────────────────── -->
+            <!-- â”€â”€ TAB: Profile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div id="tab-profile" class="hidden">
                 <div class="w-full max-w-sm">
 
@@ -1080,7 +1080,7 @@
                                     style="background:var(--brand);"></div>
                                 <div class="min-w-0 flex-1">
                                     <p id="profile-display-name-show" class="font-semibold text-chalk text-sm truncate">
-                                        —</p>
+                                        â€”</p>
                                     <p id="profile-email-show" class="text-muted text-xs mt-0.5 truncate"></p>
                                     <div class="mt-1.5">
                                         <span id="profile-badge-active"
@@ -1171,7 +1171,7 @@
                             </div>
                             <div class="mt-4 pt-4 border-t border-white/[0.06]">
                                 <a href="#" onclick="switchTab('overview');return false;" class="text-xs text-brand hover:text-brand-light transition inline-flex items-center gap-1.5">
-                                    Download your apps from the Overview tab →
+                                    Download your apps from the Overview tab â†’
                                 </a>
                             </div>
                         </div>
@@ -1180,7 +1180,7 @@
                 </div>
             </div><!-- /tab-profile -->
 
-            <!-- ── TAB: Admin Stats (admin only) ─────────────────── -->
+            <!-- â”€â”€ TAB: Admin Stats (admin only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div id="tab-admin" class="hidden">
                 <div class="space-y-5">
 
@@ -1188,19 +1188,19 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Total Users</p>
-                            <p id="stat-total-users" class="text-2xl font-display font-bold text-chalk">—</p>
+                            <p id="stat-total-users" class="text-2xl font-display font-bold text-chalk">â€”</p>
                         </div>
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Active Subs</p>
-                            <p id="stat-active-subs" class="text-2xl font-display font-bold text-success">—</p>
+                            <p id="stat-active-subs" class="text-2xl font-display font-bold text-success">â€”</p>
                         </div>
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Trialing</p>
-                            <p id="stat-trialing" class="text-2xl font-display font-bold text-yellow-400">—</p>
+                            <p id="stat-trialing" class="text-2xl font-display font-bold text-yellow-400">â€”</p>
                         </div>
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Est. MRR</p>
-                            <p id="stat-mrr" class="text-2xl font-display font-bold text-brand">—</p>
+                            <p id="stat-mrr" class="text-2xl font-display font-bold text-brand">â€”</p>
                         </div>
                     </div>
 
@@ -1208,19 +1208,19 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Cancelled</p>
-                            <p id="stat-canceled" class="text-2xl font-display font-bold text-muted">—</p>
+                            <p id="stat-canceled" class="text-2xl font-display font-bold text-muted">â€”</p>
                         </div>
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Past Due</p>
-                            <p id="stat-pastdue" class="text-2xl font-display font-bold text-yellow-400">—</p>
+                            <p id="stat-pastdue" class="text-2xl font-display font-bold text-yellow-400">â€”</p>
                         </div>
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Referrals</p>
-                            <p id="stat-referrals-total" class="text-2xl font-display font-bold text-chalk">—</p>
+                            <p id="stat-referrals-total" class="text-2xl font-display font-bold text-chalk">â€”</p>
                         </div>
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Ref Pending</p>
-                            <p id="stat-referrals-pending" class="text-2xl font-display font-bold text-amber-400">—</p>
+                            <p id="stat-referrals-pending" class="text-2xl font-display font-bold text-amber-400">â€”</p>
                         </div>
                     </div>
 
@@ -1231,7 +1231,7 @@
                         <div class="glass-card rounded-2xl p-6">
                             <h2 class="text-xs font-bold text-muted-2 tracking-widest uppercase mb-4">Sign-ups (Last 30 Days)</h2>
                             <div id="chart-signups" class="flex items-end gap-[3px] h-[120px]">
-                                <p class="text-muted text-xs w-full text-center">Loading…</p>
+                                <p class="text-muted text-xs w-full text-center">Loadingâ€¦</p>
                             </div>
                         </div>
 
@@ -1243,7 +1243,7 @@
                                     <circle cx="18" cy="18" r="15.9" fill="none" stroke="#252530" stroke-width="3.8"/>
                                 </svg>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span id="donut-center-val" class="text-lg font-display font-bold text-chalk">—</span>
+                                    <span id="donut-center-val" class="text-lg font-display font-bold text-chalk">â€”</span>
                                     <span class="text-[9px] text-muted-2 uppercase tracking-widest">Total</span>
                                 </div>
                             </div>
@@ -1258,7 +1258,7 @@
                             <span id="stat-new-this-month" class="text-xs font-bold px-3 py-1 rounded-full bg-brand/10 text-brand border border-brand/15"></span>
                         </div>
                         <div id="admin-signups-list" class="space-y-0 divide-y divide-white/[0.04] max-h-[300px] overflow-y-auto">
-                            <p class="text-muted text-sm py-4 text-center">Loading…</p>
+                            <p class="text-muted text-sm py-4 text-center">Loadingâ€¦</p>
                         </div>
                     </div>
 
@@ -1279,7 +1279,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="admin-subs-tbody" class="divide-y divide-white/[0.04]">
-                                    <tr><td colspan="4" class="py-4 text-center text-muted">Loading…</td></tr>
+                                    <tr><td colspan="4" class="py-4 text-center text-muted">Loadingâ€¦</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1289,21 +1289,21 @@
                     <div class="glass-card rounded-2xl p-6">
                         <h2 class="text-lg font-bold text-chalk mb-4">Referral Activity</h2>
                         <div id="admin-referrals-list" class="space-y-0 divide-y divide-white/[0.04] max-h-[300px] overflow-y-auto">
-                            <p class="text-muted text-sm py-4 text-center">Loading…</p>
+                            <p class="text-muted text-sm py-4 text-center">Loadingâ€¦</p>
                         </div>
                     </div>
 
                 </div>
             </div><!-- /tab-admin -->
 
-            <!-- ── TAB: Messages (admin only) ────────────────────── -->
+            <!-- â”€â”€ TAB: Messages (admin only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div id="tab-messages" class="hidden">
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex items-center justify-between mb-5">
                         <h2 class="text-lg font-bold text-chalk">Contact Messages</h2>
                         <button onclick="loadMessages()" class="text-xs text-brand hover:underline">Refresh</button>
                     </div>
-                    <div id="messages-loading" class="text-center py-10 text-muted text-sm">Loading…</div>
+                    <div id="messages-loading" class="text-center py-10 text-muted text-sm">Loadingâ€¦</div>
                     <div id="messages-empty" class="hidden text-center py-10 text-muted text-sm">No messages yet.</div>
                     <div id="messages-list" class="hidden space-y-4"></div>
                 </div>
@@ -1320,14 +1320,14 @@
         class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-sm font-semibold text-white shadow-2xl"
         style="max-width:360px;text-align:center;pointer-events:none;"></div>
 
-    <!-- ═══════════════════════════════════════════════════════════
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          JAVASCRIPT
-         ═══════════════════════════════════════════════════════════ -->
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <script>
         const SUPABASE_URL = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : (window.SUPABASE_URL || 'https://poyjykgqsvgimssbhsuz.supabase.co'));
         const SUPABASE_KEY = (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : (window.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA'));
         const BILLING_URL = 'https://billing.dartvoice.app';
-        // Direct Stripe Payment Link — append ?client_reference_id=USER_ID so the
+        // Direct Stripe Payment Link â€” append ?client_reference_id=USER_ID so the
         // checkout.session.completed webhook can match back to the Supabase user.
         const PAYMENT_LINKS = {
           'monthly': 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00',
@@ -1361,12 +1361,12 @@
             window.location.replace('login');
         }
 
-        // ── Checkout popup ────────────────────────────────────────────
+        // â”€â”€ Checkout popup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         let _pollTimer = null;
 
         function dvCheckout(e, userId) {
             if (e) e.preventDefault();
-            // Prevent duplicate trials — if already subscribed, send to Stripe portal instead
+            // Prevent duplicate trials â€” if already subscribed, send to Stripe portal instead
             if (_currentSub && ['active', 'trialing'].includes(_currentSub.status)) {
                 showToast('You already have an active subscription! Use "Manage Subscription" to update your plan.');
                 return;
@@ -1417,7 +1417,7 @@
                         setTimeout(() => { try { popup.close(); } catch(_) {} }, 2000);
                     }
                     setTimeout(() => {
-                        window.location.href = 'thanks.html?from=dashboard';
+                        window.location.href = 'html/thanks.html?from=dashboard';
                     }, 2200);
                     return;
                 }
@@ -1497,7 +1497,7 @@
                 </div>`;
             document.body.appendChild(overlay);
             requestAnimationFrame(() => overlay.classList.add('open'));
-            // Slow, premium celebration — visible for 5 seconds
+            // Slow, premium celebration â€” visible for 5 seconds
             setTimeout(() => {
                 overlay.classList.remove('open');
                 setTimeout(() => overlay.remove(), 600);
@@ -1526,7 +1526,7 @@
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_KEY,
                     },
-                    body: JSON.stringify({ returnUrl: window.location.origin + '/dartvoice-dashboard.html' }),
+                    body: JSON.stringify({ returnUrl: window.location.origin + '/html/dartvoice-dashboard.html' }),
                 });
                 
                 if (resp.status === 404) {
@@ -1540,7 +1540,7 @@
                     return; 
                 }
                 
-                showToast(body.error === 'no_stripe_customer' ? 'No billing account yet — start a trial first.' : 'Portal error. Please contact reubensharp18@gmail.com');
+                showToast(body.error === 'no_stripe_customer' ? 'No billing account yet â€” start a trial first.' : 'Portal error. Please contact reubensharp18@gmail.com');
             } catch (e) {
                 console.error('portal open failed', e);
                 showToast('Could not open billing portal. Try again.');
@@ -1549,7 +1549,7 @@
             }
         }
 
-        // ── Dashboard ─────────────────────────────────────────────────
+        // â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         let _profileEmail = '';
         let _currentSub = null;
 
@@ -1558,7 +1558,7 @@
             $('nav-email').textContent = user.email;
             showView('dashboard');
 
-            // Admin gating — show Messages + Admin Stats tabs for admin emails
+            // Admin gating â€” show Messages + Admin Stats tabs for admin emails
             const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reubensharp18@gmail.com'];
             if (ADMIN_EMAILS.includes(user.email?.toLowerCase())) {
                 $('tab-btn-messages').classList.remove('hidden');
@@ -1605,7 +1605,7 @@
 
             // Fire Pro activation celebration if user arrived from checkout success
             // and their subscription is now active/trialing. The flag is set by
-            // thanks.html before redirect, so we only celebrate on the post-payment
+            // html/thanks.html before redirect, so we only celebrate on the post-payment
             // hop (not every dashboard load).
             if (sub && ['active', 'trialing'].includes(sub.status)) {
                 try {
@@ -1740,7 +1740,7 @@
                 }
             }
 
-            // ── No subscription / cancelled ──
+            // â”€â”€ No subscription / cancelled â”€â”€
             if (!sub || sub.status === 'none' || sub.status === 'canceled') {
                 const isCanceled = sub?.status === 'canceled';
                 badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-white/5 text-muted-2 tracking-wide">${isCanceled ? 'CANCELLED' : 'NOT STARTED'}</span>`;
@@ -1782,7 +1782,7 @@
                 </div>`;
                 showDownloads(false);
 
-                // ── Trialing ──
+                // â”€â”€ Trialing â”€â”€
             } else if (sub.status === 'trialing') {
                 const end = new Date(sub.current_period_end);
                 const msLeft = end - Date.now();
@@ -1809,7 +1809,7 @@
                 </div>`;
                 showDownloads(true);
 
-                // ── Active ──
+                // â”€â”€ Active â”€â”€
             } else if (sub.status === 'active') {
                 const end = new Date(sub.current_period_end);
                 badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-success/10 text-success border border-success/15 inline-flex items-center gap-1.5 tracking-wide">
@@ -1829,7 +1829,7 @@
                 </div>`;
                 showDownloads(true);
 
-                // ── Past due ──
+                // â”€â”€ Past due â”€â”€
             } else if (sub.status === 'past_due') {
                 badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/15 tracking-wide">PAST DUE</span>`;
                 details.innerHTML = `<p class="text-yellow-400/80 text-sm">Your last payment failed. Update your payment method to restore access.</p>`;
@@ -1840,7 +1840,7 @@
                 </button>`;
                 showDownloads(false);
 
-                // ── Other ──
+                // â”€â”€ Other â”€â”€
             } else {
                 badge.innerHTML = `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-white/5 text-muted tracking-wide">${sub.status.toUpperCase()}</span>`;
                 details.innerHTML = '';
@@ -1848,7 +1848,7 @@
             }
         }
 
-        // ── Tab switching ─────────────────────────────────────────────
+        // â”€â”€ Tab switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function switchTab(name) {
             ['overview', 'ambassador', 'profile', 'admin', 'messages'].forEach(t => {
                 const panel = $('tab-' + t);
@@ -1866,7 +1866,7 @@
             if (name === 'admin') loadAdminStats();
         }
 
-        // ── Ambassador ────────────────────────────────────────────────
+        // â”€â”€ Ambassador â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         let _ambUserId = null;
         let _ambRefCode = null;
         let _ambBalance = 0;
@@ -1879,7 +1879,7 @@
                 .maybeSingle();
 
             if (!profile?.referral_code) {
-                // Profile missing — trigger creation via upsert
+                // Profile missing â€” trigger creation via upsert
                 const code = Math.random().toString(36).slice(2, 10).toUpperCase();
                 const { error: upsertErr } = await sb.from('dartvoice_profiles')
                     .upsert({ id: userId, referral_code: code }, { onConflict: 'id' });
@@ -1893,11 +1893,11 @@
 
             const code = profile?.referral_code || '';
             _ambRefCode = code;
-            const url = code ? `https://dartvoice.app/login?ref=${code}` : '—';
+            const url = code ? `https://dartvoice.app/login?ref=${code}` : 'â€”';
             $('ref-link-text').textContent = url;
 
             // Email + phone UI
-            $('amb-email').textContent = profile?.email || '—';
+            $('amb-email').textContent = profile?.email || 'â€”';
             if (profile?.phone_number) $('input-phone').value = profile.phone_number;
             if (profile?.phone_verified) {
                 document.getElementById('btn-mark-phone').classList.add('hidden');
@@ -1925,13 +1925,13 @@
 
             $('amb-pending-referrals').textContent = pendingRefs.length;
             $('amb-confirmed-referrals').textContent = confirmedRefs.length;
-            $('amb-pending-earnings').textContent = `£${pendingEarnings.toFixed(2)}`;
-            $('amb-confirmed-earnings').textContent = `£${confirmedEarnings.toFixed(2)}`;
+            $('amb-pending-earnings').textContent = `Â£${pendingEarnings.toFixed(2)}`;
+            $('amb-confirmed-earnings').textContent = `Â£${confirmedEarnings.toFixed(2)}`;
 
             // Badge in tab button
             if (confirmedEarnings > 0) {
                 const badge = $('amb-earned-badge');
-                badge.textContent = `£${confirmedEarnings.toFixed(0)}`;
+                badge.textContent = `Â£${confirmedEarnings.toFixed(0)}`;
                 badge.classList.remove('hidden');
             }
 
@@ -1982,7 +1982,7 @@
                     <p class="text-[10px] text-muted-2 uppercase tracking-wider mt-0.5">${new Date(r.created_at).toLocaleDateString('en-GB')}</p>
                 </div>
                 <div class="flex items-center gap-3 shrink-0 ml-3">
-                    <span class="text-xs font-bold ${isPending ? 'text-amber-400' : 'text-green-400'}">${isPending ? '~' : '+'}£${amount.toFixed(2)}</span>
+                    <span class="text-xs font-bold ${isPending ? 'text-amber-400' : 'text-green-400'}">${isPending ? '~' : '+'}Â£${amount.toFixed(2)}</span>
                     <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${meta.bg} ${meta.color}">${meta.label}</span>
                 </div>
             </div>`;
@@ -1992,7 +1992,7 @@
 
         function copyRefLink() {
             const link = $('ref-link-text').textContent;
-            if (!link || link === '—') return;
+            if (!link || link === 'â€”') return;
             navigator.clipboard.writeText(link).then(() => {
                 const btn = $('btn-copy-link');
                 const originalHtml = btn.innerHTML;
@@ -2019,14 +2019,14 @@
 
         function shareWhatsApp() {
             const link = $('ref-link-text').textContent;
-            const msg = encodeURIComponent(`Hey! I've been using DartVoice to score my darts games with voice — it's brilliant. Use my link to try it free: ${link}`);
+            const msg = encodeURIComponent(`Hey! I've been using DartVoice to score my darts games with voice â€” it's brilliant. Use my link to try it free: ${link}`);
             window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
         function shareNative() {
             const link = $('ref-link-text').textContent;
             if (navigator.share) {
-                navigator.share({ title: 'DartVoice — Free Trial', text: 'Try DartVoice free for 7 days:', url: link });
+                navigator.share({ title: 'DartVoice â€” Free Trial', text: 'Try DartVoice free for 7 days:', url: link });
             } else {
                 copyRefLink();
             }
@@ -2074,12 +2074,12 @@
             if (!phone || !token) return showToast('Enter the verification code');
             const btn = $('btn-verify-phone');
             btn.disabled = true;
-            btn.textContent = 'Verifying…';
+            btn.textContent = 'Verifyingâ€¦';
             const { error } = await sb.auth.verifyOtp({ phone, token, type: 'sms' });
             btn.disabled = false;
             btn.textContent = 'Verify code';
             if (error) {
-                showToast(error.message || 'Invalid code — try again');
+                showToast(error.message || 'Invalid code â€” try again');
                 return;
             }
             // mark phone_verified true in profile
@@ -2127,7 +2127,7 @@
             }
 
             btn.disabled = true;
-            btn.textContent = 'Requesting…';
+            btn.textContent = 'Requestingâ€¦';
             msgEl.classList.add('hidden');
 
             // Save PayPal email to profile
@@ -2148,13 +2148,13 @@
                 msgEl.textContent = 'Error: ' + error.message;
                 msgEl.className = 'text-xs text-center text-red-400';
             } else {
-                msgEl.textContent = `✓ Payout of £${_ambBalance.toFixed(2)} requested. Our team will review and process it within 3 business days.`;
+                msgEl.textContent = `âœ“ Payout of Â£${_ambBalance.toFixed(2)} requested. Our team will review and process it within 3 business days.`;
                 msgEl.className = 'text-xs text-center text-green-400';
             }
             msgEl.classList.remove('hidden');
         }
 
-        // ── Admin Stats ───────────────────────────────────────────────
+        // â”€â”€ Admin Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         let _adminStatsLoaded = false;
         const PRICE_PER_MONTH = 6.99;
 
@@ -2188,7 +2188,7 @@
                 $('stat-pastdue').textContent = d.byStatus.past_due || 0;
 
                 const paying = (d.byStatus.active || 0) + (d.byStatus.trialing || 0);
-                $('stat-mrr').textContent = '£' + (paying * PRICE_PER_MONTH).toFixed(2);
+                $('stat-mrr').textContent = 'Â£' + (paying * PRICE_PER_MONTH).toFixed(2);
 
                 $('stat-referrals-total').textContent = d.referrals.total;
                 $('stat-referrals-pending').textContent = d.referrals.pending;
@@ -2224,10 +2224,10 @@
                     };
                     tbody.innerHTML = d.subscribers.map(s => {
                         const sc = statusColors[s.status] || statusColors.none;
-                        const pEnd = s.current_period_end ? new Date(s.current_period_end).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : '—';
-                        const upd = s.updated_at ? new Date(s.updated_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : '—';
+                        const pEnd = s.current_period_end ? new Date(s.current_period_end).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : 'â€”';
+                        const upd = s.updated_at ? new Date(s.updated_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : 'â€”';
                         return `<tr>
-                            <td class="py-2.5 pr-4 text-chalk text-xs truncate max-w-[200px]">${escHtml(s.email || '—')}</td>
+                            <td class="py-2.5 pr-4 text-chalk text-xs truncate max-w-[200px]">${escHtml(s.email || 'â€”')}</td>
                             <td class="py-2.5 pr-4"><span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${sc}">${s.status}</span></td>
                             <td class="py-2.5 pr-4 text-xs text-muted">${pEnd}</td>
                             <td class="py-2.5 text-xs text-muted">${upd}</td>
@@ -2252,7 +2252,7 @@
                         return `<div class="flex items-center justify-between py-2.5">
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm font-medium text-chalk truncate">${escHtml(r.referred_email)}</p>
-                                <p class="text-[10px] text-muted-2 mt-0.5">by ${escHtml(r.referrer_email || '—')} · ${when}</p>
+                                <p class="text-[10px] text-muted-2 mt-0.5">by ${escHtml(r.referrer_email || 'â€”')} Â· ${when}</p>
                             </div>
                             <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${rc} shrink-0 ml-3">${r.status}</span>
                         </div>`;
@@ -2261,7 +2261,7 @@
 
                 _adminStatsLoaded = true;
 
-                // ── Charts ──
+                // â”€â”€ Charts â”€â”€
                 renderSignupChart(d.newThisMonth);
                 renderDonutChart(d.byStatus);
             } catch (e) {
@@ -2327,7 +2327,7 @@
             }).join('');
         }
 
-        // ── Messages (admin) ─────────────────────────────────────────
+        // â”€â”€ Messages (admin) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         let _messagesLoaded = false;
         async function loadMessages() {
             const loadingEl = $('messages-loading');
@@ -2408,7 +2408,7 @@
             });
         }
 
-        // ── Init ──────────────────────────────────────────────────────
+        // â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         (async function init() {
             const { data: { session } } = await sb.auth.getSession();
             if (session?.user) {
@@ -2479,3 +2479,4 @@
 </body>
 
 </html>
+

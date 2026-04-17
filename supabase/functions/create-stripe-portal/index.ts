@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SUPABASE EDGE FUNCTION: create-stripe-portal
  *
  * Returns a short-lived Stripe Customer Portal URL so the authenticated user
@@ -51,7 +51,7 @@ serve(async (req) => {
     const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
 
     const { returnUrl } = await req.json().catch(() => ({}));
-    const backTo = returnUrl || `${SITE_URL}/dartvoice-dashboard.html`;
+    const backTo = returnUrl || `${SITE_URL}/html/dartvoice-dashboard.html`;
 
     let { data: sub } = await sbAdmin
       .from("dartvoice_subscriptions")
@@ -105,3 +105,4 @@ serve(async (req) => {
     });
   }
 });
+

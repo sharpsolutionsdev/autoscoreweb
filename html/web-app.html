@@ -1,19 +1,19 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DartVoice Web Dashboard</title>
-    <meta name="description" content="Try DartVoice live in your browser — voice-controlled darts scoring with no download required.">
-    <meta property="og:title" content="DartVoice Web App — Live Demo">
-    <meta property="og:description" content="Try DartVoice live in your browser — voice-controlled darts scoring with no download.">
+    <meta name="description" content="Try DartVoice live in your browser â€” voice-controlled darts scoring with no download required.">
+    <meta property="og:title" content="DartVoice Web App â€” Live Demo">
+    <meta property="og:description" content="Try DartVoice live in your browser â€” voice-controlled darts scoring with no download.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/web-app.html">
+    <meta property="og:url" content="https://dartvoice.app/html/web-app.html">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="DartVoice Web App — Live Demo">
-    <meta name="twitter:description" content="Try DartVoice live in your browser — voice-controlled darts scoring.">
+    <meta name="twitter:title" content="DartVoice Web App â€” Live Demo">
+    <meta name="twitter:description" content="Try DartVoice live in your browser â€” voice-controlled darts scoring.">
     <meta name="twitter:image" content="https://dartvoice.app/og-image.png">
     <meta name="theme-color" content="#CC0B20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,7 +80,7 @@
                 });
             } catch (e) {
                 console.error("Auth gate error", e);
-                window.location.replace('login.html');
+                window.location.replace('html/login.html');
             }
         })();
     </script>
@@ -222,7 +222,7 @@
         body.sidebar-collapsed .sidebar { width: 0 !important; min-width: 0 !important; padding: 0 !important; opacity: 0; pointer-events: none; overflow: hidden; }
         body.sidebar-collapsed .resizer { display: none; }
 
-        /* Floating expand button — shown only when sidebar is collapsed */
+        /* Floating expand button â€” shown only when sidebar is collapsed */
         #sidebar-expand-float {
             position: fixed; top: 16px; left: 16px; z-index: 50;
             width: 40px; height: 40px; border-radius: 12px;
@@ -243,7 +243,7 @@
             50% { box-shadow: 0 6px 24px rgba(204,11,32,0.55), 0 0 0 10px rgba(204,11,32,0); }
         }
 
-        /* App Controls — upgraded */
+        /* App Controls â€” upgraded */
         .app-ctrl-btn {
             position: relative; overflow: hidden;
             display: inline-flex; align-items: center; gap: 6px;
@@ -465,7 +465,7 @@
 </head>
 
 <body>
-    <!-- Floating expand button — only visible when sidebar is collapsed -->
+    <!-- Floating expand button â€” only visible when sidebar is collapsed -->
     <button id="sidebar-expand-float" type="button" title="Expand dashboard ( \ )" aria-label="Expand dashboard">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
     </button>
@@ -567,7 +567,7 @@
                             </label>
                         </div>
                         <div id="checkout-prompt-indicator" class="hidden bg-brand/10 border border-brand/30 rounded px-2 py-1 text-[10px] text-brand font-bold uppercase tracking-wider flex items-center justify-between">
-                            <span id="checkout-prompt-label">Awaiting darts at double…</span>
+                            <span id="checkout-prompt-label">Awaiting darts at doubleâ€¦</span>
                             <span id="checkout-prompt-timer" class="font-mono text-white">5s</span>
                         </div>
                     </div>
@@ -580,7 +580,7 @@
                             <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
                             App Controls
                         </div>
-                        <span class="text-[8px] text-gray-600 font-bold tracking-wider uppercase">F · \ · ?</span>
+                        <span class="text-[8px] text-gray-600 font-bold tracking-wider uppercase">F Â· \ Â· ?</span>
                     </div>
                     <div class="flex gap-2 flex-wrap">
                         <button id="sidebar-collapse-btn" type="button" class="app-ctrl-btn" title="Collapse sidebar ( \ )"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>Collapse</button>
@@ -653,7 +653,7 @@
                         <span class="text-gray-500">Treble</span><span class="text-gray-300 font-mono">"treble twenty"</span>
                         <span class="text-gray-500">Double</span><span class="text-gray-300 font-mono">"double sixteen"</span>
                         <span class="text-gray-500">Bullseye</span><span class="text-gray-300 font-mono">"bullseye"</span>
-                        <span class="text-gray-500">Miss/Bust</span><span class="text-gray-300 font-mono">"miss" · "bust"</span>
+                        <span class="text-gray-500">Miss/Bust</span><span class="text-gray-300 font-mono">"miss" Â· "bust"</span>
                         <span class="text-gray-500">Undo</span><span class="text-gray-300 font-mono">"cancel"</span>
                     </div>
                 </div>
@@ -725,7 +725,7 @@
                                 <span class="text-[10px] text-gray-400 font-medium block mb-1">Game Type</span>
                                 <select class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none">
                                     <option>X01</option>
-                                    <option disabled style="color:#666">Cricket — Windows app only</option>
+                                    <option disabled style="color:#666">Cricket â€” Windows app only</option>
                                 </select>
                                 <span class="text-[9px] text-gray-500 block mt-1 leading-tight">Cricket scoring is available in the <a href="downloads" class="text-brand hover:underline">Windows desktop app</a>.</span>
                             </div>
@@ -735,22 +735,22 @@
                         <div>
                             <span class="text-[10px] text-gray-400 font-medium block mb-1">Voice Accent</span>
                             <select id="accent-select" class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none">
-                                <option value="en-GB">🇬🇧 English (UK)</option>
-                                <option value="en-IE">🇮🇪 English (Ireland)</option>
-                                <option value="en-US">🇺🇸 English (US)</option>
-                                <option value="en-AU">🇦🇺 English (Australia)</option>
-                                <option value="en-ZA">🇿🇦 English (South Africa)</option>
-                                <option value="en-IN">🇮🇳 English (India)</option>
-                                <option value="de-DE">🇩🇪 Deutsch (Germany)</option>
-                                <option value="nl-NL">🇳🇱 Nederlands (Netherlands)</option>
-                                <option value="nl-BE">🇧🇪 Nederlands (Belgium)</option>
-                                <option value="fr-FR">🇫🇷 Français (France)</option>
-                                <option value="da-DK">🇩🇰 Dansk (Denmark)</option>
-                                <option value="sv-SE">🇸🇪 Svenska (Sweden)</option>
-                                <option value="nb-NO">🇳🇴 Norsk (Norway)</option>
-                                <option value="pl-PL">🇵🇱 Polski (Poland)</option>
-                                <option value="es-ES">🇪🇸 Español (Spain)</option>
-                                <option value="pt-PT">🇵🇹 Português (Portugal)</option>
+                                <option value="en-GB">ðŸ‡¬ðŸ‡§ English (UK)</option>
+                                <option value="en-IE">ðŸ‡®ðŸ‡ª English (Ireland)</option>
+                                <option value="en-US">ðŸ‡ºðŸ‡¸ English (US)</option>
+                                <option value="en-AU">ðŸ‡¦ðŸ‡º English (Australia)</option>
+                                <option value="en-ZA">ðŸ‡¿ðŸ‡¦ English (South Africa)</option>
+                                <option value="en-IN">ðŸ‡®ðŸ‡³ English (India)</option>
+                                <option value="de-DE">ðŸ‡©ðŸ‡ª Deutsch (Germany)</option>
+                                <option value="nl-NL">ðŸ‡³ðŸ‡± Nederlands (Netherlands)</option>
+                                <option value="nl-BE">ðŸ‡§ðŸ‡ª Nederlands (Belgium)</option>
+                                <option value="fr-FR">ðŸ‡«ðŸ‡· FranÃ§ais (France)</option>
+                                <option value="da-DK">ðŸ‡©ðŸ‡° Dansk (Denmark)</option>
+                                <option value="sv-SE">ðŸ‡¸ðŸ‡ª Svenska (Sweden)</option>
+                                <option value="nb-NO">ðŸ‡³ðŸ‡´ Norsk (Norway)</option>
+                                <option value="pl-PL">ðŸ‡µðŸ‡± Polski (Poland)</option>
+                                <option value="es-ES">ðŸ‡ªðŸ‡¸ EspaÃ±ol (Spain)</option>
+                                <option value="pt-PT">ðŸ‡µðŸ‡¹ PortuguÃªs (Portugal)</option>
                             </select>
                             <p class="text-[9px] text-gray-500 mt-0.5">Helps speech recognition understand your accent better</p>
                         </div>
@@ -867,7 +867,7 @@
                         </label>
                     </div>
                     <button class="btn-outline py-2.5 mb-3 hover:bg-white/5 active:scale-95 transition-all text-xs" onclick="window.location.href='dartvoice-dashboard'">
-                        <span class="opacity-80 font-medium">← Return to Dashboard</span>
+                        <span class="opacity-80 font-medium">â† Return to Dashboard</span>
                     </button>
                     <div class="flex items-center justify-between text-[10px] text-gray-500 font-medium tracking-wide">
                         <span>DartVoice Web v1.2</span>
@@ -962,7 +962,7 @@
                     <svg class="w-5 h-5 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.6 11.8C17.6 9.5 16 7.5 13.8 6.8L15.3 4.3C15.5 4 15.4 3.6 15.1 3.4C14.8 3.2 14.4 3.3 14.2 3.6L12.6 6.2C12.4 6.2 12.2 6.1 12 6.1C11.8 6.1 11.6 6.1 11.4 6.2L9.8 3.6C9.6 3.3 9.2 3.2 8.9 3.4C8.6 3.6 8.5 4 8.7 4.3L10.2 6.8C8 7.5 6.4 9.5 6.4 11.8H17.6ZM10 10C9.6 10 9.2 9.6 9.2 9.2C9.2 8.8 9.6 8.4 10 8.4C10.4 8.4 10.8 8.8 10.8 9.2C10.8 9.6 10.4 10 10 10ZM14 10C13.6 10 13.2 9.6 13.2 9.2C13.2 8.8 13.6 8.4 14 8.4C14.4 8.4 14.8 8.8 14.8 9.2C14.8 9.6 14.4 10 14 10Z"/><rect x="5" y="12" width="14" height="8" rx="1"/></svg>
                     <span class="text-green-400 font-bold text-sm">Android User?</span>
                 </div>
-                <p class="text-gray-400 text-xs leading-relaxed mb-3">Great news — the <b class="text-white">DartVoice Android app</b> is available now! Start your free trial and download it straight from your dashboard.</p>
+                <p class="text-gray-400 text-xs leading-relaxed mb-3">Great news â€” the <b class="text-white">DartVoice Android app</b> is available now! Start your free trial and download it straight from your dashboard.</p>
                 <a href="login?intent=subscribe" class="block w-full py-2.5 bg-green-600 hover:bg-green-500 text-white font-bold text-xs tracking-widest uppercase text-center rounded-lg transition-all">
                     Start Free Trial & Download
                 </a>
@@ -983,7 +983,7 @@
                     Go to Dashboard
                 </a>
                 <button onclick="window.location.href='/'" class="block w-full py-2.5 bg-transparent text-gray-500 text-xs tracking-wider text-center transition-all cursor-pointer border-none hover:text-gray-300">
-                    ← Back to Home
+                    â† Back to Home
                 </button>
             </div>
         </div>
@@ -1026,11 +1026,11 @@
                 </a>
                 <button onclick="location.reload()"
                    class="block w-full py-3 bg-transparent border border-[#252530] hover:bg-[#252530] text-gray-400 font-bold text-xs tracking-widest uppercase text-center rounded-lg transition-all cursor-pointer">
-                    I've Installed It — Refresh
+                    I've Installed It â€” Refresh
                 </button>
                 <button onclick="window.location.href='/'"
                    class="block w-full py-2.5 bg-transparent text-gray-500 text-xs tracking-wider text-center transition-all cursor-pointer border-none hover:text-gray-300">
-                    ← Back to Home
+                    â† Back to Home
                 </button>
             </div>
         </div>
@@ -1086,9 +1086,9 @@
                         <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
                     </div>
                     <h3 class="text-lg font-bold text-white mb-2">Allow Microphone Access</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed mb-4">When your browser asks for mic permission, click <b class="text-white">Allow</b>. DartVoice listens locally — your audio never leaves your device.</p>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">When your browser asks for mic permission, click <b class="text-white">Allow</b>. DartVoice listens locally â€” your audio never leaves your device.</p>
                     <div class="bg-[#08080A] rounded-lg p-3 border border-[#252530]">
-                        <p class="text-xs text-muted leading-relaxed">If you accidentally blocked it: click the <b class="text-white">lock icon</b> in Chrome's address bar → Site Settings → Microphone → Allow.</p>
+                        <p class="text-xs text-muted leading-relaxed">If you accidentally blocked it: click the <b class="text-white">lock icon</b> in Chrome's address bar â†’ Site Settings â†’ Microphone â†’ Allow.</p>
                     </div>
                 </div>
 
@@ -1118,9 +1118,9 @@
 
                 <!-- Nav buttons -->
                 <div class="flex items-center justify-between mt-6 pt-4 border-t border-wire">
-                    <button id="onb-prev" onclick="onbNav(-1)" class="text-sm text-muted hover:text-chalk transition hidden">← Back</button>
+                    <button id="onb-prev" onclick="onbNav(-1)" class="text-sm text-muted hover:text-chalk transition hidden">â† Back</button>
                     <div></div>
-                    <button id="onb-next" onclick="onbNav(1)" class="bg-brand hover:bg-[#e60d24] text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-all">Next →</button>
+                    <button id="onb-next" onclick="onbNav(1)" class="bg-brand hover:bg-[#e60d24] text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-all">Next â†’</button>
                 </div>
             </div>
         </div>
@@ -1135,7 +1135,7 @@
             document.getElementById('onb-progress').style.width = (_onbStep / _onbTotal * 100) + '%';
             document.getElementById('onb-prev').classList.toggle('hidden', _onbStep === 1);
             var btn = document.getElementById('onb-next');
-            btn.textContent = _onbStep === _onbTotal ? "Let's Go!" : 'Next →';
+            btn.textContent = _onbStep === _onbTotal ? "Let's Go!" : 'Next â†’';
         }
         window.onbNav = function(dir) {
             _onbStep += dir;
@@ -1277,8 +1277,8 @@
                 proBanner.classList.remove('hidden');
                 if (proBannerText) {
                     proBannerText.textContent = sub.status === 'active'
-                        ? 'PRO ACCESS — Unlimited voice scoring'
-                        : 'FREE TRIAL — Unlimited voice scoring';
+                        ? 'PRO ACCESS â€” Unlimited voice scoring'
+                        : 'FREE TRIAL â€” Unlimited voice scoring';
                 }
             } else if (proBanner) {
                 proBanner.classList.add('hidden');
@@ -1309,8 +1309,8 @@
                             proBanner.classList.remove('hidden');
                             if (proBannerText) {
                                 proBannerText.textContent = newStatus === 'active'
-                                    ? 'PRO ACCESS — Unlimited voice scoring'
-                                    : 'FREE TRIAL — Unlimited voice scoring';
+                                    ? 'PRO ACCESS â€” Unlimited voice scoring'
+                                    : 'FREE TRIAL â€” Unlimited voice scoring';
                             }
                         }
                     }
@@ -1426,7 +1426,7 @@
             }
         }, 500);
 
-        // Safe element getter — returns a lightweight shim when element missing to avoid runtime errors
+        // Safe element getter â€” returns a lightweight shim when element missing to avoid runtime errors
         function _safeEl(id) {
             const el = document.getElementById(id);
             if (el) return el;
@@ -1504,7 +1504,7 @@
                 if (i !== route.length - 1) {
                     const arr = document.createElement('span');
                     arr.className = 'checkout-arrow';
-                    arr.textContent = '▸';
+                    arr.textContent = 'â–¸';
                     container.appendChild(arr);
                 }
             });
@@ -1519,7 +1519,7 @@
                 const gs = document.createElement('span');
                 gs.className = 'text-brand font-black tracking-widest uppercase';
                 gs.style.cssText = 'font-size:18px;text-shadow:0 0 12px rgba(204,11,32,0.6);';
-                gs.textContent = '🎯 Game Shot!';
+                gs.textContent = 'ðŸŽ¯ Game Shot!';
                 pathEl.appendChild(gs);
             } else if (currentCheckoutScore <= 170 && currentCheckoutScore >= 2) {
                 renderCheckoutPathInto(pathEl, currentCheckoutScore);
@@ -1527,13 +1527,13 @@
                 while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
                 const w = document.createElement('span');
                 w.className = 'text-yellow-400 text-xs font-bold tracking-wider uppercase';
-                w.textContent = '⚠ Bust territory — score to double';
+                w.textContent = 'âš  Bust territory â€” score to double';
                 pathEl.appendChild(w);
             } else {
                 while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
                 const s = document.createElement('span');
                 s.className = 'text-xs text-gray-500 italic tracking-wide';
-                s.textContent = 'Scoring phase — no checkout yet…';
+                s.textContent = 'Scoring phase â€” no checkout yetâ€¦';
                 pathEl.appendChild(s);
             }
         }
@@ -1624,7 +1624,7 @@
                 listening = false;
             }
             alert("Your 10-minute demo has expired. Please subscribe to continue.");
-            window.location.replace('login.html?intent=subscribe');
+            window.location.replace('html/login.html?intent=subscribe');
         }
 
         // --- PER-DART ACCUMULATOR ---
@@ -1818,8 +1818,8 @@
                 if (!isNaN(nScore)) { _sessionScores.push(nScore); updateSessionStats(); }
 
                 // Play a tiny celebration toast on 180 / tons
-                if (nScore === 180) dvToast('🔥 ONE HUNDRED AND EIGHTY!', 'success');
-                else if (nScore >= 140 && !isNaN(nScore)) dvToast(`💥 Ton+ (${nScore})`, 'success');
+                if (nScore === 180) dvToast('ðŸ”¥ ONE HUNDRED AND EIGHTY!', 'success');
+                else if (nScore >= 140 && !isNaN(nScore)) dvToast(`ðŸ’¥ Ton+ (${nScore})`, 'success');
                 
                 // Log in transcript (newest at top)
                 const div = document.createElement('div');
@@ -1870,7 +1870,7 @@
                 statusText.className = "text-sm font-semibold text-white";
                 waveVisualizer.classList.add('active');
                 startEqualizer();
-                log("Microphone activated — Speak your score.", false);
+                log("Microphone activated â€” Speak your score.", false);
             };
             
             recognition.onresult = function(event) {
@@ -1878,7 +1878,7 @@
                     // Show interim (partial) results live so user sees mic is working
                     if (!event.results[i].isFinal) {
                         const interim = event.results[i][0].transcript.trim();
-                        statusText.textContent = interim ? `"${interim}"…` : 'Awaiting Score...';
+                        statusText.textContent = interim ? `"${interim}"â€¦` : 'Awaiting Score...';
                         continue;
                     }
 
@@ -1909,7 +1909,7 @@
                     if (raw.includes("cancel") && AppConfig.cancelWordEnabled) {
                         if (AppConfig.inputMode === 'per-dart' && dartBuffer.length > 0) {
                             // In per-dart mode, cancel clears the dart buffer
-                            log(`Cancel — cleared ${dartBuffer.length} buffered dart(s)`, false);
+                            log(`Cancel â€” cleared ${dartBuffer.length} buffered dart(s)`, false);
                             dartBuffer = [];
                             if (dartBufferTimeout) { clearTimeout(dartBufferTimeout); dartBufferTimeout = null; }
                             statusText.textContent = 'Darts cleared. Speak again...';
@@ -1926,7 +1926,7 @@
                         if (AppConfig.inputMode === 'per-dart') {
                             // Per-dart: collect 3 darts, sum, then submit
                             if (score > 60) {
-                                // Single dart can't exceed 60 — treat as total instead
+                                // Single dart can't exceed 60 â€” treat as total instead
                                 log(`"${raw}" (${score}) exceeds per-dart max 60, sending as visit total`, false);
                                 log(score, true);
                                 handleScoreDeduction(String(score));
@@ -1940,14 +1940,14 @@
                                 if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
 
                                 if (dartBuffer.length >= 3) {
-                                    // All 3 darts in — give a short pause before submitting so user can say "cancel"
+                                    // All 3 darts in â€” give a short pause before submitting so user can say "cancel"
                                     if (dartBufferTimeout) clearTimeout(dartBufferTimeout);
                                     // grace period to allow a cancel command (configurable)
                                     dartBufferTimeout = setTimeout(() => {
                                         if (dartBuffer.length > 0) {
                                             const total = dartBuffer.reduce((a, b) => a + b, 0);
                                             log(`${dartBuffer.join(' + ')} = ${total}`, true);
-                                            log(`Per-dart total: ${dartBuffer.join(' + ')} → Forwarding ${total} to scorer...`, false);
+                                            log(`Per-dart total: ${dartBuffer.join(' + ')} â†’ Forwarding ${total} to scorer...`, false);
                                             handleScoreDeduction(String(total));
                                             blastScoreToIframe(String(total));
                                             dartBuffer = [];
@@ -1955,14 +1955,14 @@
                                             dartBufferTimeout = null;
                                         }
                                     }, AppConfig.perDartSubmitGraceMs);
-                                    log('All 3 darts received — submitting shortly. Say "cancel" to abort.', false);
+                                    log('All 3 darts received â€” submitting shortly. Say "cancel" to abort.', false);
                                 } else {
                                     // Auto-submit after configured silence (e.g. 2-dart visit)
                                     dartBufferTimeout = setTimeout(() => {
                                         if (dartBuffer.length > 0) {
                                             const total = dartBuffer.reduce((a, b) => a + b, 0);
                                             log(`${dartBuffer.join(' + ')} = ${total} (auto-submitted after silence)`, true);
-                                            log(`Per-dart total: ${dartBuffer.join(' + ')} → Forwarding ${total} to scorer...`, false);
+                                            log(`Per-dart total: ${dartBuffer.join(' + ')} â†’ Forwarding ${total} to scorer...`, false);
                                             handleScoreDeduction(String(total));
                                             blastScoreToIframe(String(total));
                                             dartBuffer = [];
@@ -1975,7 +1975,7 @@
                         } else {
                             // Total mode: send immediately
                             log(score, true);
-                            log(`Heard: "${raw}" → Forwarding ${score} to scorer...`, false);
+                            log(`Heard: "${raw}" â†’ Forwarding ${score} to scorer...`, false);
                             handleScoreDeduction(String(score));
                             blastScoreToIframe(String(score));
                         }
@@ -1993,7 +1993,7 @@
                     stopListening();
                 }
                 if(event.error === 'aborted') {
-                    // Don't spam restarts — onend handles auto-restart with debounce
+                    // Don't spam restarts â€” onend handles auto-restart with debounce
                 }
             };
             
@@ -2140,7 +2140,7 @@
             bustProtection: true,
             autoStartNextMatch: true,
             audioChimes: false,
-            // Timing (ms) for per-dart auto-submit behaviour — configurable for testing
+            // Timing (ms) for per-dart auto-submit behaviour â€” configurable for testing
             perDartSilenceMs: 6000, // auto-submit after silence for partial visits
             perDartSubmitGraceMs: 1500 // grace period after 3rd dart before final submit
         };
@@ -2377,10 +2377,10 @@
             }, { passive: true });
         })();
 
-        /* ─────────────────────────────────────────────
+        /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
            Quality-of-life: shortcuts, persistence, mic meter,
            undo/copy, chime, fullscreen, sidebar collapse, tab pause
-           ───────────────────────────────────────────── */
+           â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         (function dvQoL(){
             // Toast host
             if (!document.getElementById('dv-toast-host')) {
@@ -2399,7 +2399,7 @@
             const $ = (id) => document.getElementById(id);
             const listenBtn = $('toggle-listen');
 
-            // ── Persist settings ──
+            // â”€â”€ Persist settings â”€â”€
             const STORAGE_KEY = 'dv-app-config-v1';
             const persistKeys = ['inputMode','wakeWordEnabled','triggerWord','cancelWordEnabled','liveCheckoutEnabled','checkoutDialogEnabled','bustProtection','autoStartNextMatch','audioChimes'];
             try {
@@ -2436,7 +2436,7 @@
             });
             document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', saveSettings));
 
-            // ── Trigger word: sync settings <-> dashboard inputs, persist, update AppConfig ──
+            // â”€â”€ Trigger word: sync settings <-> dashboard inputs, persist, update AppConfig â”€â”€
             const twSet = $('trigger-word-input'), twDash = $('trigger-word-input-dash');
             const twTogSet = $('toggle-wake-word'), twTogDash = $('toggle-wake-word-dash');
             const coTogSet = $('toggle-checkout-dialog'), coTogDash = $('toggle-checkout-dialog-dash');
@@ -2474,10 +2474,10 @@
             if (coTogSet) coTogSet.addEventListener('change', e => syncCheckoutToggle(e.target.checked));
             if (coTogDash) coTogDash.addEventListener('change', e => syncCheckoutToggle(e.target.checked));
 
-            // ── Checkout dialog state machine ──
+            // â”€â”€ Checkout dialog state machine â”€â”€
             // After a checkout-able score (41-170) is sent:
-            //  Step 1: wait up to 5s for "1"/"2"/"3" → forwarded to iframe (darts to checkout)
-            //  Step 2: wait up to 5s for "1"/"2"/"3" → forwarded (darts at double)
+            //  Step 1: wait up to 5s for "1"/"2"/"3" â†’ forwarded to iframe (darts to checkout)
+            //  Step 2: wait up to 5s for "1"/"2"/"3" â†’ forwarded (darts at double)
             //  On timeout for either step: auto-submit "3"
             const promptInd = $('checkout-prompt-indicator');
             const promptLbl = $('checkout-prompt-label');
@@ -2494,7 +2494,7 @@
                 tickHandle: null,
                 arm(score){
                     this.step = 1;
-                    this._beginStep('Awaiting darts to checkout…');
+                    this._beginStep('Awaiting darts to checkoutâ€¦');
                 },
                 _beginStep(label){
                     if (!AppConfig.checkoutDialogEnabled) { this._end(); return; }
@@ -2512,7 +2512,7 @@
                     const remain = Math.max(0, this.deadline - Date.now());
                     if (promptTimer) promptTimer.textContent = (remain/1000).toFixed(1) + 's';
                     if (remain <= 0) {
-                        if (typeof log === 'function') log(`Checkout dialog timed out — no auto-submit (avoid stray input)`, false);
+                        if (typeof log === 'function') log(`Checkout dialog timed out â€” no auto-submit (avoid stray input)`, false);
                         this._end();
                     }
                 },
@@ -2526,7 +2526,7 @@
                     if (typeof window.dvToast === 'function') dvToast(`Sent ${n} (${this.step === 1 ? 'darts' : 'double'})`, 'success');
                     if (this.step === 1) {
                         this.step = 2;
-                        this._beginStep('Awaiting darts at double…');
+                        this._beginStep('Awaiting darts at doubleâ€¦');
                     } else {
                         this._end();
                     }
@@ -2546,14 +2546,14 @@
                         this._submit(n, false);
                         return true;
                     }
-                    // Not a number → leave dialog armed but don't swallow other speech
+                    // Not a number â†’ leave dialog armed but don't swallow other speech
                     return false;
                 },
                 cancel(){ this._end(); }
             };
             window.dvCheckoutPrompt = dvCheckoutPrompt;
 
-            // ── Mic level meter ──
+            // â”€â”€ Mic level meter â”€â”€
             let audioCtx = null, micAnalyser = null, micRaf = null, micStream = null;
             const bar = $('mic-level-bar'), pct = $('mic-level-pct');
             async function startMicMeter(){
@@ -2604,7 +2604,7 @@
                 obs.observe(listenBtn, { childList: true, characterData: true, subtree: true });
             }
 
-            // ── Audio chime on score injection ──
+            // â”€â”€ Audio chime on score injection â”€â”€
             let chimeCtx = null;
             function playChime(){
                 if (typeof AppConfig === 'undefined' || !AppConfig.audioChimes) return;
@@ -2621,7 +2621,7 @@
             }
             window.dvPlayChime = playChime;
 
-            // ── Undo button + Copy transcript button ──
+            // â”€â”€ Undo button + Copy transcript button â”€â”€
             const undoBtn = $('undo-last-btn');
             if (undoBtn) undoBtn.addEventListener('click', () => {
                 if (typeof blastScoreToIframe === 'function') {
@@ -2638,7 +2638,7 @@
                 navigator.clipboard.writeText(lines.join('\n')).then(() => dvToast('Copied last ' + lines.length + ' lines', 'success'));
             });
 
-            // ── Fullscreen (whole document so sidebar stays visible) ──
+            // â”€â”€ Fullscreen (whole document so sidebar stays visible) â”€â”€
             const fsBtn = $('fullscreen-btn');
             const fsLabel = $('fullscreen-btn-label');
             function _isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
@@ -2654,7 +2654,7 @@
             document.addEventListener('fullscreenchange', _syncFsLabel);
             document.addEventListener('webkitfullscreenchange', _syncFsLabel);
 
-            // ── Sidebar collapse / expand ──
+            // â”€â”€ Sidebar collapse / expand â”€â”€
             const collapseBtn = $('sidebar-collapse-btn');
             const expandFloat = $('sidebar-expand-float');
             const COLLAPSE_KEY = 'dv-sidebar-collapsed';
@@ -2662,12 +2662,12 @@
             function toggleSidebar() {
                 const c = document.body.classList.toggle('sidebar-collapsed');
                 localStorage.setItem(COLLAPSE_KEY, c ? '1' : '0');
-                if (c) dvToast('Dashboard collapsed — click the red arrow or press \\ to reopen', 'success');
+                if (c) dvToast('Dashboard collapsed â€” click the red arrow or press \\ to reopen', 'success');
             }
             if (collapseBtn) collapseBtn.addEventListener('click', toggleSidebar);
             if (expandFloat) expandFloat.addEventListener('click', toggleSidebar);
 
-            // ── Auto-pause mic on tab blur ──
+            // â”€â”€ Auto-pause mic on tab blur â”€â”€
             let pausedByBlur = false;
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && typeof listening !== 'undefined' && listening) {
@@ -2682,7 +2682,7 @@
                 }
             });
 
-            // ── Keyboard shortcuts ──
+            // â”€â”€ Keyboard shortcuts â”€â”€
             document.addEventListener('keydown', (e) => {
                 if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable)) return;
                 if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -2701,7 +2701,7 @@
                     if (collapseBtn) collapseBtn.click();
                 } else if (k === '?') {
                     e.preventDefault();
-                    dvToast('Shortcuts: Space/M = mic · U = undo · F = fullscreen · \\ = collapse', 'success');
+                    dvToast('Shortcuts: Space/M = mic Â· U = undo Â· F = fullscreen Â· \\ = collapse', 'success');
                 }
             });
 
@@ -2716,3 +2716,4 @@
 </body>
 
 </html>
+
