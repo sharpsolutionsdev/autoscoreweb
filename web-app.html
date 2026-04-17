@@ -218,9 +218,105 @@
         iframe { width: 100%; height: 100%; border: none; background-color: #ffffff; }
 
         /* Sidebar collapse */
-        .sidebar { transition: width .25s ease, min-width .25s ease, opacity .2s ease, padding .25s ease; }
+        .sidebar { transition: width .3s cubic-bezier(0.16, 1, 0.3, 1), min-width .3s cubic-bezier(0.16, 1, 0.3, 1), opacity .2s ease, padding .25s ease; }
         body.sidebar-collapsed .sidebar { width: 0 !important; min-width: 0 !important; padding: 0 !important; opacity: 0; pointer-events: none; overflow: hidden; }
         body.sidebar-collapsed .resizer { display: none; }
+
+        /* Floating expand button — shown only when sidebar is collapsed */
+        #sidebar-expand-float {
+            position: fixed; top: 16px; left: 16px; z-index: 50;
+            width: 40px; height: 40px; border-radius: 12px;
+            background: linear-gradient(135deg, rgba(204,11,32,0.9) 0%, rgba(140,6,20,0.9) 100%);
+            border: 1px solid rgba(255,255,255,0.15);
+            display: none; align-items: center; justify-content: center;
+            color: white; cursor: pointer;
+            box-shadow: 0 6px 24px rgba(204,11,32,0.35), 0 0 0 1px rgba(255,255,255,0.05) inset;
+            backdrop-filter: blur(8px);
+            transition: transform .2s ease, box-shadow .2s ease;
+            animation: floatPulse 2.4s ease-in-out infinite;
+        }
+        body.sidebar-collapsed #sidebar-expand-float { display: flex; }
+        #sidebar-expand-float:hover { transform: scale(1.08); box-shadow: 0 10px 32px rgba(204,11,32,0.55); }
+        #sidebar-expand-float:active { transform: scale(0.95); }
+        @keyframes floatPulse {
+            0%, 100% { box-shadow: 0 6px 24px rgba(204,11,32,0.35), 0 0 0 0 rgba(204,11,32,0.4); }
+            50% { box-shadow: 0 6px 24px rgba(204,11,32,0.55), 0 0 0 10px rgba(204,11,32,0); }
+        }
+
+        /* App Controls — upgraded */
+        .app-ctrl-btn {
+            position: relative; overflow: hidden;
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #17171c 0%, #0e0e12 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #d4d4d8;
+            padding: 9px 14px; border-radius: 10px;
+            font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+            cursor: pointer;
+            transition: transform .15s ease, border-color .2s ease, background .2s ease, box-shadow .25s ease, color .2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .app-ctrl-btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
+            transform: translateX(-120%); transition: transform .6s ease;
+        }
+        .app-ctrl-btn:hover { color: #fff; border-color: rgba(204,11,32,0.5); box-shadow: 0 6px 20px rgba(204,11,32,0.25), inset 0 1px 0 rgba(255,255,255,0.08); transform: translateY(-1px); }
+        .app-ctrl-btn:hover::before { transform: translateX(120%); }
+        .app-ctrl-btn:active { transform: translateY(0) scale(0.97); }
+        .app-ctrl-btn.accent { background: linear-gradient(135deg, rgba(204,11,32,0.18) 0%, rgba(204,11,32,0.06) 100%); border-color: rgba(204,11,32,0.4); color: #ff6b7a; }
+        .app-ctrl-btn.accent:hover { background: linear-gradient(135deg, rgba(204,11,32,0.28) 0%, rgba(204,11,32,0.12) 100%); color: #fff; }
+        .app-ctrl-btn svg { transition: transform .25s ease; }
+        .app-ctrl-btn:hover svg { transform: scale(1.15); }
+
+        /* Score chip pop-in */
+        @keyframes scorePop {
+            0% { opacity: 0; transform: scale(0.4) rotate(-8deg); filter: brightness(2); }
+            60% { opacity: 1; transform: scale(1.15) rotate(2deg); filter: brightness(1.4); }
+            100% { opacity: 1; transform: scale(1) rotate(0); filter: brightness(1); }
+        }
+        @keyframes scoreGlow {
+            0%, 100% { box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+            50% { box-shadow: 0 4px 20px rgba(204,11,32,0.6), 0 0 30px rgba(204,11,32,0.3); }
+        }
+        .score-log.score-new { animation: scorePop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, scoreGlow 1.2s ease-out; }
+        .score-log.big-score { background: linear-gradient(135deg, rgba(204,11,32,0.35) 0%, rgba(204,11,32,0.15) 100%) !important; border-color: rgba(204,11,32,0.6) !important; }
+        .score-log.ton { background: linear-gradient(135deg, rgba(255,215,0,0.25) 0%, rgba(204,11,32,0.2) 100%) !important; border-color: rgba(255,215,0,0.5) !important; color: #ffe680 !important; }
+        .score-log.max { background: linear-gradient(135deg, #ffd700 0%, #ff8c00 50%, #cc0b20 100%) !important; border-color: #ffd700 !important; color: #fff !important; text-shadow: 0 0 8px rgba(0,0,0,0.6); animation: scorePop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, maxFlash 1.5s ease-out; }
+        @keyframes maxFlash {
+            0% { box-shadow: 0 0 0 rgba(255,215,0,0); }
+            30% { box-shadow: 0 0 40px rgba(255,215,0,0.9), 0 0 80px rgba(255,140,0,0.5); }
+            100% { box-shadow: 0 4px 16px rgba(204,11,32,0.5); }
+        }
+
+        /* Checkout path dart chips */
+        .checkout-dart {
+            display: inline-flex; align-items: center; gap: 3px;
+            background: linear-gradient(135deg, rgba(204,11,32,0.2) 0%, rgba(204,11,32,0.08) 100%);
+            border: 1px solid rgba(204,11,32,0.4);
+            color: #fff; font-weight: 800;
+            padding: 3px 8px; border-radius: 6px;
+            font-size: 11px; letter-spacing: 0.05em;
+            animation: dartIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            box-shadow: 0 2px 6px rgba(204,11,32,0.2);
+        }
+        .checkout-dart:nth-child(1) { animation-delay: 0s; }
+        .checkout-dart:nth-child(2) { animation-delay: 0.08s; }
+        .checkout-dart:nth-child(3) { animation-delay: 0.16s; }
+        .checkout-dart.finisher { background: linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(34,197,94,0.1) 100%); border-color: rgba(34,197,94,0.6); }
+        @keyframes dartIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.7); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .checkout-arrow { color: rgba(255,255,255,0.3); font-size: 10px; margin: 0 2px; }
+
+        /* Stat counter pulse */
+        @keyframes statPulse {
+            0% { transform: scale(1); color: #fff; }
+            40% { transform: scale(1.25); color: var(--brand, #CC0B20); }
+            100% { transform: scale(1); color: #fff; }
+        }
+        .stat-pulse { animation: statPulse 0.6s ease-out; }
 
         /* QoL: subtle button polish */
         .btn-brand { transition: background .15s ease, box-shadow .2s ease, transform .1s ease; }
@@ -369,6 +465,10 @@
 </head>
 
 <body>
+    <!-- Floating expand button — only visible when sidebar is collapsed -->
+    <button id="sidebar-expand-float" type="button" title="Expand dashboard ( \ )" aria-label="Expand dashboard">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+    </button>
     <div class="app-container">
         <!-- Sidebar Controls -->
         <div class="sidebar grid-bg-soft" id="sidebar">
@@ -474,12 +574,18 @@
                 </div>
 
                 <!-- App Controls -->
-                <div class="hud-card p-4 border border-brand/20 bg-brand/5 mb-4">
-                    <div class="text-[10px] font-bold text-brand tracking-[0.2em] uppercase mb-3">App Controls</div>
+                <div class="hud-card p-4 border border-brand/20 mb-4" style="background: linear-gradient(135deg, rgba(204,11,32,0.08) 0%, rgba(204,11,32,0.02) 100%);">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-[10px] font-bold text-brand tracking-[0.2em] uppercase flex items-center gap-2">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+                            App Controls
+                        </div>
+                        <span class="text-[8px] text-gray-600 font-bold tracking-wider uppercase">F · \ · ?</span>
+                    </div>
                     <div class="flex gap-2 flex-wrap">
-                        <button id="sidebar-collapse-btn" type="button" class="bg-[#111114] border border-[#252530] text-gray-300 px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider hover:bg-[#252530] hover:text-white active:scale-95 transition-all w-fit rounded"><svg width="12" height="12" class="inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>Collapse</button>
-                        <button id="fullscreen-btn" type="button" class="bg-[#111114] border border-[#252530] text-gray-300 px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider hover:bg-[#252530] hover:text-white active:scale-95 transition-all w-fit rounded"><svg width="12" height="12" class="inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg>Fullscreen</button>
-                        <button id="cam-help-btn" type="button" class="bg-brand/20 text-brand border border-brand/40 px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider hover:bg-brand/30 active:scale-95 transition-all w-fit rounded"><svg width="12" height="12" class="inline mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Cam Help</button>
+                        <button id="sidebar-collapse-btn" type="button" class="app-ctrl-btn" title="Collapse sidebar ( \ )"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>Collapse</button>
+                        <button id="fullscreen-btn" type="button" class="app-ctrl-btn" title="Fullscreen ( F )"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg><span id="fullscreen-btn-label">Fullscreen</span></button>
+                        <button id="cam-help-btn" type="button" class="app-ctrl-btn accent" title="Open camera help"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Cam Help</button>
                     </div>
                 </div>
 
@@ -1351,16 +1457,84 @@
         let currentCheckoutScore = 501;
         let gameShotLock = false;
 
+        const CHECKOUT_ROUTES = {
+            170:['T20','T20','Bull'],167:['T20','T19','Bull'],164:['T20','T18','Bull'],161:['T20','T17','Bull'],160:['T20','T20','D20'],
+            158:['T20','T20','D19'],157:['T20','T19','D20'],156:['T20','T20','D18'],155:['T20','T19','D19'],154:['T20','T18','D20'],
+            153:['T20','T19','D18'],152:['T20','T20','D16'],151:['T20','T17','D20'],150:['T20','T18','D18'],149:['T20','T19','D16'],
+            148:['T20','T16','D20'],147:['T20','T17','D18'],146:['T20','T18','D16'],145:['T20','T15','D20'],144:['T20','T20','D12'],
+            143:['T20','T17','D16'],142:['T20','T14','D20'],141:['T20','T19','D12'],140:['T20','T20','D10'],139:['T20','T13','D20'],
+            138:['T20','T18','D12'],137:['T20','T19','D10'],136:['T20','T20','D8'],135:['T20','T17','D12'],134:['T20','T14','D16'],
+            133:['T20','T19','D8'],132:['T20','T16','D12'],131:['T20','T13','D16'],130:['T20','T18','D8'],129:['T19','T16','D12'],
+            128:['T18','T14','D16'],127:['T20','T17','D8'],126:['T19','T19','D6'],125:['Bull','T17','D12'],124:['T20','T14','D11'],
+            123:['T19','T16','D9'],122:['T18','T18','D7'],121:['T20','T11','D14'],120:['T20','S20','D20'],119:['T19','T12','D13'],
+            118:['T20','S18','D20'],117:['T20','S17','D20'],116:['T20','S16','D20'],115:['T20','S15','D20'],114:['T20','S14','D20'],
+            113:['T20','S13','D20'],112:['T20','T12','D18'],111:['T20','S11','D20'],110:['T20','S10','D20'],109:['T20','S9','D20'],
+            108:['T20','S16','D16'],107:['T19','S10','D20'],106:['T20','S6','D20'],105:['T20','S13','D16'],104:['T18','S18','D16'],
+            103:['T19','S10','D18'],102:['T20','S10','D16'],101:['T17','S10','D20'],100:['T20','D20'],99:['T19','S10','D16'],
+            98:['T20','D19'],97:['T19','D20'],96:['T20','D18'],95:['T19','D19'],94:['T18','D20'],93:['T19','D18'],92:['T20','D16'],
+            91:['T17','D20'],90:['T20','D15'],89:['T19','D16'],88:['T20','D14'],87:['T17','D18'],86:['T18','D16'],85:['T15','D20'],
+            84:['T20','D12'],83:['T17','D16'],82:['Bull','D16'],81:['T19','D12'],80:['T20','D10'],79:['T19','D11'],78:['T18','D12'],
+            77:['T19','D10'],76:['T20','D8'],75:['T17','D12'],74:['T14','D16'],73:['T19','D8'],72:['T16','D12'],71:['T13','D16'],
+            70:['T18','D8'],69:['T19','D6'],68:['T20','D4'],67:['T17','D8'],66:['T10','D18'],65:['T19','D4'],64:['T16','D8'],
+            63:['T13','D12'],62:['T10','D16'],61:['T15','D8'],60:['S20','D20'],59:['S19','D20'],58:['S18','D20'],57:['S17','D20'],
+            56:['S16','D20'],55:['S15','D20'],54:['S14','D20'],53:['S13','D20'],52:['S12','D20'],51:['S11','D20'],50:['Bull'],
+            49:['S9','D20'],48:['S16','D16'],47:['S15','D16'],46:['S6','D20'],45:['S13','D16'],44:['S12','D16'],43:['S3','D20'],
+            42:['S10','D16'],41:['S9','D16'],40:['D20'],38:['D19'],36:['D18'],34:['D17'],32:['D16'],30:['D15'],28:['D14'],
+            26:['D13'],24:['D12'],22:['D11'],20:['D10'],18:['D9'],16:['D8'],14:['D7'],12:['D6'],10:['D5'],8:['D4'],6:['D3'],4:['D2'],2:['D1']
+        };
+        function renderCheckoutPathInto(container, score) {
+            while (container.firstChild) container.removeChild(container.firstChild);
+            const route = CHECKOUT_ROUTES[score];
+            if (!route) {
+                const s = document.createElement('span');
+                s.className = 'text-xs text-gray-500 italic tracking-wide';
+                s.textContent = `No checkout for ${score}`;
+                container.appendChild(s);
+                return;
+            }
+            const label = document.createElement('span');
+            label.className = 'text-[9px] text-gray-500 font-bold uppercase tracking-widest mr-1';
+            label.textContent = 'Out:';
+            container.appendChild(label);
+            route.forEach((d, i) => {
+                const chip = document.createElement('span');
+                chip.className = 'checkout-dart' + (i === route.length - 1 ? ' finisher' : '');
+                chip.textContent = d;
+                container.appendChild(chip);
+                if (i !== route.length - 1) {
+                    const arr = document.createElement('span');
+                    arr.className = 'checkout-arrow';
+                    arr.textContent = '▸';
+                    container.appendChild(arr);
+                }
+            });
+        }
         function updateCheckoutUI() {
             const targetEl = document.getElementById('checkout-target');
-            if(targetEl) targetEl.innerText = `REMAINING: ${currentCheckoutScore}`;
+            const pathEl = document.getElementById('checkout-path');
+            if(targetEl) targetEl.textContent = `REMAINING: ${currentCheckoutScore}`;
+            if (!pathEl) return;
             if (currentCheckoutScore === 0) {
-                document.getElementById('checkout-path').innerText = "GAME SHOT!";
-            } else if (currentCheckoutScore <= 170) {
-                // Could fetch optimal checkout route here!
-                document.getElementById('checkout-path').innerText = `Looking for ${currentCheckoutScore}...`;
+                while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
+                const gs = document.createElement('span');
+                gs.className = 'text-brand font-black tracking-widest uppercase';
+                gs.style.cssText = 'font-size:18px;text-shadow:0 0 12px rgba(204,11,32,0.6);';
+                gs.textContent = '🎯 Game Shot!';
+                pathEl.appendChild(gs);
+            } else if (currentCheckoutScore <= 170 && currentCheckoutScore >= 2) {
+                renderCheckoutPathInto(pathEl, currentCheckoutScore);
+            } else if (currentCheckoutScore === 1) {
+                while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
+                const w = document.createElement('span');
+                w.className = 'text-yellow-400 text-xs font-bold tracking-wider uppercase';
+                w.textContent = '⚠ Bust territory — score to double';
+                pathEl.appendChild(w);
             } else {
-                document.getElementById('checkout-path').innerText = "START SCORING...";
+                while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
+                const s = document.createElement('span');
+                s.className = 'text-xs text-gray-500 italic tracking-wide';
+                s.textContent = 'Scoring phase — no checkout yet…';
+                pathEl.appendChild(s);
             }
         }
 
@@ -1599,12 +1773,21 @@
         
         // --- SESSION STATS ---
         let _sessionScores = [];
+        function _pulseStat(el) {
+            if (!el) return;
+            el.classList.remove('stat-pulse');
+            void el.offsetWidth;
+            el.classList.add('stat-pulse');
+        }
         function updateSessionStats() {
-            document.getElementById('stat-visits').textContent = _sessionScores.length;
+            const visEl = document.getElementById('stat-visits');
+            const avgEl = document.getElementById('stat-avg');
+            const hiEl = document.getElementById('stat-high');
+            if (visEl) { visEl.textContent = _sessionScores.length; _pulseStat(visEl); }
             if (_sessionScores.length > 0) {
                 const avg = Math.round(_sessionScores.reduce((a,b) => a+b, 0) / _sessionScores.length);
-                document.getElementById('stat-avg').textContent = avg;
-                document.getElementById('stat-high').textContent = Math.max(..._sessionScores);
+                if (avgEl) { avgEl.textContent = avg; _pulseStat(avgEl); }
+                if (hiEl) { hiEl.textContent = Math.max(..._sessionScores); _pulseStat(hiEl); }
             }
         }
 
@@ -1619,14 +1802,24 @@
                     liveScoresBox.innerHTML = '';
                 }
                 const scoreDiv = document.createElement('div');
-                scoreDiv.className = 'log-entry score-log';
+                const nScore = Number(msg);
+                let extraClass = '';
+                if (!isNaN(nScore)) {
+                    if (nScore === 180) extraClass = ' max';
+                    else if (nScore >= 100) extraClass = ' ton';
+                    else if (nScore >= 60) extraClass = ' big-score';
+                }
+                scoreDiv.className = 'log-entry score-log score-new' + extraClass;
                 scoreDiv.textContent = msg;
                 liveScoresBox.appendChild(scoreDiv);
                 liveScoresBox.scrollTop = liveScoresBox.scrollHeight;
-                
+
                 // Track session stats
-                const n = Number(msg);
-                if (!isNaN(n)) { _sessionScores.push(n); updateSessionStats(); }
+                if (!isNaN(nScore)) { _sessionScores.push(nScore); updateSessionStats(); }
+
+                // Play a tiny celebration toast on 180 / tons
+                if (nScore === 180) dvToast('🔥 ONE HUNDRED AND EIGHTY!', 'success');
+                else if (nScore >= 140 && !isNaN(nScore)) dvToast(`💥 Ton+ (${nScore})`, 'success');
                 
                 // Log in transcript (newest at top)
                 const div = document.createElement('div');
@@ -2445,26 +2638,34 @@
                 navigator.clipboard.writeText(lines.join('\n')).then(() => dvToast('Copied last ' + lines.length + ' lines', 'success'));
             });
 
-            // ── Fullscreen scorer ──
+            // ── Fullscreen (whole document so sidebar stays visible) ──
             const fsBtn = $('fullscreen-btn');
+            const fsLabel = $('fullscreen-btn-label');
+            function _isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+            function _syncFsLabel() { if (fsLabel) fsLabel.textContent = _isFs() ? 'Exit FS' : 'Fullscreen'; }
             if (fsBtn) fsBtn.addEventListener('click', () => {
-                const el = document.querySelector('.main-content');
-                if (!el) return;
-                if (!document.fullscreenElement) {
+                const el = document.documentElement;
+                if (!_isFs()) {
                     (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
                 } else {
                     (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
                 }
             });
+            document.addEventListener('fullscreenchange', _syncFsLabel);
+            document.addEventListener('webkitfullscreenchange', _syncFsLabel);
 
-            // ── Sidebar collapse ──
+            // ── Sidebar collapse / expand ──
             const collapseBtn = $('sidebar-collapse-btn');
+            const expandFloat = $('sidebar-expand-float');
             const COLLAPSE_KEY = 'dv-sidebar-collapsed';
             if (localStorage.getItem(COLLAPSE_KEY) === '1') document.body.classList.add('sidebar-collapsed');
-            if (collapseBtn) collapseBtn.addEventListener('click', () => {
+            function toggleSidebar() {
                 const c = document.body.classList.toggle('sidebar-collapsed');
                 localStorage.setItem(COLLAPSE_KEY, c ? '1' : '0');
-            });
+                if (c) dvToast('Dashboard collapsed — click the red arrow or press \\ to reopen', 'success');
+            }
+            if (collapseBtn) collapseBtn.addEventListener('click', toggleSidebar);
+            if (expandFloat) expandFloat.addEventListener('click', toggleSidebar);
 
             // ── Auto-pause mic on tab blur ──
             let pausedByBlur = false;
