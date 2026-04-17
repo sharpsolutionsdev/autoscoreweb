@@ -22,6 +22,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.content.Intent;
+import android.content.Context;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -50,11 +52,21 @@ public class DartVoiceBridge {
 
     private SpeechRecognizer speechRecognizer;
     private Intent speechRecognizerIntent;
+    private AudioManager audioManager;
+    private AudioManager.OnAudioFocusChangeListener afChangeListener;
+    private String triggerWord = null;
 
     public DartVoiceBridge(Activity activity, FrameLayout rootFrame) {
         this.activity = activity;
         this.rootFrame = rootFrame;
         this.uiHandler = new Handler(Looper.getMainLooper());
+        this.audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+        this.afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+            @Override
+            public void onAudioFocusChange(int focusChange) {
+                Log.d(TAG, "audioFocusChange: " + focusChange);
+            }
+        };
         
         uiHandler.post(new Runnable() {
             @Override
@@ -91,6 +103,31 @@ public class DartVoiceBridge {
                 if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
                     errorMsg = "no-speech";
                 }
+
+                // Attempt automatic recovery for client/audio/recognizer-busy errors
+                if (error == SpeechRecognizer.ERROR_CLIENT || error == SpeechRecognizer.ERROR_AUDIO) {
+                    uiHandler.post(new Runnable() {
+                        @Override public void run() {
+                            try {
+                                applyStatusStyle("recovering");
+                                if (speechRecognizer != null) {
+                                    try { speechRecognizer.cancel(); } catch (Exception e) {}
+                                    try { speechRecognizer.destroy(); } catch (Exception e) {}
+                                }
+                                initSpeechRecognizer();
+                            } catch (Exception e) {
+                                Log.e(TAG, "recover init failed", e);
+                            }
+                        }
+                    });
+                    // Try restarting listening after a short delay
+                    uiHandler.postDelayed(new Runnable() {
+                        @Override public void run() {
+                            try { startListening(); } catch (Exception e) { }
+                        }
+                    }, 900);
+                }
+
                 final String payload = errorMsg;
                 notifyControlPanel("if(window.onSpeechEvent) window.onSpeechEvent('error', '" + payload + "');");
             }
@@ -100,6 +137,15 @@ public class DartVoiceBridge {
                 if (matches != null && !matches.isEmpty()) {
                     String clean = matches.get(0).replace("'", "\\'");
                     notifyControlPanel("if(window.onSpeechResult) window.onSpeechResult('" + clean + "', true);");
+                    // If a trigger word is configured, notify the control panel when seen
+                    try {
+                        if (triggerWord != null && triggerWord.length() > 0) {
+                            if (clean.toLowerCase().contains(triggerWord.toLowerCase())) {
+                                String t = triggerWord.replace("'", "\\'");
+                                notifyControlPanel("if(window.onTriggerWord) window.onTriggerWord('" + t + "');");
+                            }
+                        }
+                    } catch (Exception e) { }
                 }
                 notifyControlPanel("if(window.onSpeechEvent) window.onSpeechEvent('end');");
             }
@@ -109,6 +155,14 @@ public class DartVoiceBridge {
                 if (matches != null && !matches.isEmpty()) {
                     String clean = matches.get(0).replace("'", "\\'");
                     notifyControlPanel("if(window.onSpeechResult) window.onSpeechResult('" + clean + "', false);");
+                    try {
+                        if (triggerWord != null && triggerWord.length() > 0) {
+                            if (clean.toLowerCase().contains(triggerWord.toLowerCase())) {
+                                String t = triggerWord.replace("'", "\\'");
+                                notifyControlPanel("if(window.onTriggerWord) window.onTriggerWord('" + t + "');");
+                            }
+                        }
+                    } catch (Exception e) { }
                 }
             }
             
@@ -167,8 +221,8 @@ public class DartVoiceBridge {
         statusPill = new LinearLayout(activity);
         statusPill.setOrientation(LinearLayout.HORIZONTAL);
         statusPill.setGravity(Gravity.CENTER_VERTICAL);
-        int padH = dp(18);
-        int padV = dp(10);
+        int padH = dp(20);
+        int padV = dp(12);
         statusPill.setPadding(padH, padV, padH, padV);
 
         GradientDrawable bg = new GradientDrawable();
@@ -180,7 +234,7 @@ public class DartVoiceBridge {
 
         // Pulsing dot
         statusDot = new View(activity);
-        int dotSize = dp(10);
+        int dotSize = dp(12);
         LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(dotSize, dotSize);
         dotLp.rightMargin = dp(10);
         statusDot.setLayoutParams(dotLp);
@@ -194,7 +248,7 @@ public class DartVoiceBridge {
         statusLabel = new TextView(activity);
         statusLabel.setText("LISTENING");
         statusLabel.setTextColor(Color.WHITE);
-        statusLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        statusLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         statusLabel.setTypeface(null, Typeface.BOLD);
         statusLabel.setAllCaps(true);
         statusLabel.setLetterSpacing(0.12f);
@@ -413,6 +467,21 @@ public class DartVoiceBridge {
     }
 
     @JavascriptInterface
+    public void setTriggerWord(final String w) {
+        if (w == null || w.trim().length() == 0) {
+            triggerWord = null;
+        } else {
+            triggerWord = w.trim();
+        }
+        Log.d(TAG, "triggerWord set: " + triggerWord);
+    }
+
+    @JavascriptInterface
+    public String getTriggerWord() {
+        return triggerWord == null ? "" : triggerWord;
+    }
+
+    @JavascriptInterface
     public void suppressKeyboard() {
         if (scorerView == null) return;
         scorerView.post(new Runnable() {
@@ -431,8 +500,19 @@ public class DartVoiceBridge {
             public void run() {
                 if (speechRecognizer != null) {
                     try {
+                        // Request audio focus before starting
+                        try {
+                            if (audioManager != null) {
+                                int afRes = audioManager.requestAudioFocus(afChangeListener,
+                                        AudioManager.STREAM_VOICE_CALL,
+                                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+                                Log.d(TAG, "requestAudioFocus: " + afRes);
+                            }
+                        } catch (Exception e) { Log.w(TAG, "audio focus request failed", e); }
+
                         speechRecognizer.stopListening();
                         speechRecognizer.startListening(speechRecognizerIntent);
+                        applyStatusStyle("listening");
                     } catch (Exception e) {
                         Log.e(TAG, "Error starting speech recognition", e);
                     }
@@ -449,6 +529,8 @@ public class DartVoiceBridge {
                 if (speechRecognizer != null) {
                     try {
                         speechRecognizer.stopListening();
+                        try { if (audioManager != null) audioManager.abandonAudioFocus(afChangeListener); } catch (Exception e) {}
+                        applyStatusStyle("idle");
                     } catch (Exception e) {}
                 }
             }

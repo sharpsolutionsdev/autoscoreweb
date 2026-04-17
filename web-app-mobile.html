@@ -564,6 +564,22 @@
                 </div>
                 <div class="toggle on" id="toggle-checkout" data-key="checkoutAssist"></div>
             </div>
+
+            <div class="divider"></div>
+
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Trigger Word</div>
+                    <div class="setting-desc">Optional wake word to arm listening (e.g., "dartvoice")</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                    <input id="trigger-input" placeholder="dartvoice" style="background:var(--dark); color:var(--chalk); border:1px solid var(--wire); padding:8px 10px; border-radius:8px; min-width:140px; text-align:right;" />
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="toggle" id="toggle-trigger" data-key="triggerEnabled"></div>
+                        <div style="font-size:10px;color:var(--muted);">Require trigger word</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <details class="card" style="cursor:pointer;">
@@ -802,6 +818,8 @@
             inputMode: 'total',
             cancelWordEnabled: true,
             checkoutAssist: true,
+            triggerEnabled: false,
+            triggerWord: '',
             cooldownMs: 1500,
             watchdogMs: 8000,
         };
@@ -1040,8 +1058,24 @@
             }
 
             interimText.textContent = '';
-            const raw = transcript.toLowerCase().trim();
+            let raw = transcript.toLowerCase().trim();
             if (!raw) return;
+
+            // If trigger-word mode is enabled, require the trigger word to be present
+            try {
+                const trigger = localStorage.getItem('dv-trigger-word') || AppConfig.triggerWord || '';
+                if (AppConfig.triggerEnabled && trigger) {
+                    const t = trigger.toLowerCase();
+                    if (!raw.includes(t)) {
+                        log('(trigger) ignored: "' + raw + '"');
+                        return;
+                    } else {
+                        // Strip the trigger word from the front if present
+                        raw = raw.replace(new RegExp(t, 'i'), '').trim();
+                        if (!raw) { log('(trigger) heard trigger only'); return; }
+                    }
+                }
+            } catch(e) {}
 
             if (currentState === STATE.COOLDOWN) {
                 log('(cooldown) ignored: "' + raw + '"');
@@ -1221,9 +1255,50 @@
                 const on = el.classList.contains('on');
                 if (key === 'cancelWord') AppConfig.cancelWordEnabled = on;
                 if (key === 'checkoutAssist') AppConfig.checkoutAssist = on;
+                if (key === 'triggerEnabled') {
+                    AppConfig.triggerEnabled = on;
+                    const t = (document.getElementById('trigger-input') || {}).value || '';
+                    localStorage.setItem('dv-trigger-word', t);
+                    localStorage.setItem('dv-trigger-enabled', on ? '1' : '0');
+                    if (isAPK && window.DartVoiceBridge && window.DartVoiceBridge.setTriggerWord) {
+                        try { window.DartVoiceBridge.setTriggerWord(on ? t : ''); } catch(e) {}
+                    }
+                }
                 log(key + ': ' + (on ? 'on' : 'off'));
             });
         });
+
+        // Initialize trigger input and toggle state
+        try {
+            const triggerInput = document.getElementById('trigger-input');
+            if (triggerInput) {
+                const stored = localStorage.getItem('dv-trigger-word') || '';
+                triggerInput.value = stored;
+                const enabled = localStorage.getItem('dv-trigger-enabled') === '1';
+                if (enabled) {
+                    const el = document.getElementById('toggle-trigger');
+                    if (el) el.classList.add('on');
+                    AppConfig.triggerEnabled = true;
+                }
+                triggerInput.addEventListener('change', function() {
+                    const v = (triggerInput.value || '').trim();
+                    localStorage.setItem('dv-trigger-word', v);
+                    if (isAPK && window.DartVoiceBridge && AppConfig.triggerEnabled) {
+                        try { window.DartVoiceBridge.setTriggerWord(v); } catch(e) {}
+                    }
+                });
+                // If running in APK, sync native stored trigger word (if any)
+                if (isAPK && window.DartVoiceBridge && window.DartVoiceBridge.getTriggerWord) {
+                    try {
+                        const t = window.DartVoiceBridge.getTriggerWord();
+                        if (t && t.length > 0) {
+                            triggerInput.value = t;
+                            localStorage.setItem('dv-trigger-word', t);
+                        }
+                    } catch(e) {}
+                }
+            }
+        } catch(e) {}
 
         async function populateMicList() {
             try {
