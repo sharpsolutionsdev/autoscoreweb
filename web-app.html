@@ -333,15 +333,52 @@
 
         /* Transcript HUD */
         .hud-card {
-            background: rgba(17, 17, 20, 0.4);
+            background: linear-gradient(180deg, rgba(22, 22, 27, 0.55) 0%, rgba(14, 14, 18, 0.45) 100%);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
             position: relative;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
             overflow: hidden;
+            transition: border-color .25s ease, box-shadow .25s ease;
         }
+        .hud-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 14px; right: 14px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(204,11,32,0.45), transparent);
+            opacity: .6;
+            pointer-events: none;
+        }
+        .hud-card:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 6px 28px rgba(0,0,0,0.5), 0 0 22px rgba(204,11,32,0.06), inset 0 1px 0 rgba(255,255,255,0.05); }
+
+        /* Account pill polish */
+        #account-pill {
+            background-image: linear-gradient(135deg, rgba(204,11,32,0.08), rgba(255,255,255,0.02));
+            position: relative;
+        }
+        #account-pill::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 999px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(204,11,32,0.35), transparent 50%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+            pointer-events: none;
+            opacity: .7;
+        }
+        #account-avatar {
+            box-shadow: 0 3px 10px rgba(204,11,32,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        /* Tab buttons — active gets a subtle brand glow */
+        .tab-btn.active { box-shadow: 0 0 0 1px rgba(204,11,32,0.35), 0 0 16px rgba(204,11,32,0.15); }
         
         .tab-content {
             display: none;
@@ -2442,8 +2479,8 @@
             const coTogSet = $('toggle-checkout-dialog'), coTogDash = $('toggle-checkout-dialog-dash');
             // Restore values
             if (typeof AppConfig !== 'undefined') {
-                if (twSet) twSet.value = AppConfig.triggerWord || 'dartvoice';
-                if (twDash) twDash.value = AppConfig.triggerWord || 'dartvoice';
+                if (twSet) twSet.value = AppConfig.triggerWord || 'score';
+                if (twDash) twDash.value = AppConfig.triggerWord || 'score';
                 if (twTogSet) twTogSet.checked = !!AppConfig.wakeWordEnabled;
                 if (twTogDash) twTogDash.checked = !!AppConfig.wakeWordEnabled;
                 if (coTogSet) coTogSet.checked = !!AppConfig.checkoutDialogEnabled;

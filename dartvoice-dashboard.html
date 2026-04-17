@@ -71,11 +71,34 @@
 
         /* ── Cards ── */
         .card-panel {
-            background: #111114;
+            background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+            position: relative;
+            transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+        }
+
+        .card-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(140deg, rgba(204,11,32,0.35), transparent 35%, transparent 65%, rgba(204,11,32,0.18));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+            pointer-events: none;
+            opacity: .6;
+            transition: opacity .3s ease;
+        }
+
+        .card-panel:hover::before { opacity: 1; }
+        .card-panel:hover {
+            box-shadow: 0 12px 52px rgba(0, 0, 0, 0.55), 0 0 36px rgba(204,11,32,0.08), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
         }
 
         .dl-card {
@@ -160,6 +183,19 @@
             justify-content: center;
             user-select: none;
             letter-spacing: -0.01em;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(204,11,32,0.35), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -6px 12px rgba(0,0,0,0.25);
+            background-image: linear-gradient(140deg, rgba(255,255,255,0.15), transparent 45%);
+        }
+        .dv-avatar::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 210deg, rgba(204,11,32,0.55), rgba(204,11,32,0) 40%, rgba(204,11,32,0) 60%, rgba(204,11,32,0.55));
+            filter: blur(6px);
+            opacity: .5;
+            z-index: -1;
         }
 
         /* ── Toast ── */
