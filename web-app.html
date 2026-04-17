@@ -459,6 +459,13 @@
                                 <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                             </label>
                         </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Live Checkout Tracking</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-live-checkout-dash" class="sr-only peer" title="Enable Live Checkout" aria-label="Enable Live Checkout">
+                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                            </label>
+                        </div>
                         <div id="checkout-prompt-indicator" class="hidden bg-brand/10 border border-brand/30 rounded px-2 py-1 text-[10px] text-brand font-bold uppercase tracking-wider flex items-center justify-between">
                             <span id="checkout-prompt-label">Awaiting darts at double…</span>
                             <span id="checkout-prompt-timer" class="font-mono text-white">5s</span>
@@ -477,13 +484,27 @@
                 </div>
 
                 <!-- Live Checkout -->
-                <div id="live-checkout-panel" class="hud-card p-4 mb-4 border border-white/5 transition-all flex-shrink-0">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Live Checkout</span>
-                        <span class="text-[9px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20 tracking-wider" id="checkout-target">REMAINING: 140</span>
+                <div id="live-checkout-panel" class="hidden hud-card p-4 mb-4 border border-white/5 transition-all flex-shrink-0 relative overflow-hidden">
+                    <div id="game-shot-overlay" class="hidden absolute inset-0 bg-brand backdrop-blur-sm z-20 flex-col items-center justify-center text-white text-center">
+                        <div class="text-3xl font-display font-black tracking-widest uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">GAME SHOT</div>
+                        <div class="text-[10px] tracking-widest mt-1 opacity-80 uppercase font-bold animate-pulse">Leg Resetting...</div>
                     </div>
-                    <div class="text-xl font-display font-bold text-white tracking-wider flex gap-2 items-center" id="checkout-path">
-                        T20 <span class="text-wire/50">•</span> T20 <span class="text-wire/50">•</span> D10
+                    <div class="flex justify-between items-center mb-1 relative z-10">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Live Checkout</span>
+                            <select id="live-checkout-select" class="bg-[#08080A] border border-[#252530] text-[9px] text-gray-400 font-bold rounded outline-none px-1 py-0.5 cursor-pointer">
+                                <option value="501">501</option>
+                                <option value="301">301</option>
+                                <option value="701">701</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[9px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20 tracking-wider font-bold" id="checkout-target">REMAINING: 501</span>
+                            <button id="reset-leg-btn" class="bg-[#1a1a20] border border-[#252530] text-gray-500 hover:text-white hover:bg-[#252530] px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all" title="Reset current leg">Reset</button>
+                        </div>
+                    </div>
+                    <div class="text-sm font-bold text-gray-500 tracking-wider flex gap-2 items-center relative z-10 mt-1" id="checkout-path">
+                        START SCORING...
                     </div>
                     </div>
                 <!-- Live Score Log History -->
@@ -1321,10 +1342,100 @@
         const eqBars = document.querySelectorAll('.eq-bar') || [];
         
         let listening = false;
-        let recognition = null;
-        let visualizerInterval = null;
+        let cancelWordTimeout = null;
+        let lastReceivedScore = null;
 
-        // --- DEMO TRACKING ---
+        // --- CHECKOUT LOGIC --- //
+        let liveCheckoutEnabled = false;
+        let checkoutStartScore = 501;
+        let currentCheckoutScore = 501;
+        let gameShotLock = false;
+
+        function updateCheckoutUI() {
+            const targetEl = document.getElementById('checkout-target');
+            if(targetEl) targetEl.innerText = `REMAINING: ${currentCheckoutScore}`;
+            if (currentCheckoutScore === 0) {
+                document.getElementById('checkout-path').innerText = "GAME SHOT!";
+            } else if (currentCheckoutScore <= 170) {
+                // Could fetch optimal checkout route here!
+                document.getElementById('checkout-path').innerText = `Looking for ${currentCheckoutScore}...`;
+            } else {
+                document.getElementById('checkout-path').innerText = "START SCORING...";
+            }
+        }
+
+        function triggerGameShot() {
+            gameShotLock = true;
+            const overlay = document.getElementById('game-shot-overlay');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+            setTimeout(() => resetLiveCheckout(), 5000);
+        }
+
+        function resetLiveCheckout() {
+            currentCheckoutScore = checkoutStartScore;
+            gameShotLock = false;
+            updateCheckoutUI();
+            const overlay = document.getElementById('game-shot-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        function handleScoreDeduction(strScore) {
+            if (!liveCheckoutEnabled || gameShotLock) return;
+            if (strScore === "__CANCEL__") return; // Doesn't perfectly roll back just yet
+            const val = parseInt(strScore, 10);
+            if (isNaN(val)) return;
+
+            let temp = currentCheckoutScore - val;
+            if (temp < 0 || temp === 1) {
+                log(`[Live Checkout] BUST! DartCounter handles natively, staying at ${currentCheckoutScore}.`, false);
+            } else {
+                currentCheckoutScore = temp;
+                updateCheckoutUI();
+                if (currentCheckoutScore === 0) {
+                    triggerGameShot();
+                }
+            }
+        }
+
+        // Live checkout listeners
+        function initCheckoutBindings() {
+            const tglCheckout = document.getElementById('toggle-live-checkout-dash');
+            const pnlCheckout = document.getElementById('live-checkout-panel');
+            const selCheckout = document.getElementById('live-checkout-select');
+            const btnResetCheckout = document.getElementById('reset-leg-btn');
+            
+            if (tglCheckout && pnlCheckout) {
+                tglCheckout.addEventListener('change', (e) => {
+                    liveCheckoutEnabled = e.target.checked;
+                    if (liveCheckoutEnabled) {
+                        pnlCheckout.classList.remove('hidden');
+                        resetLiveCheckout();
+                    } else {
+                        pnlCheckout.classList.add('hidden');
+                    }
+                });
+            }
+            if (selCheckout) {
+                selCheckout.addEventListener('change', (e) => {
+                    checkoutStartScore = parseInt(e.target.value, 10);
+                    resetLiveCheckout();
+                });
+            }
+            if (btnResetCheckout) {
+                btnResetCheckout.addEventListener('click', () => {
+                    resetLiveCheckout();
+                });
+            }
+        }
+        initCheckoutBindings();
+
+        // --- DOM Elements --- //
         const DEMO_LIMIT_MS = 10 * 60 * 1000;
         let _demoStartedAt = null;
         let _demoInterval = null;
@@ -1625,6 +1736,7 @@
                                 // Single dart can't exceed 60 — treat as total instead
                                 log(`"${raw}" (${score}) exceeds per-dart max 60, sending as visit total`, false);
                                 log(score, true);
+                                handleScoreDeduction(String(score));
                                 blastScoreToIframe(String(score));
                             } else {
                                 dartBuffer.push(score);
@@ -1643,6 +1755,7 @@
                                             const total = dartBuffer.reduce((a, b) => a + b, 0);
                                             log(`${dartBuffer.join(' + ')} = ${total}`, true);
                                             log(`Per-dart total: ${dartBuffer.join(' + ')} → Forwarding ${total} to scorer...`, false);
+                                            handleScoreDeduction(String(total));
                                             blastScoreToIframe(String(total));
                                             dartBuffer = [];
                                             statusText.textContent = 'Awaiting Score...';
@@ -1657,6 +1770,7 @@
                                             const total = dartBuffer.reduce((a, b) => a + b, 0);
                                             log(`${dartBuffer.join(' + ')} = ${total} (auto-submitted after silence)`, true);
                                             log(`Per-dart total: ${dartBuffer.join(' + ')} → Forwarding ${total} to scorer...`, false);
+                                            handleScoreDeduction(String(total));
                                             blastScoreToIframe(String(total));
                                             dartBuffer = [];
                                             statusText.textContent = 'Awaiting Score...';
@@ -1669,6 +1783,7 @@
                             // Total mode: send immediately
                             log(score, true);
                             log(`Heard: "${raw}" → Forwarding ${score} to scorer...`, false);
+                            handleScoreDeduction(String(score));
                             blastScoreToIframe(String(score));
                         }
                     } else {
