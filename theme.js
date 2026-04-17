@@ -1,7 +1,7 @@
 /* ── DartVoice Theme Picker v2 ──
  *  Rewrites ALL brand-red: <style> blocks, inline styles, SVG attributes.
- *  Add to <head> for FOUC prevention:
- *    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
+ *  Add to <head> for FOUC prevention (defaults to red if no saved theme):
+ *    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+','+g+','+b);var L=function(c){return Math.min(255,c+Math.round((255-c)*.12))};var lr=L(r),lg=L(g),lb=L(b);s.setProperty('--brand-light','#'+[lr,lg,lb].map(function(c){return c.toString(16).padStart(2,'0')}).join(''))}()</script>
  */
 (function () {
     'use strict';
@@ -233,7 +233,7 @@
     function init() {
         takeSnapshots();
         render();
-        if (activeId !== 'red') apply(activeId);
+        apply(activeId);
     }
 
     if (document.readyState === 'loading') {

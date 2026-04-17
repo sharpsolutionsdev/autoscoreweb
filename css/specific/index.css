@@ -1115,3 +1115,156 @@ body {
     opacity: 0;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Hero Dart Strike — cinematic intro (runs once on page load)
+   Dart flies in from off-screen left, arcs into the decorative
+   dartboard bullseye on the right, triggers a shockwave + sparks,
+   and the SCORES. headline pulses in sympathy.
+   Mobile-optimised: compact scale, reduced-motion respected.
+   ═══════════════════════════════════════════════════════════════ */
+.hero-strike {
+  position: absolute;
+  right: 0; top: 50%;
+  width: min(70vw, 760px);
+  height: 0;
+  pointer-events: none;
+  z-index: 4;
+  /* anchor for the dart's end-position (bullseye of the decorative board) */
+  --strike-x: calc(-1 * min(14vw, 180px));
+  --strike-y: 0px;
+}
+.hs-dart {
+  position: absolute;
+  right: 0; top: 0;
+  width: clamp(90px, 12vw, 170px); height: auto;
+  transform: translate3d(-140vw, -30vh, 0) rotate(-14deg);
+  opacity: 0;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.6));
+  will-change: transform, opacity;
+}
+.hero-strike.go .hs-dart {
+  animation: hsDartFly 1.05s cubic-bezier(.33,.02,.15,1) .35s forwards;
+}
+@keyframes hsDartFly {
+  0%   { transform: translate3d(-140vw, -30vh, 0) rotate(-14deg); opacity: 0; }
+  8%   { opacity: 1; }
+  55%  { transform: translate3d(-60vw,   -6vh,  0) rotate(-4deg); opacity: 1; }
+  82%  { transform: translate3d(calc(var(--strike-x) + 18px), var(--strike-y), 0) rotate(2deg); opacity: 1; }
+  90%  { transform: translate3d(calc(var(--strike-x) - 4px),  var(--strike-y), 0) rotate(-1deg); }
+  100% { transform: translate3d(var(--strike-x), var(--strike-y), 0) rotate(0deg); opacity: 1; }
+}
+
+/* Dart motion trail — thin gradient that lags the dart */
+.hs-trail {
+  position: absolute;
+  right: 0; top: 0;
+  width: clamp(140px, 22vw, 320px); height: 3px;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--brand-rgb),0) 0%, rgba(var(--brand-rgb),.5) 60%, rgba(var(--brand-rgb),.9) 100%);
+  transform: translate3d(-140vw, -30vh, 0);
+  border-radius: 999px;
+  opacity: 0;
+  filter: blur(1px);
+  will-change: transform, opacity;
+}
+.hero-strike.go .hs-trail {
+  animation: hsTrail 1.05s cubic-bezier(.33,.02,.15,1) .35s forwards;
+}
+@keyframes hsTrail {
+  0%   { transform: translate3d(-140vw, -30vh, 0); opacity: 0; }
+  15%  { opacity: .9; }
+  82%  { transform: translate3d(calc(var(--strike-x) + 50px), calc(var(--strike-y) + 8px), 0); opacity: .7; }
+  100% { transform: translate3d(calc(var(--strike-x) + 80px), calc(var(--strike-y) + 10px), 0); opacity: 0; }
+}
+
+/* Shockwave: two rings expand on impact */
+.hs-shock, .hs-shock-2 {
+  position: absolute;
+  top: var(--strike-y, 0); left: calc(100% + var(--strike-x));
+  width: 20px; height: 20px;
+  margin-left: -10px; margin-top: -10px;
+  border-radius: 50%;
+  border: 2px solid rgba(var(--brand-rgb), .85);
+  opacity: 0;
+  transform: scale(.3);
+  pointer-events: none;
+  will-change: transform, opacity, border-width;
+}
+.hero-strike.go .hs-shock   { animation: hsShock 1s cubic-bezier(.1,.7,.3,1) 1.3s forwards; }
+.hero-strike.go .hs-shock-2 { animation: hsShock 1.3s cubic-bezier(.1,.7,.3,1) 1.4s forwards; }
+@keyframes hsShock {
+  0%   { opacity: 1; transform: scale(.3); border-width: 4px; }
+  80%  { opacity: .15; }
+  100% { opacity: 0; transform: scale(14); border-width: .5px; }
+}
+
+/* Flash flare — soft white radial bloom at impact */
+.hs-flare {
+  position: absolute;
+  top: var(--strike-y, 0); left: calc(100% + var(--strike-x));
+  width: clamp(140px, 18vw, 260px); height: clamp(140px, 18vw, 260px);
+  margin-left: calc(-1 * clamp(70px, 9vw, 130px));
+  margin-top:  calc(-1 * clamp(70px, 9vw, 130px));
+  background: radial-gradient(circle, rgba(255,255,255,.55) 0%, rgba(var(--brand-rgb),.5) 25%, transparent 65%);
+  border-radius: 50%;
+  opacity: 0;
+  mix-blend-mode: screen;
+  filter: blur(6px);
+  transform: scale(.4);
+  will-change: transform, opacity;
+}
+.hero-strike.go .hs-flare {
+  animation: hsFlare .7s cubic-bezier(.2,.9,.2,1) 1.3s forwards;
+}
+@keyframes hsFlare {
+  0%   { opacity: 0; transform: scale(.4); }
+  18%  { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.3); }
+}
+
+/* Sparks — radial particles */
+.hs-spark {
+  position: absolute;
+  top: var(--strike-y, 0); left: calc(100% + var(--strike-x));
+  width: 6px; height: 6px;
+  margin-left: -3px; margin-top: -3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--brand, #CC0B20) 60%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.hero-strike.go .hs-spark {
+  animation: hsSpark .9s cubic-bezier(.2,.7,.2,1) 1.3s forwards;
+}
+@keyframes hsSpark {
+  0%   { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(.3); }
+}
+
+/* Sympathetic pulse on the SCORES. headline when dart lands */
+.hero-strike.go ~ * .neon-score,
+.hero-strike.go + div .neon-score {
+  animation: heroScoreThump 1s cubic-bezier(.2,.9,.2,1) 1.3s;
+}
+@keyframes heroScoreThump {
+  0%   { text-shadow: 0 0 40px rgba(var(--brand-rgb), 0.6), 0 0 80px rgba(var(--brand-rgb), 0.2); transform: translateX(0); }
+  15%  { text-shadow: 0 0 70px rgba(var(--brand-rgb), 1), 0 0 140px rgba(var(--brand-rgb), .6), 0 0 200px rgba(var(--brand-rgb),.3); transform: translateX(-3px); }
+  30%  { transform: translateX(2px); }
+  45%  { transform: translateX(-1px); }
+  60%  { transform: translateX(0); }
+  100% { text-shadow: 0 0 40px rgba(var(--brand-rgb), 0.6), 0 0 80px rgba(var(--brand-rgb), 0.2); }
+}
+
+/* Mobile tuning */
+@media (max-width: 640px) {
+  .hero-strike { width: 100%; --strike-x: calc(-1 * 30vw); --strike-y: -4vw; }
+  .hs-dart { width: 84px; }
+  .hs-flare { width: 160px; height: 160px; margin-left: -80px; margin-top: -80px; }
+}
+
+/* Respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-strike, .hero-strike * { animation: none !important; }
+  .hs-dart { opacity: 1; transform: translate3d(var(--strike-x), var(--strike-y), 0); }
+}
