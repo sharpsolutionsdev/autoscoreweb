@@ -53,3 +53,6 @@ logs/
 # ── Chrome extension metadata ──
 chrome_extension/_metadata/
 chrome_extension/__pycache__/
+
+# Consolidated local ignored files
+/github-ignores/
