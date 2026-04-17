@@ -165,6 +165,7 @@
     <script src="cookies.js"></script>
     <!-- Auto-redirect to dashboard after 4s + sync subscription -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
     <script>
         // Confetti particles (decorative)
         const confetti = [];
@@ -183,8 +184,8 @@
         // Sync Stripe subscription — poll DB until the webhook lands (or up to ~12s),
         // fall back to the sync-stripe-subscription function if needed, then redirect.
         (async function() {
-            const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+            const SUPABASE_URL = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : (window.SUPABASE_URL || 'https://poyjykgqsvgimssbhsuz.supabase.co'));
+            const SUPABASE_KEY = (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : (window.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA'));
             const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             let redirected = false;
             const redirect = () => {
