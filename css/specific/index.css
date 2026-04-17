@@ -195,6 +195,52 @@ body {
 
 .pulse-dot {
   animation: pulseDot 1.6s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(var(--brand-rgb), 0.8), 0 0 12px rgba(var(--brand-rgb), 0.35);
+}
+
+/* Neon text utility — pulled from social-media-gen prototype */
+.neon-text {
+  text-shadow:
+    0 0 10px rgba(var(--brand-rgb), 0.75),
+    0 0 20px rgba(var(--brand-rgb), 0.45);
+}
+
+/* Floating blur accent orb — soft background flourish */
+.float-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.35;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(var(--brand-rgb), 0.55), transparent 70%);
+  animation: floatSlow 12s ease-in-out infinite;
+}
+
+.float-orb.dim {
+  opacity: 0.18;
+}
+
+/* Conic burst background — pulled from social-media-gen launch graphic */
+.conic-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(var(--brand-rgb), 1) 0deg,
+    transparent 30deg,
+    transparent 150deg,
+    rgba(var(--brand-rgb), 1) 180deg,
+    transparent 210deg,
+    transparent 330deg,
+    rgba(var(--brand-rgb), 1) 360deg
+  );
+  opacity: 0.04;
+  animation: conicSpin 40s linear infinite;
+}
+
+@keyframes conicSpin {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes listeningBars {

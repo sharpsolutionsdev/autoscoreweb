@@ -198,6 +198,10 @@
             <source src="assets/media/soundwaves-highspeed.mp4" type="video/mp4">
         </video>
 
+        <!-- Floating blur accent orbs (from prototype flourishes) -->
+        <div class="float-orb" style="width:380px; height:380px; top:-80px; left:-120px;"></div>
+        <div class="float-orb dim" style="width:260px; height:260px; bottom:-60px; right:10%; animation-delay:-4s;"></div>
+
         <!-- Dartboard decorative BG -->
         <div class="board-deco" style="right:-120px; top:50%; transform:translateY(-50%);">
             <svg viewBox="0 0 500 500" width="560" height="560" class="text-wire board-spin">
@@ -346,7 +350,7 @@
                             <p class="text-muted text-xs mt-0.5">Scoring modes</p>
                         </div>
                         <div>
-                            <p class="display text-3xl not-italic text-chalk">100%</p>
+                            <p class="display text-3xl not-italic text-brand neon-text">100%</p>
                             <p class="text-muted text-xs mt-0.5">Hands-free</p>
                         </div>
                         <div>
@@ -1763,6 +1767,8 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.85);">
             <source src="assets/media/slow-pulse.mp4" type="video/mp4">
         </video>
+        <div class="float-orb dim" style="width:420px; height:420px; top:-100px; right:-140px;"></div>
+        <div class="float-orb dim" style="width:280px; height:280px; bottom:10%; left:-80px; animation-delay:-6s;"></div>
         <div class="max-w-5xl mx-auto px-5 relative">
             <div class="text-center mb-12 reveal">
                 <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Pricing</p>
@@ -2088,8 +2094,13 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     </div>
 
     <!-- ━━━ FAQ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section id="faq" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
-        <div class="max-w-2xl mx-auto px-5">
+    <section id="faq" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.05] pointer-events-none"
+            style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.8);">
+            <source src="assets/media/mic-focus.mp4" type="video/mp4">
+        </video>
+        <div class="float-orb dim" style="width:320px; height:320px; top:20%; left:-100px; animation-delay:-2s;"></div>
+        <div class="max-w-2xl mx-auto px-5 relative">
             <div class="text-center mb-14 reveal">
                 <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">FAQ</p>
                 <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl  text-chalk">GOT QUESTIONS?</h2>
@@ -2175,6 +2186,8 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
             <source src="assets/media/glowing-dot.mp4" type="video/mp4">
         </video>
+        <div class="conic-burst"></div>
+        <div class="float-orb" style="width:340px; height:340px; top:-80px; left:30%;"></div>
         <div class="max-w-6xl mx-auto px-5 relative">
 
             <div class="grid lg:grid-cols-2 gap-16 items-center">
