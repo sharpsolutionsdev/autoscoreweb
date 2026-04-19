@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator CRM — DartVoice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+:root { --brand: #CC0B20; --brand-rgb: 204,11,32; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: #08080A; color: #F0F0F5; overflow-x: hidden;
+}
+.display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #0D0D10; }
+::-webkit-scrollbar-thumb { background: #2A2A35; border-radius: 999px; }
+
+/* Utility */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap;
+}
+.badge-new      { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; }
+.badge-contacted { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+.badge-responded { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3); color: #22d3ee; }
+.badge-negotiating { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3); color: #c084fc; }
+.badge-active   { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+.badge-declined { background: rgba(100,100,120,0.12); border: 1px solid rgba(100,100,120,0.25); color: #6E6E82; }
+
+.badge-starter { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); color: #818cf8; }
+.badge-pro     { background: rgba(var(--brand-rgb),0.1); border: 1px solid rgba(var(--brand-rgb),0.3); color: var(--brand); }
+.badge-elite   { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); color: #eab308; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all .15s; border: none;
+  white-space: nowrap;
+}
+.btn-brand { background: var(--brand); color: white; }
+.btn-brand:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #A0A0B4; }
+.btn-ghost:hover { background: rgba(255,255,255,0.09); color: #F0F0F5; }
+.btn-danger { background: rgba(var(--brand-rgb),0.1); border: 1px solid rgba(var(--brand-rgb),0.25); color: var(--brand); }
+.btn-danger:hover { background: rgba(var(--brand-rgb),0.18); }
+.btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 8px; }
+.btn-icon { padding: 7px; border-radius: 8px; }
+
+/* Inputs */
+.inp {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 500;
+  color: #F0F0F5; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+}
+.inp:focus { outline: none; border-color: rgba(var(--brand-rgb),0.45); box-shadow: 0 0 0 3px rgba(var(--brand-rgb),0.1); }
+.inp::placeholder { color: #3A3A4A; }
+select.inp { appearance: none; cursor: pointer; }
+textarea.inp { resize: vertical; min-height: 72px; line-height: 1.6; }
+
+/* Labels */
+.lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4A4A5A; margin-bottom: 5px; display: block; }
+
+/* Card */
+.card {
+  background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+.card:hover { border-color: rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  background: #111114; border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; width: 100%; max-width: 560px; max-height: 90vh;
+  overflow-y: auto; box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+}
+.modal-header {
+  padding: 22px 24px 18px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0;
+  background: #111114; z-index: 1;
+}
+.modal-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; }
+.modal-footer {
+  padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  position: sticky; bottom: 0; background: #111114;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Toast */
+.toast-wrap { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
+.toast-item {
+  background: #1A1A22; border: 1px solid rgba(34,197,94,0.3); color: #4ade80;
+  padding: 9px 18px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5); margin-top: 8px;
+  animation: toastIn .25s ease-out;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+@keyframes toastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+/* Nav */
+.topnav {
+  height: 52px; background: rgba(8,8,10,0.92); backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; position: sticky; top: 0; z-index: 100;
+}
+
+/* Tab bar */
+.tab-bar { display: flex; gap: 2px; }
+.tab-btn {
+  padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  background: transparent; border: none; color: #6E6E82; cursor: pointer;
+  transition: all .15s; font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab-btn:hover { color: #F0F0F5; background: rgba(255,255,255,0.04); }
+.tab-btn.active { color: #F0F0F5; background: rgba(255,255,255,0.08); }
+.tab-count {
+  font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px;
+  background: rgba(255,255,255,0.1); color: #6E6E82; min-width: 18px; text-align: center;
+}
+.tab-btn.active .tab-count { background: rgba(var(--brand-rgb),0.2); color: var(--brand); }
+
+/* Stat cards */
+.stat-card {
+  background: linear-gradient(160deg,#111114,#0D0D10);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px; padding: 16px 20px;
+}
+.stat-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; font-size: 2rem; line-height: 1; color: #F0F0F5; }
+.stat-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4A4A5A; margin-top: 4px; }
+
+/* Creator table */
+.creator-table { width: 100%; border-collapse: collapse; }
+.creator-table th {
+  text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #4A4A5A; padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.creator-table td {
+  padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px; vertical-align: middle;
+}
+.creator-table tr:hover td { background: rgba(255,255,255,0.02); }
+.creator-table tr:last-child td { border-bottom: none; }
+
+/* Avatar */
+.avatar {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(var(--brand-rgb),0.15); border: 1px solid rgba(var(--brand-rgb),0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic;
+  font-size: 1.1rem; color: var(--brand); text-transform: uppercase;
+}
+
+/* Pipeline dots */
+.pipeline-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px;
+}
+
+/* Search */
+.search-wrap { position: relative; }
+.search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.search-inp {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 8px 14px 8px 36px; font-size: 12px; font-weight: 500;
+  color: #F0F0F5; font-family: 'Plus Jakarta Sans', sans-serif; width: 220px;
+  transition: border-color .2s;
+}
+.search-inp:focus { outline: none; border-color: rgba(var(--brand-rgb),0.35); width: 260px; }
+.search-inp::placeholder { color: #3A3A4A; }
+
+/* Quick action row */
+.quick-action {
+  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+}
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: #4A4A5A; }
+.empty-state h3 { font-size: 1rem; font-weight: 600; color: #6E6E82; margin-bottom: 6px; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+
+/* Channel link */
+.ch-link { color: #6E6E82; font-size: 11px; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.ch-link:hover { color: var(--brand); }
+
+/* Find emails info box */
+.info-box {
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; padding: 16px 18px;
+}
+.info-box-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--brand); margin-bottom: 10px; }
+.info-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; font-size: 12px; line-height: 1.6; color: #6E6E82; }
+.info-row strong { color: #A0A0B4; }
+
+/* Detail panel */
+.detail-section { margin-bottom: 18px; }
+.detail-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4A4A5A; margin-bottom: 10px; }
+.note-chip {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px; padding: 10px 14px; font-size: 12px; line-height: 1.6; color: #8888A0;
+}
+
+/* Earnings bar */
+.earn-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 999px; height: 4px; overflow: hidden; margin-top: 6px; }
+.earn-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--brand), rgba(var(--brand-rgb),0.5)); }
+
+/* Animations */
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.fade-up { animation: fadeUp .3s ease-out both; }
+
+@media (max-width: 700px) {
+  .form-row { grid-template-columns: 1fr; }
+  .search-inp { width: 160px; }
+  .hide-mobile { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── Constants ─────────────────────────────────────────────────────────────
+const STATUSES = [
+  { id: 'new',         label: 'New Lead',     color: '#818cf8', dot: '#6366f1' },
+  { id: 'contacted',   label: 'Contacted',    color: '#fbbf24', dot: '#f59e0b' },
+  { id: 'responded',   label: 'Responded',    color: '#22d3ee', dot: '#06b6d4' },
+  { id: 'negotiating', label: 'Negotiating',  color: '#c084fc', dot: '#a855f7' },
+  { id: 'active',      label: 'Active',       color: '#4ade80', dot: '#22c55e' },
+  { id: 'declined',    label: 'Declined',     color: '#6E6E82', dot: '#4A4A5A' },
+];
+
+const TIERS = ['starter', 'pro', 'elite'];
+const PLATFORMS = ['YouTube', 'TikTok', 'Instagram', 'Twitch', 'Other'];
+
+const SEED_CREATORS = [
+  { id: '1', name: 'Charlie Murphy', channel: '@charliemurphy50', platform: 'YouTube', subs: 84000, email: 'charliemurphy50@hotmail.com', tier: 'pro', status: 'new', dateAdded: '2026-04-19', dateContacted: '', notes: 'Target Darts sponsored. Very active, posts multiple times a week. Friendly tone.', slug: 'charlie', amount: 10 },
+  { id: '2', name: 'Darts Review Channel', channel: '@dartsreview', platform: 'YouTube', subs: 220000, email: '', tier: 'elite', status: 'new', dateAdded: '2026-04-19', dateContacted: '', notes: 'Big review channel — need to find email. Check about tab.', slug: 'dartsreview', amount: 15 },
+  { id: '3', name: 'BigFatDarts', channel: '@bigfatdarts', platform: 'YouTube', subs: 45000, email: 'info@bigfatdarts.com', tier: 'pro', status: 'contacted', dateAdded: '2026-04-15', dateContacted: '2026-04-17', notes: 'Emailed April 17. Friendly community. No reply yet.', slug: 'bigfatdarts', amount: 10 },
+  { id: '4', name: 'Darts Pulse', channel: '@dartspulse', platform: 'TikTok', subs: 31000, email: '', tier: 'starter', status: 'new', dateAdded: '2026-04-18', dateContacted: '', notes: 'Short-form content, very punchy editing. Good for younger audience.', slug: 'dartspulse', amount: 5 },
+  { id: '5', name: 'ProDartsTV', channel: '@prodartstvuk', platform: 'YouTube', subs: 67000, email: 'prodartstvuk@gmail.com', tier: 'pro', status: 'responded', dateAdded: '2026-04-10', dateContacted: '2026-04-12', notes: 'Interested! Replied asking about commission structure. Follow up with detailed breakdown.', slug: 'prodarts', amount: 10 },
+];
+
+function parseSubs(n) { return typeof n === 'number' ? n : 0; }
+function fmtSubs(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+  if (n >= 1000) return (n/1000).toFixed(0) + 'K';
+  return String(n || '—');
+}
+function fmtEarnings(creator) {
+  if (!creator.subs || !creator.amount) return '—';
+  return '£' + (Math.round(creator.subs * 0.01 * creator.amount)).toLocaleString();
+}
+function getInitials(name) {
+  return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+}
+function statusInfo(id) { return STATUSES.find(s => s.id === id) || STATUSES[0]; }
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+// ── Storage ────────────────────────────────────────────────────────────────
+function loadCreators() {
+  try {
+    const raw = localStorage.getItem('dv-crm-creators');
+    return raw ? JSON.parse(raw) : SEED_CREATORS;
+  } catch(e) { return SEED_CREATORS; }
+}
+function saveCreators(list) {
+  try { localStorage.setItem('dv-crm-creators', JSON.stringify(list)); } catch(e) {}
+}
+
+// ── Icons ──────────────────────────────────────────────────────────────────
+const Icon = ({ name, size=16, color='currentColor', strokeWidth=2 }) => {
+  const paths = {
+    plus: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>,
+    search: <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>,
+    mail: <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>,
+    edit: <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>,
+    trash: <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>,
+    x: <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>,
+    external: <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>,
+    download: <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>,
+    grid: <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>,
+    list: <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>,
+    chevron: <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>,
+    link: <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>,
+    copy: <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>,
+    check: <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth}>
+      {paths[name]}
+    </svg>
+  );
+};
+
+// ── Toast System ───────────────────────────────────────────────────────────
+function useToast() {
+  const [toasts, setToasts] = useState([]);
+  const show = useCallback((msg, color='#4ade80') => {
+    const id = uid();
+    setToasts(t => [...t, { id, msg, color }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 2500);
+  }, []);
+  const Toast = () => (
+    <div className="toast-wrap">
+      {toasts.map(t => (
+        <div key={t.id} className="toast-item" style={{ borderColor: t.color + '55', color: t.color }}>{t.msg}</div>
+      ))}
+    </div>
+  );
+  return { show, Toast };
+}
+
+// ── Status Select ──────────────────────────────────────────────────────────
+function StatusSelect({ value, onChange }) {
+  return (
+    <select className="inp" value={value} onChange={e => onChange(e.target.value)}
+      style={{ fontSize: 12 }}>
+      {STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+    </select>
+  );
+}
+
+// ── Creator Modal ──────────────────────────────────────────────────────────
+function CreatorModal({ creator, onSave, onClose }) {
+  const isEdit = !!creator?.id;
+  const [form, setForm] = useState(creator || {
+    name: '', channel: '', platform: 'YouTube', subs: '', email: '',
+    tier: 'pro', status: 'new', notes: '', slug: '', amount: 10,
+    dateAdded: new Date().toISOString().slice(0,10), dateContacted: '',
+  });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const autoSlug = (name) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal fade-up">
+        <div className="modal-header">
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--brand)', marginBottom: 2 }}>
+              {isEdit ? 'Edit Creator' : 'Add New Creator'}
+            </p>
+            <p style={{ fontSize: 16, fontWeight: 700 }}>{isEdit ? form.name : 'Creator Details'}</p>
+          </div>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}><Icon name="x" size={15}/></button>
+        </div>
+        <div className="modal-body">
+          <div className="form-row">
+            <div>
+              <label className="lbl">Name *</label>
+              <input className="inp" value={form.name} onChange={e => { set('name', e.target.value); if(!isEdit && !form.slug) set('slug', autoSlug(e.target.value)); }} placeholder="Charlie Murphy"/>
+            </div>
+            <div>
+              <label className="lbl">Channel / Handle</label>
+              <input className="inp" value={form.channel} onChange={e => set('channel', e.target.value)} placeholder="@charliemurphy50"/>
+            </div>
+          </div>
+          <div className="form-row">
+            <div>
+              <label className="lbl">Platform</label>
+              <select className="inp" value={form.platform} onChange={e => set('platform', e.target.value)}>
+                {PLATFORMS.map(p => <option key={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="lbl">Subscribers</label>
+              <input className="inp" type="number" value={form.subs} onChange={e => set('subs', parseInt(e.target.value)||0)} placeholder="84000"/>
+            </div>
+          </div>
+          <div>
+            <label className="lbl">Email</label>
+            <input className="inp" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="creator@email.com"/>
+          </div>
+          <div className="form-row">
+            <div>
+              <label className="lbl">Tier</label>
+              <select className="inp" value={form.tier} onChange={e => set('tier', e.target.value)}>
+                {TIERS.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="lbl">Per Referral (£)</label>
+              <input className="inp" type="number" value={form.amount} onChange={e => set('amount', parseFloat(e.target.value)||0)} placeholder="10"/>
+            </div>
+          </div>
+          <div className="form-row">
+            <div>
+              <label className="lbl">Status</label>
+              <StatusSelect value={form.status} onChange={v => set('status', v)}/>
+            </div>
+            <div>
+              <label className="lbl">Personal Page Slug</label>
+              <div style={{ position: 'relative' }}>
+                <input className="inp" value={form.slug} onChange={e => set('slug', e.target.value.toLowerCase().replace(/[^a-z0-9]/g,''))} placeholder="charlie" style={{ paddingLeft: 88 }}/>
+                <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:10, color:'#4A4A5A', fontWeight:700, whiteSpace:'nowrap', pointerEvents:'none' }}>dartvoice.app/</span>
+              </div>
+            </div>
+          </div>
+          <div className="form-row">
+            <div>
+              <label className="lbl">Date Added</label>
+              <input className="inp" type="date" value={form.dateAdded} onChange={e => set('dateAdded', e.target.value)}/>
+            </div>
+            <div>
+              <label className="lbl">Date Contacted</label>
+              <input className="inp" type="date" value={form.dateContacted} onChange={e => set('dateContacted', e.target.value)}/>
+            </div>
+          </div>
+          <div>
+            <label className="lbl">Notes</label>
+            <textarea className="inp" value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Sponsorships, tone, anything relevant..."/>
+          </div>
+
+          {/* Find email helper */}
+          {!form.email && (
+            <div className="info-box">
+              <div className="info-box-title">Find their email</div>
+              {form.channel && (
+                <div className="info-row">
+                  <Icon name="external" size={13} color="var(--brand)"/>
+                  <span><strong>YouTube About tab:</strong> <a href={`https://www.youtube.com/${form.channel}/about`} target="_blank" rel="noreferrer" style={{ color:'var(--brand)' }}>Open {form.channel}</a></span>
+                </div>
+              )}
+              <div className="info-row">
+                <Icon name="external" size={13} color="#6E6E82"/>
+                <span><strong>Hunter.io:</strong> <a href={`https://hunter.io/search?domain=${form.channel ? form.channel.replace('@','') : ''}`} target="_blank" rel="noreferrer" style={{ color:'var(--brand)' }}>Search email</a></span>
+              </div>
+              <div className="info-row">
+                <Icon name="external" size={13} color="#6E6E82"/>
+                <span>Check their Instagram / TikTok bio and Linktree links</span>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-brand" onClick={() => form.name && onSave({ ...form, id: form.id || uid() })}>
+            {isEdit ? 'Save Changes' : 'Add Creator'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Creator Detail Modal ───────────────────────────────────────────────────
+function CreatorDetail({ creator, onEdit, onDelete, onStatusChange, onClose, onOpenEmail }) {
+  const si = statusInfo(creator.status);
+  const potential = creator.subs && creator.amount ? Math.round(creator.subs * 0.01 * creator.amount) : 0;
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal fade-up">
+        <div className="modal-header">
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div className="avatar" style={{ width:44, height:44, borderRadius:12, fontSize:'1.3rem' }}>{getInitials(creator.name)}</div>
+            <div>
+              <p style={{ fontWeight:700, fontSize:15 }}>{creator.name}</p>
+              <p style={{ fontSize:11, color:'#6E6E82' }}>{creator.channel} · {creator.platform}</p>
+            </div>
+          </div>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}><Icon name="x" size={15}/></button>
+        </div>
+        <div className="modal-body">
+          {/* Stats row */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
+            <div className="stat-card" style={{ padding:'12px 14px' }}>
+              <div className="stat-num" style={{ fontSize:'1.4rem' }}>{fmtSubs(creator.subs)}</div>
+              <div className="stat-lbl">Subscribers</div>
+            </div>
+            <div className="stat-card" style={{ padding:'12px 14px' }}>
+              <div className="stat-num" style={{ fontSize:'1.4rem' }}>£{creator.amount}</div>
+              <div className="stat-lbl">Per Referral</div>
+            </div>
+            <div className="stat-card" style={{ padding:'12px 14px' }}>
+              <div className="stat-num" style={{ fontSize:'1.4rem', color:'var(--brand)' }}>{potential > 0 ? '£'+potential.toLocaleString() : '—'}</div>
+              <div className="stat-lbl">Est. Earnings (1%)</div>
+              {potential > 0 && <div className="earn-bar-wrap"><div className="earn-bar-fill" style={{ width: Math.min(100, potential/500)+'%' }}/></div>}
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="detail-section">
+            <div className="detail-section-title">Contact & Status</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontSize:12, color:'#6E6E82' }}>Email</span>
+                {creator.email
+                  ? <a href={`mailto:${creator.email}`} style={{ fontSize:12, color:'var(--brand)', display:'flex', alignItems:'center', gap:4 }}>
+                      {creator.email} <Icon name="external" size={11}/>
+                    </a>
+                  : <span style={{ fontSize:12, color:'#4A4A5A' }}>Not found yet</span>}
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontSize:12, color:'#6E6E82' }}>Personal page</span>
+                {creator.slug
+                  ? <span style={{ fontSize:12, color:'var(--brand)', fontFamily:'monospace' }}>dartvoice.app/{creator.slug}</span>
+                  : <span style={{ fontSize:12, color:'#4A4A5A' }}>Not set</span>}
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontSize:12, color:'#6E6E82' }}>Tier</span>
+                <span className={`badge badge-${creator.tier}`}>{creator.tier}</span>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontSize:12, color:'#6E6E82' }}>Date added</span>
+                <span style={{ fontSize:12, color:'#A0A0B4' }}>{creator.dateAdded || '—'}</span>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontSize:12, color:'#6E6E82' }}>Date contacted</span>
+                <span style={{ fontSize:12, color:'#A0A0B4' }}>{creator.dateContacted || 'Not yet'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status update */}
+          <div className="detail-section">
+            <div className="detail-section-title">Update Status</div>
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+              {STATUSES.map(s => (
+                <button key={s.id} onClick={() => onStatusChange(creator.id, s.id)}
+                  className="btn btn-sm"
+                  style={{ background: creator.status === s.id ? s.color+'22' : 'rgba(255,255,255,0.04)',
+                    border: '1px solid ' + (creator.status === s.id ? s.color+'66' : 'rgba(255,255,255,0.08)'),
+                    color: creator.status === s.id ? s.color : '#6E6E82' }}>
+                  {creator.status === s.id && <Icon name="check" size={10}/>}
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          {creator.notes && (
+            <div className="detail-section">
+              <div className="detail-section-title">Notes</div>
+              <div className="note-chip">{creator.notes}</div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+            <button className="btn btn-brand" onClick={() => onOpenEmail(creator)} style={{ flex:1 }}>
+              <Icon name="mail" size={13}/> Open Email Template
+            </button>
+            {creator.email && (
+              <a href={`mailto:${creator.email}`} className="btn btn-ghost" style={{ flex:1, textDecoration:'none', justifyContent:'center' }}>
+                <Icon name="external" size={13}/> Open in Gmail
+              </a>
+            )}
+          </div>
+          <div style={{ display:'flex', gap:8 }}>
+            <button className="btn btn-ghost" onClick={() => { onClose(); onEdit(creator); }} style={{ flex:1 }}>
+              <Icon name="edit" size={13}/> Edit
+            </button>
+            <button className="btn btn-danger" onClick={() => onDelete(creator.id)} style={{ flex:1 }}>
+              <Icon name="trash" size={13}/> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Creator Card (grid view) ───────────────────────────────────────────────
+function CreatorCard({ creator, onClick }) {
+  const si = statusInfo(creator.status);
+  return (
+    <div className="card fade-up" onClick={onClick}
+      style={{ padding:18, cursor:'pointer' }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <div className="avatar">{getInitials(creator.name)}</div>
+          <div>
+            <p style={{ fontWeight:700, fontSize:13, marginBottom:1 }}>{creator.name}</p>
+            <p style={{ fontSize:11, color:'#6E6E82' }}>{creator.platform}</p>
+          </div>
+        </div>
+        <span className={`badge badge-${creator.status}`}>
+          <span style={{ width:5, height:5, borderRadius:'50%', background:si.dot, display:'inline-block'}}/>
+          {si.label}
+        </span>
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+        <span style={{ fontSize:11, color:'#6E6E82' }}>{creator.channel}</span>
+        <span style={{ fontSize:12, fontWeight:700, color:'#A0A0B4' }}>{fmtSubs(creator.subs)}</span>
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <span className={`badge badge-${creator.tier}`}>{creator.tier}</span>
+        <span style={{ fontSize:12, fontWeight:700, color:'var(--brand)', fontFamily:'Barlow Condensed, sans-serif', fontStyle:'italic' }}>
+          {fmtEarnings(creator)} est.
+        </span>
+      </div>
+      {!creator.email && (
+        <div style={{ marginTop:10, padding:'6px 10px', background:'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.15)', borderRadius:8, display:'flex', alignItems:'center', gap:6 }}>
+          <span style={{ fontSize:10, color:'#fbbf24', fontWeight:700 }}>⚠ Email not found</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main App ───────────────────────────────────────────────────────────────
+function App() {
+  const [creators, setCreators] = useState(loadCreators);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [view, setView] = useState('grid');
+  const [addModal, setAddModal] = useState(false);
+  const [editCreator, setEditCreator] = useState(null);
+  const [detailCreator, setDetailCreator] = useState(null);
+  const { show: showToast, Toast } = useToast();
+
+  useEffect(() => { saveCreators(creators); }, [creators]);
+
+  const saveCreator = (c) => {
+    setCreators(prev => prev.find(x => x.id === c.id)
+      ? prev.map(x => x.id === c.id ? c : x)
+      : [...prev, c]);
+    setAddModal(false);
+    setEditCreator(null);
+    showToast(c.name + ' saved');
+  };
+
+  const deleteCreator = (id) => {
+    if (!confirm('Delete this creator?')) return;
+    setCreators(prev => prev.filter(x => x.id !== id));
+    setDetailCreator(null);
+    showToast('Deleted', '#CC0B20');
+  };
+
+  const updateStatus = (id, status) => {
+    const updated = { ...creators.find(x => x.id === id), status,
+      dateContacted: status === 'contacted' ? new Date().toISOString().slice(0,10) : creators.find(x=>x.id===id)?.dateContacted };
+    setCreators(prev => prev.map(x => x.id === id ? updated : x));
+    if (detailCreator?.id === id) setDetailCreator(updated);
+    showToast('Status updated');
+  };
+
+  const openEmailTemplate = (creator) => {
+    const params = new URLSearchParams({
+      name: creator.name.split(' ')[0],
+      channel: creator.channel,
+      subs: creator.subs,
+      email: creator.email,
+      slug: creator.slug,
+      tier: creator.tier,
+      amount: creator.amount,
+    });
+    window.open('Creator Outreach Email.html?' + params.toString(), '_blank');
+  };
+
+  const exportCSV = () => {
+    const header = 'Name,Channel,Platform,Subscribers,Email,Tier,Amount,Status,Date Added,Date Contacted,Notes';
+    const rows = creators.map(c =>
+      [c.name, c.channel, c.platform, c.subs, c.email, c.tier, c.amount, c.status, c.dateAdded, c.dateContacted, '"'+(c.notes||'').replace(/"/g,'""')+'"'].join(',')
+    );
+    const blob = new Blob([header + '\n' + rows.join('\n')], { type:'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dartvoice-creators.csv';
+    a.click();
+    showToast('CSV exported');
+  };
+
+  // Filter
+  const filtered = creators.filter(c => {
+    const matchFilter = filter === 'all' || c.status === filter;
+    const matchSearch = !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.channel.toLowerCase().includes(search.toLowerCase()) || (c.email||'').toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  // Stats
+  const total = creators.length;
+  const active = creators.filter(c => c.status === 'active').length;
+  const noEmail = creators.filter(c => !c.email).length;
+  const totalPotential = creators.reduce((sum, c) => sum + (c.subs && c.amount ? Math.round(c.subs*0.01*c.amount) : 0), 0);
+  const statusCounts = {};
+  STATUSES.forEach(s => { statusCounts[s.id] = creators.filter(c => c.status === s.id).length; });
+
+  return (
+    <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
+
+      {/* Nav */}
+      <nav className="topnav">
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <svg viewBox="0 0 36 36" width="26" height="26" fill="none">
+            <rect width="36" height="36" rx="9" fill="var(--brand)"/>
+            <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" fill="none"/>
+            <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" fill="none"/>
+            <circle cx="18" cy="18" r="3" fill="white"/>
+            <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" fill="none"/>
+          </svg>
+          <span className="display" style={{ fontSize:'1rem', letterSpacing:'0.04em' }}>DARTVOICE</span>
+          <span style={{ fontSize:11, color:'#4A4A5A', marginLeft:4, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em' }}>Creator CRM</span>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <button className="btn btn-ghost btn-sm hide-mobile" onClick={exportCSV}>
+            <Icon name="download" size={13}/> Export CSV
+          </button>
+          <a href="Creator Outreach Email.html" target="_blank" className="btn btn-ghost btn-sm hide-mobile" style={{ textDecoration:'none' }}>
+            <Icon name="mail" size={13}/> Email Template
+          </a>
+          <button className="btn btn-brand btn-sm" onClick={() => setAddModal(true)}>
+            <Icon name="plus" size={13}/> Add Creator
+          </button>
+        </div>
+      </nav>
+
+      <div style={{ maxWidth:1200, margin:'0 auto', padding:'24px 20px', width:'100%', flex:1 }}>
+
+        {/* Stats */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:28 }}>
+          <div className="stat-card">
+            <div className="stat-num">{total}</div>
+            <div className="stat-lbl">Total Creators</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-num" style={{ color:'#4ade80' }}>{active}</div>
+            <div className="stat-lbl">Active Partners</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-num" style={{ color:'var(--brand)' }}>£{totalPotential.toLocaleString()}</div>
+            <div className="stat-lbl">Total Est. Earnings (1%)</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-num" style={{ color: noEmail > 0 ? '#fbbf24' : '#4ade80' }}>{noEmail}</div>
+            <div className="stat-lbl">Missing Emails</div>
+          </div>
+        </div>
+
+        {/* Filter bar */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, flexWrap:'wrap', gap:10 }}>
+          <div className="tab-bar" style={{ flexWrap:'wrap' }}>
+            <button className={`tab-btn ${filter==='all'?'active':''}`} onClick={() => setFilter('all')}>
+              All <span className="tab-count">{total}</span>
+            </button>
+            {STATUSES.map(s => (
+              <button key={s.id} className={`tab-btn ${filter===s.id?'active':''}`} onClick={() => setFilter(s.id)}>
+                {s.label} <span className="tab-count">{statusCounts[s.id]||0}</span>
+              </button>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div className="search-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4A4A5A" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input className="search-inp" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search creators…"/>
+            </div>
+            <button className={`btn btn-ghost btn-icon ${view==='grid'?'':''}`} onClick={() => setView('grid')} title="Grid view"
+              style={view==='grid'?{borderColor:'rgba(var(--brand-rgb),0.4)',color:'var(--brand)'}:{}}>
+              <Icon name="grid" size={15}/>
+            </button>
+            <button className={`btn btn-ghost btn-icon`} onClick={() => setView('table')} title="Table view"
+              style={view==='table'?{borderColor:'rgba(var(--brand-rgb),0.4)',color:'var(--brand)'}:{}}>
+              <Icon name="list" size={15}/>
+            </button>
+          </div>
+        </div>
+
+        {/* Creator List */}
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <h3>{search ? 'No results found' : 'No creators yet'}</h3>
+            <p>{search ? 'Try a different search term.' : 'Add your first creator to get started.'}</p>
+            {!search && <button className="btn btn-brand" style={{ marginTop:16 }} onClick={() => setAddModal(true)}><Icon name="plus" size={13}/> Add Creator</button>}
+          </div>
+        ) : view === 'grid' ? (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
+            {filtered.map(c => <CreatorCard key={c.id} creator={c} onClick={() => setDetailCreator(c)}/>)}
+          </div>
+        ) : (
+          <div className="card" style={{ overflow:'hidden' }}>
+            <div style={{ overflowX:'auto' }}>
+              <table className="creator-table">
+                <thead>
+                  <tr>
+                    <th>Creator</th>
+                    <th>Platform</th>
+                    <th>Subscribers</th>
+                    <th>Email</th>
+                    <th>Tier</th>
+                    <th>Status</th>
+                    <th>Est. Earnings</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(c => {
+                    const si = statusInfo(c.status);
+                    return (
+                      <tr key={c.id} style={{ cursor:'pointer' }} onClick={() => setDetailCreator(c)}>
+                        <td>
+                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                            <div className="avatar" style={{ width:30, height:30, borderRadius:8, fontSize:'0.85rem' }}>{getInitials(c.name)}</div>
+                            <div>
+                              <p style={{ fontWeight:700, fontSize:13 }}>{c.name}</p>
+                              <p style={{ fontSize:11, color:'#6E6E82' }}>{c.channel}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ color:'#6E6E82', fontSize:12 }}>{c.platform}</td>
+                        <td style={{ fontWeight:700, fontSize:13 }}>{fmtSubs(c.subs)}</td>
+                        <td>
+                          {c.email
+                            ? <a href={`mailto:${c.email}`} onClick={e=>e.stopPropagation()} style={{ fontSize:11, color:'var(--brand)' }}>{c.email}</a>
+                            : <span style={{ fontSize:11, color:'#fbbf24' }}>⚠ Not found</span>}
+                        </td>
+                        <td><span className={`badge badge-${c.tier}`}>{c.tier}</span></td>
+                        <td>
+                          <span className={`badge badge-${c.status}`}>
+                            <span style={{ width:5, height:5, borderRadius:'50%', background:si.dot, display:'inline-block'}}/>
+                            {si.label}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight:700, color:'var(--brand)', fontFamily:'Barlow Condensed, sans-serif', fontStyle:'italic', fontSize:'1.05rem' }}>{fmtEarnings(c)}</td>
+                        <td>
+                          <div style={{ display:'flex', gap:5 }} onClick={e => e.stopPropagation()}>
+                            <button className="btn btn-ghost btn-icon btn-sm" title="Email template" onClick={() => openEmailTemplate(c)}>
+                              <Icon name="mail" size={13}/>
+                            </button>
+                            <button className="btn btn-ghost btn-icon btn-sm" title="Edit" onClick={() => setEditCreator(c)}>
+                              <Icon name="edit" size={13}/>
+                            </button>
+                            <button className="btn btn-danger btn-icon btn-sm" title="Delete" onClick={() => deleteCreator(c.id)}>
+                              <Icon name="trash" size={13}/>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom tip */}
+        <div className="info-box" style={{ marginTop:28 }}>
+          <div className="info-box-title">Finding Creator Emails</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            <div className="info-row" style={{ marginBottom:0 }}>
+              <Icon name="external" size={12} color="var(--brand)"/>
+              <span><strong>YouTube About tab</strong> — most creators list a business email there</span>
+            </div>
+            <div className="info-row" style={{ marginBottom:0 }}>
+              <Icon name="external" size={12} color="#6E6E82"/>
+              <a href="https://hunter.io" target="_blank" rel="noreferrer" style={{ color:'var(--brand)', fontWeight:700 }}>Hunter.io</a> — paste their domain, finds emails fast
+            </div>
+            <div className="info-row" style={{ marginBottom:0 }}>
+              <Icon name="external" size={12} color="#6E6E82"/>
+              <span><strong>Instagram / TikTok bio</strong> — often has a contact or Linktree</span>
+            </div>
+            <div className="info-row" style={{ marginBottom:0 }}>
+              <Icon name="external" size={12} color="#6E6E82"/>
+              <a href="https://www.youtube.com/results?search_query=darts+review" target="_blank" rel="noreferrer" style={{ color:'var(--brand)', fontWeight:700 }}>YouTube Search →</a> search "darts review", "darts practice" etc.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {(addModal || editCreator) && (
+        <CreatorModal
+          creator={editCreator}
+          onSave={saveCreator}
+          onClose={() => { setAddModal(false); setEditCreator(null); }}
+        />
+      )}
+      {detailCreator && (
+        <CreatorDetail
+          creator={detailCreator}
+          onEdit={(c) => { setDetailCreator(null); setEditCreator(c); }}
+          onDelete={deleteCreator}
+          onStatusChange={updateStatus}
+          onClose={() => setDetailCreator(null)}
+          onOpenEmail={openEmailTemplate}
+        />
+      )}
+
+      <Toast/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

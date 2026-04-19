@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>Admin | DartVoice</title>
+<meta name="theme-color" content="#CC0B20">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+','+g+','+b);var L=function(c){return Math.min(255,c+Math.round((255-c)*.12))};var lr=L(r),lg=L(g),lb=L(b);s.setProperty('--brand-light','#'+[lr,lg,lb].map(function(c){return c.toString(16).padStart(2,'0')}).join(''))}()</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+    fontFamily: { display: ['"Barlow Condensed"','sans-serif'], sans: ['"Plus Jakarta Sans"','sans-serif'] },
+    colors: { brand:'var(--brand)','brand-light':'var(--brand-light)',dark:'#08080A',card:'#111114','card-2':'#18181C',wire:'#252530',muted:'#6E6E82','muted-2':'#4A4A5A',chalk:'#F0F0F5',success:'#22c55e' }
+}}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="css/general/base.css">
+<style>
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5}
+.display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-.02em;text-transform:uppercase}
+.crm-card{background:linear-gradient(160deg,#111114,#0D0D10);border:1px solid rgba(255,255,255,.06);border-radius:14px;transition:border-color .2s,transform .2s,box-shadow .2s}
+.crm-card:hover{border-color:rgba(var(--brand-rgb),.4);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 24px rgba(var(--brand-rgb),.08)}
+.stat-card{background:linear-gradient(160deg,#111114,#0D0D10);border:1px solid rgba(255,255,255,.06);border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid transparent}
+.tab-btn{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500;color:#6E6E82;background:transparent;border:1px solid transparent;transition:all .15s;cursor:pointer}
+.tab-btn:hover{color:#F0F0F5;background:rgba(255,255,255,.04)}
+.tab-btn.active{color:#F0F0F5;background:rgba(255,255,255,.08)}
+.tab-count{font-size:10px;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.06);color:#6E6E82;margin-left:6px}
+.tab-btn.active .tab-count{background:rgba(var(--brand-rgb),.2);color:var(--brand)}
+.top-tab{padding:10px 18px;font-size:13px;font-weight:600;color:#6E6E82;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;background:transparent;border-top:0;border-left:0;border-right:0}
+.top-tab:hover{color:#F0F0F5}
+.top-tab.active{color:#F0F0F5;border-bottom-color:var(--brand)}
+.btn-brand{background:var(--brand);color:#fff;padding:8px 16px;border-radius:10px;font-weight:600;font-size:13px;transition:all .15s;cursor:pointer;border:none}
+.btn-brand:hover{background:var(--brand-light);box-shadow:0 0 20px rgba(var(--brand-rgb),.3)}
+.btn-ghost{background:transparent;color:#F0F0F5;padding:8px 14px;border-radius:10px;font-weight:500;font-size:13px;border:1px solid rgba(255,255,255,.08);transition:all .15s;cursor:pointer;display:inline-block;text-decoration:none}
+.btn-ghost:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.16)}
+.btn-danger{background:rgba(239,68,68,.1);color:#f87171;padding:8px 14px;border-radius:10px;font-weight:500;font-size:13px;border:1px solid rgba(239,68,68,.25);cursor:pointer;transition:all .15s}
+.btn-danger:hover{background:rgba(239,68,68,.18)}
+.inp{background:#18181C;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 12px;color:#F0F0F5;font-size:13px;width:100%;transition:border-color .15s}
+.inp:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(var(--brand-rgb),.15)}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal{background:#111114;border:1px solid rgba(255,255,255,.08);border-radius:20px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto}
+.toast{position:fixed;bottom:24px;right:24px;background:#18181C;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 18px;font-size:13px;z-index:200;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.skeleton{background:linear-gradient(90deg,#18181C 0%,#252530 50%,#18181C 100%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hide{display:none!important}
+.warn-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:10px 14px;font-size:12px;color:#fbbf24}
+.clip2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.clip3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.clip4{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+</style>
+</head>
+<body class="min-h-screen">
+
+<div id="gate" class="min-h-screen flex items-center justify-center">
+    <div class="flex flex-col items-center gap-4">
+        <div class="w-10 h-10 border-2 border-wire border-t-brand rounded-full animate-spin"></div>
+        <p class="text-muted text-sm">Checking admin access...</p>
+    </div>
+</div>
+
+<div id="app" class="hide">
+<header class="sticky top-0 z-40 bg-dark/90 backdrop-blur-xl border-b border-wire/60">
+    <div class="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <svg viewBox="0 0 36 36" class="w-7 h-7 shrink-0" fill="none">
+                <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                <circle cx="18" cy="18" r="3" fill="white"/>
+            </svg>
+            <span class="display text-base">DARTVOICE</span>
+            <span class="text-xs font-semibold text-muted uppercase tracking-wider">Admin</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="btn-ghost" onclick="exportCsv()">Export CSV</button>
+            <a class="btn-ghost" href="dartvoice-dashboard.html">Dashboard</a>
+            <button class="btn-brand" onclick="openCreatorModal()">+ Add Creator</button>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-5 flex gap-1 border-t border-wire/40">
+        <button class="top-tab active" data-top="crm">Creator CRM</button>
+        <button class="top-tab" data-top="youtube">YouTube Finder</button>
+        <button class="top-tab" data-top="social">Social Outreach</button>
+        <button class="top-tab" data-top="queue">Queue <span id="queueBadge" class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-brand/20 text-brand hide">0</span></button>
+        <button class="top-tab" data-top="templates">Templates</button>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-5 py-6">
+
+<section data-pane="crm">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        <div class="stat-card p-4"><div class="text-xs uppercase tracking-wider text-muted mb-1">Total Creators</div><div id="statTotal" class="text-2xl font-bold">--</div></div>
+        <div class="stat-card p-4"><div class="text-xs uppercase tracking-wider text-muted mb-1">Active Partners</div><div id="statActive" class="text-2xl font-bold text-success">--</div></div>
+        <div class="stat-card p-4"><div class="text-xs uppercase tracking-wider text-muted mb-1">Est. Earnings @ 1%</div><div id="statEarnings" class="text-2xl font-bold text-brand">--</div></div>
+        <div class="stat-card p-4"><div class="text-xs uppercase tracking-wider text-muted mb-1">Missing Emails</div><div id="statMissing" class="text-2xl font-bold">--</div></div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+        <button class="tab-btn active" data-filter="all">All <span class="tab-count" data-count="all">0</span></button>
+        <button class="tab-btn" data-filter="new">New <span class="tab-count" data-count="new">0</span></button>
+        <button class="tab-btn" data-filter="contacted">Contacted <span class="tab-count" data-count="contacted">0</span></button>
+        <button class="tab-btn" data-filter="responded">Responded <span class="tab-count" data-count="responded">0</span></button>
+        <button class="tab-btn" data-filter="negotiating">Negotiating <span class="tab-count" data-count="negotiating">0</span></button>
+        <button class="tab-btn" data-filter="active">Active <span class="tab-count" data-count="active">0</span></button>
+        <button class="tab-btn" data-filter="declined">Declined <span class="tab-count" data-count="declined">0</span></button>
+        <div class="ml-auto flex items-center gap-2">
+            <input id="crmSearch" type="text" placeholder="Search name, channel, email..." class="inp" style="width:240px">
+            <button class="btn-ghost" id="viewToggle">Grid</button>
+        </div>
+    </div>
+    <div id="crmList" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+    <div id="crmEmpty" class="hide text-center py-16 text-muted text-sm">No creators yet. Click + Add Creator or use the YouTube Finder.</div>
+</section>
+
+<section data-pane="youtube" class="hide">
+    <div class="mb-4 flex flex-wrap gap-2 items-center">
+        <input id="ytQuery" class="inp" placeholder="Search YouTube (e.g. darts tips)" style="max-width:360px">
+        <button class="btn-brand" onclick="ytSearch()">Search</button>
+        <span class="text-xs text-muted">Presets:</span>
+        <button class="tab-btn" onclick="ytPreset('darts review')">darts review</button>
+        <button class="tab-btn" onclick="ytPreset('darts tips')">darts tips</button>
+        <button class="tab-btn" onclick="ytPreset('darts practice')">darts practice</button>
+        <button class="tab-btn" onclick="ytPreset('darts tutorial UK')">darts tutorial UK</button>
+        <button class="tab-btn" onclick="ytPreset('dartcounter')">dartcounter</button>
+    </div>
+    <div id="ytKeyWarn" class="warn-box mb-4 hide">No YouTube Data API v3 key set. Press <strong>S</strong> to open Settings and paste yours.</div>
+    <div id="ytResults" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+</section>
+
+<section data-pane="social" class="hide">
+    <div class="flex flex-wrap gap-1 mb-4 border-b border-wire/40 pb-2">
+        <button class="top-tab active" data-social="reddit">Reddit</button>
+        <button class="top-tab" data-social="x">X (Twitter)</button>
+        <button class="top-tab" data-social="facebook">Facebook</button>
+        <button class="top-tab" data-social="instagram">Instagram</button>
+        <button class="top-tab" data-social="tiktok">TikTok</button>
+        <button class="top-tab" data-social="prospects">All Prospects</button>
+    </div>
+
+    <div data-social-pane="reddit">
+        <div class="mb-3 text-xs text-muted">Reddit JSON API (read-only, no auth). DMs + comments require the bot server with OAuth app credentials. Heavy rate limits; bans possible on promotional spam.</div>
+        <div class="flex flex-wrap gap-2 items-center mb-3">
+            <input id="rdQuery" class="inp" placeholder="subreddit (e.g. darts)" style="max-width:260px" value="darts">
+            <select id="rdSort" class="inp" style="max-width:130px"><option value="hot">Hot</option><option value="new">New</option><option value="top">Top</option></select>
+            <button class="btn-brand" onclick="redditSearch()">Fetch posts</button>
+        </div>
+        <div id="rdResults" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));"></div>
+    </div>
+
+    <div data-social-pane="x" class="hide">
+        <div class="warn-box mb-3">X programmatic search/DM needs paid API tier ($200+/mo). Auto-DM to non-followers violates ToS. Track manually, or configure paid API on bot server.</div>
+        <div class="flex flex-wrap gap-2 items-center mb-3">
+            <input id="xQuery" class="inp" placeholder='search query (e.g. "darts practice")' style="max-width:260px">
+            <button class="btn-brand" onclick="xOpenSearch()">Open X search</button>
+            <button class="btn-ghost" onclick="openProspectModal('x')">+ Add X prospect</button>
+        </div>
+    </div>
+
+    <div data-social-pane="facebook" class="hide">
+        <div class="warn-box mb-3">Facebook Graph API does not allow cold DMs or posting to groups you don't own. Track manual outreach here.</div>
+        <div class="flex flex-wrap gap-2 items-center mb-3">
+            <input id="fbQuery" class="inp" placeholder="group or page name" style="max-width:260px">
+            <button class="btn-ghost" onclick="fbOpenSearch()">Search on Facebook</button>
+            <button class="btn-brand" onclick="openProspectModal('facebook')">+ Add FB prospect</button>
+        </div>
+    </div>
+
+    <div data-social-pane="instagram" class="hide">
+        <div class="warn-box mb-3">Instagram Graph API only DMs users who have messaged your Business account first. Cold DMs = browser automation = ban risk.</div>
+        <div class="flex flex-wrap gap-2 items-center mb-3">
+            <input id="igQuery" class="inp" placeholder="hashtag or handle" style="max-width:260px">
+            <button class="btn-ghost" onclick="igOpenSearch()">Open on Instagram</button>
+            <button class="btn-brand" onclick="openProspectModal('instagram')">+ Add IG prospect</button>
+        </div>
+    </div>
+
+    <div data-social-pane="tiktok" class="hide">
+        <div class="warn-box mb-3">TikTok Business API has no cold-DM endpoint. Track creators you've commented on or DMed manually.</div>
+        <div class="flex flex-wrap gap-2 items-center mb-3">
+            <input id="ttQuery" class="inp" placeholder="hashtag or creator" style="max-width:260px">
+            <button class="btn-ghost" onclick="tiktokOpenSearch()">Open on TikTok</button>
+            <button class="btn-brand" onclick="openProspectModal('tiktok')">+ Add TikTok prospect</button>
+        </div>
+    </div>
+
+    <div data-social-pane="prospects" class="hide">
+        <div class="flex flex-wrap gap-2 items-center mb-3">
+            <input id="prospectSearch" class="inp" placeholder="Search handle, platform, context..." style="max-width:280px" oninput="renderProspects()">
+            <select id="prospectPlatform" class="inp" style="max-width:160px" onchange="renderProspects()">
+                <option value="">All platforms</option>
+                <option>reddit</option><option>x</option><option>facebook</option><option>instagram</option><option>tiktok</option>
+            </select>
+            <select id="prospectStatus" class="inp" style="max-width:160px" onchange="renderProspects()">
+                <option value="">Any status</option>
+                <option>new</option><option>queued</option><option>contacted</option><option>responded</option><option>converted</option><option>skip</option>
+            </select>
+        </div>
+        <div id="prospectList" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));"></div>
+    </div>
+</section>
+
+<section data-pane="queue" class="hide">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="display text-2xl">Outreach Queue</h2>
+            <p class="text-muted text-sm">Messages waiting for the outreach-server bot worker. Set BOT_ENABLED=true in its env to dispatch.</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn-ghost" onclick="loadQueue()">Refresh</button>
+            <button class="btn-danger" onclick="cancelAllPending()">Cancel all pending</button>
+        </div>
+    </div>
+    <div id="queueList" class="grid gap-2"></div>
+</section>
+
+<section data-pane="templates" class="hide">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="display text-2xl">Message Templates</h2>
+        <button class="btn-brand" onclick="openTemplateModal()">+ New Template</button>
+    </div>
+    <p class="text-muted text-xs mb-3">Tokens: <code>{name}</code> <code>{handle}</code> <code>{slug}</code> <code>{amount}</code> <code>{tier}</code> <code>{sender}</code> <code>{context}</code></p>
+    <div id="templateList" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));"></div>
+</section>
+
+</main>
+</div>
+
+<div id="creatorModalOv" class="modal-ov">
+    <div class="modal p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 id="creatorModalTitle" class="display text-2xl">Add Creator</h3>
+            <button class="btn-ghost" onclick="closeCreatorModal()">X</button>
+        </div>
+        <form id="creatorForm" class="grid grid-cols-2 gap-3">
+            <input type="hidden" name="id">
+            <div><label class="text-xs text-muted">Name *</label><input name="name" class="inp" required></div>
+            <div><label class="text-xs text-muted">Channel / Handle</label><input name="channel" class="inp" placeholder="@handle"></div>
+            <div><label class="text-xs text-muted">Platform</label><select name="platform" class="inp"><option>YouTube</option><option>TikTok</option><option>Instagram</option><option>Twitch</option><option>X</option><option>Reddit</option><option>Other</option></select></div>
+            <div><label class="text-xs text-muted">Subscribers</label><input name="subs" type="number" class="inp" min="0"></div>
+            <div class="col-span-2"><label class="text-xs text-muted">Email</label><input name="email" type="email" class="inp" placeholder="leave blank to find via Hunter"></div>
+            <div><label class="text-xs text-muted">Tier</label><select name="tier" class="inp"><option>starter</option><option selected>pro</option><option>elite</option></select></div>
+            <div><label class="text-xs text-muted">Per Referral GBP</label><input name="amount" type="number" step="0.50" class="inp" value="10"></div>
+            <div><label class="text-xs text-muted">Status</label><select name="status" class="inp"><option>new</option><option>contacted</option><option>responded</option><option>negotiating</option><option>active</option><option>declined</option></select></div>
+            <div><label class="text-xs text-muted">Slug</label><div class="flex items-center gap-1"><span class="text-xs text-muted">dartvoice.app/</span><input name="slug" class="inp"></div></div>
+            <div><label class="text-xs text-muted">Date Added</label><input name="date_added" type="date" class="inp"></div>
+            <div><label class="text-xs text-muted">Date Contacted</label><input name="date_contacted" type="date" class="inp"></div>
+            <div class="col-span-2"><label class="text-xs text-muted">Notes</label><textarea name="notes" class="inp" rows="3"></textarea></div>
+            <div class="col-span-2 flex gap-2 justify-end pt-2">
+                <button type="button" class="btn-danger hide" id="creatorDeleteBtn" onclick="deleteCreator()">Delete</button>
+                <button type="button" class="btn-ghost" onclick="closeCreatorModal()">Cancel</button>
+                <button type="submit" class="btn-brand">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="prospectModalOv" class="modal-ov">
+    <div class="modal p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 id="prospectModalTitle" class="display text-2xl">Add Prospect</h3>
+            <button class="btn-ghost" onclick="closeProspectModal()">X</button>
+        </div>
+        <form id="prospectForm" class="grid grid-cols-2 gap-3">
+            <input type="hidden" name="id">
+            <div><label class="text-xs text-muted">Platform *</label><select name="platform" class="inp" required><option>reddit</option><option>x</option><option>facebook</option><option>instagram</option><option>tiktok</option><option>other</option></select></div>
+            <div><label class="text-xs text-muted">Handle *</label><input name="handle" class="inp" required placeholder="u/someone or @someone"></div>
+            <div><label class="text-xs text-muted">Display name</label><input name="display_name" class="inp"></div>
+            <div><label class="text-xs text-muted">Followers</label><input name="followers" type="number" class="inp"></div>
+            <div class="col-span-2"><label class="text-xs text-muted">Profile URL</label><input name="profile_url" class="inp"></div>
+            <div class="col-span-2"><label class="text-xs text-muted">Context (subreddit / hashtag / group)</label><input name="context" class="inp"></div>
+            <div class="col-span-2"><label class="text-xs text-muted">Source post URL</label><input name="post_url" class="inp"></div>
+            <div class="col-span-2"><label class="text-xs text-muted">Bio / Notes</label><textarea name="notes" class="inp" rows="2"></textarea></div>
+            <div><label class="text-xs text-muted">Status</label><select name="status" class="inp"><option>new</option><option>queued</option><option>contacted</option><option>responded</option><option>converted</option><option>skip</option></select></div>
+            <div></div>
+            <div class="col-span-2 flex gap-2 justify-end pt-2">
+                <button type="button" class="btn-danger hide" id="prospectDeleteBtn" onclick="deleteProspect()">Delete</button>
+                <button type="button" class="btn-ghost" onclick="closeProspectModal()">Cancel</button>
+                <button type="submit" class="btn-brand">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="composeModalOv" class="modal-ov">
+    <div class="modal p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="display text-2xl">Queue Outreach</h3>
+            <button class="btn-ghost" onclick="closeComposeModal()">X</button>
+        </div>
+        <form id="composeForm" class="grid gap-3">
+            <input type="hidden" name="prospect_id">
+            <input type="hidden" name="creator_id">
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="text-xs text-muted">Channel</label><select name="channel" class="inp" id="composeChannel" onchange="refreshTemplatePicker()"></select></div>
+                <div><label class="text-xs text-muted">Template</label><select id="composeTemplate" class="inp" onchange="applyTemplate()"><option value="">-- pick template --</option></select></div>
+            </div>
+            <div id="composeSubjectWrap"><label class="text-xs text-muted">Subject</label><input name="subject" class="inp"></div>
+            <div><label class="text-xs text-muted">Body *</label><textarea name="body" class="inp" rows="7" required></textarea></div>
+            <div><label class="text-xs text-muted">Schedule for</label><input name="scheduled_for" type="datetime-local" class="inp"></div>
+            <div class="flex gap-2 justify-end pt-2">
+                <button type="button" class="btn-ghost" onclick="closeComposeModal()">Cancel</button>
+                <button type="button" class="btn-ghost" onclick="composeOpenInPlatform()">Open in platform</button>
+                <button type="submit" class="btn-brand">Queue send</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="templateModalOv" class="modal-ov">
+    <div class="modal p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="display text-2xl">Template</h3>
+            <button class="btn-ghost" onclick="closeTemplateModal()">X</button>
+        </div>
+        <form id="templateForm" class="grid gap-3">
+            <input type="hidden" name="id">
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="text-xs text-muted">Name *</label><input name="name" class="inp" required></div>
+                <div><label class="text-xs text-muted">Channel *</label><select name="channel" class="inp" required><option>email</option><option>reddit_dm</option><option>reddit_comment</option><option>x_dm</option><option>x_reply</option><option>facebook_msg</option><option>instagram_dm</option><option>tiktok_comment</option><option>manual</option></select></div>
+            </div>
+            <div><label class="text-xs text-muted">Subject</label><input name="subject" class="inp"></div>
+            <div><label class="text-xs text-muted">Body *</label><textarea name="body" class="inp" rows="8" required></textarea></div>
+            <div class="flex gap-2 justify-end pt-2">
+                <button type="button" class="btn-danger hide" id="templateDeleteBtn" onclick="deleteTemplate()">Delete</button>
+                <button type="button" class="btn-ghost" onclick="closeTemplateModal()">Cancel</button>
+                <button type="submit" class="btn-brand">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="settingsOv" class="modal-ov">
+    <div class="modal p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="display text-2xl">Settings - Keys</h3>
+            <button class="btn-ghost" onclick="closeSettings()">X</button>
+        </div>
+        <p class="text-xs text-muted mb-3">Stored in your browser only. Bot server reads its own env.</p>
+        <div class="grid gap-3">
+            <div><label class="text-xs text-muted">YouTube Data API v3 Key</label><input id="kYT" class="inp" placeholder="AIza..."></div>
+            <div><label class="text-xs text-muted">Hunter.io API Key</label><input id="kHN" class="inp"></div>
+            <div><label class="text-xs text-muted">Sender name ({sender} token)</label><input id="kSN" class="inp" placeholder="Jamie, Head of Partnerships"></div>
+            <div><label class="text-xs text-muted">Bot server URL</label><input id="kBOT" class="inp" placeholder="http://localhost:3050"></div>
+            <div class="flex gap-2 justify-end pt-2">
+                <button class="btn-ghost" onclick="closeSettings()">Close</button>
+                <button class="btn-brand" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastHost"></div>
+
+<script src="admin.js"></script>
+<script src="theme.js"></script>
+</body>
+</html>

@@ -2,6 +2,9 @@ User-agent: *
 Allow: /
 
 Disallow: /dartvoice-dashboard.html
+Disallow: /admin.html
+Disallow: /admin.js
+Disallow: /outreach-server/
 Disallow: /prototypes/
 Disallow: /logs/
 Disallow: /migrations/

@@ -720,8 +720,12 @@
             if (h.length === 2 && _TENS[h[0]] !== undefined && _ONES[h[1]] !== undefined) {
                 return _TENS[h[0]] + _ONES[h[1]];
             }
-            const v = parseInt(t);
-            return (!isNaN(v) && v >= 0 && v <= 180) ? v : null;
+            // Only accept pure numeric strings here
+            if (/^\s*\d+\s*$/.test(t)) {
+                const v = parseInt(t, 10);
+                return (!isNaN(v) && v >= 0 && v <= 180) ? v : null;
+            }
+            return null;
         }
 
         function parseSpokenScore(text) {
@@ -769,7 +773,22 @@
                 if (sub !== null && (100+sub) <= 180) return 100+sub;
             }
 
-            text = text.replace(/^(score|shot)\s+/,'');
+            text = text.replace(/^(score|shot)\s+/, '');
+            // Prefer the last numeric/word-number by default (e.g. "44 46" -> 46)
+            const detection = (typeof AppConfig !== 'undefined' && AppConfig.detectionMode) ? AppConfig.detectionMode : 'last';
+            if (text.includes(' ') && detection !== 'first') {
+                const digitMatches = text.match(/\d+/g);
+                if (digitMatches && digitMatches.length) {
+                    const lastNum = parseInt(digitMatches[digitMatches.length - 1], 10);
+                    if (!isNaN(lastNum) && lastNum >= 0 && lastNum <= 180) return lastNum * multiplier;
+                }
+                const tokens = text.split(' ');
+                for (let k = 1; k <= Math.min(3, tokens.length); k++) {
+                    const candidate = tokens.slice(tokens.length - k).join(' ');
+                    const v = parseUnder100(candidate);
+                    if (v !== null) return v * multiplier;
+                }
+            }
             const base = parseUnder100(text);
             if (base === null) return null;
             if (base <= 60 || base === 25 || base === 50) return base * multiplier;

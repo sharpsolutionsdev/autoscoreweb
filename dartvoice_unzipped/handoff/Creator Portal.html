@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ambassador Portal — DartVoice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --brand: #CC0B20; --brand-rgb: 204,11,32; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; min-height: 100vh; }
+.display { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #0D0D10; }
+::-webkit-scrollbar-thumb { background: #2A2A35; border-radius: 999px; }
+
+/* Nav */
+nav {
+  height: 54px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: rgba(8,8,10,0.9); backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; position: sticky; top: 0; z-index: 50;
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo span { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; font-size: 1.05rem; letter-spacing: 0.04em; color: #F0F0F5; }
+
+/* Hero band */
+.hero-band {
+  background: radial-gradient(ellipse 100% 300px at 50% 0, rgba(204,11,32,0.18) 0%, rgba(204,11,32,0.04) 45%, transparent 70%), #08080A;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding: 36px 24px 32px;
+}
+.inner { max-width: 900px; margin: 0 auto; }
+
+/* Cards */
+.card {
+  background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px; position: relative; overflow: hidden;
+  transition: border-color .25s, box-shadow .25s;
+}
+.card:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+.card-glow::before {
+  content: ''; position: absolute; inset: 0; border-radius: 16px; padding: 1px;
+  background: linear-gradient(140deg, rgba(204,11,32,0.35), transparent 35%, transparent 65%, rgba(204,11,32,0.18));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none; opacity: 0.6; transition: opacity .3s;
+}
+.card-glow:hover::before { opacity: 1; }
+
+/* Stat cards */
+.stat-num {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic;
+  font-size: 2.4rem; line-height: 1; letter-spacing: -0.01em;
+}
+.stat-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4A4A5A; margin-top: 4px; }
+.stat-sub { font-size: 11px; color: #6E6E82; margin-top: 3px; }
+
+/* Tier badge */
+.tier-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.3); color: var(--brand);
+}
+
+/* Referral link */
+.ref-pill {
+  display: flex; align-items: center;
+  background: #0A0A0D; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; overflow: hidden;
+  position: relative;
+}
+.ref-pill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(204,11,32,0.06) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shimmer 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shimmer { 0%,40%{transform:translateX(-100%)} 60%,100%{transform:translateX(100%)} }
+.ref-url { flex: 1; padding: 13px 16px; font-size: 13px; font-weight: 700; color: var(--brand); font-family: monospace; letter-spacing: 0.01em; }
+.ref-copy {
+  padding: 10px 16px; background: rgba(204,11,32,0.1); border-left: 1px solid rgba(204,11,32,0.2);
+  cursor: pointer; font-size: 12px; font-weight: 700; color: var(--brand);
+  transition: background .15s; display: flex; align-items: center; gap: 6px; border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.ref-copy:hover { background: rgba(204,11,32,0.2); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 18px; border-radius: 11px; font-size: 13px; font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all .15s; border: none;
+}
+.btn-brand { background: var(--brand); color: white; box-shadow: 0 4px 20px rgba(204,11,32,0.3); }
+.btn-brand:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #A0A0B4; }
+.btn-ghost:hover { background: rgba(255,255,255,0.09); color: #F0F0F5; }
+
+/* Progress bar */
+.prog-track { background: rgba(255,255,255,0.06); border-radius: 999px; height: 5px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--brand), #ff2438); box-shadow: 0 0 8px rgba(204,11,32,0.5); }
+
+/* Timeline */
+.timeline-item { display: flex; gap: 14px; padding-bottom: 20px; position: relative; }
+.timeline-item:not(:last-child)::before {
+  content: ''; position: absolute; left: 11px; top: 26px; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, rgba(204,11,32,0.3), transparent);
+}
+.tl-dot {
+  width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+.tl-date { font-size: 10px; font-weight: 700; color: #4A4A5A; margin-bottom: 2px; }
+.tl-text { font-size: 12px; line-height: 1.6; color: #8888A0; }
+.tl-text strong { color: #D0D0E0; }
+
+/* Contact form */
+.inp {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px; padding: 11px 14px; font-size: 13px; font-weight: 500;
+  color: #F0F0F5; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+}
+.inp:focus { outline: none; border-color: rgba(204,11,32,0.45); box-shadow: 0 0 0 3px rgba(204,11,32,0.1); }
+.inp::placeholder { color: #3A3A4A; }
+textarea.inp { resize: vertical; min-height: 100px; line-height: 1.6; }
+.lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4A4A5A; margin-bottom: 6px; display: block; }
+
+/* Payout chip */
+.payout-chip {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-radius: 10px;
+  background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.15);
+}
+
+/* How it works */
+.step-num {
+  width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(204,11,32,0.1); border: 1px solid rgba(204,11,32,0.2);
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic;
+  font-size: 1.2rem; color: var(--brand); display: flex; align-items: center; justify-content: center;
+}
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #1A1A22; border: 1px solid rgba(34,197,94,0.3); color: #4ade80;
+  padding: 9px 20px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5); opacity: 0; transition: opacity .25s;
+  pointer-events: none; z-index: 999; font-family: 'Plus Jakarta Sans', sans-serif;
+}
+#toast.show { opacity: 1; }
+
+/* Tweaks panel */
+#tweaks-panel {
+  display: none; position: fixed; bottom: 24px; right: 24px; width: 240px;
+  background: #111114; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+  padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.7); z-index: 9999;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+#tweaks-panel h3 { font-size: 12px; font-weight: 700; margin-bottom: 14px; }
+.tw-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.tw-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4A4A5A; }
+.tw-sel {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 7px 11px; color: #F0F0F5; font-size: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; appearance: none; width: 100%;
+}
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.fu { animation: fadeUp .35s ease-out both; }
+.fu-1 { animation-delay: .05s; }
+.fu-2 { animation-delay: .10s; }
+.fu-3 { animation-delay: .15s; }
+.fu-4 { animation-delay: .20s; }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 36 36" width="26" height="26" fill="none">
+      <rect width="36" height="36" rx="9" fill="var(--brand)"/>
+      <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+      <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+      <circle cx="18" cy="18" r="3" fill="white"/>
+      <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+    </svg>
+    <span>DARTVOICE</span>
+  </a>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="/dartvoice-dashboard" style="font-size:12px;color:#6E6E82;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='#F0F0F5'" onmouseout="this.style.color='#6E6E82'">My Dashboard</a>
+    <span style="font-size:12px;color:#4A4A5A;">|</span>
+    <span style="font-size:12px;font-weight:600;color:#6E6E82;">charliemurphy50@hotmail.com</span>
+    <div style="width:30px;height:30px;border-radius:9px;background:rgba(204,11,32,0.15);border:1px solid rgba(204,11,32,0.25);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:1rem;color:var(--brand);">CM</div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero-band">
+  <div class="inner">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;" class="fu">
+      <div>
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#4A4A5A;margin-bottom:8px;">Ambassador Portal</p>
+        <h1 class="display" style="font-size:clamp(2.2rem,5vw,3.4rem);line-height:1;margin-bottom:8px;">HEY CHARLIE 👋</h1>
+        <p style="font-size:13px;color:#6E6E82;max-width:480px;line-height:1.6;">Here's everything you need — your link, your stats, and a direct line to us. Thanks for being part of the team.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="tier-badge">
+          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          Pro Partner
+        </span>
+        <span style="font-size:11px;color:#6E6E82;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:4px 10px;">Since April 2026</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="inner" style="padding:28px 24px 60px;">
+
+  <!-- Your Link -->
+  <div class="card card-glow fu fu-1" style="margin-bottom:20px;padding:24px 24px 20px;">
+    <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--brand);margin-bottom:6px;">Your Ambassador Link</p>
+    <p style="font-size:12px;color:#6E6E82;margin-bottom:14px;">Share this anywhere — every sign-up that comes through it earns you <strong style="color:#F0F0F5;">£10.00</strong>.</p>
+    <div class="ref-pill">
+      <span class="ref-url">dartvoice.app/charlie</span>
+      <button class="ref-copy" onclick="copyLink()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        Copy Link
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+      <button class="btn btn-ghost" style="font-size:11px;padding:7px 13px;" onclick="copyLink()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+        Share
+      </button>
+      <a href="https://dartvoice.app/charlie" target="_blank" class="btn btn-ghost" style="font-size:11px;padding:7px 13px;text-decoration:none;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        View your page
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;">
+    <div class="card fu fu-1" style="padding:20px;">
+      <div class="stat-num" style="color:#F0F0F5;">247</div>
+      <div class="stat-lbl">Link Clicks</div>
+      <div class="stat-sub">+34 this week</div>
+    </div>
+    <div class="card fu fu-2" style="padding:20px;">
+      <div class="stat-num" style="color:#4ade80;">18</div>
+      <div class="stat-lbl">Sign-Ups</div>
+      <div class="stat-sub">7.3% conversion</div>
+    </div>
+    <div class="card fu fu-2" style="padding:20px;">
+      <div class="stat-num" style="color:var(--brand);">£180</div>
+      <div class="stat-lbl">Total Earned</div>
+      <div class="stat-sub">£120 paid out</div>
+    </div>
+    <div class="card fu fu-3" style="padding:20px;">
+      <div class="stat-num" style="color:#fbbf24;">£60</div>
+      <div class="stat-lbl">Pending Payout</div>
+      <div class="stat-sub">Next: 1st May</div>
+    </div>
+  </div>
+
+  <!-- Two col layout -->
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start;" class="fu fu-2">
+
+    <!-- Left -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Earnings progress -->
+      <div class="card card-glow" style="padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#4A4A5A;margin-bottom:4px;">This Month</p>
+            <p style="font-size:13px;font-weight:600;">April 2026</p>
+          </div>
+          <div style="text-align:right;">
+            <div class="display" style="font-size:1.8rem;color:var(--brand);">£60</div>
+            <p style="font-size:11px;color:#6E6E82;">6 sign-ups</p>
+          </div>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" style="width:60%;transition:width .6s ease;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:10px;color:#4A4A5A;">£0</span>
+          <span style="font-size:10px;color:#4A4A5A;">Monthly goal: £100</span>
+        </div>
+
+        <!-- Monthly breakdown -->
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px;">
+          <div class="payout-chip">
+            <div>
+              <p style="font-size:12px;font-weight:700;color:#4ade80;">Paid out — March 2026</p>
+              <p style="font-size:11px;color:#6E6E82;margin-top:1px;">4 referrals · 1st April</p>
+            </div>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:1.3rem;color:#4ade80;">£40</span>
+          </div>
+          <div class="payout-chip" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.15);">
+            <div>
+              <p style="font-size:12px;font-weight:700;color:#fbbf24;">Pending — April 2026</p>
+              <p style="font-size:11px;color:#6E6E82;margin-top:1px;">6 referrals · pays 1st May</p>
+            </div>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:1.3rem;color:#fbbf24;">£60</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="card" style="padding:24px;">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#4A4A5A;margin-bottom:16px;">Recent Activity</p>
+        <div class="timeline-item">
+          <div class="tl-dot" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);">
+            <svg width="11" height="11" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <div class="tl-date">Today, 14:32</div>
+            <p class="tl-text"><strong>New sign-up</strong> via your link — Pro subscription</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-dot" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);">
+            <svg width="11" height="11" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <div class="tl-date">Yesterday, 09:15</div>
+            <p class="tl-text"><strong>New sign-up</strong> via your link — Starter subscription</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-dot" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);">
+            <svg width="11" height="11" fill="none" stroke="#818cf8" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </div>
+          <div>
+            <div class="tl-date">18 Apr, 22:04</div>
+            <p class="tl-text"><strong>34 clicks</strong> on your link — spike after video upload</p>
+          </div>
+        </div>
+        <div class="timeline-item" style="padding-bottom:0;">
+          <div class="tl-dot" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);">
+            <svg width="11" height="11" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <div class="tl-date">1 Apr, 00:00</div>
+            <p class="tl-text"><strong>£40 paid out</strong> for March referrals</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact us -->
+      <div class="card" style="padding:24px;">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--brand);margin-bottom:4px;">Get in Touch</p>
+        <p style="font-size:13px;font-weight:600;margin-bottom:4px;">Questions? Changes? Just want to chat?</p>
+        <p style="font-size:12px;color:#6E6E82;margin-bottom:18px;">We're open to anything — different deal structure, collab idea, or anything else. Just drop us a message.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <label class="lbl">Subject</label>
+            <input class="inp" placeholder="e.g. Question about my link, payout request...">
+          </div>
+          <div>
+            <label class="lbl">Message</label>
+            <textarea class="inp" placeholder="What's on your mind?"></textarea>
+          </div>
+          <button class="btn btn-brand" style="align-self:flex-start;" onclick="showToast()">
+            <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            Send Message
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <!-- How it works -->
+      <div class="card" style="padding:22px;">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#4A4A5A;margin-bottom:14px;">How It Works</p>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div class="step-num">1</div>
+            <div>
+              <p style="font-size:12px;font-weight:700;margin-bottom:2px;">Share your link</p>
+              <p style="font-size:11px;color:#6E6E82;line-height:1.5;">Drop it in a video description, community post, or just mention it naturally when you're playing.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div class="step-num">2</div>
+            <div>
+              <p style="font-size:12px;font-weight:700;margin-bottom:2px;">Someone signs up</p>
+              <p style="font-size:11px;color:#6E6E82;line-height:1.5;">They click your link, subscribe to DartVoice — it's tracked automatically. No extra effort from you.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div class="step-num">3</div>
+            <div>
+              <p style="font-size:12px;font-weight:700;margin-bottom:2px;">You earn £10</p>
+              <p style="font-size:11px;color:#6E6E82;line-height:1.5;">Earnings stack up and pay out on the 1st of each month. No minimums, no delays.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Your deal -->
+      <div class="card" style="padding:22px;background:linear-gradient(145deg,#111114,#1A0608);border-color:rgba(204,11,32,0.2);">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--brand);margin-bottom:12px;">Your Deal</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#6E6E82;">Per referral</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:1.4rem;color:var(--brand);">£10.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#6E6E82;">Tier</span>
+            <span class="tier-badge">Pro Partner</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#6E6E82;">Payout day</span>
+            <span style="font-size:12px;font-weight:700;color:#A0A0B4;">1st of month</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#6E6E82;">Minimum</span>
+            <span style="font-size:12px;font-weight:700;color:#4ade80;">None</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.05);">
+          <p style="font-size:11px;color:#6E6E82;line-height:1.5;">Want to renegotiate or try a different structure? Just message us — we're always open.</p>
+        </div>
+      </div>
+
+      <!-- Resources -->
+      <div class="card" style="padding:22px;">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#4A4A5A;margin-bottom:12px;">Resources</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <a href="https://dartvoice.app/web-app" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);text-decoration:none;transition:border-color .15s;" onmouseover="this.style.borderColor='rgba(204,11,32,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)'">
+            <span style="font-size:12px;font-weight:600;color:#D0D0E0;">Try the app yourself</span>
+            <svg width="12" height="12" fill="none" stroke="#6E6E82" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+          <a href="https://dartvoice.app/guide" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);text-decoration:none;transition:border-color .15s;" onmouseover="this.style.borderColor='rgba(204,11,32,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)'">
+            <span style="font-size:12px;font-weight:600;color:#D0D0E0;">Setup guide</span>
+            <svg width="12" height="12" fill="none" stroke="#6E6E82" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+          <div style="padding:10px 12px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);">
+            <p style="font-size:11px;color:#6E6E82;margin-bottom:4px;font-weight:700;">Direct contact</p>
+            <a href="mailto:team@dartvoice.app" style="font-size:12px;color:var(--brand);">team@dartvoice.app</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast">Message sent — we'll be in touch!</div>
+
+<div id="tweaks-panel">
+  <h3>Tweaks</h3>
+  <div class="tw-row">
+    <span class="tw-lbl">Creator Name</span>
+    <select class="tw-sel" onchange="switchCreator(this.value)">
+      <option value="charlie">Charlie Murphy</option>
+      <option value="bigfatdarts">BigFatDarts</option>
+      <option value="prodarts">ProDartsTV</option>
+    </select>
+  </div>
+  <div class="tw-row">
+    <span class="tw-lbl">Tier</span>
+    <select class="tw-sel" onchange="alert('Switch tiers — coming soon')">
+      <option>Pro Partner</option>
+      <option>Elite Partner</option>
+      <option>Starter Partner</option>
+    </select>
+  </div>
+</div>
+
+<script>
+var TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{"creator":"charlie","tier":"pro"}/*EDITMODE-END*/;
+
+var CREATORS = {
+  charlie:     { name: 'Charlie',   initials: 'CM', email: 'charliemurphy50@hotmail.com', slug: 'charlie',     clicks: 247, signups: 18, earned: 180, pending: 60 },
+  bigfatdarts: { name: 'BigFatDarts', initials: 'BF', email: 'info@bigfatdarts.com',       slug: 'bigfatdarts', clicks: 89,  signups: 6,  earned: 60,  pending: 20 },
+  prodarts:    { name: 'ProDartsTV', initials: 'PD', email: 'prodartstvuk@gmail.com',      slug: 'prodarts',    clicks: 512, signups: 31, earned: 310, pending: 90 },
+};
+
+function switchCreator(key) {
+  var c = CREATORS[key];
+  if (!c) return;
+  document.querySelector('h1').textContent = 'HEY ' + c.name.toUpperCase() + ' \uD83D\uDC4B';
+  document.querySelector('.ref-url').textContent = 'dartvoice.app/' + c.slug;
+  document.querySelectorAll('.stat-num')[0].textContent = c.clicks;
+  document.querySelectorAll('.stat-num')[1].textContent = c.signups;
+  document.querySelectorAll('.stat-num')[2].textContent = '\u00A3' + c.earned;
+  document.querySelectorAll('.stat-num')[3].textContent = '\u00A3' + c.pending;
+  document.querySelectorAll('nav span')[1].textContent = c.email;
+  var av = document.querySelector('nav div[style*="border-radius:9px"]');
+  if (av) av.textContent = c.initials;
+  window.parent.postMessage({type:'__edit_mode_set_keys', edits:{creator:key}},'*');
+}
+
+function copyLink() {
+  var slug = document.querySelector('.ref-url').textContent;
+  navigator.clipboard.writeText('https://' + slug).then(function(){
+    var t = document.getElementById('toast');
+    t.style.borderColor = 'rgba(34,197,94,0.3)';
+    t.style.color = '#4ade80';
+    t.textContent = 'Link copied!';
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  });
+}
+
+function showToast() {
+  var t = document.getElementById('toast');
+  t.style.borderColor = 'rgba(34,197,94,0.3)';
+  t.style.color = '#4ade80';
+  t.textContent = "Message sent \u2014 we'll be in touch!";
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+// Tweaks
+window.addEventListener('message', function(e){
+  if (e.data && e.data.type === '__activate_edit_mode') document.getElementById('tweaks-panel').style.display = 'block';
+  if (e.data && e.data.type === '__deactivate_edit_mode') document.getElementById('tweaks-panel').style.display = 'none';
+});
+window.parent.postMessage({type:'__edit_mode_available'},'*');
+
+// Fix broken anchor
+document.querySelectorAll('a[href="https://dartvoice.app/guide"]').forEach(function(a){
+  a.href = 'https://dartvoice.app/guide';
+});
+</script>
+</body>
+</html>
