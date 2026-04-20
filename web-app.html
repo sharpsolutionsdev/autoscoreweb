@@ -159,6 +159,26 @@
 
         /* Header stats micro-animations */
         #header-stat-avg, #header-stat-darts { position: relative; display: inline-block; }
+
+        /* Tetris-style last-3-scores preview chips */
+        .last-score-chip {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 26px; height: 18px; padding: 0 5px;
+            font-family: var(--display-font, 'Barlow Condensed', sans-serif);
+            font-weight: 800; font-size: 11px; line-height: 1;
+            border-radius: 3px; letter-spacing: 0.02em;
+            background: #141418; color: #9ca3af; border: 1px solid #252530;
+            transition: transform .25s ease, background .25s ease, color .25s ease;
+        }
+        .last-score-chip.empty { opacity: .35; }
+        .last-score-chip.low { background: #1a1a20; color: #6b7280; border-color: #2a2a35; }
+        .last-score-chip.mid { background: rgba(234,179,8,.12); color: #fbbf24; border-color: rgba(234,179,8,.3); }
+        .last-score-chip.hi  { background: rgba(34,197,94,.14); color: #4ade80; border-color: rgba(34,197,94,.35); }
+        .last-score-chip.ton { background: rgba(var(--brand-rgb),.18); color: #fff; border-color: rgba(var(--brand-rgb),.55); box-shadow: 0 0 10px rgba(var(--brand-rgb),.35); }
+        /* First chip is the newest — slightly larger, like the Tetris "next" piece */
+        #last-scores-preview .last-score-chip:first-child { min-width: 30px; height: 20px; font-size: 12px; }
+        @keyframes lastScoreFlash { 0% { transform: scale(1.25); filter: brightness(1.6); } 100% { transform: scale(1); filter: brightness(1); } }
+        .last-score-chip.flash { animation: lastScoreFlash .45s ease; }
         .header-spark { position: absolute; right: -8px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(var(--brand-rgb),1) 60%, transparent 100%); opacity: 0; transform: scale(0.2); pointer-events: none; animation: headerSpark .8s ease-out forwards; }
         @keyframes headerSpark { 0% { opacity: 0; transform: scale(0.2) translateY(0); } 40% { opacity: 1; transform: scale(1.2) translateY(-6px); } 100% { opacity: 0; transform: scale(0.8) translateY(-14px); } }
 
@@ -701,6 +721,15 @@
                                 <div class="text-left">
                                     <div id="header-stat-darts" class="text-lg font-display font-bold text-white">0</div>
                                     <div class="text-[9px] text-gray-500 uppercase tracking-widest">Darts</div>
+                                </div>
+                                <!-- Last 3 scores (Tetris-style preview) -->
+                                <div class="text-left ml-2 pl-3 border-l border-white/10">
+                                    <div id="last-scores-preview" class="flex gap-1 items-center h-[22px]">
+                                        <span class="last-score-chip empty">—</span>
+                                        <span class="last-score-chip empty">—</span>
+                                        <span class="last-score-chip empty">—</span>
+                                    </div>
+                                    <div class="text-[9px] text-gray-500 uppercase tracking-widest mt-0.5">Last 3</div>
                                 </div>
                             </div>
                         </div>
@@ -2156,6 +2185,35 @@
             // Update darts thrown display (if present)
             const dartsEl = document.getElementById('stat-darts') || document.getElementById('header-stat-darts');
             if (dartsEl) { dartsEl.textContent = _sessionDarts; _pulseStat(dartsEl); }
+            // Tetris-style "last 3 scores" preview in header
+            try {
+                const preview = document.getElementById('last-scores-preview');
+                if (preview) {
+                    const last3 = _sessionScores.slice(-3);
+                    const chips = preview.querySelectorAll('.last-score-chip');
+                    for (let i = 0; i < 3; i++) {
+                        const idx = last3.length - 1 - i; // newest → left
+                        const chip = chips[i];
+                        if (!chip) continue;
+                        if (idx >= 0) {
+                            const v = last3[idx];
+                            const prev = chip.textContent;
+                            chip.textContent = v;
+                            chip.classList.remove('empty', 'low', 'mid', 'hi', 'ton');
+                            if (v >= 100) chip.classList.add('ton');
+                            else if (v >= 60) chip.classList.add('hi');
+                            else if (v >= 26) chip.classList.add('mid');
+                            else chip.classList.add('low');
+                            if (i === 0 && String(prev) !== String(v)) {
+                                chip.classList.remove('flash'); void chip.offsetWidth; chip.classList.add('flash');
+                            }
+                        } else {
+                            chip.textContent = '—';
+                            chip.className = 'last-score-chip empty';
+                        }
+                    }
+                }
+            } catch(e){}
             // Mirror average into header small stat if present
             const headerAvg = document.getElementById('header-stat-avg');
             if (headerAvg && _sessionScores.length > 0) {
@@ -2966,24 +3024,19 @@ window.openScorerUrl = function(url){
                         }
                     }
                     window.addEventListener('message', onMsg);
-                    // Fallback: if the iframe app doesn't ACK within 700ms, navigate the
-                    // iframe directly. This reloads ONLY the iframe (not the parent page),
-                    // so the parent-held mic/SpeechRecognition stays connected.
+                    // NO iframe.src fallback — reloading the iframe disconnects the
+                    // camera the user has connected inside DartCounter. If the bridge
+                    // extension doesn't ACK, we warn the user to update it.
                     setTimeout(()=>{
                         if (handled) return;
                         window.removeEventListener('message', onMsg);
-                        try {
-                            if (iframe.src !== url) iframe.src = url;
-                            window.dvToast('Opening ' + path, 'success');
-                        } catch(e){
-                            window.dvToast('Navigation failed', 'warn');
-                        }
+                        window.dvToast('Nav bridge not responding — update the DartVoice extension to ≥2.0.2', 'warn');
                         window.dvNavPending = false;
                         document.querySelectorAll('.app-ctrl-btn').forEach(btn => {
                             btn.classList.remove('loading');
                             btn.style.pointerEvents = '';
                         });
-                    }, 700);
+                    }, 1500);
                 } catch(e){ 
                     console.warn(e); 
                     window.dvToast('Failed to open link', 'warn'); 

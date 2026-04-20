@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DartVoice Launchpad",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Voice-control any browser dart scorer. 10-min demo, then sign in to continue.",
   "icons": {
     "16": "icon16.png",

@@ -971,6 +971,42 @@
         logTrace(`Web App triggered cross-origin score injection: ${score}`);
         simulateScoreEntry(score);
       }
+
+      // --- IN-PLACE IFRAME NAVIGATION ---
+      // Parent dashboard asks us to navigate the Angular SPA without reloading
+      // (so cameras / websockets inside the iframe stay connected).
+      if (event.data.type === "DV_NAVIGATE" && isIframe) {
+        const path = String(event.data.path || '/');
+        const requestId = event.data.requestId;
+        const replyOrigin = event.origin;
+        const replySource = event.source;
+        try {
+          if (location.pathname + location.search + location.hash !== path) {
+            history.pushState({}, '', path);
+            // Angular Router (and most SPA routers) listen for popstate.
+            window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
+          }
+          logTrace(`DV_NAVIGATE → ${path} (in-place, no reload)`);
+          if (replySource && requestId) {
+            replySource.postMessage({ type: 'DV_NAVIGATE_ACK', requestId, path }, replyOrigin);
+          }
+        } catch (e) {
+          logTrace('DV_NAVIGATE failed: ' + e.message);
+        }
+      }
+
+      // Simple action relay (e.g. open camera setup). Best-effort — finds a matching
+      // clickable element by href/testid. Does NOT reload the iframe either way.
+      if (event.data.type === "DV_ACTION" && isIframe) {
+        const action = event.data.action;
+        try {
+          if (action === 'camera') {
+            const el = document.querySelector('[data-testid="camera-setup"], a[href*="camera"], button[aria-label*="amera" i]');
+            if (el) el.click();
+            else logTrace('DV_ACTION camera: no matching element');
+          }
+        } catch (e) { logTrace('DV_ACTION failed: ' + e.message); }
+      }
     }
   });
 
