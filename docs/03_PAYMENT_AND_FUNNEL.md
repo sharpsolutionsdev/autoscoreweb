@@ -144,7 +144,7 @@ The DartVoice funnel is designed to be **short, low-friction, and high-trust**. 
 - **Organic Social:** Short-form video clips on TikTok, Instagram Reels, and YouTube Shorts showing voice scoring in action. The visual of someone throwing darts and a score appearing automatically is inherently shareable.
 - **SEO:** Targeting high-intent long-tail keywords: "voice dart scorer", "auto dart scorer app", "hands-free darts", "Target Dart Counter voice control".
 - **Community:** Engagement in Reddit r/darts, Facebook dart groups, and dart league forums. Not spam — genuine participation with organic product mentions.
-- **Ambassador / Referral:** Active subscribers share their unique referral link. Referred friends get a 30-day trial (vs standard 7-day), creating a strong incentive for the friend to try it.
+    - **Ambassador / Referral:** Active subscribers share their unique referral link. Referred friends get a 7-day trial (same as the standard trial), creating a clear and consistent onboarding experience.
 
 #### Stage 2: Consideration
 **Goal:** Build instant trust and demonstrate clear value.
@@ -197,7 +197,7 @@ Once a player successfully completes their first session — typically 3–5 leg
 
 - Users on Monthly are prompted (gently, via email) to upgrade to 6-Month (save 17%) or 12-Month (save 28%).
 - The **Ambassador Program** offers £5 cash via PayPal for every referred friend who converts to a paying subscriber. No cap.
-- Referred friends receive a 30-day free trial (vs standard 7-day), which is a powerful incentive.
+    - Referred friends receive a 7-day free trial (same as the standard trial).
 - Ambassador dashboard tracks clicks, conversions, and pending payouts in real-time.
 
 ---

@@ -155,7 +155,7 @@ DartVoice targets a specific, passionate, and underserved niche:
 
 **Program structure:**
 - Every subscriber gets a unique referral link from their dashboard.
-- Referred friend receives a **30-day free trial** (vs standard 7-day) — massive incentive.
+-- Referred friend receives a **7-day free trial** (same as the standard trial) — consistent onboarding.
 - When the referral converts to a paying subscriber, the ambassador receives **£5 cash via PayPal**. No cap.
 - Ambassador dashboard provides real-time tracking: clicks, sign-ups, conversions, pending payouts.
 - Minimum payout threshold: £5 (one referral).
