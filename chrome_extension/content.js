@@ -897,7 +897,17 @@
     window.__dartvoiceInjected = false;
   });
 
-  // Make draggable
+  // Make draggable (with position memory — LS key scoped per origin + frame role)
+  const POS_KEY = 'dv-overlay-pos-' + (isIframe ? 'iframe' : 'top') + '-' + location.host;
+  try {
+    const saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
+    if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
+      container.style.right = 'auto';
+      container.style.left = Math.max(0, Math.min(window.innerWidth - 60, saved.x)) + 'px';
+      container.style.top  = Math.max(0, Math.min(window.innerHeight - 60, saved.y)) + 'px';
+    }
+  } catch {}
+
   let isDragging = false, startX, startY, initialX, initialY;
   panel.addEventListener('mousedown', (e) => {
     if (e.target.tagName === 'BUTTON' || e.target.className === 'close-btn') return;
@@ -915,7 +925,145 @@
     container.style.top = (initialY + e.clientY - startY) + 'px';
   });
 
-  document.addEventListener('mouseup', () => { isDragging = false; });
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    try { localStorage.setItem(POS_KEY, JSON.stringify({ x: container.offsetLeft, y: container.offsetTop })); } catch {}
+  });
+
+  // --- GAME-STATE OBSERVER (iframe only) ---
+  // Posts DV_GAME_STATE up to the parent dashboard on any visible change.
+  // Best-effort selectors — DartCounter may rename classes; we fall back gracefully.
+  if (isIframe) {
+    const DV_PARENT = 'https://dartvoice.app';
+    let _lastStateJson = '';
+    let _lastStateTick = 0;
+
+    function detectMode() {
+      const p = location.pathname.toLowerCase();
+      if (/cricket/.test(p)) return 'cricket';
+      if (/tactics/.test(p)) return 'tactics';
+      if (/301/.test(p)) return '301';
+      if (/501/.test(p)) return '501';
+      if (/701/.test(p)) return '701';
+      // Scan visible headings for mode keywords
+      try {
+        const txt = (document.body && document.body.innerText || '').slice(0, 2000).toLowerCase();
+        if (/cricket/.test(txt)) return 'cricket';
+        if (/tactics/.test(txt)) return 'tactics';
+        if (/\b501\b/.test(txt)) return '501';
+        if (/\b301\b/.test(txt)) return '301';
+      } catch {}
+      return 'unknown';
+    }
+
+    function firstText(selectors) {
+      for (const s of selectors) {
+        try {
+          const el = document.querySelector(s);
+          if (el && el.textContent && el.textContent.trim()) return el.textContent.trim();
+        } catch {}
+      }
+      return '';
+    }
+
+    function detectCheckoutModal() {
+      try {
+        // Any visible dialog with "double" / "finish" / "darts" text is likely the checkout prompt
+        const dlgs = document.querySelectorAll('[role="dialog"], .mat-mdc-dialog-container, .modal, [class*="checkout" i]');
+        for (const d of dlgs) {
+          if (!d || !d.offsetParent) continue;
+          const t = (d.innerText || '').toLowerCase();
+          if (/double|finish|checkout|darts at/.test(t) && /\bdart/.test(t)) {
+            return { visible: true, text: d.innerText.slice(0, 300) };
+          }
+        }
+      } catch {}
+      return { visible: false };
+    }
+
+    function snapshotState() {
+      const player = firstText([
+        '[data-testid="current-player"]',
+        '.current-player-name',
+        '[class*="current-player" i]',
+        '[class*="active-player" i]'
+      ]);
+      const remaining = firstText([
+        '[data-testid="remaining"]',
+        '[class*="remaining-score" i]',
+        '[class*="player-score" i] [class*="score" i]'
+      ]);
+      const checkoutSuggestion = firstText([
+        '[class*="checkout-suggestion" i]',
+        '[class*="finish" i] [class*="suggestion" i]'
+      ]);
+      const checkout = detectCheckoutModal();
+      return {
+        url: location.pathname,
+        mode: detectMode(),
+        player: player || null,
+        remaining: remaining || null,
+        checkoutSuggestion: checkoutSuggestion || null,
+        checkoutPrompt: checkout.visible ? checkout.text : null,
+        ts: Date.now()
+      };
+    }
+
+    function postState() {
+      const now = Date.now();
+      if (now - _lastStateTick < 250) return; // throttle
+      _lastStateTick = now;
+      const s = snapshotState();
+      const json = JSON.stringify(s);
+      if (json === _lastStateJson) return;
+      _lastStateJson = json;
+      try { window.parent.postMessage({ type: 'DV_GAME_STATE', state: s }, DV_PARENT); } catch {}
+      if (s.checkoutPrompt) {
+        try { window.parent.postMessage({ type: 'DV_CHECKOUT_PROMPT', text: s.checkoutPrompt }, DV_PARENT); } catch {}
+      }
+    }
+
+    // Observe DOM for changes — characterData + subtree captures most SPA updates
+    const mo = new MutationObserver(() => { postState(); });
+    function startObserving() {
+      if (!document.body) { setTimeout(startObserving, 300); return; }
+      mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+      postState();
+    }
+    startObserving();
+
+    // Also emit on URL change (Angular route)
+    const _pushState = history.pushState;
+    history.pushState = function () { _pushState.apply(this, arguments); setTimeout(postState, 50); };
+    window.addEventListener('popstate', () => setTimeout(postState, 50));
+
+    // Handler: parent asks us to submit checkout darts (1/2/3) into DC's modal.
+    window.addEventListener('message', (event) => {
+      if (event.origin !== 'https://dartvoice.app' && event.origin !== 'https://www.dartvoice.app') return;
+      const d = event.data || {};
+      if (d.type !== 'DV_CHECKOUT_REPLY') return;
+      const n = parseInt(d.darts, 10);
+      if (!(n >= 1 && n <= 3)) return;
+      try {
+        // Look for a button labelled exactly the number inside a visible dialog
+        const dlgs = document.querySelectorAll('[role="dialog"], .mat-mdc-dialog-container, .modal');
+        for (const d2 of dlgs) {
+          if (!d2.offsetParent) continue;
+          const btns = d2.querySelectorAll('button');
+          for (const b of btns) {
+            const txt = (b.innerText || '').trim();
+            if (txt === String(n) || txt.toLowerCase() === (n === 1 ? 'one' : n === 2 ? 'two' : 'three')) {
+              b.click();
+              logTrace('DV_CHECKOUT_REPLY: clicked darts=' + n);
+              return;
+            }
+          }
+        }
+        logTrace('DV_CHECKOUT_REPLY: no matching button found for ' + n);
+      } catch (e) { logTrace('DV_CHECKOUT_REPLY failed: ' + e.message); }
+    });
+  }
 
   // --- WEB APP BRIDGE LISTENER ---
   const _TRUSTED_ORIGINS = ['https://dartvoice.app', 'https://www.dartvoice.app'];

@@ -3116,9 +3116,93 @@ window.openScorerUrl = function(url){
                     if (d.type === 'DV_NAVIGATE_ACK' || d.type === 'DV_ACTION_ACK') {
                         try { window.showMsgAck(); } catch(e){}
                     }
+                    if (d.type === 'DV_GAME_STATE' && d.state) {
+                        try { window.dvRenderGameState(d.state); } catch(e){}
+                    }
+                    if (d.type === 'DV_CHECKOUT_PROMPT') {
+                        try { window.dvShowCheckoutPrompt(d.text || ''); } catch(e){}
+                    }
                     // other message types can be handled here
                 } catch(e){}
             });
+
+            // ── Live game state HUD (populated from DV_GAME_STATE) ──
+            window.dvRenderGameState = function(s){
+                if (!s) return;
+                let card = document.getElementById('dv-live-game');
+                if (!card) {
+                    card = document.createElement('div');
+                    card.id = 'dv-live-game';
+                    card.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:9998;background:rgba(10,12,18,.92);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;color:#fff;font-family:Plus Jakarta Sans,sans-serif;font-size:12px;min-width:180px;box-shadow:0 12px 32px rgba(0,0,0,.5);pointer-events:none;';
+                    const title = document.createElement('div');
+                    title.textContent = 'LIVE GAME';
+                    title.style.cssText = 'font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:.2em;font-size:10px;opacity:.6;margin-bottom:4px;';
+                    const body = document.createElement('div');
+                    body.id = 'dv-live-game-body';
+                    card.appendChild(title); card.appendChild(body);
+                    document.body.appendChild(card);
+                }
+                const body = document.getElementById('dv-live-game-body');
+                body.textContent = '';
+                const add = (k, v) => {
+                    if (v == null || v === '') return;
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex;justify-content:space-between;gap:10px;margin:2px 0;';
+                    const a = document.createElement('span'); a.textContent = k; a.style.opacity = '.6';
+                    const b = document.createElement('span'); b.textContent = String(v); b.style.fontWeight = '700';
+                    row.appendChild(a); row.appendChild(b); body.appendChild(row);
+                };
+                add('MODE', s.mode); add('PLAYER', s.player); add('REMAINING', s.remaining);
+                if (s.checkoutSuggestion) add('OUT', s.checkoutSuggestion);
+            };
+
+            // ── Checkout darts prompt ──
+            window.dvShowCheckoutPrompt = function(text){
+                let wrap = document.getElementById('dv-checkout-prompt');
+                if (!wrap) {
+                    wrap = document.createElement('div');
+                    wrap.id = 'dv-checkout-prompt';
+                    wrap.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:10000;background:rgba(10,12,18,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 18px;color:#fff;font-family:Plus Jakarta Sans,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center;';
+                    const hd = document.createElement('div');
+                    hd.id = 'dv-checkout-head';
+                    hd.style.cssText = 'font-family:Barlow Condensed,sans-serif;letter-spacing:.2em;font-weight:700;font-size:12px;opacity:.8;margin-bottom:8px;';
+                    const q = document.createElement('div');
+                    q.textContent = 'DARTS AT DOUBLE?';
+                    q.style.cssText = 'font-family:Barlow Condensed,sans-serif;font-weight:800;letter-spacing:.08em;font-size:18px;margin-bottom:10px;';
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex;gap:8px;justify-content:center;';
+                    [1,2,3].forEach(n => {
+                        const b = document.createElement('button');
+                        b.type = 'button'; b.textContent = String(n);
+                        b.style.cssText = 'min-width:48px;padding:10px 14px;font-weight:800;font-size:18px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:var(--brand,#cc0b20);color:#fff;cursor:pointer;';
+                        b.onclick = () => {
+                            try {
+                                const f = document.getElementById('scorer-frame');
+                                const origin = new URL(f.src).origin;
+                                f.contentWindow.postMessage({ type: 'DV_CHECKOUT_REPLY', darts: n }, origin);
+                            } catch(e){}
+                            wrap.remove();
+                        };
+                        row.appendChild(b);
+                    });
+                    wrap.appendChild(hd); wrap.appendChild(q); wrap.appendChild(row);
+                    document.body.appendChild(wrap);
+                }
+                const hd = document.getElementById('dv-checkout-head');
+                if (hd) hd.textContent = String(text || '').slice(0, 120);
+                try { window.dvSpeak && window.dvSpeak('How many darts at double?'); } catch(e){}
+            };
+
+            // ── Opt-in TTS readback ──
+            window.dvSpeak = function(text){
+                try {
+                    if (!('speechSynthesis' in window)) return;
+                    if (!window.AppConfig || !AppConfig.tts) return;
+                    const u = new SpeechSynthesisUtterance(String(text || ''));
+                    u.rate = 1.05; u.pitch = 1;
+                    speechSynthesis.cancel(); speechSynthesis.speak(u);
+                } catch(e){}
+            };
 
             // ── Score Burst overlay ──
             if (!document.getElementById('dv-score-burst')) {
