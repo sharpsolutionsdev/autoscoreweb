@@ -276,6 +276,28 @@
         .app-ctrl-btn.accent:hover { background: linear-gradient(135deg, rgba(var(--brand-rgb),0.28) 0%, rgba(var(--brand-rgb),0.12) 100%); color: #fff; }
         .app-ctrl-btn svg { transition: transform .25s ease; }
         .app-ctrl-btn:hover svg { transform: scale(1.15); }
+        
+        /* Loading state for app control buttons */
+        .app-ctrl-btn.loading { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+            pointer-events: none; 
+        }
+        .app-ctrl-btn.loading::after { 
+            content: ''; 
+            width: 12px; 
+            height: 12px; 
+            border: 2px solid rgba(255,255,255,0.3); 
+            border-top-color: white; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+            margin-left: 6px; 
+            display: inline-block; 
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
         /* Score chip pop-in */
         @keyframes scorePop {
@@ -1726,8 +1748,9 @@
         const liveScoresBox = _safeEl('live-scores-box');
         
         const waveVisualizer = _safeEl('wave-visualizer');
+        let visualizerInterval = null;
         const eqBars = document.querySelectorAll('.eq-bar') || [];
-        
+
         let listening = false;
         let cancelWordTimeout = null;
         let lastReceivedScore = null;
@@ -2686,8 +2709,10 @@
         }
         if (_dcVol) {
             applyDcVolume(AppConfig.dcVolume || 80);
-            _dcVol.addEventListener('input', (e) => { applyDcVolume(+e.target.value); saveSettings(); });
+            _dcVol.addEventListener('input', (e) => { applyDcVolume(+e.target.value); window.saveSettings(); });
         }
+
+        window.saveSettings = function(){ /* Stub - implement localStorage persistence later */ console.log('Settings saved'); };
 
         // Mic sensitivity slider
         const _micSens = document.getElementById('mic-sensitivity-slider');
@@ -2906,10 +2931,18 @@
             });
 
             // Open a given DartCounter URL inside the scorer iframe
-            window.openScorerUrl = function(url){
+window.openScorerUrl = function(url){
                 try {
                     const iframe = document.getElementById('scorer-frame');
                     if (!iframe) { window.dvToast('Could not find scorer frame', 'warn'); return; }
+                    // Prevent spam during pending nav
+                    if (window.dvNavPending) { window.dvToast('Navigation pending...', 'warn'); return; }
+                    window.dvNavPending = true;
+                    // Disable all app control buttons during request
+                    document.querySelectorAll('.app-ctrl-btn').forEach(btn => {
+                        btn.classList.add('loading');
+                        btn.style.pointerEvents = 'none';
+                    });
                     const targetOrigin = (new URL(url)).origin;
                     const path = (new URL(url)).pathname + (new URL(url)).search + (new URL(url)).hash;
                     const requestId = 'dvnav_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
@@ -2921,18 +2954,45 @@
                     function onMsg(ev){
                         if (!ev || ev.origin !== targetOrigin) return;
                         const d = ev.data || {};
-                        if (d && d.type === 'DV_NAVIGATE_ACK' && d.requestId === requestId) { handled = true; window.dvToast('Opened ' + targetOrigin, 'success'); window.removeEventListener('message', onMsg); }
+                        if (d && d.type === 'DV_NAVIGATE_ACK' && d.requestId === requestId) { 
+                            handled = true; 
+                            window.dvToast('✓ Navigated', 'success'); 
+                            window.removeEventListener('message', onMsg); 
+                            window.dvNavPending = false;
+                            document.querySelectorAll('.app-ctrl-btn').forEach(btn => {
+                                btn.classList.remove('loading');
+                                btn.style.pointerEvents = '';
+                            });
+                        }
                     }
                     window.addEventListener('message', onMsg);
-                    // fallback: after short wait, if not handled, set iframe.src
+                    // Fallback: if the iframe app doesn't ACK within 700ms, navigate the
+                    // iframe directly. This reloads ONLY the iframe (not the parent page),
+                    // so the parent-held mic/SpeechRecognition stays connected.
                     setTimeout(()=>{
+                        if (handled) return;
                         window.removeEventListener('message', onMsg);
-                        if (!handled) {
-                            iframe.src = url;
-                            window.dvToast('Opened (fallback)', 'warn');
+                        try {
+                            if (iframe.src !== url) iframe.src = url;
+                            window.dvToast('Opening ' + path, 'success');
+                        } catch(e){
+                            window.dvToast('Navigation failed', 'warn');
                         }
-                    }, 900);
-                } catch(e){ console.warn(e); window.dvToast('Failed to open link', 'warn'); }
+                        window.dvNavPending = false;
+                        document.querySelectorAll('.app-ctrl-btn').forEach(btn => {
+                            btn.classList.remove('loading');
+                            btn.style.pointerEvents = '';
+                        });
+                    }, 700);
+                } catch(e){ 
+                    console.warn(e); 
+                    window.dvToast('Failed to open link', 'warn'); 
+                    window.dvNavPending = false;
+                    document.querySelectorAll('.app-ctrl-btn').forEach(btn => {
+                        btn.classList.remove('loading');
+                        btn.style.pointerEvents = '';
+                    });
+                }
             };
 
             // Send simple actions to the iframe (camera open, etc.)
