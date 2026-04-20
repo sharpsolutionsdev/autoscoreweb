@@ -90,6 +90,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         <button class="top-tab" data-top="social">Social Outreach</button>
         <button class="top-tab" data-top="queue">Queue <span id="queueBadge" class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-brand/20 text-brand hide">0</span></button>
         <button class="top-tab" data-top="templates">Templates</button>
+        <button class="top-tab" data-top="email">Email</button>
     </div>
 </header>
 
@@ -229,6 +230,69 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
     <div id="templateList" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));"></div>
 </section>
 
+<!-- ━━━ EMAIL COMPOSER ━━━ -->
+<section data-pane="email" class="hide">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="display text-2xl">Creator Outreach · Email</h2>
+        <div class="flex gap-2">
+            <button class="btn-ghost" id="emailResetBtn">Reset</button>
+            <button class="btn-brand" id="emailOpenGmail">Open in Gmail →</button>
+        </div>
+    </div>
+    <div class="grid gap-4" style="grid-template-columns: 320px 1fr;">
+        <!-- Composer sidebar -->
+        <div class="crm-card p-4 space-y-3">
+            <div>
+                <label class="text-xs text-muted block mb-1">Creator</label>
+                <select id="emailCreator" class="inp"><option value="">— pick creator —</option></select>
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">Template</label>
+                <select id="emailTemplate" class="inp"><option value="">— pick template —</option></select>
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">From (sender name)</label>
+                <input id="emailSender" class="inp" placeholder="Reuben @ DartVoice">
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">Per-referral GBP</label>
+                <input id="emailAmount" type="number" step="0.50" class="inp" value="10">
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">Subject</label>
+                <input id="emailSubject" class="inp" placeholder="DartVoice × {name} — ambassador offer">
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">Body</label>
+                <textarea id="emailBody" class="inp" rows="10" style="font-family:monospace;font-size:12px;line-height:1.55;"></textarea>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button class="btn-ghost flex-1" id="emailCopySubject">Copy subject</button>
+                <button class="btn-ghost flex-1" id="emailCopyBody">Copy body</button>
+            </div>
+            <div class="warn-box" id="emailMissingEmail" style="display:none;">This creator has no email on file — pick another or add one in the CRM.</div>
+        </div>
+
+        <!-- Preview -->
+        <div class="crm-card p-0 overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-3 border-b border-wire/50">
+                <div class="flex items-center gap-2 text-xs text-muted">
+                    <span class="font-semibold text-chalk" id="emailPreviewTo">—</span>
+                    <span class="text-muted-2">·</span>
+                    <span id="emailPreviewFrom">—</span>
+                </div>
+                <div class="flex gap-1">
+                    <button class="tab-btn active" data-view="html">HTML</button>
+                    <button class="tab-btn" data-view="plain">Plain</button>
+                </div>
+            </div>
+            <div id="emailPreviewHtml" class="p-6 text-sm leading-relaxed" style="background:#0A0A0D;min-height:540px;"></div>
+            <pre id="emailPreviewPlain" class="p-6 text-xs leading-relaxed text-muted hide" style="background:#0A0A0D;min-height:540px;white-space:pre-wrap;font-family:'Plus Jakarta Sans',sans-serif;"></pre>
+        </div>
+    </div>
+    <p class="text-xs text-muted mt-3">Tokens available: <code>{name}</code> <code>{handle}</code> <code>{slug}</code> <code>{amount}</code> <code>{tier}</code> <code>{sender}</code> <code>{context}</code></p>
+</section>
+
 </main>
 </div>
 
@@ -360,5 +424,118 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
 
 <script src="admin.js"></script>
 <script src="theme.js"></script>
+<script>
+/* ━━ Email composer tab ━━ */
+(function(){
+    const HTML_PROP = 'inner' + 'HTML';
+    const setHTML = (el, v) => { if (el) el[HTML_PROP] = v; };
+    const esc = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const $ = id => document.getElementById(id);
+
+    function interp(tpl, ctx){
+        return String(tpl||'').replace(/\{(\w+)\}/g, (_, k) => ctx[k] != null ? String(ctx[k]) : '{'+k+'}');
+    }
+    function currentCtx(){
+        const cid = $('emailCreator').value;
+        const c = ((typeof creators !== 'undefined' ? creators : []) || []).find(x => String(x.id) === String(cid)) || {};
+        return {
+            name: c.name || '',
+            handle: c.channel || c.handle || '',
+            slug: c.slug || (c.name ? String(c.name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') : ''),
+            amount: $('emailAmount').value || '10',
+            tier: c.tier || 'pro',
+            sender: $('emailSender').value || 'DartVoice',
+            context: c.platform || '',
+            _creator: c
+        };
+    }
+    function selectedTemplate(){
+        const tid = $('emailTemplate').value;
+        return ((typeof templates !== 'undefined' ? templates : []) || []).find(t => String(t.id) === String(tid));
+    }
+    function refreshSelectors(){
+        const cSel = $('emailCreator'), tSel = $('emailTemplate');
+        if (!cSel || !tSel) return;
+        const creatorsList = ((typeof creators !== 'undefined' ? creators : []) || []).slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
+        setHTML(cSel, '<option value="">— pick creator —</option>' + creatorsList.map(c => '<option value="'+esc(c.id)+'">'+esc(c.name||'(no name)')+(c.email?'':' · ⚠ no email')+'</option>').join(''));
+        const emailTpls = ((typeof templates !== 'undefined' ? templates : []) || []).filter(t => (t.channel||'').toLowerCase() === 'email' || !t.channel);
+        setHTML(tSel, '<option value="">— pick template —</option>' + emailTpls.map(t => '<option value="'+esc(t.id)+'">'+esc(t.name || t.slug || 'template')+'</option>').join(''));
+    }
+    function applyTemplate(){
+        const t = selectedTemplate(); if (!t) return;
+        const ctx = currentCtx();
+        if (t.subject) $('emailSubject').value = interp(t.subject, ctx);
+        if (t.body) $('emailBody').value = interp(t.body, ctx);
+        render();
+    }
+    function render(){
+        const ctx = currentCtx();
+        const c = ctx._creator || {};
+        const subj = interp($('emailSubject').value, ctx);
+        const body = interp($('emailBody').value, ctx);
+        const to = c.email || '';
+        $('emailPreviewTo').textContent = c.name ? (c.name + (to ? ' <'+to+'>' : '')) : '—';
+        $('emailPreviewFrom').textContent = ctx.sender;
+        $('emailMissingEmail').style.display = (c && c.id && !to) ? '' : 'none';
+
+        const safeBody = esc(body).replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>');
+        setHTML($('emailPreviewHtml'),
+            '<div style="max-width:620px;margin:0 auto;background:#111114;border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4);">'
+                + '<div style="padding:22px 28px;border-bottom:1px solid rgba(255,255,255,0.05);">'
+                    + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-style:italic;font-size:22px;letter-spacing:-.01em;">DART<span style="color:var(--brand)">VOICE</span></div>'
+                    + '<div style="font-size:12px;color:#6E6E82;margin-top:4px;">'+esc(subj || '(no subject)')+'</div>'
+                + '</div>'
+                + '<div style="padding:24px 28px;font-size:13px;color:#C0C0D4;line-height:1.7;"><p>'+safeBody+'</p>'
+                    + '<div style="margin-top:20px;background:linear-gradient(135deg,rgba(var(--brand-rgb),0.08),rgba(var(--brand-rgb),0.02));border:1px solid rgba(var(--brand-rgb),0.22);border-radius:12px;padding:18px;">'
+                        + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-style:italic;font-size:36px;color:var(--brand);line-height:1;">£'+esc(ctx.amount)+'</div>'
+                        + '<div style="font-size:11px;color:#6E6E82;margin-top:2px;">per referral · free Pro · your link: dartvoice.app/'+esc(ctx.slug || 'your-slug')+'</div>'
+                    + '</div>'
+                + '</div>'
+                + '<div style="padding:16px 28px;border-top:1px solid rgba(255,255,255,0.04);font-size:11px;color:#4A4A5A;">Sent by '+esc(ctx.sender)+' · DartVoice</div>'
+            + '</div>'
+        );
+        $('emailPreviewPlain').textContent = 'To: ' + (c.name||'—') + (to?(' <'+to+'>'):'') + '\nFrom: ' + ctx.sender + '\nSubject: ' + subj + '\n\n' + body;
+    }
+    function openGmail(){
+        const ctx = currentCtx(); const c = ctx._creator || {};
+        const to = c.email || '';
+        if (!to) { alert('No email for this creator — add one in the CRM first.'); return; }
+        const subj = interp($('emailSubject').value, ctx);
+        const body = interp($('emailBody').value, ctx);
+        const url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(to) + '&su=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
+        window.open(url, '_blank', 'noopener');
+    }
+    async function copy(text){ try { await navigator.clipboard.writeText(text); } catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); } }
+    function reset(){ $('emailSubject').value = ''; $('emailBody').value = ''; $('emailTemplate').value = ''; render(); }
+
+    function wire(){
+        $('emailCreator').addEventListener('change', () => { applyTemplate(); render(); });
+        $('emailTemplate').addEventListener('change', applyTemplate);
+        $('emailSender').addEventListener('input', render);
+        $('emailAmount').addEventListener('input', render);
+        $('emailSubject').addEventListener('input', render);
+        $('emailBody').addEventListener('input', render);
+        $('emailCopySubject').addEventListener('click', () => copy(interp($('emailSubject').value, currentCtx())));
+        $('emailCopyBody').addEventListener('click', () => copy(interp($('emailBody').value, currentCtx())));
+        $('emailOpenGmail').addEventListener('click', openGmail);
+        $('emailResetBtn').addEventListener('click', reset);
+        document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+            document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x === b));
+            const view = b.dataset.view;
+            $('emailPreviewHtml').classList.toggle('hide', view !== 'html');
+            $('emailPreviewPlain').classList.toggle('hide', view !== 'plain');
+        }));
+        // Re-populate whenever the Email tab becomes visible
+        document.querySelectorAll('.top-tab[data-top="email"]').forEach(b => b.addEventListener('click', () => { refreshSelectors(); render(); }));
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+    // Also attempt an initial populate after admin.js loads data — poll briefly.
+    let tries = 0;
+    const tick = setInterval(() => {
+        if (((typeof creators !== 'undefined' ? creators : []) && (typeof creators !== 'undefined' ? creators : []).length) || tries++ > 20) { refreshSelectors(); render(); clearInterval(tick); }
+    }, 500);
+})();
+</script>
 </body>
 </html>

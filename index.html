@@ -929,6 +929,140 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         </div>
     </section>
 
+    <!-- ━━━ SCORER STUDIO SHOWCASE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="scorer-studio" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
+      <style>
+        .ss-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .ss-head { text-align:center; margin-bottom: 48px; }
+        .ss-eyebrow { display:inline-block; font-family:'Barlow Condensed',sans-serif; font-weight:800; letter-spacing:.22em; font-size:11px; color:#CC0B20; text-transform:uppercase; margin-bottom:12px; }
+        .ss-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size: clamp(32px, 5vw, 56px); line-height:1; letter-spacing:-.01em; }
+        .ss-title .accent { color:#CC0B20; }
+        .ss-sub { max-width: 620px; margin: 14px auto 0; color:#9E9EB0; font-size:16px; }
+        .ss-grid { display:grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 18px; align-items: stretch; }
+        @media (max-width: 900px) { .ss-grid { grid-template-columns: 1fr; } }
+        .ss-card { background: linear-gradient(180deg, #0D0D10, #07070a); border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+        .ss-panel-title { display:flex; justify-content:space-between; align-items:center; font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.05em; font-size: 18px; margin-bottom: 14px; }
+        .ss-panel-title .tag { font-size:9px; padding:3px 8px; border-radius:999px; background:rgba(204,11,32,.12); color:#CC0B20; border:1px solid rgba(204,11,32,.3); letter-spacing:.14em; font-weight:700; }
+
+        .ss-mini { display:flex; flex-direction:column; gap:10px; }
+        .ss-mini-row { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; opacity:0; transform: translateY(6px); transition: opacity .5s ease, transform .5s ease; }
+        .ss-mini-row.show { opacity:1; transform:none; }
+        .ss-mini-row .k { font-family:'Barlow Condensed',sans-serif; letter-spacing:.15em; font-size:10px; color:#6E6E82; text-transform:uppercase; font-weight:700; }
+        .ss-mini-row .v { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:20px; color:#fff; }
+        .ss-mini-row .v.brand { color:#CC0B20; }
+
+        .ss-mic { background: linear-gradient(135deg, rgba(204,11,32,.08), transparent); border: 1px solid rgba(204,11,32,.25); border-radius:14px; padding:14px; margin-top:4px; }
+        .ss-mic-label { font-family:'Barlow Condensed',sans-serif; letter-spacing:.2em; font-size:10px; color:#CC0B20; font-weight:800; }
+        .ss-mic-bar { margin-top:8px; height: 6px; background: rgba(255,255,255,.06); border-radius:999px; overflow:hidden; }
+        .ss-mic-fill { height:100%; width:30%; background: linear-gradient(90deg, #CC0B20, #ff4d66); border-radius:999px; animation: ssMic 1.8s ease-in-out infinite; }
+        @keyframes ssMic { 0%,100%{ width:18%; } 40%{ width:72%; } 70%{ width:44%; } }
+        .ss-mic-quote { margin-top:10px; font-size:13px; color:#F0F0F5; font-style:italic; opacity:0; animation: ssQuote 6s ease-in-out infinite; }
+        @keyframes ssQuote { 0%,12%,88%,100%{opacity:0} 25%,75%{opacity:1} }
+
+        .ss-scores { display:flex; gap:8px; margin-top:4px; }
+        .ss-score { flex:1; text-align:center; background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:8px 4px; }
+        .ss-score .n { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px; color:#fff; }
+        .ss-score.low .n { color:#6E6E82; }
+        .ss-score.hi  .n { color:#CC0B20; }
+        .ss-score .l { font-size:9px; letter-spacing:.18em; color:#4A4A5A; text-transform:uppercase; font-weight:700; }
+
+        .ss-stage { position:relative; overflow:hidden; min-height: 440px; display:flex; align-items:center; justify-content:center; background: radial-gradient(900px 400px at 80% -10%, rgba(204,11,32,.18), transparent 55%), #0a0a0e; }
+        .ss-stage-inner { width:100%; height:100%; padding: 26px; display:flex; flex-direction:column; gap: 18px; }
+        .ss-stage h3 { font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.08em; font-size:22px; }
+        .ss-board { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+        .ss-board .card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; }
+        .ss-board .card .t { font-size:10px; letter-spacing:.2em; color:#6E6E82; font-weight:700; text-transform:uppercase; }
+        .ss-board .card .v { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size: 36px; color:#fff; margin-top:6px; }
+        .ss-board .card.hi .v { color:#CC0B20; }
+        .ss-flow { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top: 6px; }
+        .ss-flow .step { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:14px; position:relative; overflow:hidden; }
+        .ss-flow .step h4 { font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.06em; font-size:16px; margin-bottom: 6px; }
+        .ss-flow .step p { font-size:12px; color:#9E9EB0; line-height:1.45; }
+        .ss-flow .step .num { position:absolute; top:8px; right:10px; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size: 34px; color: rgba(204,11,32,.15); }
+        .ss-flow .step .glow { position:absolute; bottom:-30px; right:-30px; width:90px; height:90px; border-radius:50%; background: radial-gradient(circle, rgba(204,11,32,.25), transparent 70%); }
+        .ss-cta { display:flex; gap:10px; justify-content:center; margin-top:36px; }
+        .ss-btn { padding: 13px 22px; border-radius: 12px; font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:.08em; text-decoration:none; border: 1px solid transparent; transition: transform .15s ease, box-shadow .25s ease, background .15s ease; display:inline-flex; align-items:center; gap:8px; }
+        .ss-btn.primary { background:#CC0B20; color:#fff; box-shadow: 0 12px 36px rgba(204,11,32,.4); }
+        .ss-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 16px 50px rgba(204,11,32,.55); }
+        .ss-btn.ghost { background: transparent; color:#F0F0F5; border-color: rgba(255,255,255,.14); }
+        .ss-btn.ghost:hover { background: rgba(255,255,255,.04); }
+      </style>
+
+      <div class="ss-wrap">
+        <div class="ss-head reveal">
+          <span class="ss-eyebrow">Scorer Studio</span>
+          <h2 class="ss-title">Your scorer, <span class="accent">your voice</span>,<br>one clean surface.</h2>
+          <p class="ss-sub">A single dashboard: your scorer runs in the middle, your camera stays connected, and DartVoice turns your call-outs into scores on the left.</p>
+        </div>
+
+        <div class="ss-grid reveal">
+          <!-- Left: mini scorer-studio sidebar mock -->
+          <div class="ss-card">
+            <div class="ss-panel-title">Dashboard <span class="tag">LIVE</span></div>
+
+            <div class="ss-mic">
+              <div class="ss-mic-label">Listening</div>
+              <div class="ss-mic-bar"><div class="ss-mic-fill"></div></div>
+              <div class="ss-mic-quote">&ldquo;treble twenty, twenty, five&rdquo;</div>
+            </div>
+
+            <div class="ss-mini" style="margin-top:14px;" id="ss-mini-list">
+              <div class="ss-mini-row"><span class="k">Player</span><span class="v">Reuben</span></div>
+              <div class="ss-mini-row"><span class="k">Mode</span><span class="v">501</span></div>
+              <div class="ss-mini-row"><span class="k">Remaining</span><span class="v brand">326</span></div>
+              <div class="ss-mini-row"><span class="k">Avg</span><span class="v">62.1</span></div>
+            </div>
+
+            <div style="font-size:9px;letter-spacing:.2em;color:#4A4A5A;text-transform:uppercase;font-weight:700;margin-top:14px;">Last 3 scores</div>
+            <div class="ss-scores">
+              <div class="ss-score low"><div class="n">30</div><div class="l">3 legs ago</div></div>
+              <div class="ss-score"><div class="n">85</div><div class="l">2 legs ago</div></div>
+              <div class="ss-score hi"><div class="n">140</div><div class="l">last</div></div>
+            </div>
+          </div>
+
+          <!-- Right: stage -->
+          <div class="ss-card ss-stage">
+            <div class="ss-stage-inner">
+              <h3>LIVE GAME · 501 · DOUBLE OUT</h3>
+              <div class="ss-board">
+                <div class="card"><div class="t">Remaining</div><div class="v" style="color:#CC0B20;">326</div></div>
+                <div class="card"><div class="t">Checkout</div><div class="v">T20 · T20 · D3</div></div>
+                <div class="card hi"><div class="t">Last score</div><div class="v">140</div></div>
+                <div class="card"><div class="t">Darts at double</div><div class="v">?</div></div>
+              </div>
+              <div class="ss-flow">
+                <div class="step"><span class="num">1</span><h4>Call it</h4><p>Say your throw naturally — treble, single, bull, or shorthand like T20.</p><span class="glow"></span></div>
+                <div class="step"><span class="num">2</span><h4>See it</h4><p>Scores land in DartCounter instantly; remaining, checkouts and averages stay in sync.</p><span class="glow"></span></div>
+                <div class="step"><span class="num">3</span><h4>Close it</h4><p>On checkouts we ask &ldquo;how many darts at double?&rdquo; — one tap and stats are perfect.</p><span class="glow"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ss-cta reveal">
+          <a href="web-app.html" class="ss-btn primary">Try Scorer Studio →</a>
+          <a href="#features" class="ss-btn ghost">See features</a>
+        </div>
+      </div>
+
+      <script>
+        (function(){
+          var rows = document.querySelectorAll('#ss-mini-list .ss-mini-row');
+          var io = new IntersectionObserver(function(es){
+            es.forEach(function(e){
+              if (e.isIntersecting) {
+                rows.forEach(function(r,i){ setTimeout(function(){ r.classList.add('show'); }, i*120); });
+                io.disconnect();
+              }
+            });
+          }, { threshold: 0.3 });
+          var list = document.getElementById('ss-mini-list');
+          if (list) io.observe(list);
+        })();
+      </script>
+    </section>
+
     <!-- ━━━ LIFESTYLE PHOTO STRIP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section class="py-16 sm:py-24" style="border-top: 1px solid #252530">
         <div class="max-w-6xl mx-auto px-5">

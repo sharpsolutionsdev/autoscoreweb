@@ -21,6 +21,29 @@
       background: radial-gradient(circle at 50% 0%, rgba(204,11,32,0.12) 0%, transparent 55%);
       pointer-events: none; z-index: 0;
     }
+    /* Top accent ribbon — subtle brand sweep */
+    body::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, #cc0b20, #fff3, #cc0b20, transparent);
+      background-size: 200% 100%;
+      animation: dv-ribbon 6s linear infinite;
+      z-index: 2;
+    }
+    @keyframes dv-ribbon { to { background-position: 200% 0; } }
+
+    /* Status chip */
+    .status-row { display:flex; gap:6px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+    .status-chip {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 9px; border-radius:999px; font-size:10px; font-weight:700;
+      letter-spacing:.08em; text-transform:uppercase;
+      background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); color:#aaabbb;
+    }
+    .status-chip .dot { width:6px; height:6px; border-radius:50%; background:#6E6E82; box-shadow:0 0 6px currentColor; }
+    .status-chip.ok { color:#7ae582; border-color:rgba(122,229,130,.28); background:rgba(122,229,130,.06); }
+    .status-chip.ok .dot { background:#7ae582; }
+    .status-chip.warn { color:#eab308; border-color:rgba(234,179,8,.28); background:rgba(234,179,8,.06); }
+    .status-chip.warn .dot { background:#eab308; }
 
     .content { position: relative; z-index: 1; padding: 20px; }
 
@@ -160,7 +183,12 @@
   <div class="content">
     <div class="brand">
       <h1>DART<span class="red">VOICE</span></h1>
-      <span class="version">v2.0 · Launchpad</span>
+      <span class="version" id="ext-version">Launchpad</span>
+    </div>
+
+    <div class="status-row" id="status-row">
+      <span class="status-chip" id="chip-bridge"><span class="dot"></span><span id="chip-bridge-text">Bridge idle</span></span>
+      <span class="status-chip" id="chip-scope"><span class="dot"></span>Scoped to web app</span>
     </div>
 
     <!-- ── Normal view ── -->
@@ -226,6 +254,31 @@
     </div>
   </div>
   <script src="popup.js"></script>
+  <script>
+    /* Populate version from manifest + live "bridge" chip based on active tab */
+    (function(){
+      try {
+        var m = chrome.runtime.getManifest();
+        var v = document.getElementById('ext-version');
+        if (v && m) v.textContent = 'v' + m.version + ' · Launchpad';
+      } catch(e){}
+      try {
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs){
+          var tab = tabs && tabs[0];
+          var chip = document.getElementById('chip-bridge');
+          var txt  = document.getElementById('chip-bridge-text');
+          if (!chip || !txt || !tab) return;
+          var url = tab.url || '';
+          if (/^https:\/\/(www\.)?dartvoice\.app/.test(url)) {
+            chip.classList.add('ok'); txt.textContent = 'Connected to web app';
+          } else if (/dartcounter\.net|nakka\.com/.test(url)) {
+            chip.classList.add('warn'); txt.textContent = 'Open via web app';
+          } else {
+            txt.textContent = 'Bridge idle';
+          }
+        });
+      } catch(e){}
+    })();
+  </script>
 </body>
-</html>
 </html>
