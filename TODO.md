@@ -1,41 +1,30 @@
-# DartVoice Web-App Navigation Fix TODO
+# DartVoice Live-Game UI + Outreach Hardening TODO
+*Status: Approved by user. Executing step-by-step.*
 
-## Plan Status: Approved ✅ Breakdown into Steps
+## 1. Database Migration [ ]
+- Create `supabase/migrations/012_claim_outreach_job.sql`
 
-### ✅ Step 1: Create this TODO.md [COMPLETE]
+## 2. QA Tools [ ]
+- Create `tools/test-checkout.js`
 
-### ✅ Step 2: Fix JS Errors & Declare Globals
-- ✅ Declare `let visualizerInterval = null;` globally
-- ✅ Add `window.saveSettings = function(){};` stub
-- **edit_file web-app.html** [COMPLETE]
+## 3. Web App UI Updates [ ]
+- Update `web-app.html`: CSS, HTML placeholders, JS handlers + remove legacy
 
-### ✅ Step 3: Enhance openScorerUrl() - Remove Reload Fallback [COMPLETE]
-- ✅ Remove `iframe.src = url` fallback 
-- ✅ Extend ACK timeout (5s) → toast warning only (no reload)
-- ✅ Track pending requests (prevent spam) + loading spinner
-- **edit_file web-app.html** [DONE]
+## 4. Extension Bridge [ ]
+- Update `chrome_extension/content.js`: Enhanced score observer
 
-### ✅ Step 4: Add Navigation Spinner & UX Polish [COMPLETE]
-- ✅ Add `.loading` class to app-ctrl-btn (spinner + disabled)
-- ✅ Show "✓ Navigated" on ACK
-- **edit_file web-app.html** [DONE BY BLACKBOXAI]
+## 5. Outreach Worker [ ]
+- Update `outreach-server/package.json`: Add deps
+- Update `outreach-server/src/index.js`: RPC loop + retry
 
-### ☐ Step 5: Add Navigation History Stack
-- [ ] Track sent paths in `navHistory[]`
-- [ ] Add Back/Forward buttons in App Controls section
-- **edit_file web-app.html** + **update TODO.md**
+## 6. Extension Packaging Prep [ ]
+- Verify manifest v2.1.4 + run PowerShell zip
 
-### ☐ Step 6: Test & Verify
-```
-# In VSCode terminal:
-live-server .
-# Test: Click Friends → NO "Navigated to..." reload in console
-# Verify camera persists
-```
-- Update TODO.md with ✓
-- attempt_completion
+## 7. Test & Deploy [ ]
+- Apply Supabase migration
+- `npm install` + `pm2 restart` worker
+- Manual QA (camera persistence, checkout routes)
+- `node tools/test-checkout.js`
+- Zip + CWS upload
 
----
-
-**Next Action:** Step 5 plan + implementation. BlackboxAI to create plan then execute.
-
+**Current Step: 1/7**
