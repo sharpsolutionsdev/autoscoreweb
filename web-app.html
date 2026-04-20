@@ -870,6 +870,29 @@
                         START SCORING...
                     </div>
                     </div>
+                <!-- LIVE GAME (populated by DartVoice extension from the iframe) -->
+                <div id="dv-live-panel" class="hud-card p-3 mb-4 border border-white/5 flex-shrink-0" style="display:none;">
+                    <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-2 flex items-center gap-2">
+                        <span id="dv-live-dot" style="width:8px;height:8px;border-radius:50%;background:#7ae582;box-shadow:0 0 8px rgba(122,229,130,.7);display:inline-block;"></span>
+                        Live Game
+                        <span id="dv-live-mode" class="ml-auto text-[9px] text-gray-500 font-semibold tracking-[0.15em]"></span>
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div id="dv-live-player" class="text-sm font-bold text-white truncate">&mdash;</div>
+                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Player</div>
+                        </div>
+                        <div class="text-right">
+                            <div id="dv-live-remaining" class="text-lg font-display font-bold text-brand">&mdash;</div>
+                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Remaining</div>
+                        </div>
+                    </div>
+                    <div id="dv-live-checkout" class="mt-2 text-[11px] text-gray-400" style="display:none;">
+                        <span class="text-gray-500 font-semibold tracking-[0.15em] text-[9px] uppercase">Out:</span>
+                        <span id="dv-live-checkout-val" class="text-white font-semibold"></span>
+                    </div>
+                </div>
+
                 <!-- Live Score Log History -->
                 <div class="hud-card p-4 mb-4 border border-white/5 flex-shrink-0">
                     <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-2 flex items-center gap-2">
@@ -3127,33 +3150,28 @@ window.openScorerUrl = function(url){
             });
 
             // ── Live game state HUD (populated from DV_GAME_STATE) ──
+            // Renders into the Scorer Studio LEFT PANEL (#dv-live-panel) — never overlays the iframe.
             window.dvRenderGameState = function(s){
                 if (!s) return;
-                let card = document.getElementById('dv-live-game');
-                if (!card) {
-                    card = document.createElement('div');
-                    card.id = 'dv-live-game';
-                    card.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:9998;background:rgba(10,12,18,.92);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;color:#fff;font-family:Plus Jakarta Sans,sans-serif;font-size:12px;min-width:180px;box-shadow:0 12px 32px rgba(0,0,0,.5);pointer-events:none;';
-                    const title = document.createElement('div');
-                    title.textContent = 'LIVE GAME';
-                    title.style.cssText = 'font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:.2em;font-size:10px;opacity:.6;margin-bottom:4px;';
-                    const body = document.createElement('div');
-                    body.id = 'dv-live-game-body';
-                    card.appendChild(title); card.appendChild(body);
-                    document.body.appendChild(card);
-                }
-                const body = document.getElementById('dv-live-game-body');
-                body.textContent = '';
-                const add = (k, v) => {
-                    if (v == null || v === '') return;
-                    const row = document.createElement('div');
-                    row.style.cssText = 'display:flex;justify-content:space-between;gap:10px;margin:2px 0;';
-                    const a = document.createElement('span'); a.textContent = k; a.style.opacity = '.6';
-                    const b = document.createElement('span'); b.textContent = String(v); b.style.fontWeight = '700';
-                    row.appendChild(a); row.appendChild(b); body.appendChild(row);
-                };
-                add('MODE', s.mode); add('PLAYER', s.player); add('REMAINING', s.remaining);
-                if (s.checkoutSuggestion) add('OUT', s.checkoutSuggestion);
+                const panel = document.getElementById('dv-live-panel');
+                if (!panel) return;
+                panel.style.display = '';
+                const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
+                set('dv-live-player', s.player);
+                set('dv-live-remaining', s.remaining);
+                const modeEl = document.getElementById('dv-live-mode');
+                if (modeEl) modeEl.textContent = s.mode && s.mode !== 'unknown' ? String(s.mode).toUpperCase() : '';
+                const coRow = document.getElementById('dv-live-checkout');
+                const coVal = document.getElementById('dv-live-checkout-val');
+                if (s.checkoutSuggestion) {
+                    if (coVal) coVal.textContent = s.checkoutSuggestion;
+                    if (coRow) coRow.style.display = '';
+                } else if (coRow) { coRow.style.display = 'none'; }
+                // Mirror remaining into the existing scorer header chip for continuity
+                try {
+                    const chip = document.getElementById('checkout-target');
+                    if (chip && s.remaining != null && s.remaining !== '') chip.textContent = 'REMAINING: ' + s.remaining;
+                } catch(e){}
             };
 
             // ── Checkout darts prompt ──

@@ -1175,8 +1175,26 @@
         const action = event.data.action;
         try {
           if (action === 'camera') {
-            const el = document.querySelector('[data-testid="camera-setup"], a[href*="camera"], button[aria-label*="amera" i]');
-            if (el) el.click();
+            // DartCounter renders the activation dialog via <app-activate-camera-dialog>.
+            // The trigger is a toolbar button with a videocam icon; it has no stable test-id.
+            // Strategy: 1) direct attributes, 2) scan buttons/anchors for "camera" aria/title/text,
+            // 3) scan for ion-icon name="videocam*", 4) last-resort fallback: click any button
+            // whose enclosed SVG 'use' / path hints at a camera.
+            let el = document.querySelector(
+              '[data-testid="camera-setup"], [data-testid*="camera" i],' +
+              ' a[href*="camera"], button[aria-label*="amera" i], button[title*="amera" i],' +
+              ' ion-button[aria-label*="amera" i], button[class*="camera" i], ion-button[class*="camera" i]'
+            );
+            if (!el) {
+              const candidates = document.querySelectorAll('button, a, ion-button, [role="button"]');
+              for (const c of candidates) {
+                if (!c.offsetParent) continue;
+                const label = ((c.getAttribute('aria-label') || '') + ' ' + (c.getAttribute('title') || '') + ' ' + (c.textContent || '')).toLowerCase();
+                if (/\bcamera\b/.test(label)) { el = c; break; }
+                if (c.querySelector('ion-icon[name*="videocam" i], ion-icon[name*="camera" i], [class*="videocam" i], [class*="camera-icon" i]')) { el = c; break; }
+              }
+            }
+            if (el) { el.click(); logTrace('DV_ACTION camera: clicked ' + (el.tagName || '') + (el.className ? '.' + String(el.className).split(' ')[0] : '')); }
             else logTrace('DV_ACTION camera: no matching element');
           }
         } catch (e) { logTrace('DV_ACTION failed: ' + e.message); }
