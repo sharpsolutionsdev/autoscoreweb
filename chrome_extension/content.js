@@ -948,6 +948,33 @@
     try { localStorage.setItem(POS_KEY, JSON.stringify({ x: container.offsetLeft, y: container.offsetTop })); } catch {}
   });
 
+  // --- COOKIE AUTO-REJECT (iframe only) ---
+  // DartCounter shows a "We use cookies" banner on load. We auto-click Reject All
+  // so the scorer is usable instantly. Runs on load + via observer for up to 20s.
+  if (isIframe) {
+    const REJECT_RE = /^(reject all|reject|decline|deny|refuse|reject cookies|decline all)$/i;
+    let cookieTries = 0;
+    const cookieTimer = setInterval(() => {
+      cookieTries++;
+      try {
+        const isBanner = el => {
+          const t = (el.innerText || '').toLowerCase();
+          return /cookie|consent|privacy/.test(t) && /accept|reject|decline|manage|preferences/.test(t);
+        };
+        const roots = Array.from(document.querySelectorAll(
+          '[id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i],' +
+          ' [role="dialog"], [aria-label*="cookie" i], [aria-label*="consent" i]'
+        )).filter(el => el.offsetParent && isBanner(el));
+        for (const root of roots) {
+          const btns = Array.from(root.querySelectorAll('button, a, [role="button"]')).filter(b => b.offsetParent);
+          const hit = btns.find(b => REJECT_RE.test((b.innerText || '').trim()));
+          if (hit) { hit.click(); logTrace('Cookie banner: Reject clicked.'); clearInterval(cookieTimer); return; }
+        }
+      } catch {}
+      if (cookieTries > 40) clearInterval(cookieTimer); // ~20s @ 500ms
+    }, 500);
+  }
+
   // --- GAME-STATE OBSERVER (iframe only) ---
   // Posts DV_GAME_STATE up to the parent dashboard on any visible change.
   // Best-effort selectors — DartCounter may rename classes; we fall back gracefully.

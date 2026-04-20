@@ -116,17 +116,58 @@
         #dv-loading-stage.show { opacity: 1; visibility: visible; pointer-events: auto; }
         #dv-loading-stage .dv-loading-inner { position: relative; z-index: 2; text-align: center; color: #fff; transform: translateY(0); }
         .dv-loader-graphic {
-            width: 160px; height: 160px; border-radius: 50%; position: relative; margin: 0 auto 12px;
+            width: 180px; height: 180px; position: relative; margin: 0 auto 18px;
             display: flex; align-items: center; justify-content: center; overflow: visible;
-            background: radial-gradient(circle at 30% 20%, rgba(var(--brand-rgb),0.12), rgba(0,0,0,0.08));
-            box-shadow: 0 18px 60px rgba(0,0,0,0.6), inset 0 -6px 24px rgba(var(--brand-rgb),0.06);
-            animation: dv-rotate 6s linear infinite;
         }
-        .dv-loader-graphic:before { content: ''; position: absolute; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.04), transparent 40%); }
-        .dv-loader-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 20px rgba(var(--brand-rgb),0.6); position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
-        .dv-loader-dot.two { transform: translateX(-50%) rotate(120deg) translateY(-56px) rotate(-120deg); }
-        .dv-loader-dot.three { transform: translateX(-50%) rotate(240deg) translateY(-56px) rotate(-240deg); }
-        @keyframes dv-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* Outer dartboard-style ring with brand gradient */
+        .dv-loader-graphic::before {
+            content: ''; position: absolute; inset: 0; border-radius: 50%;
+            background: conic-gradient(from 0deg, rgba(var(--brand-rgb),0) 0deg, rgba(var(--brand-rgb),.9) 80deg, rgba(255,255,255,.85) 140deg, rgba(var(--brand-rgb),0) 220deg);
+            filter: blur(1px);
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+                    mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+            animation: dv-spin 1.6s cubic-bezier(.6,.2,.4,.8) infinite;
+        }
+        /* Inner softer ring spinning the other way */
+        .dv-loader-graphic::after {
+            content: ''; position: absolute; inset: 22px; border-radius: 50%;
+            border: 1.5px dashed rgba(255,255,255,.18);
+            animation: dv-spin-rev 8s linear infinite;
+        }
+        /* Glowing dart head in the centre */
+        .dv-loader-core {
+            position: relative; z-index: 2;
+            width: 78px; height: 78px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.22), rgba(var(--brand-rgb),.85) 55%, rgba(90,5,15,.9) 100%);
+            box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 10px 36px rgba(var(--brand-rgb),.45), inset 0 -4px 14px rgba(0,0,0,.35);
+            display: grid; place-items: center;
+            animation: dv-pulse 1.6s ease-in-out infinite;
+        }
+        .dv-loader-core::before {
+            content: ''; width: 10px; height: 10px; border-radius: 50%; background: #fff;
+            box-shadow: 0 0 12px rgba(255,255,255,.9), 0 0 28px rgba(var(--brand-rgb),.9);
+        }
+        /* Three orbiting brand dots — equidistant */
+        .dv-loader-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: var(--brand);
+            box-shadow: 0 0 16px rgba(var(--brand-rgb),.9), 0 0 2px #fff inset;
+            position: absolute; top: 50%; left: 50%; margin: -5px 0 0 -5px;
+            transform-origin: 5px 5px;
+            animation: dv-orbit 2.4s linear infinite;
+        }
+        .dv-loader-dot.two   { animation-delay: -.8s; }
+        .dv-loader-dot.three { animation-delay: -1.6s; }
+        @keyframes dv-orbit {
+            0%   { transform: rotate(0deg)   translate(78px) rotate(0deg); opacity: .4; }
+            50%  { opacity: 1; }
+            100% { transform: rotate(360deg) translate(78px) rotate(-360deg); opacity: .4; }
+        }
+        @keyframes dv-spin { to { transform: rotate(360deg); } }
+        @keyframes dv-spin-rev { to { transform: rotate(-360deg); } }
+        @keyframes dv-pulse {
+            0%, 100% { transform: scale(1);    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 10px 36px rgba(var(--brand-rgb),.45), inset 0 -4px 14px rgba(0,0,0,.35); }
+            50%      { transform: scale(1.06); box-shadow: 0 0 0 1px rgba(255,255,255,.14), 0 14px 48px rgba(var(--brand-rgb),.7),  inset 0 -4px 14px rgba(0,0,0,.35); }
+        }
         .dv-loading-text { font-weight:700; font-size:18px; letter-spacing:0.06em; }
         .dv-loading-subtext { font-size:12px; color: rgba(255,255,255,0.65); margin-top:6px; }
 
@@ -665,13 +706,10 @@
     <div id="dv-loading-stage" aria-hidden="true">
         <div class="dv-loading-inner">
             <div class="dv-loader-graphic" aria-hidden="true">
+                <div class="dv-loader-core"></div>
                 <div class="dv-loader-dot"></div>
                 <div class="dv-loader-dot two"></div>
                 <div class="dv-loader-dot three"></div>
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:2;">
-                    <circle cx="12" cy="12" r="8" stroke="rgba(255,255,255,0.12)" stroke-width="1.6"></circle>
-                    <path d="M8 12a4 4 0 018 0" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"></path>
-                </svg>
             </div>
             <div class="dv-loading-text">Loading DartVoice…</div>
             <div class="dv-loading-subtext">Warming up voice models — hold tight.</div>
@@ -3744,6 +3782,55 @@ window.openScorerUrl = function(url){
     </script>
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
+    <script>
+        /* Reorderable sidebar cards — drag-to-rearrange with localStorage persistence. */
+        (function(){
+            const LS_KEY = 'dv-sidebar-order-v1';
+            function cardKey(el){
+                if (el.id) return 'id:' + el.id;
+                const h = el.querySelector('h3,h2');
+                return 'h:' + ((h && h.textContent.trim().slice(0,40)) || Math.random().toString(36).slice(2,8));
+            }
+            function init(){
+                // Scope to the sidebar (find the first element matching our left-panel container)
+                const sidebar = document.querySelector('aside, .sidebar, #sidebar, [data-role="sidebar"]')
+                    || document.querySelector('.scorer-studio-sidebar')
+                    || (document.getElementById('dv-live-panel') && document.getElementById('dv-live-panel').parentElement);
+                if (!sidebar) return;
+                const cards = Array.from(sidebar.querySelectorAll(':scope > .hud-card, :scope .hud-card.mb-4')).filter(el => !el.dataset.reorderSkip);
+                if (!cards.length) return;
+                cards.forEach(c => {
+                    c.dataset.reorderKey = cardKey(c);
+                    c.setAttribute('draggable','true');
+                    c.style.cursor = 'grab';
+                    c.addEventListener('dragstart', e => { c.style.opacity = '.55'; e.dataTransfer.setData('text/plain', c.dataset.reorderKey); e.dataTransfer.effectAllowed = 'move'; });
+                    c.addEventListener('dragend', () => { c.style.opacity = ''; persist(); });
+                    c.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+                    c.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const fromKey = e.dataTransfer.getData('text/plain');
+                        const from = cards.find(x => x.dataset.reorderKey === fromKey);
+                        if (from && from !== c) c.parentNode.insertBefore(from, c);
+                    });
+                });
+                function persist(){
+                    try {
+                        const order = Array.from(sidebar.children).filter(n => n.classList && n.classList.contains('hud-card')).map(n => n.dataset.reorderKey).filter(Boolean);
+                        localStorage.setItem(LS_KEY, JSON.stringify(order));
+                    } catch {}
+                }
+                // Restore saved order
+                try {
+                    const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+                    if (saved.length) {
+                        const map = new Map(cards.map(c => [c.dataset.reorderKey, c]));
+                        saved.forEach(k => { const n = map.get(k); if (n) sidebar.appendChild(n); });
+                    }
+                } catch {}
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+        })();
+    </script>
 </body>
 
 </html>
