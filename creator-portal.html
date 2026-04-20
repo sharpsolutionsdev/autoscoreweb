@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>Ambassador Portal | DartVoice</title>
+<meta name="theme-color" content="#CC0B20">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+','+g+','+b);var L=function(c){return Math.min(255,c+Math.round((255-c)*.12))};var lr=L(r),lg=L(g),lb=L(b);s.setProperty('--brand-light','#'+[lr,lg,lb].map(function(c){return c.toString(16).padStart(2,'0')}).join(''))}()</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+    fontFamily: { display: ['"Barlow Condensed"','sans-serif'], sans: ['"Plus Jakarta Sans"','sans-serif'] },
+    colors: { brand:'var(--brand)','brand-light':'var(--brand-light)',dark:'#08080A',card:'#111114','card-2':'#18181C',wire:'#252530',muted:'#6E6E82','muted-2':'#4A4A5A',chalk:'#F0F0F5',success:'#22c55e' }
+}}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="css/general/base.css">
+<style>
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5;min-height:100vh}
+.display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-.02em;text-transform:uppercase}
+.panel{background:linear-gradient(160deg,#111114,#0D0D10);border:1px solid rgba(255,255,255,.06);border-radius:16px}
+.stat{background:linear-gradient(160deg,#111114,#0D0D10);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px}
+.btn-brand{background:var(--brand);color:#fff;padding:10px 18px;border-radius:10px;font-weight:600;font-size:13px;border:0;cursor:pointer;transition:all .15s}
+.btn-brand:hover{background:var(--brand-light);box-shadow:0 0 20px rgba(var(--brand-rgb),.3)}
+.btn-ghost{background:transparent;color:#F0F0F5;padding:9px 14px;border-radius:10px;font-weight:500;font-size:13px;border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
+.btn-ghost:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.16)}
+.inp{background:#18181C;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;color:#F0F0F5;font-size:13px;width:100%;transition:border-color .15s;font-family:inherit}
+.inp:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(var(--brand-rgb),.15)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid transparent}
+.pill-green{background:rgba(34,197,94,.1);color:#4ade80;border-color:rgba(34,197,94,.25)}
+.pill-amber{background:rgba(245,158,11,.1);color:#fbbf24;border-color:rgba(245,158,11,.25)}
+.pill-brand{background:rgba(var(--brand-rgb),.1);color:var(--brand);border-color:rgba(var(--brand-rgb),.25)}
+.ref-pill{display:flex;align-items:center;gap:10px;background:#18181C;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 6px 6px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:.02em}
+.hero{background:radial-gradient(1200px 300px at 0% 0%,rgba(var(--brand-rgb),.18),transparent 60%),linear-gradient(160deg,#111114,#0A0A0D);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:32px}
+.progress-track{background:rgba(255,255,255,.06);border-radius:999px;height:10px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-light));border-radius:999px;transition:width .5s}
+.timeline-item{position:relative;padding:14px 0 14px 28px;border-left:1px solid rgba(255,255,255,.08)}
+.timeline-item:before{content:'';position:absolute;left:-5px;top:18px;width:9px;height:9px;border-radius:999px;background:var(--brand);box-shadow:0 0 0 3px rgba(var(--brand-rgb),.2)}
+.toast{position:fixed;bottom:24px;right:24px;background:#18181C;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 18px;font-size:13px;z-index:200;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.hide{display:none!important}
+.step-num{width:28px;height:28px;border-radius:999px;background:rgba(var(--brand-rgb),.15);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+</style>
+</head>
+<body>
+
+<div id="gate" class="min-h-screen flex items-center justify-center">
+    <div class="flex flex-col items-center gap-4">
+        <div class="w-10 h-10 border-2 border-wire border-t-brand rounded-full animate-spin"></div>
+        <p class="text-muted text-sm">Loading portal…</p>
+    </div>
+</div>
+
+<div id="notCreator" class="min-h-screen flex items-center justify-center hide px-5">
+    <div class="panel p-8 max-w-lg text-center">
+        <div class="display text-3xl mb-2" style="color:var(--brand)">NOT ON THE PROGRAM YET</div>
+        <p class="text-muted text-sm mb-5">Your account isn't linked to an ambassador slot yet. If you've spoken to us about joining, reply to the email we sent and we'll get you set up. Otherwise, apply below.</p>
+        <div class="flex gap-2 justify-center flex-wrap">
+            <a class="btn-brand" href="mailto:hello@dartvoice.app?subject=Ambassador%20Program">Apply</a>
+            <a class="btn-ghost" href="dartvoice-dashboard.html">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div id="app" class="hide">
+<header class="sticky top-0 z-40 bg-dark/90 backdrop-blur-xl border-b border-wire/60">
+    <div class="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <svg viewBox="0 0 36 36" class="w-7 h-7 shrink-0" fill="none">
+                <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                <circle cx="18" cy="18" r="3" fill="white"/>
+            </svg>
+            <span class="display text-base">DARTVOICE</span>
+            <span class="text-xs font-semibold text-muted uppercase tracking-wider">Ambassador</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a class="btn-ghost" href="dartvoice-dashboard.html">Dashboard</a>
+            <button class="btn-ghost" id="btnSignOut">Sign out</button>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-5 py-7 space-y-6">
+
+    <section class="hero">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+                <div class="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Hey</div>
+                <h1 id="heroName" class="display text-4xl md:text-5xl">—</h1>
+                <p class="text-muted text-sm mt-2">Welcome to your creator HQ. Share your link, track your stats, get paid.</p>
+            </div>
+            <div class="flex flex-col gap-2 items-start md:items-end">
+                <div class="text-xs font-semibold text-muted uppercase tracking-wider">Your referral link</div>
+                <div class="ref-pill">
+                    <span id="refLink" style="color:var(--brand)">dartvoice.app/—</span>
+                    <button class="btn-brand !py-1.5 !px-3" id="btnCopy">Copy</button>
+                </div>
+                <span id="statusPill" class="pill pill-brand">—</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="stat">
+            <div class="text-[11px] uppercase tracking-wider text-muted mb-1">Clicks</div>
+            <div id="sClicks" class="display text-3xl">0</div>
+        </div>
+        <div class="stat">
+            <div class="text-[11px] uppercase tracking-wider text-muted mb-1">Sign-ups</div>
+            <div id="sSignups" class="display text-3xl">0</div>
+        </div>
+        <div class="stat">
+            <div class="text-[11px] uppercase tracking-wider text-muted mb-1">Earned</div>
+            <div id="sEarned" class="display text-3xl" style="color:var(--brand)">£0</div>
+        </div>
+        <div class="stat">
+            <div class="text-[11px] uppercase tracking-wider text-muted mb-1">Pending</div>
+            <div id="sPending" class="display text-3xl">£0</div>
+        </div>
+    </section>
+
+    <section class="panel p-6">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <div class="display text-xl">THIS MONTH</div>
+                <p class="text-muted text-xs">Earnings toward your monthly deal amount.</p>
+            </div>
+            <div class="text-right">
+                <div id="pText" class="text-sm text-chalk font-semibold">£0 / £0</div>
+                <div id="pPct" class="text-xs text-muted">0%</div>
+            </div>
+        </div>
+        <div class="progress-track"><div id="pFill" class="progress-fill" style="width:0%"></div></div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <div class="panel p-6 lg:col-span-2">
+            <div class="display text-xl mb-4">RECENT ACTIVITY</div>
+            <div id="timeline" class="space-y-0">
+                <div class="text-muted text-sm py-4">Loading…</div>
+            </div>
+        </div>
+
+        <div class="panel p-6">
+            <div class="display text-xl mb-3">YOUR DEAL</div>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between border-b border-wire/40 pb-2"><span class="text-muted">Tier</span><span id="dTier" class="font-semibold">—</span></div>
+                <div class="flex justify-between border-b border-wire/40 pb-2"><span class="text-muted">Monthly</span><span id="dAmount" class="font-semibold" style="color:var(--brand)">—</span></div>
+                <div class="flex justify-between border-b border-wire/40 pb-2"><span class="text-muted">Platform</span><span id="dPlatform" class="font-semibold">—</span></div>
+                <div class="flex justify-between"><span class="text-muted">Since</span><span id="dSince" class="font-semibold">—</span></div>
+            </div>
+            <div class="mt-5 pt-4 border-t border-wire/40 text-xs text-muted leading-relaxed">
+                Payouts are issued monthly once your earned balance clears the £25 minimum. We pay via bank transfer or PayPal — reply to your onboarding email with your preference.
+            </div>
+        </div>
+
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <div class="panel p-6 lg:col-span-2">
+            <div class="display text-xl mb-3">MESSAGE THE TEAM</div>
+            <p class="text-muted text-xs mb-4">Need assets, want a custom code, spotted a bug, or ready to up your deal? Drop us a line — we read everything.</p>
+            <form id="msgForm" class="space-y-3">
+                <input type="text" id="msgSubject" class="inp" placeholder="Subject" required>
+                <textarea id="msgBody" class="inp" rows="5" placeholder="What's up?" required></textarea>
+                <button type="submit" class="btn-brand">Send message</button>
+                <span id="msgStatus" class="text-xs text-muted ml-3"></span>
+            </form>
+        </div>
+
+        <div class="panel p-6">
+            <div class="display text-xl mb-3">HOW IT WORKS</div>
+            <div class="space-y-4">
+                <div class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><b>Share</b> your link in videos, descriptions, streams, socials.</div></div>
+                <div class="flex gap-3"><span class="step-num">2</span><div class="text-sm"><b>Track</b> clicks & sign-ups in real time here.</div></div>
+                <div class="flex gap-3"><span class="step-num">3</span><div class="text-sm"><b>Get paid</b> monthly once you pass the £25 threshold.</div></div>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="panel p-6">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div>
+                <div class="display text-xl">QUICK CHATS</div>
+                <p class="text-muted text-xs">Tap to copy. Edit freely. Tokens <code style="color:var(--brand)">{link} {name} {amount} {tier}</code> are filled in automatically.</p>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" id="qcAdd" class="btn-ghost">+ New snippet</button>
+                <button type="button" id="qcReset" class="btn-ghost" title="Restore defaults">Reset</button>
+            </div>
+        </div>
+        <div id="qcList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    </section>
+
+    <section class="panel p-6">
+        <div class="display text-xl mb-3">CUSTOMISE</div>
+        <p class="text-muted text-xs mb-4">Personal tweaks for snippet substitution. Saved to this browser only.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label class="block"><span class="text-[11px] uppercase tracking-wider text-muted">Preferred name in snippets</span>
+                <input id="prefName" class="inp mt-1" placeholder="e.g. Reuben"></label>
+            <label class="block"><span class="text-[11px] uppercase tracking-wider text-muted">Hashtags</span>
+                <input id="prefTags" class="inp mt-1" placeholder="#darts #180"></label>
+            <label class="block"><span class="text-[11px] uppercase tracking-wider text-muted">Sign-off emoji</span>
+                <input id="prefEmoji" class="inp mt-1" placeholder="🎯"></label>
+        </div>
+    </section>
+
+    <section class="panel p-6">
+        <div class="display text-xl mb-3">RESOURCES</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <a class="btn-ghost !text-center" href="https://dartvoice.app" target="_blank">Homepage</a>
+            <a class="btn-ghost !text-center" href="guide.html" target="_blank">How-to guide</a>
+            <a class="btn-ghost !text-center" href="mailto:hello@dartvoice.app">Email support</a>
+            <a class="btn-ghost !text-center" href="https://chromewebstore.google.com" target="_blank">Chrome Extension</a>
+        </div>
+    </section>
+
+</main>
+</div>
+
+<div id="toast" class="toast hide"></div>
+
+<script>
+const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const HTML_PROP = 'inner' + 'HTML';
+function setHTML(el, v) { if (el) el[HTML_PROP] = v; }
+
+function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function money(n) { return '£' + (Number(n || 0)).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); } catch { return '—'; } }
+function fmtDT(d) { if (!d) return ''; try { return new Date(d).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); } catch { return ''; } }
+
+let toastT;
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('hide');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => t.classList.add('hide'), 2800);
+}
+
+let me = null, creator = null;
+
+async function boot() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+        location.href = 'login.html?next=' + encodeURIComponent('creator-portal.html');
+        return;
+    }
+    me = session.user;
+
+    // Prefer user_id match, fall back to email match (row may not be linked yet).
+    let { data: rows } = await sb.from('creators').select('*').eq('user_id', me.id).limit(1);
+    if (!rows || !rows.length) {
+        const res = await sb.from('creators').select('*').ilike('email', me.email).limit(1);
+        rows = res.data;
+    }
+
+    if (!rows || !rows.length) {
+        document.getElementById('gate').classList.add('hide');
+        document.getElementById('notCreator').classList.remove('hide');
+        return;
+    }
+
+    creator = rows[0];
+    render();
+    loadTimeline();
+
+    document.getElementById('gate').classList.add('hide');
+    document.getElementById('app').classList.remove('hide');
+}
+
+function render() {
+    const c = creator;
+    const name = c.name || (me.email || '').split('@')[0];
+    document.getElementById('heroName').textContent = 'HEY ' + name.toUpperCase();
+
+    const slug = c.slug || (c.name ? c.name.toLowerCase().replace(/[^a-z0-9]+/g,'') : 'you');
+    const refText = 'dartvoice.app/' + slug;
+    document.getElementById('refLink').textContent = refText;
+
+    const status = (c.status || 'active').toUpperCase();
+    const sp = document.getElementById('statusPill');
+    sp.textContent = status;
+    sp.className = 'pill ' + (c.status === 'active' ? 'pill-green' : c.status === 'negotiating' || c.status === 'responded' ? 'pill-amber' : 'pill-brand');
+
+    document.getElementById('sClicks').textContent   = (c.clicks   || 0).toLocaleString();
+    document.getElementById('sSignups').textContent  = (c.signups  || 0).toLocaleString();
+    document.getElementById('sEarned').textContent   = money(c.earned);
+    document.getElementById('sPending').textContent  = money(c.pending_payout);
+
+    const target = Number(c.amount || 0);
+    const pending = Number(c.pending_payout || 0);
+    const pct = target > 0 ? Math.min(100, Math.round((pending / target) * 100)) : 0;
+    document.getElementById('pText').textContent = money(pending) + ' / ' + money(target);
+    document.getElementById('pPct').textContent  = pct + '%';
+    document.getElementById('pFill').style.width = pct + '%';
+
+    document.getElementById('dTier').textContent     = (c.tier || 'pro').toUpperCase();
+    document.getElementById('dAmount').textContent   = money(c.amount) + ' / mo';
+    document.getElementById('dPlatform').textContent = c.platform || 'YouTube';
+    document.getElementById('dSince').textContent    = fmtDate(c.date_added);
+}
+
+async function loadTimeline() {
+    const tl = document.getElementById('timeline');
+    const { data, error } = await sb
+        .from('outreach_log')
+        .select('id, channel, subject, body, status, sent_at')
+        .eq('creator_id', creator.id)
+        .order('sent_at', { ascending: false })
+        .limit(20);
+
+    if (error || !data || !data.length) {
+        setHTML(tl, '<div class="text-muted text-sm py-4">No activity yet. Start sharing your link and it\'ll show up here.</div>');
+        return;
+    }
+
+    const ch = { email:'Email', creator_message:'Message sent', reddit_dm:'Reddit DM', x_dm:'X DM', manual:'Note' };
+    setHTML(tl, data.map(r => `
+        <div class="timeline-item">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-[11px] font-semibold uppercase tracking-wider" style="color:var(--brand)">${esc(ch[r.channel] || r.channel || 'Activity')}</span>
+                <span class="text-[11px] text-muted">${esc(fmtDT(r.sent_at))}</span>
+            </div>
+            ${r.subject ? `<div class="text-sm font-semibold mb-1">${esc(r.subject)}</div>` : ''}
+            ${r.body ? `<div class="text-xs text-muted whitespace-pre-wrap">${esc((r.body || '').slice(0, 240))}${(r.body || '').length > 240 ? '…' : ''}</div>` : ''}
+        </div>
+    `).join(''));
+}
+
+document.getElementById('btnCopy').addEventListener('click', async () => {
+    const txt = 'https://' + document.getElementById('refLink').textContent;
+    try { await navigator.clipboard.writeText(txt); toast('Link copied'); }
+    catch { toast('Copy failed — select and copy manually'); }
+});
+
+document.getElementById('btnSignOut').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    location.href = 'login.html';
+});
+
+document.getElementById('msgForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const subject = document.getElementById('msgSubject').value.trim();
+    const body = document.getElementById('msgBody').value.trim();
+    const status = document.getElementById('msgStatus');
+    if (!subject || !body) return;
+    status.textContent = 'Sending…';
+    const { error } = await sb.from('outreach_log').insert({
+        creator_id: creator.id,
+        sent_by: me.id,
+        channel: 'creator_message',
+        subject,
+        body,
+        status: 'sent'
+    });
+    if (error) {
+        status.textContent = 'Failed: ' + error.message;
+        return;
+    }
+    status.textContent = 'Sent. We\'ll reply to ' + (me.email || 'your email') + '.';
+    document.getElementById('msgSubject').value = '';
+    document.getElementById('msgBody').value = '';
+    loadTimeline();
+    setTimeout(() => { status.textContent = ''; }, 5000);
+});
+
+// ── QUICK CHATS + CUSTOMISE ─────────────────────────────────────────
+const QC_DEFAULTS = [
+    "Been using {link} to score darts by voice — no more chalk, no more phone pokes. Game changer. {emoji}",
+    "Switched to hands-free darts scoring with {link} — say the number, it logs. Simple. {tags}",
+    "Quick heads up: {link} = voice-controlled auto-scoring. Free demo, then {amount}/mo tiers. {emoji}",
+    "If you hate fiddling with a scorer between throws, try {link}. {emoji} {tags}",
+    "Doing a 501 stream tonight — scoring by voice via {link}. Drop in 👀",
+    "Thanks for the follows — if you play darts, {link} is the app I use. Voice scoring, zero friction. – {name}"
+];
+
+const qcKey = () => 'dv-qc-' + (creator && creator.id ? creator.id : 'anon');
+const prefsKey = () => 'dv-qc-prefs-' + (creator && creator.id ? creator.id : 'anon');
+
+function loadSnippets() {
+    try {
+        const raw = localStorage.getItem(qcKey());
+        if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) return arr;
+        }
+    } catch {}
+    return QC_DEFAULTS.slice();
+}
+function saveSnippets(arr) { localStorage.setItem(qcKey(), JSON.stringify(arr)); }
+
+function loadPrefs() {
+    try { return JSON.parse(localStorage.getItem(prefsKey())) || {}; } catch { return {}; }
+}
+function savePrefs(p) { localStorage.setItem(prefsKey(), JSON.stringify(p)); }
+
+function interpolate(template) {
+    const p = loadPrefs();
+    const slug = creator && creator.slug ? creator.slug : ((creator && creator.name) ? creator.name.toLowerCase().replace(/[^a-z0-9]+/g,'') : 'you');
+    const map = {
+        link: 'https://dartvoice.app/' + slug,
+        name: p.name || (creator && creator.name) || '',
+        tier: ((creator && creator.tier) || 'pro').toUpperCase(),
+        amount: money((creator && creator.amount) || 0),
+        tags: p.tags || '',
+        emoji: p.emoji || ''
+    };
+    return String(template).replace(/\{(link|name|tier|amount|tags|emoji)\}/g, (_, k) => map[k] || '');
+}
+
+function renderSnippets() {
+    const host = document.getElementById('qcList');
+    if (!host) return;
+    const arr = loadSnippets();
+    if (!arr.length) {
+        setHTML(host, '<div class="text-muted text-sm py-2">No snippets — hit "+ New snippet" to add one.</div>');
+        return;
+    }
+    setHTML(host, arr.map((t, i) => `
+        <div class="stat" data-i="${i}" style="padding:14px">
+            <div class="flex items-start justify-between gap-2 mb-2">
+                <span class="text-[10px] uppercase tracking-wider text-muted">Snippet ${i + 1}</span>
+                <div class="flex gap-1">
+                    <button type="button" class="btn-ghost !py-1 !px-2 !text-[11px]" data-qc-copy="${i}">Copy</button>
+                    <button type="button" class="btn-ghost !py-1 !px-2 !text-[11px]" data-qc-del="${i}" title="Delete">✕</button>
+                </div>
+            </div>
+            <textarea class="inp" rows="3" data-qc-edit="${i}">${esc(t)}</textarea>
+            <div class="text-[11px] text-muted mt-2">Preview: <span class="text-chalk">${esc(interpolate(t))}</span></div>
+        </div>
+    `).join(''));
+}
+
+async function copyText(txt) {
+    try { await navigator.clipboard.writeText(txt); toast('Copied'); }
+    catch { toast('Copy failed'); }
+}
+
+function initQuickChats() {
+    // Hydrate prefs inputs
+    const p = loadPrefs();
+    const nameEl = document.getElementById('prefName');
+    const tagsEl = document.getElementById('prefTags');
+    const emojiEl = document.getElementById('prefEmoji');
+    if (nameEl) nameEl.value = p.name || '';
+    if (tagsEl) tagsEl.value = p.tags || '';
+    if (emojiEl) emojiEl.value = p.emoji || '';
+
+    function onPrefChange() {
+        savePrefs({
+            name: nameEl.value.trim(),
+            tags: tagsEl.value.trim(),
+            emoji: emojiEl.value.trim()
+        });
+        renderSnippets();
+    }
+    [nameEl, tagsEl, emojiEl].forEach(el => el && el.addEventListener('input', onPrefChange));
+
+    renderSnippets();
+
+    const host = document.getElementById('qcList');
+    host.addEventListener('click', (e) => {
+        const copyI = e.target.getAttribute && e.target.getAttribute('data-qc-copy');
+        const delI = e.target.getAttribute && e.target.getAttribute('data-qc-del');
+        if (copyI != null) {
+            const arr = loadSnippets();
+            copyText(interpolate(arr[+copyI] || ''));
+        } else if (delI != null) {
+            const arr = loadSnippets();
+            arr.splice(+delI, 1);
+            saveSnippets(arr);
+            renderSnippets();
+        }
+    });
+    host.addEventListener('input', (e) => {
+        const i = e.target.getAttribute && e.target.getAttribute('data-qc-edit');
+        if (i == null) return;
+        const arr = loadSnippets();
+        arr[+i] = e.target.value;
+        saveSnippets(arr);
+        // Update just this preview inline (avoid full re-render / cursor jump)
+        const card = e.target.closest('.stat');
+        const prev = card && card.querySelector('.text-chalk');
+        if (prev) prev.textContent = interpolate(e.target.value);
+    });
+
+    document.getElementById('qcAdd').addEventListener('click', () => {
+        const arr = loadSnippets();
+        arr.push('New snippet — include {link} so people can find you. {emoji}');
+        saveSnippets(arr);
+        renderSnippets();
+    });
+    document.getElementById('qcReset').addEventListener('click', () => {
+        if (!confirm('Restore default snippets? Your edits will be lost.')) return;
+        saveSnippets(QC_DEFAULTS.slice());
+        renderSnippets();
+    });
+}
+
+const _origBoot = boot;
+boot = async function() {
+    await _origBoot();
+    try { initQuickChats(); } catch(e) { console.warn('QuickChats init failed', e); }
+};
+
+boot();
+</script>
+<script src="theme.js"></script>
+</body>
+</html>

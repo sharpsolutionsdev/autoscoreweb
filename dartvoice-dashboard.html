@@ -1144,6 +1144,23 @@
             <!-- ── TAB: Ambassador ───────────────────────────────── -->
             <div id="tab-ambassador" class="hidden space-y-5">
 
+                <!-- Creator Portal banner (only for creators on the paid-ambassador program) -->
+                <a id="creator-portal-banner" href="creator-portal.html"
+                    class="hidden card-panel block fade-up-2 no-underline"
+                    style="border-color:rgba(var(--brand-rgb),.35);background:radial-gradient(600px 160px at 0% 0%,rgba(var(--brand-rgb),.18),transparent 60%),linear-gradient(160deg,#111114,#0A0A0D)">
+                    <div class="p-5 flex items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:var(--brand)">Creator Program</p>
+                            <h3 class="display text-2xl text-chalk">YOUR AMBASSADOR PORTAL</h3>
+                            <p class="text-muted text-xs mt-1">Paid creator dashboard — clicks, sign-ups, monthly earnings, message the team.</p>
+                        </div>
+                        <div class="shrink-0 text-brand font-bold text-sm flex items-center gap-1">
+                            Open
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </div>
+                </a>
+
                 <!-- Referral link card -->
                 <div class="card-panel fade-up-2">
                     <div class="sub-accent"></div>
@@ -1858,6 +1875,21 @@
                 $('tab-btn-messages').classList.remove('hidden');
                 $('tab-btn-admin').classList.remove('hidden');
             }
+
+            // Creator-program banner: reveal if user has an active creator row
+            (async () => {
+                try {
+                    let { data: cr } = await sb.from('creators').select('id,status').eq('user_id', user.id).limit(1);
+                    if (!cr || !cr.length) {
+                        const res = await sb.from('creators').select('id,status').ilike('email', user.email).limit(1);
+                        cr = res.data;
+                    }
+                    if (cr && cr.length && ['active','negotiating','responded'].includes(cr[0].status)) {
+                        const el = document.getElementById('creator-portal-banner');
+                        if (el) el.classList.remove('hidden');
+                    }
+                } catch {}
+            })();
 
             // First-time welcome banner: show if account < 10 minutes old
             const createdAt = new Date(user.created_at);

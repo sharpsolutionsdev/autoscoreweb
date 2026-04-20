@@ -4,6 +4,7 @@ Allow: /
 Disallow: /dartvoice-dashboard.html
 Disallow: /admin.html
 Disallow: /admin.js
+Disallow: /creator-portal.html
 Disallow: /outreach-server/
 Disallow: /prototypes/
 Disallow: /logs/
