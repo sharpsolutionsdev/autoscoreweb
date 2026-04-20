@@ -1,4 +1,17 @@
 // background.js — DartVoice extension service worker
+
+// First-install onboarding: open the welcome page on our site
+try {
+    chrome.runtime.onInstalled.addListener(function (details) {
+        if (details && details.reason === 'install') {
+            chrome.tabs.create({ url: 'https://dartvoice.app/welcome.html?src=ext_install' });
+        } else if (details && details.reason === 'update') {
+            // Optional: flag that an update happened so the web app can show a "what's new" toast
+            chrome.storage.local.set({ dv_last_update_at: Date.now(), dv_last_version: chrome.runtime.getManifest().version });
+        }
+    });
+} catch (e) { /* service worker may re-init; listener survives */ }
+
 var SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
 var DEMO_LIMIT_MS = 10 * 60 * 1000;

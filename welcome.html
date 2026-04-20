@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome to DartVoice</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --brand:#cc0b20; --brand-rgb:204,11,32; --ink:#F0F0F5; --bg:#05060a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:'Plus Jakarta Sans',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body { background:
+    radial-gradient(900px 600px at 85% -10%, rgba(var(--brand-rgb),.18), transparent 60%),
+    radial-gradient(900px 600px at 10% 110%, rgba(255,255,255,.05), transparent 60%),
+    var(--bg);
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; position:relative; z-index:1; }
+  header { display:flex; align-items:center; gap:10px; font-family:'Barlow Condensed',sans-serif; letter-spacing:.18em; font-weight:800; text-transform:uppercase; opacity:.9; }
+  header .dot { width:10px; height:10px; border-radius:50%; background:var(--brand); box-shadow:0 0 18px rgba(var(--brand-rgb),.9); animation:pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:.9} 50%{transform:scale(1.25);opacity:1} }
+
+  h1 { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size: clamp(44px, 7vw, 84px); line-height:1; margin:24px 0 10px; letter-spacing:-.01em; }
+  h1 .hi { color:var(--brand); }
+  .sub { font-size:17px; color:#b8b8c6; max-width:640px; }
+
+  .checklist { margin-top:36px; display:grid; gap:12px; }
+  .card { background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px 18px; display:flex; gap:14px; align-items:flex-start; opacity:0; transform: translateY(8px); animation: rise .6s ease-out forwards; }
+  .card:nth-child(1){ animation-delay:.15s } .card:nth-child(2){ animation-delay:.3s } .card:nth-child(3){ animation-delay:.45s } .card:nth-child(4){ animation-delay:.6s }
+  @keyframes rise { to{opacity:1;transform:none} }
+  .num { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; background: rgba(var(--brand-rgb),.18); color:var(--brand); font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:18px; border:1px solid rgba(var(--brand-rgb),.35); flex:0 0 34px; }
+  .card h3 { margin:0 0 4px; font-size:16px; font-weight:700; }
+  .card p { margin:0; color:#b8b8c6; font-size:14px; line-height:1.45; }
+
+  .cta-row { margin-top:36px; display:flex; gap:12px; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; gap:10px; padding:14px 20px; border-radius:12px; font-weight:700; text-decoration:none; border:1px solid transparent; cursor:pointer; font-size:15px; transition: transform .15s ease, box-shadow .25s ease, background .2s ease; }
+  .btn.primary { background:var(--brand); color:#fff; box-shadow:0 10px 30px rgba(var(--brand-rgb),.35); }
+  .btn.primary:hover { transform: translateY(-1px); box-shadow:0 14px 40px rgba(var(--brand-rgb),.5); }
+  .btn.ghost { background:transparent; color:var(--ink); border-color:rgba(255,255,255,.16); }
+  .btn.ghost:hover { background:rgba(255,255,255,.04); }
+
+  .status { margin-top:24px; font-size:13px; color:#8a8a9a; display:flex; gap:10px; align-items:center; }
+  .status .chip { padding:3px 10px; border-radius:999px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); font-family:'Barlow Condensed',sans-serif; letter-spacing:.15em; font-weight:700; font-size:11px; }
+  .status .chip.ok { color:#7ae582; border-color:rgba(122,229,130,.35); background:rgba(122,229,130,.08); }
+  .status .chip.warn { color:#ffb84d; border-color:rgba(255,184,77,.35); background:rgba(255,184,77,.08); }
+
+  .dart { position:fixed; inset:auto auto 0 0; pointer-events:none; z-index:0; opacity:.5; }
+  .dart svg { width:200px; height:auto; filter: drop-shadow(0 10px 20px rgba(0,0,0,.6)); animation: sway 6s ease-in-out infinite; }
+  @keyframes sway { 0%,100%{transform:translate(-10px,10px) rotate(-6deg)} 50%{transform:translate(0,0) rotate(-2deg)} }
+
+  footer { margin-top:60px; color:#6a6a78; font-size:12px; text-align:center; }
+  footer a { color:#b8b8c6; text-decoration:none; }
+  footer a:hover { color:#fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><span class="dot"></span> DARTVOICE LAUNCHPAD</header>
+  <h1>You're in. <span class="hi">Let's throw.</span></h1>
+  <p class="sub">The extension is installed. Follow the 3 steps below and you'll be voice-scoring in under a minute.</p>
+
+  <div class="checklist">
+    <div class="card"><div class="num">1</div><div><h3>Open the DartVoice web app</h3><p>Everything runs inside your browser at dartvoice.app &mdash; scorer, mic, and stats all in one place.</p></div></div>
+    <div class="card"><div class="num">2</div><div><h3>Sign in (or try the 10-min demo)</h3><p>New here? You get 10 minutes free, no card needed. Already a user? Your session will sync to the extension automatically.</p></div></div>
+    <div class="card"><div class="num">3</div><div><h3>Connect your scorer &amp; start calling</h3><p>Pick DartCounter (or Nakka) inside the app, grant mic permission, and call your throws &mdash; &ldquo;treble twenty, twenty, five&rdquo;.</p></div></div>
+    <div class="card"><div class="num">4</div><div><h3>Cam stays connected</h3><p>Navigation inside the scorer happens in-place so a connected camera never drops. You can move the overlay &mdash; position is remembered.</p></div></div>
+  </div>
+
+  <div class="cta-row">
+    <a class="btn primary" href="/web-app.html">Open the web app →</a>
+    <a class="btn ghost" href="/index.html">Back to home</a>
+  </div>
+
+  <div class="status">
+    <span class="chip" id="status-chip">CHECKING…</span>
+    <span id="status-text">Looking for a signed-in session&hellip;</span>
+  </div>
+</div>
+
+<div class="dart" aria-hidden="true">
+  <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#cc0b20"/><stop offset="1" stop-color="#5c0510"/></linearGradient></defs>
+    <polygon points="0,30 40,18 40,42" fill="#e8e8ee"/>
+    <rect x="40" y="22" width="90" height="16" rx="3" fill="url(#g)"/>
+    <polygon points="130,22 170,14 170,46 130,38" fill="#fff"/>
+    <polygon points="170,14 200,30 170,46" fill="#cc0b20"/>
+  </svg>
+</div>
+
+<footer>
+  DartVoice &middot; <a href="/privacy-policy.html">Privacy</a> &middot; <a href="/terms-of-service.html">Terms</a>
+</footer>
+
+<script>
+  // Light session probe — we don't ship a full supabase client here, just peek at localStorage
+  // set by the web app once the user signs in. If missing, nudge them to sign in.
+  (function(){
+    try {
+      var chip = document.getElementById('status-chip');
+      var text = document.getElementById('status-text');
+      var hit = false;
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i) || '';
+        if (/supabase|dartvoice/i.test(k)) { hit = true; break; }
+      }
+      if (hit) {
+        chip.textContent = 'CONNECTED';
+        chip.classList.add('ok');
+        text.textContent = 'We can see an existing DartVoice session. You\u2019re ready to throw.';
+      } else {
+        chip.textContent = 'SIGN IN NEXT';
+        chip.classList.add('warn');
+        text.textContent = 'No session yet \u2014 open the web app and sign in or start the demo.';
+      }
+    } catch(e){}
+  })();
+</script>
+</body>
+</html>

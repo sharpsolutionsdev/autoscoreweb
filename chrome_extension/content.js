@@ -195,6 +195,23 @@
   const isDartVoiceParent = window.location.href.includes('web-app.html') || window.location.href.includes('dartvoice-dashboard.html');
   const isIframe = window !== window.top;
 
+  // --- SECURITY GATE: only activate on dartcounter/nakka when framed by dartvoice.app ---
+  // Prevents the extension from adding UI / posting state when the user is on
+  // dartcounter.net directly (outside our web app). Keeps scope narrow and
+  // avoids leaking overlay / state handlers to unrelated tabs.
+  try {
+    const host = (location.hostname || '').toLowerCase();
+    const isScorerHost = /(^|\.)dartcounter\.net$/.test(host) || /(^|\.)nakka\.com$/.test(host);
+    if (isScorerHost) {
+      const refOk = /^https:\/\/(www\.)?dartvoice\.app(\/|$)/.test(document.referrer || '');
+      if (!isIframe || !refOk) {
+        // Not embedded by our web app — bail silently. Auth-bridge still runs on dartvoice.app.
+        window.__dartvoiceInjected = false;
+        return;
+      }
+    }
+  } catch(e) { return; }
+
   if (isDartVoiceParent) {
       logTrace("Detected DartVoice Dashboard. Disabling internal microphone to avoid conflicts.");
   }
@@ -969,12 +986,21 @@
 
     function detectCheckoutModal() {
       try {
-        // Any visible dialog with "double" / "finish" / "darts" text is likely the checkout prompt
-        const dlgs = document.querySelectorAll('[role="dialog"], .mat-mdc-dialog-container, .modal, [class*="checkout" i]');
+        const dlgs = document.querySelectorAll('[role="dialog"], .mat-mdc-dialog-container, .modal, [class*="checkout" i], [class*="finish" i]');
         for (const d of dlgs) {
           if (!d || !d.offsetParent) continue;
           const t = (d.innerText || '').toLowerCase();
-          if (/double|finish|checkout|darts at/.test(t) && /\bdart/.test(t)) {
+          const keyword = /(double|finish|checkout|darts?\s*(at|on|to)\s*(double|finish)|how many darts)/.test(t);
+          // Fallback: visible dialog with 1/2/3 buttons (checkout prompt layout)
+          let btns123 = false;
+          try {
+            const labels = Array.from(d.querySelectorAll('button, [role="button"]'))
+              .filter(b => b.offsetParent)
+              .map(b => (b.innerText || '').trim());
+            const has = n => labels.some(l => l === String(n) || new RegExp('^' + n + '\\b').test(l));
+            btns123 = has(1) && has(2) && has(3);
+          } catch {}
+          if (keyword || btns123) {
             return { visible: true, text: d.innerText.slice(0, 300) };
           }
         }
