@@ -65,15 +65,6 @@
     <!-- Components -->
     <script src="/components/dv-nav.js"></script>
     <script src="/components/dv-footer.js"></script>
-
-    <script>
-        // Capture referral code from URL and persist it for attribution during sign-up
-        const urlParams = new URLSearchParams(window.location.search);
-        const refCode = urlParams.get('ref');
-        if (refCode) {
-            sessionStorage.setItem('dv_ref_code', refCode);
-        }
-    </script>
 </head>
 
 <body class="antialiased overflow-x-hidden noise grid-bg-soft">

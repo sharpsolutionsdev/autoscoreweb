@@ -61,5 +61,17 @@ The UI/UX is functionally "Launch Ready." Focus should shift to deployment, back
   # PowerShell (run from project root)
   Get-ChildItem *.html | ForEach-Object { (Get-Content $_.FullName) -replace 'G-XXXXXXXXXX','G-YOUR_REAL_ID' | Set-Content $_.FullName }
   ```
-1
+
+## Gemini model selection and API-key safety
+
+- To use a specific Gemini/DeepMind model, set the `GEMINI_MODEL` environment variable to the exact model name provided by Google/DeepMind (for example `gemini-3-flash-preview`). The Java sample will read this and use it. If `GEMINI_MODEL` is not set, the sample defaults to `gemini-3-flash-preview`.
+
+- Security: Do not paste or commit your `GEMINI_API_KEY` into chat, issue trackers, or public repositories. If you have accidentally shared a key (for example in this chat), rotate/revoke it immediately in the Google Cloud Console / AI Studio API keys page.
+
+PowerShell quick example
+```powershell
+$env:GEMINI_API_KEY = "YOUR_KEY_HERE"
+$env:GEMINI_MODEL = "gemini-3-flash-preview"  # change to the model you have access to
+./gradlew run
+```
 
