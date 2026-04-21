@@ -35,7 +35,7 @@
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/specific/index.css">
-    <script>!function(){var h=localStorage.getItem('dv-theme-hex');if(h){document.documentElement.style.setProperty('--brand',h)}}()</script>
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+','+g+','+b);var L=function(c){return Math.min(255,c+Math.round((255-c)*.12))};var lr=L(r),lg=L(g),lb=L(b);s.setProperty('--brand-light','#'+[lr,lg,lb].map(function(c){return c.toString(16).padStart(2,'0')}).join(''))}()</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -65,6 +65,15 @@
     <!-- Components -->
     <script src="/components/dv-nav.js"></script>
     <script src="/components/dv-footer.js"></script>
+
+    <script>
+        // Capture referral code from URL and persist it for attribution during sign-up
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        if (refCode) {
+            sessionStorage.setItem('dv_ref_code', refCode);
+        }
+    </script>
 </head>
 
 <body class="antialiased overflow-x-hidden noise grid-bg-soft">
@@ -92,19 +101,31 @@
                     class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
                 <a href="#how-it-works" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">How It Works</a>
                 <a href="#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
-                <a href="guide" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
                 <a href="web-app" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1.5">
                     <img src="dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded" style="image-rendering:auto;">
                     Web App
                     <span class="flex h-2 w-2 relative -top-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span></span>
                 </a>
-                <a href="referral"
-                    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>
-                    Ambassador
-                </a>
+                <!-- More dropdown -->
+                <div class="relative group" id="nav-more">
+                    <button type="button" id="nav-more-btn"
+                        class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1"
+                        aria-haspopup="true" aria-expanded="false">
+                        More
+                        <svg class="w-3 h-3 transition-transform group-hover:rotate-180" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div id="nav-more-menu"
+                        class="absolute right-0 top-full mt-1 min-w-[180px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
+                        <a href="guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
+                        <a href="referral" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ambassador
+                        </a>
+                        <a href="contact" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Contact</a>
+                    </div>
+                </div>
             </div>
             <div id="nav-auth-desktop" class="hidden sm:flex items-center gap-3 ml-2">
+                <div data-dv-currency-mount></div>
                 <a href="dartvoice-dashboard"
                     class="text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
@@ -150,6 +171,8 @@
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
                 </a>
+                <a href="contact" onclick="closeMobMenu()"
+                    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Contact</a>
                 <a href="dartvoice-dashboard"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
@@ -184,6 +207,10 @@
             <source src="assets/media/soundwaves-highspeed.mp4" type="video/mp4">
         </video>
 
+        <!-- Floating blur accent orbs (from prototype flourishes) -->
+        <div class="float-orb" style="width:380px; height:380px; top:-80px; left:-120px;"></div>
+        <div class="float-orb dim" style="width:260px; height:260px; bottom:-60px; right:10%; animation-delay:-4s;"></div>
+
         <!-- Dartboard decorative BG -->
         <div class="board-deco" style="right:-120px; top:50%; transform:translateY(-50%);">
             <svg viewBox="0 0 500 500" width="560" height="560" class="text-wire board-spin">
@@ -210,6 +237,7 @@
             </svg>
         </div>
 
+        <!-- ═══ Cinematic dart strike intro (plays once on load) ═══ -->
         <div class="max-w-6xl mx-auto px-5 relative">
             <div class="grid md:grid-cols-1 lg:grid-cols-[1fr_520px] gap-12 lg:gap-8 items-center">
 
@@ -267,7 +295,7 @@
                     </div>
 
                     <p class="text-muted-2 text-xs fade-up-5">Live 10-min demo &middot; then 7-day free trial &middot;
-                        &pound;6.99/mo after &middot; Cancel anytime</p>
+                        <span class="dv-price" data-gbp="6.99" data-suffix="/mo">&pound;6.99/mo</span> after &middot; Cancel anytime</p>
 
                     <div class="fade-up-5 mt-4 flex flex-wrap items-center gap-2.5">
                         <span class="text-[10px] font-bold tracking-widest text-muted uppercase">Platforms</span>
@@ -332,8 +360,8 @@
                             <p class="text-muted text-xs mt-0.5">Scoring modes</p>
                         </div>
                         <div>
-                            <p class="display text-3xl not-italic text-chalk">8</p>
-                            <p class="text-muted text-xs mt-0.5">Players supported</p>
+                            <p class="display text-3xl not-italic text-brand neon-text">100%</p>
+                            <p class="text-muted text-xs mt-0.5">Hands-free</p>
                         </div>
                         <div>
                             <p class="display text-3xl not-italic text-brand">0ms</p>
@@ -415,9 +443,20 @@ style="background: radial-gradient(ellipse at center top, rgba(var(--brand-rgb),
                                     <p class="relative font-black text-[52px] leading-none text-white mb-2"
                                         style="text-shadow: 0 0 30px rgba(var(--brand-rgb), 0.7);">
                                         60</p>
-                                    <div class="relative flex items-center gap-1 mb-3">
+                                    <div class="relative flex items-center gap-1 mb-2">
                                         <div class="w-1.5 h-1.5 rounded-full bg-green-500 pulse-dot"></div>
                                         <span class="text-[7px] text-green-400 font-medium">Sent 1</span>
+                                    </div>
+                                    <!-- Mini Live Checkout strip -->
+                                    <div class="relative w-full max-w-[150px] mb-2">
+                                        <p class="text-[6px] font-bold tracking-widest text-brand uppercase mb-0.5 text-center">Live Checkout · 170</p>
+                                        <div class="flex items-center gap-0.5 justify-center">
+                                            <span class="text-[7px] px-1 py-0.5 rounded text-white/80 font-bold" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08)">T20</span>
+                                            <span class="text-white/30 text-[6px]">›</span>
+                                            <span class="text-[7px] px-1 py-0.5 rounded text-white/80 font-bold" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08)">T18</span>
+                                            <span class="text-white/30 text-[6px]">›</span>
+                                            <span class="text-[7px] px-1 py-0.5 rounded text-white font-bold" style="background:var(--brand)">D28</span>
+                                        </div>
                                     </div>
                                     <!-- Stop Listening button -->
                                     <div class="relative w-full max-w-[140px] py-2 rounded-lg text-center"
@@ -465,7 +504,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
 
                     <!-- Floating 180 card -->
                     <div class="absolute -top-4 right-10 sm:right-16 lg:right-auto lg:left-[280px] z-20 w-28 sm:w-32"
-                        style="animation: fadeUp 0.7s 0.4s ease-out both">
+                        style="animation: fadeUp 0.7s 0.4s ease-out both, floatSlow 7s ease-in-out 1s infinite">
                         <div class="rounded-2xl p-3 sm:p-4 text-center relative overflow-hidden shadow-2xl"
                             style="background: linear-gradient(160deg, #1A0608, #111114); border: 1.5px solid var(--brand); box-shadow: 0 0 30px rgba(var(--brand-rgb), 0.25)">
                             <div class="absolute inset-0"
@@ -573,23 +612,32 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         </div>
                     </div>
 
-                    <!-- Floating checkout card -->
-                    <div class="absolute -bottom-2 -right-2 sm:-right-8 lg:-right-12 z-20 w-36"
-                        style="animation: fadeUp 0.7s 0.5s ease-out both">
+                    <!-- Floating Live Checkout card -->
+                    <div class="absolute -bottom-2 -right-2 sm:-right-8 lg:-right-12 z-20 w-44"
+                        style="animation: fadeUp 0.7s 0.5s ease-out both, floatSlow 8s ease-in-out 1.5s infinite reverse">
                         <div class="rounded-2xl p-3.5 relative overflow-hidden shadow-2xl"
-                            style="background: #111114; border: 1px solid #252530;">
+                            style="background: #111114; border: 1px solid rgba(var(--brand-rgb), 0.35); box-shadow: 0 0 25px rgba(var(--brand-rgb), 0.15)">
                             <div class="glass-glare"></div>
                             <div class="data-stream"></div>
-                            <p class="text-[9px] font-bold tracking-[0.2em] text-muted mb-1.5 uppercase">Checkout</p>
-                            <div class="flex gap-1.5 mb-1">
-                                <span
-                                    class="bg-card-2 border border-wire text-chalk text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center">T20</span>
-                                <span
-                                    class="bg-card-2 border border-wire text-chalk text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center">T19</span>
-                                <span class="text-white text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center"
-                                    style="background: rgba(var(--brand-rgb), 0.8)">D16</span>
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-[9px] font-bold tracking-[0.2em] text-brand uppercase flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-brand pulse-dot inline-block"></span>
+                                    Live Checkout
+                                </p>
+                                <span class="text-[8px] text-muted2 font-medium">170</span>
                             </div>
-                            <p class="text-[9px] text-muted">167 remaining</p>
+                            <div class="flex items-center gap-1">
+                                <span class="bg-card-2 border border-wire text-chalk text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center">T20</span>
+                                <svg viewBox="0 0 10 10" class="w-2.5 h-2.5 text-muted2 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2l4 3-4 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <span class="bg-card-2 border border-wire text-chalk text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center">T18</span>
+                                <svg viewBox="0 0 10 10" class="w-2.5 h-2.5 text-muted2 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2l4 3-4 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <span class="text-white text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center"
+                                    style="background: var(--brand); box-shadow: 0 0 10px rgba(var(--brand-rgb), 0.5)">D28</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-2 border-t border-wire/40">
+                                <span class="text-[8px] text-muted uppercase tracking-wider">Per-Dart Math</span>
+                                <span class="text-[9px] text-brand font-bold">3 darts</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -888,6 +936,140 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
 
             </div>
         </div>
+    </section>
+
+    <!-- ━━━ SCORER STUDIO SHOWCASE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="scorer-studio" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
+      <style>
+        .ss-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .ss-head { text-align:center; margin-bottom: 48px; }
+        .ss-eyebrow { display:inline-block; font-family:'Barlow Condensed',sans-serif; font-weight:800; letter-spacing:.22em; font-size:11px; color:#CC0B20; text-transform:uppercase; margin-bottom:12px; }
+        .ss-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size: clamp(32px, 5vw, 56px); line-height:1; letter-spacing:-.01em; }
+        .ss-title .accent { color:#CC0B20; }
+        .ss-sub { max-width: 620px; margin: 14px auto 0; color:#9E9EB0; font-size:16px; }
+        .ss-grid { display:grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 18px; align-items: stretch; }
+        @media (max-width: 900px) { .ss-grid { grid-template-columns: 1fr; } }
+        .ss-card { background: linear-gradient(180deg, #0D0D10, #07070a); border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+        .ss-panel-title { display:flex; justify-content:space-between; align-items:center; font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.05em; font-size: 18px; margin-bottom: 14px; }
+        .ss-panel-title .tag { font-size:9px; padding:3px 8px; border-radius:999px; background:rgba(204,11,32,.12); color:#CC0B20; border:1px solid rgba(204,11,32,.3); letter-spacing:.14em; font-weight:700; }
+
+        .ss-mini { display:flex; flex-direction:column; gap:10px; }
+        .ss-mini-row { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; opacity:0; transform: translateY(6px); transition: opacity .5s ease, transform .5s ease; }
+        .ss-mini-row.show { opacity:1; transform:none; }
+        .ss-mini-row .k { font-family:'Barlow Condensed',sans-serif; letter-spacing:.15em; font-size:10px; color:#6E6E82; text-transform:uppercase; font-weight:700; }
+        .ss-mini-row .v { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:20px; color:#fff; }
+        .ss-mini-row .v.brand { color:#CC0B20; }
+
+        .ss-mic { background: linear-gradient(135deg, rgba(204,11,32,.08), transparent); border: 1px solid rgba(204,11,32,.25); border-radius:14px; padding:14px; margin-top:4px; }
+        .ss-mic-label { font-family:'Barlow Condensed',sans-serif; letter-spacing:.2em; font-size:10px; color:#CC0B20; font-weight:800; }
+        .ss-mic-bar { margin-top:8px; height: 6px; background: rgba(255,255,255,.06); border-radius:999px; overflow:hidden; }
+        .ss-mic-fill { height:100%; width:30%; background: linear-gradient(90deg, #CC0B20, #ff4d66); border-radius:999px; animation: ssMic 1.8s ease-in-out infinite; }
+        @keyframes ssMic { 0%,100%{ width:18%; } 40%{ width:72%; } 70%{ width:44%; } }
+        .ss-mic-quote { margin-top:10px; font-size:13px; color:#F0F0F5; font-style:italic; opacity:0; animation: ssQuote 6s ease-in-out infinite; }
+        @keyframes ssQuote { 0%,12%,88%,100%{opacity:0} 25%,75%{opacity:1} }
+
+        .ss-scores { display:flex; gap:8px; margin-top:4px; }
+        .ss-score { flex:1; text-align:center; background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:8px 4px; }
+        .ss-score .n { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px; color:#fff; }
+        .ss-score.low .n { color:#6E6E82; }
+        .ss-score.hi  .n { color:#CC0B20; }
+        .ss-score .l { font-size:9px; letter-spacing:.18em; color:#4A4A5A; text-transform:uppercase; font-weight:700; }
+
+        .ss-stage { position:relative; overflow:hidden; min-height: 440px; display:flex; align-items:center; justify-content:center; background: radial-gradient(900px 400px at 80% -10%, rgba(204,11,32,.18), transparent 55%), #0a0a0e; }
+        .ss-stage-inner { width:100%; height:100%; padding: 26px; display:flex; flex-direction:column; gap: 18px; }
+        .ss-stage h3 { font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.08em; font-size:22px; }
+        .ss-board { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+        .ss-board .card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; }
+        .ss-board .card .t { font-size:10px; letter-spacing:.2em; color:#6E6E82; font-weight:700; text-transform:uppercase; }
+        .ss-board .card .v { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size: 36px; color:#fff; margin-top:6px; }
+        .ss-board .card.hi .v { color:#CC0B20; }
+        .ss-flow { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top: 6px; }
+        .ss-flow .step { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:14px; position:relative; overflow:hidden; }
+        .ss-flow .step h4 { font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.06em; font-size:16px; margin-bottom: 6px; }
+        .ss-flow .step p { font-size:12px; color:#9E9EB0; line-height:1.45; }
+        .ss-flow .step .num { position:absolute; top:8px; right:10px; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size: 34px; color: rgba(204,11,32,.15); }
+        .ss-flow .step .glow { position:absolute; bottom:-30px; right:-30px; width:90px; height:90px; border-radius:50%; background: radial-gradient(circle, rgba(204,11,32,.25), transparent 70%); }
+        .ss-cta { display:flex; gap:10px; justify-content:center; margin-top:36px; }
+        .ss-btn { padding: 13px 22px; border-radius: 12px; font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:.08em; text-decoration:none; border: 1px solid transparent; transition: transform .15s ease, box-shadow .25s ease, background .15s ease; display:inline-flex; align-items:center; gap:8px; }
+        .ss-btn.primary { background:#CC0B20; color:#fff; box-shadow: 0 12px 36px rgba(204,11,32,.4); }
+        .ss-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 16px 50px rgba(204,11,32,.55); }
+        .ss-btn.ghost { background: transparent; color:#F0F0F5; border-color: rgba(255,255,255,.14); }
+        .ss-btn.ghost:hover { background: rgba(255,255,255,.04); }
+      </style>
+
+      <div class="ss-wrap">
+        <div class="ss-head reveal">
+          <span class="ss-eyebrow">Scorer Studio</span>
+          <h2 class="ss-title">Your scorer, <span class="accent">your voice</span>,<br>one clean surface.</h2>
+          <p class="ss-sub">A single dashboard: your scorer runs in the middle, your camera stays connected, and DartVoice turns your call-outs into scores on the left.</p>
+        </div>
+
+        <div class="ss-grid reveal">
+          <!-- Left: mini scorer-studio sidebar mock -->
+          <div class="ss-card">
+            <div class="ss-panel-title">Dashboard <span class="tag">LIVE</span></div>
+
+            <div class="ss-mic">
+              <div class="ss-mic-label">Listening</div>
+              <div class="ss-mic-bar"><div class="ss-mic-fill"></div></div>
+              <div class="ss-mic-quote">&ldquo;treble twenty, twenty, five&rdquo;</div>
+            </div>
+
+            <div class="ss-mini" style="margin-top:14px;" id="ss-mini-list">
+              <div class="ss-mini-row"><span class="k">Player</span><span class="v">Reuben</span></div>
+              <div class="ss-mini-row"><span class="k">Mode</span><span class="v">501</span></div>
+              <div class="ss-mini-row"><span class="k">Remaining</span><span class="v brand">326</span></div>
+              <div class="ss-mini-row"><span class="k">Avg</span><span class="v">62.1</span></div>
+            </div>
+
+            <div style="font-size:9px;letter-spacing:.2em;color:#4A4A5A;text-transform:uppercase;font-weight:700;margin-top:14px;">Last 3 scores</div>
+            <div class="ss-scores">
+              <div class="ss-score low"><div class="n">30</div><div class="l">3 legs ago</div></div>
+              <div class="ss-score"><div class="n">85</div><div class="l">2 legs ago</div></div>
+              <div class="ss-score hi"><div class="n">140</div><div class="l">last</div></div>
+            </div>
+          </div>
+
+          <!-- Right: stage -->
+          <div class="ss-card ss-stage">
+            <div class="ss-stage-inner">
+              <h3>LIVE GAME · 501 · DOUBLE OUT</h3>
+              <div class="ss-board">
+                <div class="card"><div class="t">Remaining</div><div class="v" style="color:#CC0B20;">326</div></div>
+                <div class="card"><div class="t">Checkout</div><div class="v">T20 · T20 · D3</div></div>
+                <div class="card hi"><div class="t">Last score</div><div class="v">140</div></div>
+                <div class="card"><div class="t">Darts at double</div><div class="v">?</div></div>
+              </div>
+              <div class="ss-flow">
+                <div class="step"><span class="num">1</span><h4>Call it</h4><p>Say your throw naturally — treble, single, bull, or shorthand like T20.</p><span class="glow"></span></div>
+                <div class="step"><span class="num">2</span><h4>See it</h4><p>Scores land in DartCounter instantly; remaining, checkouts and averages stay in sync.</p><span class="glow"></span></div>
+                <div class="step"><span class="num">3</span><h4>Close it</h4><p>On checkouts we ask &ldquo;how many darts at double?&rdquo; — one tap and stats are perfect.</p><span class="glow"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ss-cta reveal">
+          <a href="web-app.html" class="ss-btn primary">Try Scorer Studio →</a>
+          <a href="#features" class="ss-btn ghost">See features</a>
+        </div>
+      </div>
+
+      <script>
+        (function(){
+          var rows = document.querySelectorAll('#ss-mini-list .ss-mini-row');
+          var io = new IntersectionObserver(function(es){
+            es.forEach(function(e){
+              if (e.isIntersecting) {
+                rows.forEach(function(r,i){ setTimeout(function(){ r.classList.add('show'); }, i*120); });
+                io.disconnect();
+              }
+            });
+          }, { threshold: 0.3 });
+          var list = document.getElementById('ss-mini-list');
+          if (list) io.observe(list);
+        })();
+      </script>
     </section>
 
     <!-- ━━━ LIFESTYLE PHOTO STRIP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
@@ -1724,12 +1906,23 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     </section>
 
     <!-- ━━━ PRICING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section id="pricing" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
-        <div class="max-w-5xl mx-auto px-5">
+    <section id="pricing" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.06] pointer-events-none"
+            style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.85);">
+            <source src="assets/media/slow-pulse.mp4" type="video/mp4">
+        </video>
+        <div class="float-orb dim" style="width:420px; height:420px; top:-100px; right:-140px;"></div>
+        <div class="float-orb dim" style="width:280px; height:280px; bottom:10%; left:-80px; animation-delay:-6s;"></div>
+        <div class="max-w-5xl mx-auto px-5 relative">
             <div class="text-center mb-12 reveal">
                 <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Pricing</p>
                 <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 text-chalk">CHOOSE YOUR PLAN.</h2>
                 <p class="text-muted text-sm">Everything included on every plan. Just pick your billing cycle.</p>
+                <div class="mt-5 flex items-center justify-center gap-2">
+                    <span class="text-[10px] text-muted-2 font-bold uppercase tracking-widest">Show prices in</span>
+                    <div data-dv-currency-mount></div>
+                </div>
+                <p class="text-[10px] text-muted-2 mt-2 opacity-70">Displayed in your currency &middot; billed in local currency at checkout via Stripe</p>
             </div>
 
             <!-- Competitor comparison row -->
@@ -1815,7 +2008,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     <div class="mb-6">
                         <p class="text-[9px] font-bold tracking-[0.3em] text-muted uppercase mb-4">Monthly</p>
                         <div class="flex items-baseline gap-1.5 mb-1">
-                            <span class="display text-5xl sm:text-6xl not-italic text-chalk">&pound;6.99</span>
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk dv-price" data-gbp="6.99">&pound;6.99</span>
                             <span class="text-muted text-sm">/mo</span>
                         </div>
                         <p class="text-muted-2 text-xs text-brand font-bold">Earn &pound;5.00 per referral</p>
@@ -1878,11 +2071,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     <div class="mb-6 mt-2">
                         <p class="text-[9px] font-bold tracking-[0.3em] text-brand uppercase mb-4">6-Month</p>
                         <div class="flex items-baseline gap-1.5 mb-1">
-                            <span class="display text-5xl sm:text-6xl not-italic text-chalk neon-white">&pound;34.99</span>
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk neon-white dv-price" data-gbp="34.99">&pound;34.99</span>
                             <span class="text-muted text-sm">/6mo</span>
                         </div>
                         <div class="flex items-center gap-2 mt-1">
-                            <p class="text-muted-2 text-xs">That&rsquo;s &pound;5.83/mo</p>
+                            <p class="text-muted-2 text-xs">That&rsquo;s <span class="dv-price" data-gbp="5.83">&pound;5.83</span>/mo</p>
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold"
                                 style="background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.2);">SAVE 17%</span>
                         </div>
@@ -1925,7 +2118,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                             <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(34,197,94,0.15)">
                                 <svg viewBox="0 0 24 24" width="10" height="10" stroke="#22c55e" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
-                            <span class="text-chalk/80 font-semibold">Save &pound;6.95 vs monthly</span>
+                            <span class="text-chalk/80 font-semibold">Save <span class="dv-price" data-gbp="6.95">&pound;6.95</span> vs monthly</span>
                         </div>
                     </div>
 
@@ -1935,7 +2128,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         style="box-shadow: 0 0 25px rgba(var(--brand-rgb), 0.35);">
                         Start 7-Day Free Trial
                     </a>
-                    <p class="text-muted-2 text-[10px] text-center mt-2">Then &pound;34.99 every 6 months</p>
+                    <p class="text-muted-2 text-[10px] text-center mt-2">Then <span class="dv-price" data-gbp="34.99">&pound;34.99</span> every 6 months</p>
                 </div>
 
                 <!-- PLAN 3: 12-Month (BEST VALUE) -->
@@ -1952,11 +2145,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     <div class="mb-6 mt-2">
                         <p class="text-[9px] font-bold tracking-[0.3em] text-muted uppercase mb-4">12-Month</p>
                         <div class="flex items-baseline gap-1.5 mb-1">
-                            <span class="display text-5xl sm:text-6xl not-italic text-chalk">&pound;59.99</span>
+                            <span class="display text-5xl sm:text-6xl not-italic text-chalk dv-price" data-gbp="59.99">&pound;59.99</span>
                             <span class="text-muted text-sm">/yr</span>
                         </div>
                         <div class="flex items-center gap-2 mt-1">
-                            <p class="text-muted-2 text-xs">That&rsquo;s &pound;5.00/mo</p>
+                            <p class="text-muted-2 text-xs">That&rsquo;s <span class="dv-price" data-gbp="5.00">&pound;5.00</span>/mo</p>
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold"
                                 style="background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.2);">SAVE 28%</span>
                         </div>
@@ -1999,7 +2192,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                             <div class="w-4 h-4 rounded flex items-center justify-center shrink-0" style="background: rgba(34,197,94,0.15)">
                                 <svg viewBox="0 0 24 24" width="10" height="10" stroke="#22c55e" stroke-width="3" fill="none"><polyline points="20 6 9 17 4 12" /></svg>
                             </div>
-                            <span class="text-chalk/80 font-semibold">Save &pound;23.89 vs monthly</span>
+                            <span class="text-chalk/80 font-semibold">Save <span class="dv-price" data-gbp="23.89">&pound;23.89</span> vs monthly</span>
                         </div>
                     </div>
 
@@ -2008,7 +2201,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         class="btn-brand block text-center py-3 rounded-xl font-semibold text-sm text-white relative z-10">
                         Start 7-Day Free Trial
                     </a>
-                    <p class="text-muted-2 text-[10px] text-center mt-2">Then &pound;59.99 every 12 months</p>
+                    <p class="text-muted-2 text-[10px] text-center mt-2">Then <span class="dv-price" data-gbp="59.99">&pound;59.99</span> every 12 months</p>
                 </div>
 
             </div>
@@ -2045,8 +2238,13 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     </div>
 
     <!-- ━━━ FAQ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section id="faq" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
-        <div class="max-w-2xl mx-auto px-5">
+    <section id="faq" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.05] pointer-events-none"
+            style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.8);">
+            <source src="assets/media/mic-focus.mp4" type="video/mp4">
+        </video>
+        <div class="float-orb dim" style="width:320px; height:320px; top:20%; left:-100px; animation-delay:-2s;"></div>
+        <div class="max-w-2xl mx-auto px-5 relative">
             <div class="text-center mb-14 reveal">
                 <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">FAQ</p>
                 <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl  text-chalk">GOT QUESTIONS?</h2>
@@ -2077,7 +2275,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         </svg>
                     </div>
                     <div class="faq-answer text-muted text-sm leading-relaxed">
-                        After your trial ends, your subscription begins at &pound;6.99/month. You can cancel anytime
+                        After your trial ends, your subscription begins at <span class="dv-price" data-gbp="6.99" data-suffix="/month">&pound;6.99/month</span>. You can cancel anytime
                         from your dashboard — no questions asked, no hidden fees.
                     </div>
                 </div>
@@ -2127,8 +2325,14 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     </section>
 
     <!-- ━━━ AMBASSADOR / REFERRAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section id="ambassador" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
-        <div class="max-w-6xl mx-auto px-5">
+    <section id="ambassador" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.05] pointer-events-none"
+            style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
+            <source src="assets/media/glowing-dot.mp4" type="video/mp4">
+        </video>
+        <div class="conic-burst"></div>
+        <div class="float-orb" style="width:340px; height:340px; top:-80px; left:30%;"></div>
+        <div class="max-w-6xl mx-auto px-5 relative">
 
             <div class="grid lg:grid-cols-2 gap-16 items-center">
 
@@ -2145,10 +2349,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         <span class="text-brand">GET £5 CASH.</span>
                     </h2>
                     <p class="text-muted mb-6 leading-relaxed max-w-lg">
-                        Share your referral link in darts groups. Your mates get a <strong class="text-chalk">30-day
-                            free trial</strong> instead of 7. When they subscribe, we pay you <strong
+                        Share your referral link in darts groups. Your mates get a <strong class="text-chalk">7-day
+                            free trial</strong>. When they subscribe, we pay you <strong
                             class="text-chalk">£5 cash via PayPal</strong>. No limit.
                     </p>
+                    <p class="text-muted mb-4 max-w-lg">Use the DartVoice web app or Chrome extension to share your link and track referral progress in real time from your dashboard.</p>
                     <ul class="space-y-3 mb-8">
                         <li class="flex items-center gap-3 text-sm text-chalk/80">
                             <svg class="w-4 h-4 text-brand shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -2205,8 +2410,8 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                         <div class="h-0.5 bg-brand"></div>
                         <div class="px-6 py-5 border-b border-wire flex items-center justify-between">
                             <div>
-                                <p class="text-[10px] text-muted uppercase tracking-widest mb-0.5">Ambassador Hub</p>
-                                <p class="text-xs text-muted2">lukedarts99</p>
+                                <p class="text-[10px] text-muted uppercase tracking-widest mb-0.5">Ambassador Hub <span class="text-muted2 opacity-60">(example)</span></p>
+                                <p class="text-xs text-muted2">yourname</p>
                             </div>
                             <div
                                 class="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1">
@@ -2220,7 +2425,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                                 <p class="text-[10px] text-muted uppercase tracking-widest mb-2">Your Referral Link</p>
                                 <div class="bg-dark border border-wire rounded-xl p-3 flex items-center gap-3">
                                     <code
-                                        class="text-sm text-chalk/60 flex-1 font-mono truncate">dartvoice.app/ref/lukedarts99</code>
+                                        class="text-sm text-chalk/60 flex-1 font-mono truncate">dartvoice.app/ref/yourname</code>
                                     <span
                                         class="shrink-0 border border-wire rounded-lg px-3 py-1 text-xs font-semibold text-muted">Copy</span>
                                 </div>
@@ -2386,7 +2591,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     Open Dashboard
                 </a>
             </div>
-            <p class="text-muted-2 text-xs mt-4 relative">10 min demo &middot; 7 days free &middot; &pound;6.99/mo after
+            <p class="text-muted-2 text-xs mt-4 relative">10 min demo &middot; 7 days free &middot; <span class="dv-price" data-gbp="6.99" data-suffix="/mo">&pound;6.99/mo</span> after
                 &middot; Cancel anytime</p>
 
             <!-- Animated waveform under CTA -->
@@ -2493,6 +2698,9 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                           '<span class="text-xs text-muted truncate max-w-[160px]">' + esc(email) + '</span>' +
                           '<a href="' + ctaHref + '" class="' + ctaBtn + '">' + ctaText + '</a>' +
                           '<button onclick="dvSignOut()" class="text-xs text-muted hover:text-chalk transition px-2 py-1.5 rounded-lg hover:bg-wire/30">Sign Out</button>';
+                      var curMount = document.createElement('div');
+                      curMount.setAttribute('data-dv-currency-mount','');
+                      desktopEl.insertBefore(curMount, desktopEl.firstChild);
                   }
 
                   // Mobile
@@ -2504,6 +2712,10 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                               '<a href="' + ctaHref + '" class="' + ctaBtn + ' text-center">' + ctaText + '</a>' +
                               '<button onclick="dvSignOut()" class="btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk">Sign Out</button>' +
                           '</div>';
+                      var mCurMount = document.createElement('div');
+                      mCurMount.setAttribute('data-dv-currency-mount','');
+                      mCurMount.className = 'flex justify-center mt-3';
+                      mobileEl.appendChild(mCurMount);
                   }
         }
 
@@ -2514,6 +2726,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     </script>
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
+    <script src="dv-currency.js"></script>
 </body>
 
 </html>
