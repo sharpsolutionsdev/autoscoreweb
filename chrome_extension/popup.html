@@ -153,6 +153,23 @@
     }
     .btn-secondary:hover { background: rgba(37,37,48,0.8); }
 
+    /* Small variant for inline controls */
+    .btn-sm { padding: 8px 10px; font-size: 11px; border-radius: 8px; width: auto; }
+    .ext-clock { font-family: 'Plus Jakarta Sans', ui-monospace, 'SFMono-Regular', Menlo, Monaco, 'Roboto Mono', monospace; font-size:11px; color:#aaabbb; background: rgba(255,255,255,0.02); padding:4px 8px; border-radius:8px; border:1px solid rgba(255,255,255,0.03); }
+
+    /* Tabs */
+    .tabs { display:flex; gap:8px; margin-bottom: 10px; }
+    .tab { background: transparent; color: #aaabbb; border: none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:12px; }
+    .tab.active { color: #fff; background: rgba(204,11,32,0.12); box-shadow: 0 6px 18px rgba(0,0,0,0.45); border:1px solid rgba(204,11,32,0.08); }
+
+    /* Live game / checkout card */
+    .live-game { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; border:1px solid rgba(255,255,255,0.04); padding:12px; margin-bottom:12px; animation: dv-fadeUp .35s ease both; }
+    @keyframes dv-fadeUp { from { opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+    .live-game .checkout { display:flex; flex-direction:column; gap:8px; padding:12px; background: linear-gradient(90deg, rgba(204,11,32,0.06), rgba(0,0,0,0.03)); border-radius:10px; box-shadow: 0 6px 18px rgba(204,11,32,0.06); }
+    .live-game .price { font-size:20px; font-weight:900; color:#fff; }
+    .live-game .pulse { width:10px; height:10px; border-radius:50%; background:#7AE582; box-shadow:0 0 8px #7AE582; animation: dv-pulse 1.6s infinite; }
+    @keyframes dv-pulse { 0% { transform:scale(.9); opacity:.8 } 50% { transform:scale(1.2); opacity:1 } 100% { transform:scale(.9); opacity:.8 } }
+
     /* ── Lockout ── */
     .lockout { text-align: center; padding: 20px 10px; }
     .lockout-icon { font-size: 36px; margin-bottom: 10px; }
@@ -183,7 +200,16 @@
   <div class="content">
     <div class="brand">
       <h1>DART<span class="red">VOICE</span></h1>
-      <span class="version" id="ext-version">Launchpad</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="btn btn-secondary btn-sm" id="btn-reorder-layout">Reorder Layout</button>
+        <span class="version" id="ext-version">Launchpad</span>
+        <span id="ext-clock" class="ext-clock" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Popup Tabs">
+      <button class="tab active" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="live">Live Game</button>
     </div>
 
     <div class="status-row" id="status-row">
@@ -233,6 +259,27 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Launch Overlay
       </button>
+    </div>
+
+    <!-- ── Live game tab (hidden by default) ── -->
+    <div id="live-game" class="hidden live-game">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="pulse"></div>
+          <div style="font-weight:800">Live Game</div>
+        </div>
+        <div style="font-size:11px; color:#aaabbb">Checkout ready</div>
+      </div>
+      <div class="checkout">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:12px; color:#aaabbb">Live Checkout</div>
+            <div class="price">£5.00</div>
+          </div>
+          <button class="btn btn-primary" id="btn-live-checkout">Pay Now</button>
+        </div>
+        <div style="font-size:12px; color:#9da0a6">Auto-detect finish & prompt quick checkout.</div>
+      </div>
     </div>
 
     <!-- ── Lockout view ── -->

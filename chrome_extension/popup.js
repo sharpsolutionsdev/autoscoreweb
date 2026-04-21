@@ -177,3 +177,100 @@ loadMics();
 render();
 chrome.runtime.sendMessage({ type: 'DV_CHECK_SUB' });
 
+// ── Tabs + Live Game + Reorder control ──────────────────────────────────────
+const btnReorder = document.getElementById('btn-reorder-layout');
+const liveGame = document.getElementById('live-game');
+const tabs = document.querySelectorAll('.tab');
+const btnLiveCheckout = document.getElementById('btn-live-checkout');
+
+// Reorder timeout + state
+const REORDER_DURATION_MS = 30 * 1000;
+let reorderTimerId = null;
+let reorderIntervalId = null;
+let reorderRemaining = 0;
+let lastReorderTabId = null;
+
+if (tabs && tabs.length) {
+    tabs.forEach(function(t){
+        t.addEventListener('click', function(){
+            tabs.forEach(function(x){ x.classList.remove('active'); });
+            t.classList.add('active');
+            const name = t.dataset.tab;
+            if (name === 'live') {
+                if (viewNormal) viewNormal.classList.add('hidden');
+                if (viewLockout) viewLockout.classList.add('hidden');
+                if (liveGame) liveGame.classList.remove('hidden');
+            } else {
+                if (liveGame) liveGame.classList.add('hidden');
+                render();
+            }
+        });
+    });
+}
+
+if (btnReorder) {
+    btnReorder.addEventListener('click', async function(){
+        const tabsArr = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tab = tabsArr && tabsArr[0]; if (!tab) return;
+        const enabling = !btnReorder.classList.contains('active');
+
+        // If enabling, start countdown display and auto-disable; if disabling, cancel timers.
+        if (enabling) {
+            btnReorder.classList.add('active');
+            lastReorderTabId = tab.id;
+            reorderRemaining = Math.floor(REORDER_DURATION_MS / 1000);
+            btnReorder.textContent = 'Reorder: ON (' + reorderRemaining + 's)';
+            try { chrome.tabs.sendMessage(tab.id, { type: 'DV_SET_REORDER', enable: true, duration: REORDER_DURATION_MS }); } catch(e) {}
+            // update countdown every second
+            reorderIntervalId = setInterval(function(){
+                reorderRemaining -= 1;
+                if (reorderRemaining <= 0) {
+                    btnReorder.textContent = 'Reorder Layout';
+                    clearInterval(reorderIntervalId); reorderIntervalId = null;
+                } else {
+                    btnReorder.textContent = 'Reorder: ON (' + reorderRemaining + 's)';
+                }
+            }, 1000);
+            // auto-disable after duration
+            reorderTimerId = setTimeout(function(){
+                btnReorder.classList.remove('active');
+                btnReorder.textContent = 'Reorder Layout';
+                try { if (lastReorderTabId) chrome.tabs.sendMessage(lastReorderTabId, { type: 'DV_SET_REORDER', enable: false }); } catch(e) {}
+                if (reorderIntervalId) { clearInterval(reorderIntervalId); reorderIntervalId = null; }
+                reorderTimerId = null; lastReorderTabId = null;
+            }, REORDER_DURATION_MS);
+        } else {
+            // manual disable
+            btnReorder.classList.remove('active');
+            btnReorder.textContent = 'Reorder Layout';
+            try { chrome.tabs.sendMessage(tab.id, { type: 'DV_SET_REORDER', enable: false }); } catch(e) {}
+            if (reorderTimerId) { clearTimeout(reorderTimerId); reorderTimerId = null; }
+            if (reorderIntervalId) { clearInterval(reorderIntervalId); reorderIntervalId = null; }
+            lastReorderTabId = null;
+        }
+    });
+}
+
+// Digital clock in popup header
+function updateClock() {
+    try {
+        var el = document.getElementById('ext-clock');
+        if (!el) return;
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2,'0');
+        var mm = String(now.getMinutes()).padStart(2,'0');
+        var ss = String(now.getSeconds()).padStart(2,'0');
+        el.textContent = hh + ':' + mm + ':' + ss;
+    } catch (e) {}
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+if (btnLiveCheckout) {
+    btnLiveCheckout.addEventListener('click', function(){
+        const b = this; const orig = b.textContent; b.disabled = true; b.textContent = 'Processing…';
+        setTimeout(function(){ b.textContent = 'Paid ✓'; b.classList.add('btn-secondary'); }, 900);
+        setTimeout(function(){ b.textContent = orig; b.disabled = false; b.classList.remove('btn-secondary'); }, 2800);
+    });
+}
+

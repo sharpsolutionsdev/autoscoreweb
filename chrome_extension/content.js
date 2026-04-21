@@ -225,6 +225,12 @@
   container.style.top = '20px';
   container.style.right = '20px';
   container.style.zIndex = '2147483646';
+  // Whether the overlay may be dragged/reordered. Disabled by default —
+  // the popup can toggle this to avoid accidental layout changes when
+  // interacting with page sliders or UI.
+  let overlayReorderEnabled = false;
+  // Timer used to auto-disable reorder mode if the popup closes or forgets to turn it off.
+  let overlayReorderTimer = null;
   const shadow = container.attachShadow({ mode: 'open' });
   if (document.body) {
     document.body.appendChild(container);
@@ -250,6 +256,11 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
+    }
+    .dv-reorder-active {
+      border-style: dashed; border-width: 1px; border-color: rgba(204,11,32,0.28);
+      box-shadow: 0 8px 28px rgba(204,11,32,0.06), inset 0 1px 0 rgba(255,255,255,0.02);
+    }
     .header {
       display: flex;
       justify-content: space-between;
@@ -927,7 +938,9 @@
 
   let isDragging = false, startX, startY, initialX, initialY;
   panel.addEventListener('mousedown', (e) => {
-    if (e.target.tagName === 'BUTTON' || e.target.className === 'close-btn') return;
+    // Only enter drag/reorder mode when explicitly enabled by the popup.
+    if (!overlayReorderEnabled) return;
+    if (e.target && (e.target.tagName === 'BUTTON' || (e.target.className && String(e.target.className).indexOf('close-btn') !== -1))) return;
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
@@ -1208,20 +1221,36 @@
             // 3) scan for ion-icon name="videocam*", 4) last-resort fallback: click any button
             // whose enclosed SVG 'use' / path hints at a camera.
             let el = document.querySelector(
-              '[data-testid="camera-setup"], [data-testid*="camera" i],' +
+              'app-control-camera-icon, app-control-camera-icon span, [data-testid="camera-setup"], [data-testid*="camera" i],' +
               ' a[href*="camera"], button[aria-label*="amera" i], button[title*="amera" i],' +
               ' ion-button[aria-label*="amera" i], button[class*="camera" i], ion-button[class*="camera" i]'
             );
             if (!el) {
               const candidates = document.querySelectorAll('button, a, ion-button, [role="button"]');
-              for (const c of candidates) {
+                for (const c of candidates) {
                 if (!c.offsetParent) continue;
                 const label = ((c.getAttribute('aria-label') || '') + ' ' + (c.getAttribute('title') || '') + ' ' + (c.textContent || '')).toLowerCase();
                 if (/\bcamera\b/.test(label)) { el = c; break; }
-                if (c.querySelector('ion-icon[name*="videocam" i], ion-icon[name*="camera" i], [class*="videocam" i], [class*="camera-icon" i]')) { el = c; break; }
+                if (c.querySelector('app-control-camera-icon, app-control-camera-icon span, ion-icon[name*="videocam" i], ion-icon[name*="camera" i], [class*="videocam" i], [class*="camera-icon" i]')) { el = c; break; }
               }
             }
-            if (el) { el.click(); logTrace('DV_ACTION camera: clicked ' + (el.tagName || '') + (el.className ? '.' + String(el.className).split(' ')[0] : '')); }
+            if (el) {
+              try { el.click(); } catch (e) { }
+              try {
+                // Try clicking inner actionable elements (custom elements often wrap a button/span)
+                const inner = (typeof el.querySelector === 'function') && (el.querySelector('button, a, ion-button, app-icon, span, div') || el.querySelector('*'));
+                if (inner && inner !== el) {
+                  try { inner.click(); } catch (e) { }
+                }
+                // Dispatch pointer/mouse events as a last-resort to trigger listeners
+                try {
+                  el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+                  el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
+                  el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                } catch (e) { }
+              } catch (e) { }
+              logTrace('DV_ACTION camera: clicked ' + (el.tagName || '') + (el.className ? '.' + String(el.className).split(' ')[0] : ''));
+            }
             else logTrace('DV_ACTION camera: no matching element');
           }
         } catch (e) { logTrace('DV_ACTION failed: ' + e.message); }
@@ -1253,6 +1282,30 @@
           else hideLockout();
         }
         sendResponse({ ok: true });
+        return;
+      }
+      // Toggle overlay reorder/dragging mode — controlled from popup UI.
+      if (msg.type === 'DV_SET_REORDER' || msg.type === 'DV_TOGGLE_REORDER') {
+        try {
+          overlayReorderEnabled = !!msg.enable;
+          container.classList.toggle('dv-reorder-active', overlayReorderEnabled);
+          // Clear any existing auto-disable timer
+          try { if (overlayReorderTimer) { clearTimeout(overlayReorderTimer); overlayReorderTimer = null; } } catch (e) {}
+          // If popup requested a duration, set an auto-disable to avoid leaving reorder on indefinitely
+          const duration = (typeof msg.duration === 'number' && msg.duration > 0) ? msg.duration : 0;
+          if (overlayReorderEnabled && duration > 0) {
+            try {
+              overlayReorderTimer = setTimeout(() => {
+                overlayReorderEnabled = false;
+                try { container.classList.remove('dv-reorder-active'); } catch (e) {}
+                overlayReorderTimer = null;
+                logTrace('Overlay reorder auto-disabled after timeout');
+              }, duration);
+            } catch (e) { overlayReorderTimer = null; }
+          }
+        } catch (e) {}
+        try { sendResponse({ ok: true, enabled: overlayReorderEnabled }); } catch (e) {}
+        return;
       }
     });
   } catch (e) { }
