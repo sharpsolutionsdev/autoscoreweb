@@ -2020,6 +2020,13 @@
             const name = ($('input-display-name')?.value || '').trim();
             const btn = $('btn-save-profile');
             const msg = $('profile-save-msg');
+            if (!_ambUserId) {
+                msg.textContent = 'Not signed in yet — try refreshing the page.';
+                msg.className = 'text-xs text-center text-red-400';
+                msg.classList.remove('hidden');
+                setTimeout(() => msg.classList.add('hidden'), 3000);
+                return;
+            }
 
             btn.disabled = true;
             btn.textContent = 'Saving\u2026';
@@ -2032,7 +2039,8 @@
             btn.textContent = 'Save Profile';
 
             if (error) {
-                msg.textContent = 'Failed to save. Try again.';
+                console.error('Save profile error:', error);
+                msg.textContent = 'Failed to save: ' + (error.message || 'Try again.');
                 msg.className = 'text-xs text-center text-red-400';
             } else {
                 msg.textContent = '\u2713 Profile saved.';
@@ -2683,6 +2691,32 @@
         (async function init() {
             const { data: { session } } = await sb.auth.getSession();
             if (session?.user) {
+                // If the user landed via a referral link, preserve it even when
+                // the session is already present on page load. This handles the
+                // case where the SIGNED_IN auth event has already fired before
+                // the dashboard script runs.
+                const preservedRef = sessionStorage.getItem('dv_ref_code');
+                if (preservedRef) {
+                    try {
+                        sessionStorage.removeItem('dv_ref_code');
+                        const { data: referrer } = await sb.from('dartvoice_profiles')
+                            .select('id')
+                            .eq('referral_code', preservedRef)
+                            .maybeSingle();
+                        if (referrer && referrer.id !== session.user.id) {
+                            await sb.from('dartvoice_referrals').insert({
+                                referrer_user_id: referrer.id,
+                                referred_user_id: session.user.id,
+                                referred_email: session.user.email,
+                                ref_code: preservedRef,
+                                status: 'signed_up',
+                            }).select();
+                        }
+                    } catch (e) {
+                        console.warn('Referral apply error:', e?.message || e);
+                    }
+                }
+
                 // Auto-open Stripe checkout after sign-up flow (popup so user stays on dashboard)
                 const _params = new URLSearchParams(window.location.search);
                 if (_params.get('subscribe') === '1') {
@@ -2726,7 +2760,7 @@
                                 referrer_user_id: referrer.id,
                                 referred_user_id: session.user.id,
                                 referred_email: session.user.email,
-                                referral_code: refCode,
+                                ref_code: refCode,
                                 status: 'signed_up',
                             }).select(); // ignore duplicate key error silently
                         }
