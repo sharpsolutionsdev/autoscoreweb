@@ -1216,33 +1216,30 @@
         try {
           if (action === 'camera') {
             // DartCounter renders the activation dialog via <app-activate-camera-dialog>.
-            // The trigger is a toolbar button with a videocam icon; it has no stable test-id.
-            // Strategy: 1) direct attributes, 2) scan buttons/anchors for "camera" aria/title/text,
-            // 3) scan for ion-icon name="videocam*", 4) last-resort fallback: click any button
-            // whose enclosed SVG 'use' / path hints at a camera.
-            let el = document.querySelector(
-              'app-control-camera-icon, app-control-camera-icon span, [data-testid="camera-setup"], [data-testid*="camera" i],' +
-              ' a[href*="camera"], button[aria-label*="amera" i], button[title*="amera" i],' +
-              ' ion-button[aria-label*="amera" i], button[class*="camera" i], ion-button[class*="camera" i]'
-            );
-            if (!el) {
-              const candidates = document.querySelectorAll('button, a, ion-button, [role="button"]');
+            // Trigger may not be in the DOM yet on cold boots — if the first scan misses,
+            // MutationObserver watches for up to 3 s and clicks as soon as it appears.
+            const findCameraBtn = () => {
+              let el = document.querySelector(
+                'app-control-camera-icon, app-control-camera-icon span, [data-testid="camera-setup"], [data-testid*="camera" i],' +
+                ' a[href*="camera"], button[aria-label*="amera" i], button[title*="amera" i],' +
+                ' ion-button[aria-label*="amera" i], button[class*="camera" i], ion-button[class*="camera" i]'
+              );
+              if (!el) {
+                const candidates = document.querySelectorAll('button, a, ion-button, [role="button"]');
                 for (const c of candidates) {
-                if (!c.offsetParent) continue;
-                const label = ((c.getAttribute('aria-label') || '') + ' ' + (c.getAttribute('title') || '') + ' ' + (c.textContent || '')).toLowerCase();
-                if (/\bcamera\b/.test(label)) { el = c; break; }
-                if (c.querySelector('app-control-camera-icon, app-control-camera-icon span, ion-icon[name*="videocam" i], ion-icon[name*="camera" i], [class*="videocam" i], [class*="camera-icon" i]')) { el = c; break; }
+                  if (!c.offsetParent) continue;
+                  const label = ((c.getAttribute('aria-label') || '') + ' ' + (c.getAttribute('title') || '') + ' ' + (c.textContent || '')).toLowerCase();
+                  if (/\bcamera\b/.test(label)) { el = c; break; }
+                  if (c.querySelector('app-control-camera-icon, app-control-camera-icon span, ion-icon[name*="videocam" i], ion-icon[name*="camera" i], [class*="videocam" i], [class*="camera-icon" i]')) { el = c; break; }
+                }
               }
-            }
-            if (el) {
+              return el;
+            };
+            const clickIt = (el) => {
               try { el.click(); } catch (e) { }
               try {
-                // Try clicking inner actionable elements (custom elements often wrap a button/span)
                 const inner = (typeof el.querySelector === 'function') && (el.querySelector('button, a, ion-button, app-icon, span, div') || el.querySelector('*'));
-                if (inner && inner !== el) {
-                  try { inner.click(); } catch (e) { }
-                }
-                // Dispatch pointer/mouse events as a last-resort to trigger listeners
+                if (inner && inner !== el) { try { inner.click(); } catch (e) { } }
                 try {
                   el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
                   el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
@@ -1250,8 +1247,20 @@
                 } catch (e) { }
               } catch (e) { }
               logTrace('DV_ACTION camera: clicked ' + (el.tagName || '') + (el.className ? '.' + String(el.className).split(' ')[0] : ''));
+            };
+            let el = findCameraBtn();
+            if (el) { clickIt(el); }
+            else {
+              logTrace('DV_ACTION camera: not in DOM yet, waiting via MutationObserver...');
+              let done = false;
+              const mo = new MutationObserver(() => {
+                if (done) return;
+                const found = findCameraBtn();
+                if (found) { done = true; mo.disconnect(); clickIt(found); }
+              });
+              mo.observe(document.body || document.documentElement, { childList: true, subtree: true });
+              setTimeout(() => { if (!done) { mo.disconnect(); logTrace('DV_ACTION camera: observer timed out (3s)'); } }, 3000);
             }
-            else logTrace('DV_ACTION camera: no matching element');
           }
         } catch (e) { logTrace('DV_ACTION failed: ' + e.message); }
       }

@@ -909,11 +909,12 @@
                     </div>
                     </div>
                 <!-- LIVE GAME (populated by DartVoice extension from the iframe) -->
-                <div id="dv-live-panel" class="hud-card p-3 mb-4 border border-white/5 flex-shrink-0" style="display:none;">
+                <div id="dv-live-panel" class="hud-card p-3 mb-4 border border-white/5 flex-shrink-0" style="display:none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: linear-gradient(180deg, rgba(204,11,32,.06), rgba(255,255,255,.015));">
                     <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-2 flex items-center gap-2">
                         <span id="dv-live-dot" style="width:8px;height:8px;border-radius:50%;background:#7ae582;box-shadow:0 0 8px rgba(122,229,130,.7);display:inline-block;"></span>
                         Live Game
-                        <span id="dv-live-mode" class="ml-auto text-[9px] text-gray-500 font-semibold tracking-[0.15em]"></span>
+                        <span id="dv-clock" class="ml-auto text-[10px] text-gray-400 font-mono tabular-nums tracking-[0.05em]" style="letter-spacing:0.05em;" title="Click to toggle 12/24h">--:--</span>
+                        <span id="dv-live-mode" class="text-[9px] text-gray-500 font-semibold tracking-[0.15em]"></span>
                     </h3>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -3783,43 +3784,27 @@ window.openScorerUrl = function(url){
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
     <script>
-        /* Reorderable sidebar cards — drag-to-rearrange with localStorage persistence. */
+        /* Opt-in reorderable sidebar cards — toggle pill turns drag mode on,
+           "Done" button (or ESC) commits and persists to localStorage.
+           Drag is off by default so normal clicks/scrolling aren't hijacked. */
         (function(){
             const LS_KEY = 'dv-sidebar-order-v1';
+            const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             function cardKey(el){
                 if (el.id) return 'id:' + el.id;
                 const h = el.querySelector('h3,h2');
                 return 'h:' + ((h && h.textContent.trim().slice(0,40)) || Math.random().toString(36).slice(2,8));
             }
             function init(){
-                // Scope to the sidebar (find the first element matching our left-panel container)
                 const sidebar = document.querySelector('aside, .sidebar, #sidebar, [data-role="sidebar"]')
                     || document.querySelector('.scorer-studio-sidebar')
                     || (document.getElementById('dv-live-panel') && document.getElementById('dv-live-panel').parentElement);
                 if (!sidebar) return;
                 const cards = Array.from(sidebar.querySelectorAll(':scope > .hud-card, :scope .hud-card.mb-4')).filter(el => !el.dataset.reorderSkip);
                 if (!cards.length) return;
-                cards.forEach(c => {
-                    c.dataset.reorderKey = cardKey(c);
-                    c.setAttribute('draggable','true');
-                    c.style.cursor = 'grab';
-                    c.addEventListener('dragstart', e => { c.style.opacity = '.55'; e.dataTransfer.setData('text/plain', c.dataset.reorderKey); e.dataTransfer.effectAllowed = 'move'; });
-                    c.addEventListener('dragend', () => { c.style.opacity = ''; persist(); });
-                    c.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-                    c.addEventListener('drop', e => {
-                        e.preventDefault();
-                        const fromKey = e.dataTransfer.getData('text/plain');
-                        const from = cards.find(x => x.dataset.reorderKey === fromKey);
-                        if (from && from !== c) c.parentNode.insertBefore(from, c);
-                    });
-                });
-                function persist(){
-                    try {
-                        const order = Array.from(sidebar.children).filter(n => n.classList && n.classList.contains('hud-card')).map(n => n.dataset.reorderKey).filter(Boolean);
-                        localStorage.setItem(LS_KEY, JSON.stringify(order));
-                    } catch {}
-                }
-                // Restore saved order
+                cards.forEach(c => { c.dataset.reorderKey = cardKey(c); });
+
+                // Restore saved order BEFORE wiring drag
                 try {
                     const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
                     if (saved.length) {
@@ -3827,8 +3812,100 @@ window.openScorerUrl = function(url){
                         saved.forEach(k => { const n = map.get(k); if (n) sidebar.appendChild(n); });
                     }
                 } catch {}
+
+                // Toggle pill (top-right of sidebar)
+                const toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.id = 'dv-reorder-toggle';
+                toggle.textContent = 'Reorder';
+                toggle.style.cssText = 'position:sticky;top:0;align-self:flex-end;z-index:30;margin:0 0 8px auto;padding:4px 10px;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#aaa;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:999px;cursor:pointer;' + (REDUCED ? '' : 'transition:all .2s ease;');
+                sidebar.insertBefore(toggle, sidebar.firstChild);
+
+                let on = false;
+                function setMode(next){
+                    on = next;
+                    toggle.textContent = on ? '✓ Done' : 'Reorder';
+                    toggle.style.color = on ? '#fff' : '#aaa';
+                    toggle.style.background = on ? 'rgba(204,11,32,.18)' : 'rgba(255,255,255,.04)';
+                    toggle.style.borderColor = on ? 'rgba(204,11,32,.45)' : 'rgba(255,255,255,.08)';
+                    cards.forEach(c => {
+                        if (on) {
+                            c.setAttribute('draggable','true');
+                            c.style.cursor = 'grab';
+                            c.style.outline = '1px dashed rgba(204,11,32,.35)';
+                            c.style.outlineOffset = '2px';
+                        } else {
+                            c.removeAttribute('draggable');
+                            c.style.cursor = '';
+                            c.style.outline = '';
+                            c.style.outlineOffset = '';
+                        }
+                    });
+                    if (!on) persist();
+                }
+                toggle.addEventListener('click', () => setMode(!on));
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && on) setMode(false); });
+
+                cards.forEach(c => {
+                    c.addEventListener('dragstart', e => {
+                        if (!on) { e.preventDefault(); return; }
+                        c.style.opacity = '.55';
+                        e.dataTransfer.setData('text/plain', c.dataset.reorderKey);
+                        e.dataTransfer.effectAllowed = 'move';
+                    });
+                    c.addEventListener('dragend', () => { c.style.opacity = ''; });
+                    c.addEventListener('dragover', e => { if (!on) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+                    c.addEventListener('drop', e => {
+                        if (!on) return;
+                        e.preventDefault();
+                        const fromKey = e.dataTransfer.getData('text/plain');
+                        const from = cards.find(x => x.dataset.reorderKey === fromKey);
+                        if (from && from !== c) c.parentNode.insertBefore(from, c);
+                    });
+                });
+
+                function persist(){
+                    try {
+                        const order = Array.from(sidebar.children).filter(n => n.classList && n.classList.contains('hud-card')).map(n => n.dataset.reorderKey).filter(Boolean);
+                        localStorage.setItem(LS_KEY, JSON.stringify(order));
+                    } catch {}
+                }
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+            /* Digital clock in live-panel header. Click to toggle 12/24h. */
+            (function clockInit(){
+                function tick(){
+                    const el = document.getElementById('dv-clock');
+                    if (!el) return;
+                    const d = new Date();
+                    const h24 = localStorage.getItem('dv-clock-24h') !== '0';
+                    let h = d.getHours();
+                    const m = String(d.getMinutes()).padStart(2,'0');
+                    const s = String(d.getSeconds()).padStart(2,'0');
+                    if (h24) el.textContent = String(h).padStart(2,'0') + ':' + m + ':' + s;
+                    else {
+                        const ap = h >= 12 ? 'PM' : 'AM';
+                        h = h % 12 || 12;
+                        el.textContent = String(h).padStart(2,'0') + ':' + m + ' ' + ap;
+                    }
+                }
+                function bind(){
+                    const el = document.getElementById('dv-clock');
+                    if (el && !el.dataset.bound) {
+                        el.dataset.bound = '1';
+                        el.style.cursor = 'pointer';
+                        el.addEventListener('click', () => {
+                            const cur = localStorage.getItem('dv-clock-24h') !== '0';
+                            localStorage.setItem('dv-clock-24h', cur ? '0' : '1');
+                            tick();
+                        });
+                    }
+                }
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bind(); tick(); });
+                else { bind(); tick(); }
+                setInterval(() => { bind(); tick(); }, 1000);
+            })();
         })();
     </script>
 </body>

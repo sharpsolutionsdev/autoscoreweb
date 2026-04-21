@@ -2020,20 +2020,34 @@
             const name = ($('input-display-name')?.value || '').trim();
             const btn = $('btn-save-profile');
             const msg = $('profile-save-msg');
-            if (!_ambUserId) {
-                msg.textContent = 'Not signed in yet — try refreshing the page.';
+
+            // Race fix: verify live session BEFORE trusting the cached _ambUserId.
+            // Previously, if the module-scoped auth hadn't resolved yet we'd PATCH
+            // with a stale/undefined id and get a silent 403 from RLS.
+            const { data: sessData, error: sessErr } = await sb.auth.getSession();
+            const liveUserId = sessData?.session?.user?.id || null;
+            if (sessErr || !liveUserId) {
+                console.warn('[saveProfile] no live session', { sessErr, hasCached: !!_ambUserId });
+                msg.textContent = 'Session expired — please sign in again.';
                 msg.className = 'text-xs text-center text-red-400';
                 msg.classList.remove('hidden');
-                setTimeout(() => msg.classList.add('hidden'), 3000);
+                setTimeout(() => msg.classList.add('hidden'), 4000);
                 return;
+            }
+            if (!_ambUserId) _ambUserId = liveUserId;
+            if (_ambUserId !== liveUserId) {
+                console.warn('[saveProfile] cached id != live id, correcting', { cached: _ambUserId, live: liveUserId });
+                _ambUserId = liveUserId;
             }
 
             btn.disabled = true;
             btn.textContent = 'Saving\u2026';
 
+            const t0 = performance.now();
             const { error } = await sb.from('dartvoice_profiles')
                 .update({ display_name: name || null })
                 .eq('id', _ambUserId);
+            console.info('[saveProfile] update', { ok: !error, ms: Math.round(performance.now()-t0), err: error?.message });
 
             btn.disabled = false;
             btn.textContent = 'Save Profile';
@@ -2704,13 +2718,14 @@
                             .eq('referral_code', preservedRef)
                             .maybeSingle();
                             if (referrer && referrer.id !== session.user.id) {
-                            await sb.from('dartvoice_referrals').insert({
+                            const _ref = await sb.from('dartvoice_referrals').insert({
                                 referrer_user_id: referrer.id,
                                 referred_user_id: session.user.id,
                                 referred_email: session.user.email,
                                 referral_code: preservedRef,
                                 status: 'signed_up',
                             }).select();
+                            console.info('[referral/preserved]', { ok: !_ref.error, code: preservedRef, err: _ref.error?.message, dupe: _ref.error?.code === '23505' });
                         }
                     } catch (e) {
                         console.warn('Referral apply error:', e?.message || e);
@@ -2756,13 +2771,14 @@
                             .eq('referral_code', refCode)
                             .maybeSingle();
                         if (referrer && referrer.id !== session.user.id) {
-                            await sb.from('dartvoice_referrals').insert({
+                            const _ref2 = await sb.from('dartvoice_referrals').insert({
                                 referrer_user_id: referrer.id,
                                 referred_user_id: session.user.id,
                                 referred_email: session.user.email,
                                 referral_code: refCode,
                                 status: 'signed_up',
                             }).select(); // ignore duplicate key error silently
+                            console.info('[referral/signed_in]', { ok: !_ref2.error, code: refCode, err: _ref2.error?.message, dupe: _ref2.error?.code === '23505' });
                         }
                     }
                 } else if (event === 'SIGNED_OUT') {
