@@ -2703,12 +2703,12 @@
                             .select('id')
                             .eq('referral_code', preservedRef)
                             .maybeSingle();
-                        if (referrer && referrer.id !== session.user.id) {
+                            if (referrer && referrer.id !== session.user.id) {
                             await sb.from('dartvoice_referrals').insert({
                                 referrer_user_id: referrer.id,
                                 referred_user_id: session.user.id,
                                 referred_email: session.user.email,
-                                ref_code: preservedRef,
+                                referral_code: preservedRef,
                                 status: 'signed_up',
                             }).select();
                         }
@@ -2760,7 +2760,7 @@
                                 referrer_user_id: referrer.id,
                                 referred_user_id: session.user.id,
                                 referred_email: session.user.email,
-                                ref_code: refCode,
+                                referral_code: refCode,
                                 status: 'signed_up',
                             }).select(); // ignore duplicate key error silently
                         }
