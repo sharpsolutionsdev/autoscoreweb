@@ -1666,6 +1666,38 @@
         const show = id => $(id).classList.remove('hidden');
         const hide = id => $(id).classList.add('hidden');
 
+        /**
+         * Call the server-side referral-upsert Edge Function.
+         * Idempotent — safe to call multiple times for the same user.
+         * Returns {ok, action} where action∈{created,duplicate,error,skipped}.
+         */
+        async function dvUpsertReferral(refCode, userId, email) {
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session) return { ok: false, action: 'error', msg: 'no session' };
+                const resp = await fetch(SUPABASE_URL + '/functions/v1/referral-upsert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'apikey': SUPABASE_KEY
+                    },
+                    body: JSON.stringify({
+                        referral_code: refCode,
+                        referred_user_id: userId,
+                        referred_email: email
+                    })
+                });
+                const body = await resp.json().catch(() => ({}));
+                const ok = resp.ok;
+                console.info('[referral/upsert]', { ok, status: resp.status, ...body });
+                return { ok, action: body.action || (ok ? 'created' : 'error'), msg: body.error };
+            } catch (e) {
+                console.warn('[referral/upsert] fetch error', e?.message || e);
+                return { ok: false, action: 'error', msg: e?.message };
+            }
+        }
+
         function showView(name) {
             ['view-loading', 'view-auth', 'view-dashboard'].forEach(v => hide(v));
             show('view-' + name);
@@ -2718,14 +2750,7 @@
                             .eq('referral_code', preservedRef)
                             .maybeSingle();
                             if (referrer && referrer.id !== session.user.id) {
-                            const _ref = await sb.from('dartvoice_referrals').insert({
-                                referrer_user_id: referrer.id,
-                                referred_user_id: session.user.id,
-                                referred_email: session.user.email,
-                                referral_code: preservedRef,
-                                status: 'signed_up',
-                            }).select();
-                            console.info('[referral/preserved]', { ok: !_ref.error, code: preservedRef, err: _ref.error?.message, dupe: _ref.error?.code === '23505' });
+                            await dvUpsertReferral(preservedRef, session.user.id, session.user.email);
                         }
                     } catch (e) {
                         console.warn('Referral apply error:', e?.message || e);
@@ -2771,14 +2796,7 @@
                             .eq('referral_code', refCode)
                             .maybeSingle();
                         if (referrer && referrer.id !== session.user.id) {
-                            const _ref2 = await sb.from('dartvoice_referrals').insert({
-                                referrer_user_id: referrer.id,
-                                referred_user_id: session.user.id,
-                                referred_email: session.user.email,
-                                referral_code: refCode,
-                                status: 'signed_up',
-                            }).select(); // ignore duplicate key error silently
-                            console.info('[referral/signed_in]', { ok: !_ref2.error, code: refCode, err: _ref2.error?.message, dupe: _ref2.error?.code === '23505' });
+                            await dvUpsertReferral(refCode, session.user.id, session.user.email);
                         }
                     }
                 } else if (event === 'SIGNED_OUT') {
