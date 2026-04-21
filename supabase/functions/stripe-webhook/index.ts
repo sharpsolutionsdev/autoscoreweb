@@ -187,6 +187,51 @@ const payload = new Uint8Array(await req.arrayBuffer());
     return { skipped: false };
   }
 
+  async function handleReferralConversion(userId: string, status: string | null) {
+    if (!userId || !status) return;
+
+    // 1. Get referral code from sub record
+    const { data: sub } = await sbAdmin
+      .from("dartvoice_subscriptions")
+      .select("referred_by_code")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const code = sub?.referred_by_code;
+    if (!code) return;
+
+    // 2. Map Stripe status to our referral status lifecycle
+    let newStatus: string | null = null;
+    if (status === "trialing") newStatus = "trial_active";
+    else if (status === "active") newStatus = "converted";
+
+    if (!newStatus) return;
+
+    // 3. Update the matching referral record
+    const updateData: any = { status: newStatus };
+    if (newStatus === "converted") updateData.converted_at = new Date().toISOString();
+
+    console.log(`Referral Conversion: User ${userId} [${status}] -> Status ${newStatus} using code ${code}`);
+
+    const { error } = await sbAdmin
+      .from("dartvoice_referrals")
+      .update(updateData)
+      .match({ referral_code: code, referred_user_id: userId })
+      .is("rewarded_at", null);
+
+    if (error) {
+      // Fallback: try matching by email if referred_user_id wasn't set yet
+      const { data: existingSub } = await sbAdmin.from("dartvoice_subscriptions").select("email").eq("user_id", userId).single();
+      if (existingSub?.email) {
+        await sbAdmin
+          .from("dartvoice_referrals")
+          .update(updateData)
+          .match({ referral_code: code, referred_email: existingSub.email })
+          .is("rewarded_at", null);
+      }
+    }
+  }
+
   async function setSubscribedAtIfActive(
     userId: string,
     status: string | null,
@@ -248,6 +293,8 @@ const payload = new Uint8Array(await req.arrayBuffer());
       if (userId) await setSubscribedAtIfActive(userId, status, row);
 
       await upsertSubscription(row);
+      if (userId) await handleReferralConversion(userId, status);
+      
       return ok({ received: true, handled: "checkout.session.completed" });
     }
 
@@ -283,6 +330,7 @@ const payload = new Uint8Array(await req.arrayBuffer());
       if (userId) await setSubscribedAtIfActive(userId, status, row);
 
       await upsertSubscription(row);
+      if (userId) await handleReferralConversion(userId, status);
       return ok({ received: true, handled: etype });
     }
 
@@ -335,6 +383,7 @@ const payload = new Uint8Array(await req.arrayBuffer());
       if (userId) await setSubscribedAtIfActive(userId, status, row);
 
       await upsertSubscription(row);
+      if (userId) await handleReferralConversion(userId, status);
       return ok({ received: true, handled: etype });
     }
 

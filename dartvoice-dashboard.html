@@ -1946,7 +1946,7 @@
             // Fetch subscription + profile in parallel
             let [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
-                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name').eq('id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number').eq('id', user.id).maybeSingle(),
             ]);
 
             // Fallback: if no sub in DB, check Stripe directly via edge function
@@ -1999,7 +1999,7 @@
             if (!displayName) $('profile-nudge').classList.remove('hidden');
 
             // Populate profile tab
-            populateProfileTab(user.email, displayName, sub);
+            populateProfileTab(user.email, displayName, sub, profile?.phone_number);
 
             renderSubscription(sub, user.id);
         }
@@ -2011,10 +2011,11 @@
             });
         }
 
-        function populateProfileTab(email, displayName, sub) {
+        function populateProfileTab(email, displayName, sub, phoneNumber) {
             $('profile-email-show').textContent = email;
             $('profile-email-footer').textContent = email;
             $('input-display-name').value = displayName;
+            $('input-phone').value = phoneNumber || '';
             $('profile-display-name-show').textContent = displayName || email.split('@')[0];
             updateAvatarPreview();
 
@@ -2077,7 +2078,10 @@
 
             const t0 = performance.now();
             const { error } = await sb.from('dartvoice_profiles')
-                .update({ display_name: name || null })
+                .update({ 
+                    display_name: name || null,
+                    phone_number: ($('input-phone')?.value || '').trim() || null
+                })
                 .eq('id', _ambUserId);
             console.info('[saveProfile] update', { ok: !error, ms: Math.round(performance.now()-t0), err: error?.message });
 

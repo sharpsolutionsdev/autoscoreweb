@@ -1,16 +1,16 @@
 # DartVoice Live-Game UI + Outreach Hardening TODO
 *Status: Approved by user. Executing step-by-step.*
 
-## 1. Database Migration [ ]
+## 1. Database Migration [x]
 - Create `supabase/migrations/012_claim_outreach_job.sql`
 
-## 2. QA Tools [ ]
+## 2. QA Tools [x]
 - Create `tools/test-checkout.js`
 
-## 3. Web App UI Updates [ ]
+## 3. Web App UI Updates [x]
 - Update `web-app.html`: CSS, HTML placeholders, JS handlers + remove legacy
 
-## 4. Extension Bridge [ ]
+## 4. Extension Bridge [x]
 - Update `chrome_extension/content.js`: Enhanced score observer
 
 ## 5. Outreach Worker [ ]
@@ -18,7 +18,7 @@
 - Update `outreach-server/src/index.js`: RPC loop + retry
 
 ## 6. Extension Packaging Prep [ ]
-- Verify manifest v2.1.4 + run PowerShell zip
+- Verify manifest v2.1.6 + run PowerShell zip
 
 ## 7. Test & Deploy [ ]
 - Apply Supabase migration
@@ -27,4 +27,4 @@
 - `node tools/test-checkout.js`
 - Zip + CWS upload
 
-**Current Step: 1/7**
+**Current Step: 5/7**

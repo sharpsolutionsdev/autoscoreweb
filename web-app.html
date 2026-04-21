@@ -627,6 +627,56 @@
         }
         .paywall-animate { animation: paywallDrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
+        /* --- SEXY LIVE PANEL STYLING --- */
+        @keyframes livePulseFrame {
+            0% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0.3); border-color: rgba(var(--brand-rgb), 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(var(--brand-rgb), 0); border-color: rgba(var(--brand-rgb), 0.1); }
+            100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0); border-color: rgba(var(--brand-rgb), 0.1); }
+        }
+        @keyframes shineSweep {
+            0% { left: -100%; top: -100%; }
+            100% { left: 200%; top: 200%; }
+        }
+        @keyframes textGlow {
+            0% { opacity: 0.8; text-shadow: 0 0 5px rgba(255,255,255,0.1); }
+            50% { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 25px rgba(var(--brand-rgb), 0.6); }
+            100% { opacity: 0.8; text-shadow: 0 0 5px rgba(255,255,255,0.1); }
+        }
+        .live-panel-sexy {
+            position: relative;
+            background: linear-gradient(160deg, rgba(30, 30, 36, 0.7) 0%, rgba(12, 12, 15, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(var(--brand-rgb), 0.3);
+            border-top: 1px solid rgba(var(--brand-rgb), 0.6);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
+            animation: livePulseFrame 3s infinite cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+        .live-panel-sexy::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(var(--brand-rgb),0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .live-panel-sexy::after {
+            content: '';
+            position: absolute;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
+            width: 150%;
+            height: 150%;
+            top: -50%;
+            left: -150%;
+            transform: rotate(35deg);
+            animation: shineSweep 7s infinite linear;
+            pointer-events: none;
+        }
+        .live-data-glow {
+            animation: textGlow 2.5s infinite ease-in-out;
+        }
+
         /* --- MOBILE FLOATING BAR --- */
         .mobile-bar {
             display: none;
@@ -885,50 +935,50 @@
                 </div>
 
                 <!-- Live Checkout -->
-                <div id="live-checkout-panel" class="hidden hud-card p-4 mb-4 border border-white/5 transition-all flex-shrink-0 relative overflow-hidden">
-                    <div id="game-shot-overlay" class="hidden absolute inset-0 bg-brand backdrop-blur-sm z-20 flex-col items-center justify-center text-white text-center">
-                        <div class="text-3xl font-display font-black tracking-widest uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">GAME SHOT</div>
-                        <div class="text-[10px] tracking-widest mt-1 opacity-80 uppercase font-bold animate-pulse">Leg Resetting...</div>
+                <div id="live-checkout-panel" class="hidden live-panel-sexy p-4 mb-4 transition-all flex-shrink-0 relative">
+                    <div id="game-shot-overlay" class="hidden absolute inset-0 bg-brand backdrop-blur-md z-20 flex-col items-center justify-center text-white text-center rounded-lg">
+                        <div class="text-3xl font-display font-black tracking-widest uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">GAME SHOT</div>
+                        <div class="text-[10px] tracking-widest mt-2 opacity-90 uppercase font-bold animate-pulse">Leg Resetting...</div>
                     </div>
-                    <div class="flex justify-between items-center mb-1 relative z-10">
+                    <div class="flex justify-between items-center mb-2 relative z-10">
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">Live Checkout</span>
-                            <select id="live-checkout-select" class="bg-[#08080A] border border-[#252530] text-[9px] text-gray-400 font-bold rounded outline-none px-1 py-0.5 cursor-pointer">
+                            <span class="text-[10px] font-bold text-white tracking-[0.25em] uppercase drop-shadow-md">Live Checkout</span>
+                            <select id="live-checkout-select" class="bg-black/40 border border-white/20 text-[9px] text-white font-bold rounded outline-none px-1.5 py-0.5 cursor-pointer backdrop-blur hover:bg-black/60 transition-colors">
                                 <option value="501">501</option>
                                 <option value="301">301</option>
                                 <option value="701">701</option>
                             </select>
                         </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20 tracking-wider font-bold" id="checkout-target">REMAINING: 501</span>
-                            <button id="reset-leg-btn" class="bg-[#1a1a20] border border-[#252530] text-gray-500 hover:text-white hover:bg-[#252530] px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all" title="Reset current leg">Reset</button>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] bg-brand/20 text-brand px-2 py-0.5 rounded border border-brand/40 tracking-wider font-bold shadow-[0_0_10px_rgba(var(--brand-rgb),0.3)]" id="checkout-target">REMAINING: 501</span>
+                            <button id="reset-leg-btn" class="bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/15 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all shadow-sm" title="Reset current leg">Reset</button>
                         </div>
                     </div>
-                    <div class="text-sm font-bold text-gray-500 tracking-wider flex gap-2 items-center relative z-10 mt-1" id="checkout-path">
+                    <div class="text-[15px] font-bold text-white tracking-wider flex gap-2 items-center relative z-10 mt-1 drop-shadow-md pb-1" id="checkout-path">
                         START SCORING...
                     </div>
-                    </div>
+                </div>
                 <!-- LIVE GAME (populated by DartVoice extension from the iframe) -->
-                <div id="dv-live-panel" class="hud-card p-3 mb-4 border border-white/5 flex-shrink-0" style="display:none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: linear-gradient(180deg, rgba(204,11,32,.06), rgba(255,255,255,.015));">
-                    <h3 class="text-[11px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-2 flex items-center gap-2">
-                        <span id="dv-live-dot" style="width:8px;height:8px;border-radius:50%;background:#7ae582;box-shadow:0 0 8px rgba(122,229,130,.7);display:inline-block;"></span>
+                <div id="dv-live-panel" class="live-panel-sexy p-4 mb-4 flex-shrink-0" style="display:none;">
+                    <h3 class="text-[11px] text-white font-bold tracking-[0.25em] uppercase mb-3 flex items-center gap-2 drop-shadow-md relative z-10">
+                        <span id="dv-live-dot" style="width:8px;height:8px;border-radius:50%;background:#7ae582;box-shadow:0 0 10px rgba(122,229,130,.9);display:inline-block;animation:textGlow 2s infinite;"></span>
                         Live Game
-                        <span id="dv-clock" class="ml-auto text-[10px] text-gray-400 font-mono tabular-nums tracking-[0.05em]" style="letter-spacing:0.05em;" title="Click to toggle 12/24h">--:--</span>
-                        <span id="dv-live-mode" class="text-[9px] text-gray-500 font-semibold tracking-[0.15em]"></span>
+                        <span id="dv-clock" class="ml-auto text-[10px] text-brand font-mono tabular-nums tracking-[0.1em] live-data-glow" title="Click to toggle 12/24h">--:--</span>
+                        <span id="dv-live-mode" class="text-[9px] text-white/80 font-bold tracking-[0.2em]"></span>
                     </h3>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <div id="dv-live-player" class="text-sm font-bold text-white truncate">&mdash;</div>
-                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Player</div>
+                    <div class="grid grid-cols-2 gap-3 relative z-10">
+                        <div class="bg-black/20 rounded-lg p-2 border border-white/5">
+                            <div id="dv-live-player" class="text-base font-bold text-white truncate drop-shadow">&mdash;</div>
+                            <div class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Player</div>
                         </div>
-                        <div class="text-right">
-                            <div id="dv-live-remaining" class="text-lg font-display font-bold text-brand">&mdash;</div>
-                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Remaining</div>
+                        <div class="text-right bg-brand/10 rounded-lg p-2 border border-brand/20 shadow-[inset_0_0_15px_rgba(var(--brand-rgb),0.1)]">
+                            <div id="dv-live-remaining" class="text-2xl leading-none font-display font-black text-brand live-data-glow">&mdash;</div>
+                            <div class="text-[8px] text-brand/70 font-bold uppercase tracking-widest mt-1">Remaining</div>
                         </div>
                     </div>
-                    <div id="dv-live-checkout" class="mt-2 text-[11px] text-gray-400" style="display:none;">
-                        <span class="text-gray-500 font-semibold tracking-[0.15em] text-[9px] uppercase">Out:</span>
-                        <span id="dv-live-checkout-val" class="text-white font-semibold"></span>
+                    <div id="dv-live-checkout" class="mt-3 pt-2 border-t border-white/10 text-[12px] text-white relative z-10" style="display:none;">
+                        <span class="text-brand font-bold tracking-[0.2em] text-[10px] uppercase drop-shadow-sm">Out:</span>
+                        <span id="dv-live-checkout-val" class="font-bold tracking-wider ml-1 drop-shadow-md"></span>
                     </div>
                 </div>
 
@@ -1024,6 +1074,33 @@
 
             <!-- TAB: SETTINGS -->
             <div id="tab-settings" class="tab-content hidden flex-col flex-1 pb-4">
+                
+                <!-- Account Details Section -->
+                <div class="hud-card p-4 mb-4 border border-white/5">
+                    <div class="flex items-center justify-between mb-3 text-[10px] font-bold text-brand tracking-[0.2em] uppercase border-b border-white/5 pb-2">
+                        Account Details
+                    </div>
+                    <div class="space-y-4">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] text-muted-2 font-bold uppercase tracking-widest pl-1">Display Name</label>
+                                <input type="text" id="profile-display-name" 
+                                       class="w-full bg-[#08080A] border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-brand/50 focus:outline-none transition-all"
+                                       placeholder="Your name">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] text-muted-2 font-bold uppercase tracking-widest pl-1">Phone (Optional)</label>
+                                <input type="tel" id="profile-phone" 
+                                       class="w-full bg-[#08080A] border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-brand/50 focus:outline-none transition-all"
+                                       placeholder="+44 ...">
+                            </div>
+                        </div>
+                        <button id="save-profile-btn" class="w-full btn-brand py-3 rounded-xl text-xs font-bold uppercase tracking-widest mt-2 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                            Save Profile Changes
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Match Configuration & Calibration -->
                 <div class="hud-card p-4 mb-4 border border-white/5">
                     <div class="flex items-center justify-between mb-3 text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase border-b border-white/5 pb-2">
@@ -1642,13 +1719,20 @@
             // Fetch subscription + profile
             const [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('status').eq('user_id', user.id).maybeSingle(),
-                sb.from('dartvoice_profiles').select('display_name').eq('id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('display_name, phone_number').eq('id', user.id).maybeSingle(),
             ]);
 
             _userSub = sub;
             const displayName = profile?.display_name?.trim() || email.split('@')[0];
+            const phoneNumber = profile?.phone_number || '';
             const initials = displayName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
             const isActive = sub && ['active', 'trialing'].includes(sub.status);
+
+            // Update UI fields in Settings
+            const nameInput = document.getElementById('profile-display-name');
+            const phoneInput = document.getElementById('profile-phone');
+            if (nameInput) nameInput.value = displayName;
+            if (phoneInput) phoneInput.value = phoneNumber;
 
             // Update account pill
             document.getElementById('account-avatar').textContent = initials;
@@ -1734,6 +1818,41 @@
                             statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
                             enableDemoTimer();
                         }
+                    }
+                });
+            }
+
+            // Bind profile save button
+            const saveBtn = document.getElementById('save-profile-btn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', async () => {
+                    const newName = document.getElementById('profile-display-name').value.trim();
+                    const newPhone = document.getElementById('profile-phone').value.trim();
+                    
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'SAVING...';
+
+                    try {
+                        const { error } = await sb.from('dartvoice_profiles').upsert({
+                            id: user.id,
+                            display_name: newName,
+                            phone_number: newPhone,
+                            updated_at: new Date().toISOString()
+                        });
+
+                        if (error) throw error;
+
+                        dvToast('Profile updated successfully!', 'success');
+                        // Update UI elsewhere
+                        document.getElementById('account-name').textContent = newName;
+                        const newInitials = newName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                        document.getElementById('account-avatar').textContent = newInitials;
+                    } catch (err) {
+                        console.error('Profile update failed:', err);
+                        dvToast('Failed to update profile', 'error');
+                    } finally {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save Profile Changes';
                     }
                 });
             }
@@ -2500,6 +2619,43 @@
                             blastScoreToIframe("__CANCEL__");
                         }
                         continue;
+                    }
+
+                    // Check for Edit command
+                    let commandStr = raw;
+                    if (AppConfig.wakeWordEnabled && AppConfig.triggerWord) {
+                        const tw = AppConfig.triggerWord.toLowerCase().trim();
+                        if (tw && commandStr.includes(tw)) {
+                             commandStr = commandStr.replace(tw, '').trim();
+                        }
+                    }
+
+                    // Expanded Edit Commands:
+                    // 1. "edit correct score to [new]"
+                    // 2. "edit score to [new]"
+                    // 3. "change score to [new]"
+                    // 4. "edit [new]"
+                    // 5. "change [new]"
+                    // 6. "correct score [to] [new]"
+                    
+                    let targetScoreStr = null;
+                    const editFromToMatch = commandStr.match(/(?:edit|change|correct)\s+(?:correct\s+)?(?:score\s+)?(?:\d+|[a-z\s]+)\s+to\s+(.*)/i);
+                    const directEditMatch = commandStr.match(/^(?:edit|change|correct)(?:\s+correct)?(?:\s+score)?(?:\s+to)?\s+(.*)/i);
+
+                    if (editFromToMatch) {
+                        targetScoreStr = editFromToMatch[1].trim();
+                    } else if (directEditMatch) {
+                        targetScoreStr = directEditMatch[1].trim();
+                    }
+
+                    if (targetScoreStr) {
+                        const eScore = parseSpokenScore(targetScoreStr);
+                        if (eScore !== null && eScore >= 0 && eScore <= 180) {
+                            log(`Auto-Edit Trigger -> Sending Edit command for ${eScore}`, true);
+                            blastScoreToIframe(`__EDIT__:${eScore}`);
+                            window.dvToast(`Corrected to ${eScore}`, 'success');
+                            continue;
+                        }
                     }
 
                     // Try to parse as a dart score

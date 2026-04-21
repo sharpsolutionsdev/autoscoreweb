@@ -709,27 +709,64 @@
     };
   }
 
+  function triggerAutoEdit(score) {
+    // Attempt 1: Undoing the last throw, then injecting the new one (most robust for last-throw edits)
+    logTrace(`Executing AUTO-EDIT... triggering undo then injecting new score: ${score}`);
+    triggerUndo();
+    
+    // Attempt 2: Target an explicit DartCounter 'edit-score' button if it's visible on the screen
+    setTimeout(() => {
+       const editBtns = document.querySelectorAll('button[aria-label*="edit" i], button[title*="edit" i], .edit-score-button, [data-testid*="edit" i]');
+       for (const b of editBtns) {
+           if (b.offsetParent) { // Is visible
+               logTrace("Found explicit Edit button, clicking it...");
+               b.click();
+               break;
+           }
+       }
+       
+       // Give DartCounter UI a moment to process the undo/modal, then inject
+       setTimeout(() => {
+           simulateScoreEntry(score);
+       }, 400); // 400ms to allow UI transition
+    }, 150);
+  }
+
   function processSpeech(transcript) {
     if (!calibratedCoords.x || !calibratedCoords.y) {
       logTrace("Error: Please Calibrate the input box first!");
       return;
     }
 
+    // Check for "edit [score]" or "change to [score]"
+    let isEditCommand = false;
+    let editTarget = transcript;
+    const editMatch = transcript.match(/^(edit|change\s+to|change)\s+(.*)/i);
+    if (editMatch) {
+      isEditCommand = true;
+      editTarget = editMatch[2].trim();
+      logTrace(`Detected Edit Command for target: "${editTarget}"`);
+    }
+
     // Try parsing a dart
-    const dart = parseSingleDart(transcript);
+    const dart = parseSingleDart(editTarget);
     let finalScore = null;
 
     if (dart) {
       finalScore = dart.val;
     } else {
       // Try raw number fallback
-      finalScore = parseScore(transcript);
+      finalScore = parseScore(editTarget);
     }
 
     if (finalScore !== null) {
       logTrace(`Matched Score: ${finalScore}. Preparing Injection...`);
-      // Simulate clicking the box, typing the number, and entering
-      simulateScoreEntry(finalScore);
+      if (isEditCommand) {
+        triggerAutoEdit(finalScore);
+      } else {
+        // Simulate clicking the box, typing the number, and entering
+        simulateScoreEntry(finalScore);
+      }
     } else {
       logTrace(`Could not parse: "${transcript}"`);
     }
@@ -1168,6 +1205,14 @@
           logTrace('Cancel/Undo command received');
           triggerUndo();
           return;
+        }
+
+        // Handle auto-edit command
+        if (typeof score === 'string' && score.startsWith('__EDIT__')) {
+            const editVal = score.replace('__EDIT__:', '').replace('__EDIT__', '');
+            logTrace(`Auto-Edit command received via postMessage for score: ${editVal}`);
+            triggerAutoEdit(editVal);
+            return;
         }
 
         // In iframe mode, use direct DOM injection (no calibration needed)
