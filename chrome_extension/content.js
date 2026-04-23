@@ -709,27 +709,145 @@
     };
   }
 
-  function triggerAutoEdit(score) {
-    // Attempt 1: Undoing the last throw, then injecting the new one (most robust for last-throw edits)
-    logTrace(`Executing AUTO-EDIT... triggering undo then injecting new score: ${score}`);
+  function _isVisible(el) {
+    return !!el && !!el.offsetParent;
+  }
+
+  function _clickLikeUser(el) {
+    if (!el) return false;
+    try { el.scrollIntoView({ block: 'center', inline: 'center' }); } catch (e) {}
+    try { el.click(); } catch (e) {}
+    try {
+      el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+      el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    } catch (e) {}
+    return true;
+  }
+
+  function _setInputValueFrameworkSafe(input, value) {
+    if (!input) return false;
+    const val = String(value);
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
+    try { input.focus(); input.click(); } catch (e) {}
+    if (setter && setter.set) {
+      setter.set.call(input, '');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      setter.set.call(input, val);
+    } else {
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.value = val;
+    }
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+
+  function _findModalSaveButton(dialog) {
+    if (!dialog) return null;
+    const buttons = Array.from(dialog.querySelectorAll('button, [role="button"], span'));
+    for (const el of buttons) {
+      if (!_isVisible(el)) continue;
+      const t = (el.innerText || el.textContent || '').trim().toLowerCase();
+      const aria = (el.getAttribute && (el.getAttribute('aria-label') || '') || '').toLowerCase();
+      if (t === 'save' || aria.includes('save')) {
+        return el.closest('button') || el;
+      }
+    }
+    return null;
+  }
+
+  function _openDartCounterEditUI() {
+    // Prioritize explicit edit controls, then icon fallbacks seen in recorded flow.
+    const candidates = [
+      ...document.querySelectorAll(
+        'button[aria-label*="edit" i], button[title*="edit" i], .edit-score-button, [data-testid*="edit" i], app-match-team-score button, div.pl-4 > div.relative'
+      ),
+      ...document.querySelectorAll('div.pl-4 > div.relative svg, app-match-team-score dc-icon svg')
+    ];
+
+    for (const raw of candidates) {
+      const el = raw && raw.closest ? (raw.closest('button') || raw.closest('[role="button"]') || raw) : raw;
+      if (_isVisible(el)) {
+        _clickLikeUser(el);
+        logTrace('AUTO-EDIT: clicked DartCounter edit trigger');
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function _tryDartCounterModalEdit(score, attempt, onDone) {
+    const maxAttempts = 12;
+    const dialog =
+      document.querySelector('#ion-overlay-8 app-edit-match-scores-dialog') ||
+      document.querySelector('[id^="ion-overlay-"] app-edit-match-scores-dialog') ||
+      document.querySelector('app-edit-match-scores-dialog');
+
+    if (dialog && _isVisible(dialog)) {
+      let input =
+        dialog.querySelector('input[inputmode="numeric"]') ||
+        dialog.querySelector('input[type="number"]') ||
+        dialog.querySelector('input[type="tel"]') ||
+        dialog.querySelector('input');
+
+      if (!input || !_isVisible(input)) {
+        const toggles = dialog.querySelectorAll('app-accordion dc-icon, app-accordion button, app-accordion svg, [class*="accordion" i] svg');
+        for (const t of toggles) {
+          if (_isVisible(t)) {
+            _clickLikeUser(t.closest('button') || t);
+            break;
+          }
+        }
+      } else {
+        _setInputValueFrameworkSafe(input, score);
+        const saveBtn = _findModalSaveButton(dialog);
+        if (saveBtn) {
+          _clickLikeUser(saveBtn);
+          logTrace(`AUTO-EDIT: modal save clicked with score ${score}`);
+          onDone(true);
+          return;
+        }
+      }
+    } else if (attempt === 0) {
+      _openDartCounterEditUI();
+    }
+
+    if (attempt < maxAttempts) {
+      setTimeout(() => _tryDartCounterModalEdit(score, attempt + 1, onDone), 220);
+      return;
+    }
+    onDone(false);
+  }
+
+  function _fallbackAutoEdit(score) {
+    // Last-resort path preserves old behavior for unknown UI shapes.
+    logTrace(`AUTO-EDIT fallback: undo + reinject ${score}`);
     triggerUndo();
-    
-    // Attempt 2: Target an explicit DartCounter 'edit-score' button if it's visible on the screen
     setTimeout(() => {
-       const editBtns = document.querySelectorAll('button[aria-label*="edit" i], button[title*="edit" i], .edit-score-button, [data-testid*="edit" i]');
-       for (const b of editBtns) {
-           if (b.offsetParent) { // Is visible
-               logTrace("Found explicit Edit button, clicking it...");
-               b.click();
-               break;
-           }
-       }
-       
-       // Give DartCounter UI a moment to process the undo/modal, then inject
-       setTimeout(() => {
-           simulateScoreEntry(score);
-       }, 400); // 400ms to allow UI transition
-    }, 150);
+      simulateScoreEntry(score);
+    }, 400);
+  }
+
+  function triggerAutoEdit(score) {
+    const parsed = parseInt(String(score), 10);
+    const cleanScore = (!isNaN(parsed) && parsed >= 0 && parsed <= 180) ? String(parsed) : String(score);
+    logTrace(`Executing AUTO-EDIT (DartCounter modal first) for ${cleanScore}`);
+
+    let settled = false;
+    _tryDartCounterModalEdit(cleanScore, 0, (ok) => {
+      if (settled) return;
+      settled = true;
+      if (!ok) _fallbackAutoEdit(cleanScore);
+    });
+
+    // Guard timeout: if the modal pathway hangs, force fallback.
+    setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      _fallbackAutoEdit(cleanScore);
+    }, 3400);
   }
 
   function processSpeech(transcript) {

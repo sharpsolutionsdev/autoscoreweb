@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DARTVOICE_PROD"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-DARTVOICE_PROD');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>How DartVoice Works</title>
+    <meta name="description" content="See how DartVoice gets players from signup to live voice-controlled scoring in minutes.">
+    <meta property="og:title" content="How DartVoice Works">
+    <meta property="og:description" content="Sign up, install, and start calling your scores with DartVoice in minutes.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dartvoice.app/how-it-works.html">
+    <meta property="og:image" content="https://dartvoice.app/og-image.png">
+    <meta name="theme-color" content="#CC0B20">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/specific/index.css">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+','+g+','+b);var L=function(c){return Math.min(255,c+Math.round((255-c)*.12))};var lr=L(r),lg=L(g),lb=L(b);s.setProperty('--brand-light','#'+[lr,lg,lb].map(function(c){return c.toString(16).padStart(2,'0')}).join(''))}()</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { display: ['"Barlow Condensed"', 'sans-serif'], sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { brand: 'var(--brand, #CC0B20)', 'brand-light': 'var(--brand-light, #e60d24)', dark: '#08080A', card: '#111114', 'card-2': '#18181C', wire: '#252530', muted: '#6E6E82', 'muted-2': '#4A4A5A', chalk: '#F0F0F5' }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/components/dv-nav.js"></script>
+    <script src="/components/dv-footer.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        if (refCode) sessionStorage.setItem('dv_ref_code', refCode);
+    </script>
+</head>
+<body class="antialiased overflow-x-hidden noise grid-bg-soft">
+    <dv-nav></dv-nav>
+
+    <section class="pt-28 pb-12 sm:pt-36 sm:pb-16 relative overflow-hidden" style="border-bottom: 1px solid #252530;">
+        <div class="max-w-6xl mx-auto px-5 text-center">
+            <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">PLAYER JOURNEY</p>
+            <h1 class="display text-5xl sm:text-6xl md:text-7xl text-chalk mb-4">FROM SIGNUP TO<br>FIRST THROW</h1>
+            <p class="text-muted max-w-xl mx-auto text-sm leading-relaxed">DartVoice is built to get you into a real match flow fast. Here is the setup path, the install path, and the moment voice scoring takes over.</p>
+        </div>
+    </section>
+
+    <section class="py-16 sm:py-24" style="border-top: 1px solid #252530">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="text-center mb-12 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Your Setup</p>
+                <h2 class="display text-3xl sm:text-4xl md:text-5xl text-chalk mb-4">BUILT FOR REAL PLAYERS</h2>
+                <p class="text-muted text-sm sm:text-base max-w-lg mx-auto leading-relaxed">Use your device's built-in mic, a headset, or any external microphone. DartVoice works with the setup you already have.</p>
+            </div>
+            <div class="photo-strip reveal">
+                <div class="media-card group" style="height: 260px; border: 1px solid rgba(37,37,48,0.6);">
+                    <img src="assets/media/setup-gaming.jpeg" alt="Darts setup with phone on stand showing DartVoice waveform" loading="lazy">
+                    <div class="media-overlay"></div>
+                    <div class="media-label">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                            </div>
+                            <p class="text-chalk text-sm font-semibold">Phone on Stand</p>
+                        </div>
+                        <p class="text-muted text-xs">Prop up your phone near the board and play.</p>
+                    </div>
+                </div>
+                <div class="media-card group" style="height: 260px; border: 1px solid rgba(37,37,48,0.6);">
+                    <img src="assets/media/headset-darts.jpeg" alt="Gaming headset with darts on desk" loading="lazy">
+                    <div class="media-overlay"></div>
+                    <div class="media-label">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                            </div>
+                            <p class="text-chalk text-sm font-semibold">Any Microphone</p>
+                        </div>
+                        <p class="text-muted text-xs">Headset, lapel, built-in mic, or your device mic.</p>
+                    </div>
+                </div>
+                <div class="media-card group" style="height: 260px; border: 1px solid rgba(37,37,48,0.6);">
+                    <img src="assets/media/multi-device.jpeg" alt="DartVoice running on laptop, tablet, and phone" loading="lazy">
+                    <div class="media-overlay"></div>
+                    <div class="media-label">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.2);">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            </div>
+                            <p class="text-chalk text-sm font-semibold">Multi-Platform</p>
+                        </div>
+                        <p class="text-muted text-xs">Windows, Android, Chrome Extension, and the Web App.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="cinematic-banner" style="height: 260px;">
+        <img src="assets/media/dartboard-180-listening.jpeg" alt="Dartboard with holographic 180 listening display" loading="lazy" style="filter: brightness(0.75); object-position: center 45%;">
+        <div class="overlay"></div>
+        <div class="overlay-vertical"></div>
+    </div>
+
+    <section id="how-it-works" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
+        <div class="max-w-5xl mx-auto px-5">
+            <div class="text-center mb-16 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">How It Works</p>
+                <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-chalk">THREE STEPS TO THE OCHE</h2>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-5">
+                <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
+                    <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none" style="color: rgba(var(--brand-rgb), 0.08)">01</div>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2" fill="none">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Sign Up and Subscribe</h3>
+                    <p class="text-muted text-sm leading-relaxed relative z-10 mb-5">Create your account with just your email. Try 10 minutes free, then start your 7-day trial with a clear route back into your dashboard.</p>
+                    <div class="demo-screen p-3 relative z-10">
+                        <div class="text-[9px] text-muted uppercase tracking-wider mb-2">Email</div>
+                        <div class="flex items-center gap-1 px-2 py-1.5 rounded-lg" style="background: #18181C; border: 1px solid #252530;">
+                            <span class="text-[11px] text-chalk/60 font-mono">you@email.com</span>
+                            <span class="w-[1px] h-3.5 bg-brand cursor-blink ml-0.5"></span>
+                        </div>
+                        <div class="mt-2.5 rounded-lg py-1.5 text-center text-[10px] font-bold text-white" style="background: var(--brand); box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.3);">Start Free Trial</div>
+                    </div>
+                </div>
+
+                <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
+                    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.1] pointer-events-none" style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.8);">
+                        <source src="assets/media/3d-app.mp4" type="video/mp4">
+                    </video>
+                    <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none" style="color: rgba(var(--brand-rgb), 0.08)">02</div>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Download, Install, or Just Play</h3>
+                    <p class="text-muted text-sm leading-relaxed relative z-10 mb-5">Grab the installer for Windows, the APK for Android, the Chrome Extension, or skip the download and launch the Web App instantly in your browser.</p>
+                    <div class="demo-screen p-3 relative z-10">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[10px] text-chalk font-semibold">DartVoice.exe</span>
+                            <span class="text-[9px] text-brand font-bold">Installing...</span>
+                        </div>
+                        <div class="h-2 rounded-full overflow-hidden" style="background: #252530;">
+                            <div class="h-full rounded-full progress-fill" style="background: linear-gradient(90deg, var(--brand), var(--brand-light));"></div>
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex gap-2">
+                                <span class="flex items-center gap-1 text-[9px] text-muted">
+                                    <svg class="w-3 h-3" fill="#6E6E82" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" /></svg>
+                                    .exe
+                                </span>
+                                <span class="flex items-center gap-1 text-[9px] text-muted">
+                                    <svg class="w-3 h-3" fill="#6E6E82" viewBox="0 0 24 24"><path d="M17.523 15.341a4.91 4.91 0 01-2.536.703c-2.765 0-5.023-2.257-5.023-5.044s2.258-5.044 5.023-5.044c1.367 0 2.612.535 3.524 1.408l1.716-1.716A7.444 7.444 0 0015 4C10.86 4 7.5 7.358 7.5 11.5s3.36 7.5 7.5 7.5c2.143 0 4.09-.897 5.488-2.347l-2.965-1.312z" /></svg>
+                                    .apk
+                                </span>
+                                <div class="w-px h-3 bg-white/10 mx-1"></div>
+                                <span class="flex items-center gap-1 text-[9px] font-bold text-success/80">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    Verified on Chrome Web Store
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reveal bento-card rounded-2xl p-7 relative overflow-hidden">
+                    <div class="absolute top-5 right-6 display text-[72px] font-black italic leading-none" style="color: rgba(var(--brand-rgb), 0.08)">03</div>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-5 relative z-10" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                            <line x1="12" y1="19" x2="12" y2="22" />
+                            <line x1="8" y1="22" x2="16" y2="22" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-chalk text-base mb-2 relative z-10">Throw and Call</h3>
+                    <p class="text-muted text-sm leading-relaxed relative z-10 mb-5">Launch the app, set up your game, and start throwing. Call your scores aloud and DartVoice handles the rest.</p>
+                    <div class="demo-screen p-3 relative z-10">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-brand rec-dot"></div>
+                            <span class="text-[9px] text-brand font-bold uppercase tracking-wider">Live</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-end gap-[3px] h-5">
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.0s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.1s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.2s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.05s ease-in-out infinite;"></div>
+                                <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.55s 0.15s ease-in-out infinite;"></div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] text-muted">"One hundred and forty"</div>
+                                <div class="display text-lg neon-score" style="color:var(--brand);">-&gt; 140</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 reveal media-card" style="height: 320px;">
+                <img src="assets/media/player-throwing.jpeg" alt="Darts player throwing with DartVoice on phone listening" loading="lazy" style="object-position: center 30%;">
+                <div class="media-overlay"></div>
+                <div class="absolute inset-0" style="background: linear-gradient(90deg, rgba(8,8,10,0.9) 0%, rgba(8,8,10,0.3) 40%, rgba(8,8,10,0.3) 60%, rgba(8,8,10,0.9) 100%);"></div>
+                <div class="absolute inset-0 flex items-center">
+                    <div class="max-w-6xl mx-auto px-8 w-full flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div>
+                            <p class="display text-2xl sm:text-3xl text-chalk neon-white">THROW. CALL. DONE.</p>
+                            <p class="text-muted text-sm mt-2">DartVoice listens on your phone while you focus on the board.</p>
+                        </div>
+                        <a href="login?intent=subscribe" class="btn-brand px-6 py-3 rounded-xl font-semibold text-sm text-white shrink-0" style="box-shadow: 0 0 25px rgba(var(--brand-rgb), 0.35);">Try It Free</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden lg:flex justify-center mt-8 gap-2 reveal">
+                <div class="flex items-center gap-3 px-4 py-2 rounded-full" style="background: #111114; border: 1px solid #252530;">
+                    <span class="text-[10px] text-muted">Sign up</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    <span class="text-[10px] text-muted">Install</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    <span class="text-[10px] text-muted">Play</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--brand)" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    <span class="text-[10px] text-brand font-bold">Under 2 minutes</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 text-center" style="border-top: 1px solid #252530;">
+        <div class="max-w-6xl mx-auto px-5">
+            <h2 class="display text-4xl sm:text-5xl text-chalk mb-4">READY TO PLAY?</h2>
+            <p class="text-muted max-w-md mx-auto text-sm leading-relaxed mb-8">Start your free trial today or jump over to the full features breakdown before your first leg.</p>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <a href="login?intent=subscribe" class="bg-brand hover:bg-red-600 transition px-6 py-3 rounded-xl text-sm font-bold text-white shadow-lg shadow-brand/30">Start Free Trial</a>
+                <a href="features.html" class="border border-wire hover:border-chalk/30 transition px-6 py-3 rounded-xl text-sm font-semibold text-chalk">View Features</a>
+            </div>
+        </div>
+    </section>
+
+    <dv-footer></dv-footer>
+
+    <script>
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    </script>
+    <script src="theme.js"></script>
+    <script src="cookies.js"></script>
+</body>
+</html>
