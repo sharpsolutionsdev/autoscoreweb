@@ -2268,6 +2268,53 @@
             }
             return base;
         }
+
+        function isLikelyScoreIntent(raw) {
+            const t = String(raw || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (!t) return false;
+
+            // Always allow direct control commands.
+            if (/^(cancel|edit|change|correct)\b/.test(t)) return true;
+            // Compact score forms.
+            if (/^[tds]\s*\d{1,3}$/.test(t) || /^\d{1,3}$/.test(t)) return true;
+
+            const hasDartIntent = /\b(score|scored|shot|dart|darts|throw|visit|double|treble|triple|bull|bust|checkout|finish)\b/.test(t);
+            const words = t.split(' ');
+            if (words.length > 8 && !hasDartIntent) return false;
+
+            const allowed = new Set([
+                'zero','oh','nought','nil','naught','no',
+                'one','won','wan','two','too','to','tu','three','free','tree','tee','four','for','fore',
+                'five','fife','fiv','six','sicks','seeks','seven','sebben','seben','seebin','sebin',
+                'eight','ate','ait','nine','nein','nyne','ten','tin','eleven','levin','levven',
+                'twelve','twelf','thirteen','tirteen','turteen','fourteen','forteen','fifteen','fiftin',
+                'sixteen','sixtin','seventeen','seventin','eighteen','eightin','atin','nineteen','ninetin',
+                'twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety',
+                'hundred','and','ton','a','single','double','triple','treble','bull','bullseye','outer',
+                'miss','missed','nothing','none','bounce','bust','busted','off','out',
+                'score','scored','shot','dart','darts','throw','visit','checkout','finish'
+            ]);
+
+            let unknown = 0;
+            let numberish = 0;
+            for (const w of words) {
+                if (/^\d+$/.test(w)) { numberish++; continue; }
+                if (allowed.has(w)) {
+                    if (/\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|ton)\b/.test(w)) {
+                        numberish++;
+                    }
+                    continue;
+                }
+                unknown++;
+            }
+
+            if (hasDartIntent && numberish >= 1 && unknown <= 2) return true;
+            return unknown === 0 && numberish >= 1;
+        }
         
         function startEqualizer() {
             if (visualizerInterval) clearInterval(visualizerInterval);
@@ -2527,7 +2574,10 @@
 
                     // Reset status after processing final result
                     statusText.textContent = 'Awaiting Score...';
-                    const raw = event.results[i][0].transcript.trim().toLowerCase();
+                    const finalAlt = event.results[i][0] || {};
+                    const raw = String(finalAlt.transcript || '').trim().toLowerCase();
+                    const confidence = Number(finalAlt.confidence || 0);
+                    if (!raw) continue;
 
                     // Checkout dialog state machine intercepts FIRST
                     if (window.dvCheckoutPrompt && window.dvCheckoutPrompt.tryHandle && window.dvCheckoutPrompt.tryHandle(raw)) {
@@ -2561,6 +2611,19 @@
                             blastScoreToIframe("__CANCEL__");
                         }
                         continue;
+                    }
+
+                    // Extra guard when wake word is disabled:
+                    // ignore low-confidence or non-score-like speech to reduce false positives.
+                    if (!AppConfig.wakeWordEnabled && AppConfig.noWakeWordIntentGate) {
+                        if (confidence > 0 && confidence < AppConfig.minFinalConfidence) {
+                            log(`Heard: "${raw}" (ignored: low confidence ${confidence.toFixed(2)})`);
+                            continue;
+                        }
+                        if (!isLikelyScoreIntent(raw)) {
+                            log(`Heard: "${raw}" (ignored: non-scoring phrase)`);
+                            continue;
+                        }
                     }
 
                     // Check for Edit command
@@ -2836,6 +2899,8 @@
             enableScoreBurst: true,
             popIntensity: 2, // 0..3 (reserved for future use)
             detectionMode: 'last', // 'last' or 'first' when multiple numbers are heard
+            noWakeWordIntentGate: true, // stricter filtering when wake word is off
+            minFinalConfidence: 0.28, // Web Speech confidence floor (0..1) when available
             // Extra celebrations
             enableConfetti: true,
             enableAudioCues: true,
@@ -3288,26 +3353,79 @@ window.openScorerUrl = function(url){
 
             // ── Live game state HUD (populated from DV_GAME_STATE) ──
             // Renders into the Scorer Studio LEFT PANEL (#dv-live-panel) — never overlays the iframe.
+            function dvExtractRemaining(text, mode) {
+                const clean = String(text || '').replace(/\s+/g, ' ').trim();
+                if (!clean) return null;
+                const nums = (clean.match(/\d{1,4}/g) || [])
+                    .map(n => parseInt(n, 10))
+                    .filter(n => !isNaN(n) && n >= 0 && n <= 999);
+                if (!nums.length) return null;
+                const modeNum = parseInt(String(mode || ''), 10);
+                const capped = nums.filter(n => n <= 701);
+                if (!capped.length) return null;
+                if (!isNaN(modeNum) && modeNum > 0) {
+                    const inMode = capped.filter(n => n <= modeNum);
+                    if (inMode.length) {
+                        const exact = inMode.find(n => n === modeNum);
+                        return String(typeof exact === 'number' ? exact : inMode[inMode.length - 1]);
+                    }
+                }
+                return String(capped[capped.length - 1]);
+            }
+
+            function dvNormalizeLiveState(state) {
+                const out = Object.assign({}, state || {});
+                let player = String(out.player || '').replace(/\s+/g, ' ').trim();
+                let remaining = String(out.remaining || '').replace(/\s+/g, ' ').trim();
+                const mode = out.mode || '';
+
+                if (remaining) {
+                    const parsed = dvExtractRemaining(remaining, mode);
+                    remaining = parsed || remaining;
+                }
+                if (!remaining && player) {
+                    remaining = dvExtractRemaining(player, mode) || '';
+                }
+                if (player) {
+                    if (remaining) {
+                        const esc = String(remaining).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        player = player
+                            .replace(new RegExp(`\\b${esc}\\b`, 'g'), ' ')
+                            .replace(new RegExp(`${esc}(?=\\D|$)`, 'g'), ' ');
+                    }
+                    player = player
+                        .replace(/\b(player|remaining|score|points?|turn)\b/gi, ' ')
+                        .replace(/[|:()[\]{}]+/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    if (!/[a-z]/i.test(player)) player = '';
+                }
+                out.player = player || null;
+                out.remaining = remaining || null;
+                return out;
+            }
+
             window.dvRenderGameState = function(s){
                 if (!s) return;
+                const clean = dvNormalizeLiveState(s);
                 const panel = document.getElementById('dv-live-panel');
                 if (!panel) return;
                 panel.style.display = '';
                 const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
-                set('dv-live-player', s.player);
-                set('dv-live-remaining', s.remaining);
+                set('dv-live-player', clean.player);
+                set('dv-live-remaining', clean.remaining);
                 const modeEl = document.getElementById('dv-live-mode');
-                if (modeEl) modeEl.textContent = s.mode && s.mode !== 'unknown' ? String(s.mode).toUpperCase() : '';
+                if (modeEl) modeEl.textContent = clean.mode && clean.mode !== 'unknown' ? String(clean.mode).toUpperCase() : '';
                 const coRow = document.getElementById('dv-live-checkout');
                 const coVal = document.getElementById('dv-live-checkout-val');
-                if (s.checkoutSuggestion) {
-                    if (coVal) coVal.textContent = s.checkoutSuggestion;
+                if (clean.checkoutSuggestion) {
+                    if (coVal) coVal.textContent = clean.checkoutSuggestion;
                     if (coRow) coRow.style.display = '';
                 } else if (coRow) { coRow.style.display = 'none'; }
                 // Mirror remaining into the existing scorer header chip for continuity
                 try {
                     const chip = document.getElementById('checkout-target');
-                    if (chip && s.remaining != null && s.remaining !== '') chip.textContent = 'REMAINING: ' + s.remaining;
+                    if (chip && clean.remaining != null && clean.remaining !== '') chip.textContent = 'REMAINING: ' + clean.remaining;
                 } catch(e){}
             };
 

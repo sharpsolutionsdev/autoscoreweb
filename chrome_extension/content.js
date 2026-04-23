@@ -1169,14 +1169,79 @@
       return 'unknown';
     }
 
+    function normalizeSpace(v) {
+      return String(v || '').replace(/\s+/g, ' ').trim();
+    }
+
     function firstText(selectors) {
       for (const s of selectors) {
         try {
-          const el = document.querySelector(s);
-          if (el && el.textContent && el.textContent.trim()) return el.textContent.trim();
+          const nodes = document.querySelectorAll(s);
+          for (const el of nodes) {
+            if (!_isVisible(el)) continue;
+            const t = normalizeSpace(el.textContent);
+            if (t) return t;
+          }
         } catch {}
       }
       return '';
+    }
+
+    function pickRemainingFromText(text, mode) {
+      const clean = normalizeSpace(text);
+      if (!clean) return null;
+      const nums = (clean.match(/\d{1,4}/g) || [])
+        .map((n) => parseInt(n, 10))
+        .filter((n) => !isNaN(n) && n >= 0 && n <= 999);
+      if (!nums.length) return null;
+
+      const modeNum = parseInt(String(mode || ''), 10);
+      const capped = nums.filter((n) => n <= 701);
+      if (!capped.length) return null;
+
+      if (!isNaN(modeNum) && modeNum > 0) {
+        const withinMode = capped.filter((n) => n <= modeNum);
+        if (withinMode.length) {
+          const exact = withinMode.find((n) => n === modeNum);
+          return String(typeof exact === 'number' ? exact : withinMode[withinMode.length - 1]);
+        }
+      }
+      return String(capped[capped.length - 1]);
+    }
+
+    function splitPlayerAndRemaining(rawPlayer, rawRemaining, mode) {
+      let player = normalizeSpace(rawPlayer);
+      let remaining = normalizeSpace(rawRemaining);
+
+      if (remaining) {
+        const rem = pickRemainingFromText(remaining, mode);
+        remaining = rem || remaining;
+      }
+      if (!remaining && player) {
+        remaining = pickRemainingFromText(player, mode);
+      }
+
+      if (player) {
+        if (remaining) {
+          const esc = remaining.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          player = normalizeSpace(
+            player
+              .replace(new RegExp(`\\b${esc}\\b`, 'g'), ' ')
+              .replace(new RegExp(`${esc}(?=\\D|$)`, 'g'), ' ')
+          );
+        }
+        player = normalizeSpace(
+          player
+            .replace(/\b(player|remaining|score|points?|turn)\b/gi, ' ')
+            .replace(/[|:()[\]{}]+/g, ' ')
+        );
+        if (!/[a-z]/i.test(player)) player = '';
+      }
+
+      return {
+        player: player || null,
+        remaining: remaining || null
+      };
     }
 
     function detectCheckoutModal() {
@@ -1204,17 +1269,33 @@
     }
 
     function snapshotState() {
-      const player = firstText([
+      const mode = detectMode();
+      const rawPlayer = firstText([
         '[data-testid="current-player"]',
         '.current-player-name',
         '[class*="current-player" i]',
-        '[class*="active-player" i]'
+        '[class*="active-player" i]',
+        '[class*="active" i][class*="player" i]',
+        '[class*="team" i][class*="name" i]'
       ]);
-      const remaining = firstText([
+      const rawRemaining = firstText([
         '[data-testid="remaining"]',
         '[class*="remaining-score" i]',
-        '[class*="player-score" i] [class*="score" i]'
+        '[class*="remaining" i] [class*="score" i]',
+        '[class*="player-score" i] [class*="score" i]',
+        '[class*="score" i][class*="current" i]'
       ]);
+      let parsed = splitPlayerAndRemaining(rawPlayer, rawRemaining, mode);
+      if (!parsed.remaining) {
+        // Fallback: some layouts place player + score in the same compact row.
+        const rowText = firstText([
+          '[class*="match-team-score" i]',
+          '[class*="active-player" i]',
+          '[class*="current-player" i]'
+        ]);
+        const rem = pickRemainingFromText(rowText, mode);
+        if (rem) parsed = { ...parsed, remaining: rem };
+      }
       const checkoutSuggestion = firstText([
         '[class*="checkout-suggestion" i]',
         '[class*="finish" i] [class*="suggestion" i]'
@@ -1222,9 +1303,9 @@
       const checkout = detectCheckoutModal();
       return {
         url: location.pathname,
-        mode: detectMode(),
-        player: player || null,
-        remaining: remaining || null,
+        mode,
+        player: parsed.player,
+        remaining: parsed.remaining,
         checkoutSuggestion: checkoutSuggestion || null,
         checkoutPrompt: checkout.visible ? checkout.text : null,
         ts: Date.now()
