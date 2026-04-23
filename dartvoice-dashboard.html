@@ -1178,8 +1178,8 @@
 
                         <!-- Link copy row -->
                         <div class="flex flex-col xs:flex-row gap-2 mb-5">
-                            <div class="ref-link-pill flex-1 flex items-center gap-3 px-4 py-3 rounded-xl font-mono text-xs sm:text-sm"
-                                style="color:#6E6E82;">
+                            <div class="ref-link-pill flex-1 flex items-center gap-3 px-4 py-3 rounded-xl font-mono text-xs sm:text-sm break-all overflow-hidden"
+                                style="min-width:0;color:#6E6E82;">
                                 <svg class="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -1444,23 +1444,6 @@
                         </div>
                     </div>
 
-                        <!-- Footer row -->
-                        <div class="px-6 py-4 flex items-center justify-between gap-3"
-                            style="border-top:1px solid rgba(255,255,255,0.05);background:rgba(15,15,15,0.5);">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <svg class="w-3.5 h-3.5 text-muted-2 shrink-0" fill="none" stroke="currentColor"
-                                    stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                                <span id="profile-email-footer"
-                                    class="text-xs text-muted truncate max-w-[200px]"></span>
-                            </div>
-                            <button onclick="signOut()"
-                                class="text-xs text-muted hover:text-brand transition shrink-0">Sign out</button>
-                        </div>
-                    </div>
-
                     <!-- Your Access card (shown for active/trialing) -->
                     <div id="profile-access-card" class="hidden card-panel fade-up-3">
                         <div class="p-6">
@@ -1683,7 +1666,7 @@
                         'apikey': SUPABASE_KEY
                     },
                     body: JSON.stringify({
-                        referral_code: refCode,
+                        code: refCode,
                         referred_user_id: userId,
                         referred_email: email
                     })
@@ -1739,8 +1722,7 @@
             const url = baseUrl + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : '');
             const isMobile = /Mobi|Android|iPhone|iPad|IEMobile/i.test(navigator.userAgent) || window.innerWidth < 768;
             if (isMobile) {
-                window.open(url, '_blank', 'noopener');
-                startPaymentPolling(userId, null);
+                window.location.href = url;
                 return;
             }
             const w = 520, h = 720;
@@ -1773,9 +1755,7 @@
                     if (popup && !popup.closed) {
                         setTimeout(() => { try { popup.close(); } catch(_) {} }, 2000);
                     }
-                    setTimeout(() => {
-                        window.location.href = 'thanks.html?from=dashboard';
-                    }, 2200);
+                    celebrateProActivation();
                     return;
                 }
 
@@ -1850,7 +1830,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="38" height="38"><path d="M20 6 9 17l-5-5"/></svg>
                     </div>
                     <div class="dv-pro-celebrate-title">PRO ACCESS UNLOCKED</div>
-                    <div class="dv-pro-celebrate-sub">Downloads, voice scoring & unlimited play are ready.</div>
+                    <div class="dv-pro-celebrate-sub">You can now download other versions and have unlimited use of the web app.</div>
                 </div>`;
             document.body.appendChild(overlay);
             requestAnimationFrame(() => overlay.classList.add('open'));
@@ -2345,7 +2325,7 @@
 
             const pendingRefs = allRefs.filter(r => pendingStatuses.includes(r.status));
             const confirmedRefs = allRefs.filter(r => confirmedStatuses.includes(r.status));
-            const pendingEarnings = pendingRefs.length * 5;
+            const pendingEarnings = pendingRefs.reduce((sum, r) => sum + parseFloat(r.reward_amount || 5), 0);
             const confirmedEarnings = confirmedRefs.reduce((sum, r) => sum + parseFloat(r.reward_amount || 5), 0);
             _ambBalance = confirmedEarnings;
 
@@ -2396,7 +2376,7 @@
             ${refs.map(r => {
                 const meta = statusMeta[r.status] || { label: r.status, color: 'text-muted', bg: 'bg-white/[0.04]' };
                 const isPending = ['signed_up', 'trial_active'].includes(r.status);
-                const amount = isPending ? 5 : parseFloat(r.reward_amount || 5);
+                const amount = parseFloat(r.reward_amount || 5);
                 const amountText = formatLocalCurrency(amount);
                 return `
             <div class="flex items-center justify-between py-3">
@@ -2416,11 +2396,10 @@
         function copyRefLink() {
             const link = $('ref-link-text').textContent;
             if (!link || link === '—') return;
+            const btn = $('btn-copy-link');
+            btn.disabled = true;
             navigator.clipboard.writeText(link).then(() => {
-                const btn = $('btn-copy-link');
                 const originalHtml = btn.innerHTML;
-                
-                // Premium "Copied" State
                 btn.innerHTML = `
                     <svg class="w-3.5 h-3.5 text-white animate-[bounce_0.5s_ease-in-out]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -2429,14 +2408,16 @@
                 `;
                 btn.classList.add('bg-green-600', 'border-green-500/30');
                 btn.classList.remove('bg-brand', 'hover:bg-brand-light');
-                
                 showToast('Referral link copied to clipboard!');
-                
                 setTimeout(() => {
+                    btn.disabled = false;
                     btn.innerHTML = originalHtml;
                     btn.classList.remove('bg-green-600', 'border-green-500/30');
                     btn.classList.add('bg-brand', 'hover:bg-brand-light');
                 }, 2000);
+            }).catch(() => {
+                btn.disabled = false;
+                showToast('Copy failed — select and copy manually');
             });
         }
 
@@ -2761,13 +2742,28 @@
                     }
                 }
 
-                // Auto-open Stripe checkout after sign-up flow (popup so user stays on dashboard)
+                // Handle returning from successful checkout
                 const _params = new URLSearchParams(window.location.search);
+                const justSubscribed = sessionStorage.getItem('dv-just-subscribed') === '1';
+                
+                if (_params.get('checkout') === 'success' || justSubscribed) {
+                    if (justSubscribed) sessionStorage.removeItem('dv-just-subscribed');
+                    _params.delete('checkout');
+                    const qs = _params.toString() ? '?' + _params.toString() : '';
+                    history.replaceState(null, '', 'dartvoice-dashboard.html' + qs);
+                    
+                    _ambUserId = session.user.id;
+                    await loadDashboard(session.user);
+                    celebrateProActivation();
+                    return;
+                }
+
+                // Auto-open Stripe checkout after sign-up flow (popup so user stays on dashboard)
                 if (_params.get('subscribe') === '1') {
                     // Clean the URL so refreshing doesn't re-trigger
                     _params.delete('subscribe');
                     const qs = _params.toString() ? '?' + _params.toString() : '';
-                    history.replaceState(null, '', 'dartvoice-dashboard' + qs);
+                    history.replaceState(null, '', 'dartvoice-dashboard.html' + qs);
                     // Load dashboard first, then open checkout popup
                     _ambUserId = session.user.id;
                     await loadDashboard(session.user);

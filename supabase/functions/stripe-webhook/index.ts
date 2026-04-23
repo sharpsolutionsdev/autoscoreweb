@@ -190,14 +190,14 @@ const payload = new Uint8Array(await req.arrayBuffer());
   async function handleReferralConversion(userId: string, status: string | null) {
     if (!userId || !status) return;
 
-    // 1. Get referral code from sub record
-    const { data: sub } = await sbAdmin
-      .from("dartvoice_subscriptions")
-      .select("referred_by_code")
-      .eq("user_id", userId)
+    // 1. Get referral code from referral record
+    const { data: ref } = await sbAdmin
+      .from("dartvoice_referrals")
+      .select("ref_code")
+      .eq("referred_user_id", userId)
       .maybeSingle();
 
-    const code = sub?.referred_by_code;
+    const code = ref?.ref_code;
     if (!code) return;
 
     // 2. Map Stripe status to our referral status lifecycle
@@ -209,26 +209,17 @@ const payload = new Uint8Array(await req.arrayBuffer());
 
     // 3. Update the matching referral record
     const updateData: any = { status: newStatus };
-    if (newStatus === "converted") updateData.converted_at = new Date().toISOString();
 
     console.log(`Referral Conversion: User ${userId} [${status}] -> Status ${newStatus} using code ${code}`);
 
     const { error } = await sbAdmin
       .from("dartvoice_referrals")
       .update(updateData)
-      .match({ referral_code: code, referred_user_id: userId })
-      .is("rewarded_at", null);
+      .match({ ref_code: code, referred_user_id: userId })
+      .neq("status", "rewarded");
 
     if (error) {
-      // Fallback: try matching by email if referred_user_id wasn't set yet
-      const { data: existingSub } = await sbAdmin.from("dartvoice_subscriptions").select("email").eq("user_id", userId).single();
-      if (existingSub?.email) {
-        await sbAdmin
-          .from("dartvoice_referrals")
-          .update(updateData)
-          .match({ referral_code: code, referred_email: existingSub.email })
-          .is("rewarded_at", null);
-      }
+      console.warn("Failed to update referral conversion:", error);
     }
   }
 

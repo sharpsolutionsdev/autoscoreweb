@@ -788,7 +788,7 @@
         if (e) e.preventDefault();
         const isMobile = /Mobi|Android|iPhone|iPad|IEMobile/i.test(navigator.userAgent)
                          || window.innerWidth < 768;
-        if (isMobile) { window.open(DV_CHECKOUT_URL, '_blank', 'noopener'); return; }
+        if (isMobile) { window.location.href = DV_CHECKOUT_URL; return; }
         const w = 520, h = 720;
         const left = Math.max(0, Math.round((screen.width  - w) / 2));
         const top  = Math.max(0, Math.round((screen.height - h) / 2));

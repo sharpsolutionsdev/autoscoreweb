@@ -931,25 +931,22 @@
                         <button id="app-ctrl-friends" type="button" class="app-ctrl-btn" title="Friends Lobby" onclick="openScorerUrl('https://app.dartcounter.net/friends-lobby')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>Friends</button>
                         <button id="app-ctrl-lobby" type="button" class="app-ctrl-btn" title="Global Lobby" onclick="openScorerUrl('https://app.dartcounter.net/online-games/global-lobby')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M3 6h18M3 18h18"/></svg>Lobby</button>
                         <button id="app-ctrl-camera" type="button" class="app-ctrl-btn" title="Open camera setup" onclick="openScorerAction('camera')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M23 7l-7 4 7 4V7zM1 7h11v10H1V7z"/></svg>Camera</button>
-                <!-- LIVE GAME (populated by DartVoice extension from the iframe) -->
-                <div id="dv-live-panel" class="live-panel-sexy p-4 mb-4 flex-shrink-0" style="display:none;">
+                    </div>
+                </div>
+
+                <!-- UNIFIED LIVE GAME PANEL (Game State + Checkout combined) -->
+                <div id="dv-live-panel" class="live-panel-sexy p-4 mb-4 flex-shrink-0 relative" style="display:none;">
                     <div id="game-shot-overlay" class="hidden absolute inset-0 bg-brand backdrop-blur-md z-20 flex-col items-center justify-center text-white text-center rounded-lg">
                         <div class="text-3xl font-display font-black tracking-widest uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">GAME SHOT</div>
                         <div class="text-[10px] tracking-widest mt-2 opacity-90 uppercase font-bold animate-pulse">Leg Resetting...</div>
                     </div>
-                    
                     <h3 class="text-[11px] text-white font-bold tracking-[0.25em] uppercase mb-3 flex items-center gap-2 drop-shadow-md relative z-10">
                         <span id="dv-live-dot" style="width:8px;height:8px;border-radius:50%;background:#7ae582;box-shadow:0 0 10px rgba(122,229,130,.9);display:inline-block;animation:textGlow 2s infinite;"></span>
                         Live Game
                         <span id="dv-clock" class="ml-auto text-[10px] text-brand font-mono tabular-nums tracking-[0.1em] live-data-glow" title="Click to toggle 12/24h">--:--</span>
-                        <select id="live-checkout-select" class="bg-black/40 border border-white/10 text-[9px] text-white font-bold rounded outline-none px-1.5 py-0.5 cursor-pointer backdrop-blur hover:bg-black/60 transition-colors ml-2">
-                            <option value="501">501</option>
-                            <option value="301">301</option>
-                            <option value="701">701</option>
-                        </select>
+                        <span id="dv-live-mode" class="text-[9px] text-white/80 font-bold tracking-[0.2em]"></span>
                     </h3>
-
-                    <div class="grid grid-cols-2 gap-3 relative z-10 mb-3">
+                    <div class="grid grid-cols-2 gap-3 relative z-10">
                         <div class="bg-black/20 rounded-lg p-2 border border-white/5">
                             <div id="dv-live-player" class="text-base font-bold text-white truncate drop-shadow">&mdash;</div>
                             <div class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Player</div>
@@ -959,17 +956,30 @@
                             <div class="text-[8px] text-brand/70 font-bold uppercase tracking-widest mt-1">Remaining</div>
                         </div>
                     </div>
+                    <div id="dv-live-checkout" class="mt-3 pt-2 border-t border-white/10 text-[12px] text-white relative z-10" style="display:none;">
+                        <span class="text-brand font-bold tracking-[0.2em] text-[10px] uppercase drop-shadow-sm">Out:</span>
+                        <span id="dv-live-checkout-val" class="font-bold tracking-wider ml-1 drop-shadow-md"></span>
+                    </div>
+                </div>
 
-                    <!-- Integrated checkout path -->
-                    <div id="dv-live-checkout-container" class="mt-2 pt-2 border-t border-white/10 relative z-10" style="display:none;">
-                        <div class="flex justify-between items-center mb-1.5">
-                            <span class="text-brand font-bold tracking-[0.2em] text-[9px] uppercase">Checkout Path</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[9px] text-white/60 font-bold" id="checkout-target">Target: 501</span>
-                                <button id="reset-leg-btn" class="text-gray-500 hover:text-white text-[8px] font-bold uppercase tracking-wider transition-all" title="Reset current leg">Reset</button>
-                            </div>
+                <!-- Live Checkout Tracker (standalone — shows when Live Checkout is toggled on) -->
+                <div id="live-checkout-panel" class="hidden live-panel-sexy p-4 mb-4 transition-all flex-shrink-0 relative">
+                    <div class="flex justify-between items-center mb-2 relative z-10">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-white tracking-[0.25em] uppercase drop-shadow-md">Live Checkout</span>
+                            <select id="live-checkout-select" class="bg-black/40 border border-white/20 text-[9px] text-white font-bold rounded outline-none px-1.5 py-0.5 cursor-pointer backdrop-blur hover:bg-black/60 transition-colors">
+                                <option value="501">501</option>
+                                <option value="301">301</option>
+                                <option value="701">701</option>
+                            </select>
                         </div>
-                        <div id="dv-live-checkout-val" class="text-[14px] font-bold text-white tracking-wider min-h-[20px]"></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] bg-brand/20 text-brand px-2 py-0.5 rounded border border-brand/40 tracking-wider font-bold shadow-[0_0_10px_rgba(var(--brand-rgb),0.3)]" id="checkout-target">REMAINING: 501</span>
+                            <button id="reset-leg-btn" class="bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/15 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all shadow-sm" title="Reset current leg">Reset</button>
+                        </div>
+                    </div>
+                    <div class="text-[15px] font-bold text-white tracking-wider flex gap-2 items-center relative z-10 mt-1 drop-shadow-md pb-1" id="checkout-path">
+                        START SCORING...
                     </div>
                 </div>
 
@@ -1010,11 +1020,13 @@
                     </h3>
                     <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
                         <span class="text-gray-500">Score</span><span class="text-gray-300 font-mono">"sixty"</span>
-                        <span class="text-gray-500">Edit Score</span><span class="text-brand font-mono">"edit 36"</span>
+                        <span class="text-gray-500">Treble</span><span class="text-gray-300 font-mono">"treble twenty"</span>
                         <span class="text-gray-500">Double</span><span class="text-gray-300 font-mono">"double sixteen"</span>
                         <span class="text-gray-500">Bullseye</span><span class="text-gray-300 font-mono">"bullseye"</span>
                         <span class="text-gray-500">Miss/Bust</span><span class="text-gray-300 font-mono">"miss" · "bust"</span>
                         <span class="text-gray-500">Undo</span><span class="text-gray-300 font-mono">"cancel"</span>
+                        <span class="text-gray-500">Edit Last</span><span class="text-gray-300 font-mono">"edit score 36"</span>
+                        <span class="text-gray-500">Correct</span><span class="text-gray-300 font-mono">"change score to 60"</span>
                     </div>
                 </div>
 
@@ -1066,6 +1078,8 @@
             <!-- TAB: SETTINGS -->
             <div id="tab-settings" class="tab-content hidden flex-col flex-1 pb-4">
                 
+                <!-- Account Details: edit profile in Dashboard instead -->
+
                 <!-- Match Configuration & Calibration -->
                 <div class="hud-card p-4 mb-4 border border-white/5">
                     <div class="flex items-center justify-between mb-3 text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase border-b border-white/5 pb-2">
@@ -1693,11 +1707,7 @@
             const initials = displayName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
             const isActive = sub && ['active', 'trialing'].includes(sub.status);
 
-            // Update UI fields in Settings
-            const nameInput = document.getElementById('profile-display-name');
-            const phoneInput = document.getElementById('profile-phone');
-            if (nameInput) nameInput.value = displayName;
-            if (phoneInput) phoneInput.value = phoneNumber;
+            // Profile editing has been moved to the dashboard — no inputs to populate here.
 
             // Update account pill
             document.getElementById('account-avatar').textContent = initials;
@@ -1787,7 +1797,7 @@
                 });
             }
 
-            // Profile fields removed from web-app (managed in Dashboard)
+            // Profile editing has been moved to the dashboard HTML.
         })();
 
         // --- MOBILE DEVICE DETECTION ---
@@ -3288,7 +3298,7 @@ window.openScorerUrl = function(url){
                 set('dv-live-remaining', s.remaining);
                 const modeEl = document.getElementById('dv-live-mode');
                 if (modeEl) modeEl.textContent = s.mode && s.mode !== 'unknown' ? String(s.mode).toUpperCase() : '';
-                const coRow = document.getElementById('dv-live-checkout-container');
+                const coRow = document.getElementById('dv-live-checkout');
                 const coVal = document.getElementById('dv-live-checkout-val');
                 if (s.checkoutSuggestion) {
                     if (coVal) coVal.textContent = s.checkoutSuggestion;
