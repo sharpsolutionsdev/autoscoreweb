@@ -1662,10 +1662,70 @@
             </div><!-- /tab-profile -->
 
             <!-- ── TAB: Admin Stats (admin only) ─────────────────── -->
+            <style>
+                /* Sticky glass section-nav for the admin tab */
+                .admin-secnav {
+                    position: sticky; top: 60px; z-index: 30;
+                    display: flex; flex-wrap: wrap; gap: 8px;
+                    padding: 10px 12px; margin-bottom: 18px;
+                    background: rgba(17,17,20,0.7);
+                    backdrop-filter: blur(16px) saturate(1.4);
+                    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    border-radius: 14px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+                }
+                .admin-secnav a {
+                    color: #cfd0d6; font-size: 11px; font-weight: 700;
+                    letter-spacing: 0.1em; text-transform: uppercase;
+                    padding: 7px 12px; border-radius: 10px;
+                    border: 1px solid rgba(255,255,255,0.06);
+                    background: rgba(255,255,255,0.03);
+                    transition: all .2s ease;
+                }
+                .admin-secnav a:hover {
+                    background: rgba(var(--brand-rgb),0.15);
+                    border-color: rgba(var(--brand-rgb),0.4);
+                    color: #fff;
+                }
+                .admin-section { scroll-margin-top: 110px; }
+                .admin-section-title {
+                    font-family: 'Barlow Condensed', sans-serif;
+                    font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+                    font-size: 24px; color: #fff; margin-bottom: 12px;
+                    display: flex; align-items: center; gap: 10px;
+                }
+                .admin-section-title::before {
+                    content: ''; display: inline-block;
+                    width: 4px; height: 22px; border-radius: 2px;
+                    background: var(--brand); box-shadow: 0 0 10px rgba(var(--brand-rgb),0.6);
+                }
+                #stat-online-now { position: relative; }
+                #stat-online-now::after {
+                    content: ''; position: absolute; top: 10px; right: 10px;
+                    width: 8px; height: 8px; border-radius: 50%;
+                    background: #22c55e; box-shadow: 0 0 10px #22c55e;
+                    animation: dvOnlineDot 1.4s ease-in-out infinite;
+                }
+                @keyframes dvOnlineDot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(.75);} }
+            </style>
             <div id="tab-admin" class="hidden">
                 <div class="space-y-5">
 
-                    <!-- Top-level KPI cards -->
+                    <!-- Glass section nav -->
+                    <nav class="admin-secnav" aria-label="Admin sections">
+                        <a href="#admin-sec-overview">Overview</a>
+                        <a href="#admin-sec-live">Live Now</a>
+                        <a href="#admin-sec-charts">Charts</a>
+                        <a href="#admin-sec-signups">Sign-ups</a>
+                        <a href="#admin-sec-subs">Subscribers</a>
+                        <a href="#admin-sec-referrals">Referrals</a>
+                        <a href="#admin-sec-partners">Partners</a>
+                    </nav>
+
+                    <!-- Overview KPIs -->
+                    <section id="admin-sec-overview" class="admin-section">
+                        <h2 class="admin-section-title">Overview</h2>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div class="glass-card rounded-xl p-4 text-center">
                             <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Total Users</p>
@@ -1684,6 +1744,29 @@
                             <p id="stat-mrr" class="text-2xl font-display font-bold text-brand">—</p>
                         </div>
                     </div>
+                    </section>
+
+                    <!-- LIVE NOW -->
+                    <section id="admin-sec-live" class="admin-section">
+                        <h2 class="admin-section-title">Live Now</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div id="stat-online-now" class="glass-card rounded-xl p-4 text-center">
+                                <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Online Now</p>
+                                <p id="stat-live-users" class="text-3xl font-display font-bold text-success">—</p>
+                                <p class="text-[9px] text-muted-2 mt-1">Unique sessions · last 60s</p>
+                            </div>
+                            <div class="glass-card rounded-xl p-4 text-center">
+                                <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Peak (24h)</p>
+                                <p id="stat-live-peak" class="text-3xl font-display font-bold text-chalk">—</p>
+                                <p class="text-[9px] text-muted-2 mt-1">Max concurrent</p>
+                            </div>
+                            <div class="glass-card rounded-xl p-4 text-center">
+                                <p class="text-[10px] font-bold text-muted-2 tracking-widest uppercase mb-1">Signed-in</p>
+                                <p id="stat-live-authed" class="text-3xl font-display font-bold text-chalk">—</p>
+                                <p class="text-[9px] text-muted-2 mt-1">Of the online total</p>
+                            </div>
+                        </div>
+                    </section>
 
                     <!-- Secondary KPIs -->
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1705,7 +1788,9 @@
                         </div>
                     </div>
 
-                    <!-- Charts row -->
+                    <!-- Charts -->
+                    <section id="admin-sec-charts" class="admin-section">
+                        <h2 class="admin-section-title">Charts</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                         <!-- Sign-ups per day (bar chart) -->
@@ -1731,8 +1816,11 @@
                             <div id="chart-donut-legend" class="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-[10px]"></div>
                         </div>
                     </div>
+                    </section>
 
                     <!-- New users this month -->
+                    <section id="admin-sec-signups" class="admin-section">
+                        <h2 class="admin-section-title">Sign-ups</h2>
                     <div class="glass-card rounded-2xl p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-lg font-bold text-chalk">New Sign-ups This Month</h2>
@@ -1742,8 +1830,11 @@
                             <p class="text-muted text-sm py-4 text-center">Loading…</p>
                         </div>
                     </div>
+                    </section>
 
                     <!-- All subscribers table -->
+                    <section id="admin-sec-subs" class="admin-section">
+                        <h2 class="admin-section-title">Subscribers</h2>
                     <div class="glass-card rounded-2xl p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-lg font-bold text-chalk">All Subscribers</h2>
@@ -1765,16 +1856,22 @@
                             </table>
                         </div>
                     </div>
+                    </section>
 
                     <!-- Referrals breakdown -->
+                    <section id="admin-sec-referrals" class="admin-section">
+                        <h2 class="admin-section-title">Referrals</h2>
                     <div class="glass-card rounded-2xl p-6">
                         <h2 class="text-lg font-bold text-chalk mb-4">Referral Activity</h2>
                         <div id="admin-referrals-list" class="space-y-0 divide-y divide-white/[0.04] max-h-[300px] overflow-y-auto">
                             <p class="text-muted text-sm py-4 text-center">Loading…</p>
                         </div>
                     </div>
+                    </section>
 
                     <!-- Ambassador Partners Management -->
+                    <section id="admin-sec-partners" class="admin-section">
+                        <h2 class="admin-section-title">Partners</h2>
                     <div class="glass-card rounded-2xl p-6 lg:col-span-2">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-lg font-bold text-chalk">Ambassador Partners</h2>
@@ -1796,6 +1893,7 @@
                             </table>
                         </div>
                     </div>
+                    </section>
 
                 </div>
             </div><!-- /tab-admin -->
@@ -2810,6 +2908,22 @@
         let _adminStatsLoaded = false;
         const PRICE_PER_MONTH = 6.99;
 
+        // ── Live user count (Realtime Presence) ───────────────────────
+        let _livePeak = 0;
+        function updateLiveUserCount() {
+            try {
+                const list = (typeof window.dvPresenceList === 'function') ? window.dvPresenceList() : [];
+                const online = list.length;
+                const authed = list.filter(m => m && m.user_id).length;
+                if (online > _livePeak) _livePeak = online;
+                const lu = $('stat-live-users');    if (lu) lu.textContent   = String(online);
+                const lp = $('stat-live-peak');     if (lp) lp.textContent   = String(_livePeak);
+                const la = $('stat-live-authed');   if (la) la.textContent   = String(authed);
+            } catch(_) {}
+        }
+        // Poll presence every 3s while the admin tab exists
+        setInterval(updateLiveUserCount, 3000);
+
         async function loadAdminStats() {
             if (_adminStatsLoaded) return;
 
@@ -3171,6 +3285,8 @@
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
     <script src="dv-currency.js"></script>
+    <script>window.sb = sb;</script>
+    <script src="dv-presence.js" defer></script>
 </body>
 
 </html>

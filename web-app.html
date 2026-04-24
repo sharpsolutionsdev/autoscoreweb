@@ -2051,8 +2051,9 @@
             console.warn('Supabase client not available. Ensure the Supabase JS library is loaded.');
         }
         const sb = (typeof supabase !== 'undefined') ? supabase.createClient(SB_URL, SB_KEY) : null;
-        const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reuben@dartvoice.app', 'callum@dartvoice.app', 'reubensharp18@gmail.com'];
+        const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reuben@dartvoice.app', 'callum@dartvoice.app', 'reubensharp18@gmail.com', 'sharpsolutionsdev@gmail.com'];
         let _isAdmin = false;
+        let _isAmbassador = false;
         let _guestMode = false;
         let _userSub = null;
 
@@ -2137,8 +2138,12 @@
             // Fetch subscription + profile
             const [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('status').eq('user_id', user.id).maybeSingle(),
-                sb.from('dartvoice_profiles').select('display_name, phone_number').eq('id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('display_name, phone_number, ambassador_partner').eq('id', user.id).maybeSingle(),
             ]);
+            _isAmbassador = !!profile?.ambassador_partner || _isAdmin;
+            try {
+                if (_isAmbassador) document.body.classList.add('dv-is-ambassador');
+            } catch(_) {}
 
             _userSub = sub;
             const displayName = profile?.display_name?.trim() || email.split('@')[0];
@@ -5191,6 +5196,298 @@ window.openScorerUrl = function(url){
     <!-- DartVoice discount + welcome modules (auto-load) -->
     <script src="/dv-discount.js" defer></script>
     <script src="/dv-welcome.js" defer></script>
+    <script>try { window.sb = sb; } catch(_){}</script>
+    <script src="/dv-presence.js" defer></script>
+
+    <!-- ═══ CREATOR STREAMING OVERLAYS (ambassador-partner only) ═══ -->
+    <style>
+        body:not(.dv-is-ambassador) #dv-overlays-launcher,
+        body:not(.dv-is-ambassador) #dv-overlays-panel,
+        body:not(.dv-is-ambassador) .dv-stream-overlay { display: none !important; }
+
+        #dv-overlays-launcher {
+            position: fixed; right: 16px; bottom: 16px; z-index: 9998;
+            background: linear-gradient(135deg, rgba(var(--brand-rgb),0.9), rgba(var(--brand-rgb),0.6));
+            color: #fff; border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 999px; padding: 10px 16px; font-weight: 700;
+            font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(var(--brand-rgb),0.4);
+            display: flex; align-items: center; gap: 8px;
+        }
+        #dv-overlays-launcher:hover { filter: brightness(1.1); }
+        #dv-overlays-launcher svg { width: 14px; height: 14px; }
+
+        #dv-overlays-panel {
+            position: fixed; right: 16px; bottom: 68px; z-index: 9999;
+            width: 320px; max-height: 70vh;
+            background: rgba(17,17,20,0.96); backdrop-filter: blur(20px) saturate(1.4);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            padding: 16px; overflow-y: auto;
+            opacity: 0; transform: translateY(10px); pointer-events: none;
+            transition: all 220ms cubic-bezier(.3,.9,.3,1);
+        }
+        #dv-overlays-panel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        #dv-overlays-panel h4 { color: #fff; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; }
+        #dv-overlays-panel p.help { font-size: 11px; color: #888; margin-bottom: 14px; line-height: 1.5; }
+        .dv-overlay-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 10px; border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 8px;
+        }
+        .dv-overlay-row .ovl-meta { font-size: 12px; color: #eee; font-weight: 600; }
+        .dv-overlay-row .ovl-sub { font-size: 10px; color: #888; font-weight: 500; }
+        .dv-overlay-row button {
+            background: rgba(var(--brand-rgb),0.15); color: var(--brand);
+            border: 1px solid rgba(var(--brand-rgb),0.25); border-radius: 6px;
+            padding: 4px 10px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; cursor: pointer;
+        }
+        .dv-overlay-row button.on { background: var(--brand); color: #fff; }
+
+        .dv-stream-overlay {
+            position: fixed; z-index: 9000;
+            cursor: grab; user-select: none;
+            transition: box-shadow 160ms ease;
+        }
+        .dv-stream-overlay.dragging { cursor: grabbing; box-shadow: 0 14px 50px rgba(0,0,0,0.6); }
+        .dv-stream-overlay .dv-ovl-close {
+            position: absolute; top: -8px; right: -8px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #252530; color: #bbb; border: 1px solid rgba(255,255,255,0.1);
+            display: none; align-items: center; justify-content: center;
+            font-size: 12px; cursor: pointer; z-index: 2;
+        }
+        .dv-stream-overlay:hover .dv-ovl-close { display: flex; }
+
+        .dv-ovl-brand {
+            background: linear-gradient(135deg, rgba(var(--brand-rgb),0.95), rgba(var(--brand-rgb),0.75));
+            color: #fff; padding: 10px 18px; border-radius: 14px;
+            font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+            font-size: 22px; letter-spacing: 0.1em; text-transform: uppercase;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 30px rgba(var(--brand-rgb),0.45), 0 8px 24px rgba(0,0,0,0.5);
+            display: inline-flex; align-items: center; gap: 10px;
+            animation: dvOvlPulse 2.4s ease-in-out infinite;
+        }
+        .dv-ovl-brand svg { width: 26px; height: 26px; flex-shrink: 0; }
+        @keyframes dvOvlPulse {
+            0%,100% { box-shadow: 0 0 30px rgba(var(--brand-rgb),0.45), 0 8px 24px rgba(0,0,0,0.5); }
+            50%     { box-shadow: 0 0 55px rgba(var(--brand-rgb),0.75), 0 8px 24px rgba(0,0,0,0.5); }
+        }
+        .dv-ovl-pill {
+            background: rgba(8,8,10,0.88); backdrop-filter: blur(16px);
+            color: #fff; padding: 10px 16px; border-radius: 999px;
+            border: 1px solid rgba(var(--brand-rgb),0.35);
+            display: inline-flex; align-items: center; gap: 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 13px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .dv-ovl-pill .dot {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--brand);
+            box-shadow: 0 0 10px var(--brand);
+            animation: dvOvlDot 1.3s ease-in-out infinite;
+        }
+        @keyframes dvOvlDot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.75); } }
+        .dv-ovl-pill .brand { color: var(--brand); font-weight: 800; letter-spacing: 0.04em; }
+        .dv-ovl-cta {
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(var(--brand-rgb),0.3); border-radius: 14px;
+            padding: 12px 16px; color: #fff; min-width: 220px; max-width: 280px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+        }
+        .dv-ovl-cta .t-top { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand); font-weight: 800; margin-bottom: 4px; }
+        .dv-ovl-cta .t-main { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+        .dv-ovl-cta .t-sub { font-size: 11px; color: #bfbfc7; line-height: 1.4; margin-bottom: 10px; }
+        .dv-ovl-cta .cta-btn {
+            display: inline-block; background: var(--brand); color: #fff;
+            font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+            padding: 8px 14px; border-radius: 10px;
+            box-shadow: 0 0 20px rgba(var(--brand-rgb),0.5);
+            animation: dvOvlCtaShine 3s linear infinite;
+            background-image: linear-gradient(120deg, rgba(var(--brand-rgb),1) 0%, rgba(255,120,140,1) 50%, rgba(var(--brand-rgb),1) 100%);
+            background-size: 200% 100%;
+        }
+        @keyframes dvOvlCtaShine { to { background-position: -200% 0; } }
+    </style>
+
+    <button id="dv-overlays-launcher" aria-label="Creator overlays" onclick="dvToggleOverlaysPanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        Stream Overlays
+    </button>
+
+    <!-- Hidden SVG + template markup, cloned into draggable overlays -->
+    <template id="dv-ovl-tpl-brand">
+        <svg viewBox="0 0 36 36" fill="none" aria-hidden="true">
+            <rect width="36" height="36" rx="9" fill="rgba(255,255,255,0.18)"/>
+            <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" fill="none"/>
+            <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" fill="none"/>
+            <circle cx="18" cy="18" r="3" fill="white"/>
+            <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span>DartVoice</span>
+    </template>
+    <template id="dv-ovl-tpl-tagline">
+        <span class="dot"></span>
+        <span>Auto-Voice Scoring for </span>
+        <span class="brand">DartCounter</span>
+    </template>
+    <template id="dv-ovl-tpl-link">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 015.656 5.656l-3 3a4 4 0 01-5.656-5.656m1.172-6.172a4 4 0 00-5.656 5.656l3 3a4 4 0 005.656-5.656"/></svg>
+        <span class="brand">dartvoice.app</span>
+    </template>
+    <template id="dv-ovl-tpl-cta">
+        <div class="t-top">Try it free</div>
+        <div class="t-main">Voice-scored darts, hands-free.</div>
+        <div class="t-sub">7-day free trial — no card needed.</div>
+        <span class="cta-btn">Start Free Trial →</span>
+    </template>
+
+    <div id="dv-overlays-panel" role="dialog" aria-label="Streaming overlays">
+        <h4>Stream Overlays</h4>
+        <p class="help">Toggle on, then drag anywhere on screen. Use OBS/Streamlabs browser-source or capture this window.</p>
+        <div id="dv-overlay-toggles"></div>
+    </div>
+
+    <script>
+    (function(){
+        const OVERLAYS = [
+            { id: 'ovl-brand',   name: 'DartVoice Brand Badge',  sub: 'Animated logo + wordmark', tpl: 'dv-ovl-tpl-brand',   cls: 'dv-stream-overlay dv-ovl-brand', defaultPos: { x: 24, y: 24 } },
+            { id: 'ovl-tagline', name: 'Auto-Voice Scoring Pill', sub: 'Small tagline with pulse',  tpl: 'dv-ovl-tpl-tagline', cls: 'dv-stream-overlay dv-ovl-pill',  defaultPos: { x: 24, y: 100 } },
+            { id: 'ovl-link',    name: 'Link / URL Chip',         sub: 'dartvoice.app',             tpl: 'dv-ovl-tpl-link',    cls: 'dv-stream-overlay dv-ovl-pill',  defaultPos: { x: 24, y: 156 } },
+            { id: 'ovl-cta',     name: '"Start Free Trial" CTA',   sub: 'Call-to-action card',       tpl: 'dv-ovl-tpl-cta',     cls: 'dv-stream-overlay dv-ovl-cta',   defaultPos: { x: 24, y: 220 } }
+        ];
+
+        const STORAGE = 'dv-stream-overlays-v1';
+        function readState(){ try { return JSON.parse(localStorage.getItem(STORAGE) || '{}'); } catch(_) { return {}; } }
+        function writeState(st){ try { localStorage.setItem(STORAGE, JSON.stringify(st)); } catch(_) {} }
+
+        const state = readState();
+
+        function buildOverlay(spec){
+            const el = document.createElement('div');
+            el.className = spec.cls;
+            const tpl = document.getElementById(spec.tpl);
+            if (tpl && tpl.content) el.appendChild(tpl.content.cloneNode(true));
+            return el;
+        }
+
+        function buildToggles(){
+            const host = document.getElementById('dv-overlay-toggles');
+            if (!host) return;
+            while (host.firstChild) host.removeChild(host.firstChild);
+            OVERLAYS.forEach(spec => {
+                const row = document.createElement('div');
+                row.className = 'dv-overlay-row';
+                const meta = document.createElement('div');
+                const m1 = document.createElement('div'); m1.className = 'ovl-meta'; m1.textContent = spec.name;
+                const m2 = document.createElement('div'); m2.className = 'ovl-sub';  m2.textContent = spec.sub;
+                meta.appendChild(m1); meta.appendChild(m2);
+                const btn = document.createElement('button');
+                const isOn = !!(state[spec.id] && state[spec.id].on);
+                btn.textContent = isOn ? 'ON' : 'OFF';
+                btn.classList.toggle('on', isOn);
+                btn.addEventListener('click', function(){
+                    const nowOn = !(state[spec.id] && state[spec.id].on);
+                    state[spec.id] = Object.assign({}, state[spec.id] || {}, { on: nowOn });
+                    writeState(state);
+                    renderOverlays();
+                    buildToggles();
+                });
+                row.appendChild(meta); row.appendChild(btn);
+                host.appendChild(row);
+            });
+        }
+
+        function attachDrag(el, spec){
+            let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+            function down(e){
+                if (e.target && e.target.classList && e.target.classList.contains('dv-ovl-close')) return;
+                dragging = true;
+                el.classList.add('dragging');
+                const p = 'touches' in e ? e.touches[0] : e;
+                sx = p.clientX; sy = p.clientY;
+                const rect = el.getBoundingClientRect();
+                ox = rect.left; oy = rect.top;
+                el.style.left = ox + 'px'; el.style.top = oy + 'px';
+                el.style.right = 'auto'; el.style.bottom = 'auto';
+                e.preventDefault();
+            }
+            function move(e){
+                if (!dragging) return;
+                const p = 'touches' in e ? e.touches[0] : e;
+                const nx = Math.max(0, Math.min(window.innerWidth  - 20, ox + (p.clientX - sx)));
+                const ny = Math.max(0, Math.min(window.innerHeight - 20, oy + (p.clientY - sy)));
+                el.style.left = nx + 'px';
+                el.style.top  = ny + 'px';
+            }
+            function up(){
+                if (!dragging) return;
+                dragging = false;
+                el.classList.remove('dragging');
+                const rect = el.getBoundingClientRect();
+                state[spec.id] = Object.assign({}, state[spec.id] || {}, { on: true, x: rect.left, y: rect.top });
+                writeState(state);
+            }
+            el.addEventListener('mousedown', down);
+            el.addEventListener('touchstart', down, { passive: false });
+            window.addEventListener('mousemove', move);
+            window.addEventListener('touchmove', move, { passive: false });
+            window.addEventListener('mouseup', up);
+            window.addEventListener('touchend', up);
+        }
+
+        function renderOverlays(){
+            document.querySelectorAll('.dv-stream-overlay').forEach(el => el.remove());
+            OVERLAYS.forEach(spec => {
+                const s = state[spec.id];
+                if (!s || !s.on) return;
+                const el = buildOverlay(spec);
+                const x = (s.x != null) ? s.x : spec.defaultPos.x;
+                const y = (s.y != null) ? s.y : spec.defaultPos.y;
+                el.style.left = x + 'px';
+                el.style.top  = y + 'px';
+
+                const close = document.createElement('div');
+                close.className = 'dv-ovl-close';
+                close.title = 'Turn off';
+                close.textContent = '×';
+                close.addEventListener('click', function(ev){
+                    ev.stopPropagation();
+                    state[spec.id] = Object.assign({}, state[spec.id] || {}, { on: false });
+                    writeState(state);
+                    renderOverlays();
+                    buildToggles();
+                });
+                el.appendChild(close);
+
+                document.body.appendChild(el);
+                attachDrag(el, spec);
+            });
+        }
+
+        window.dvToggleOverlaysPanel = function(){
+            const panel = document.getElementById('dv-overlays-panel');
+            if (!panel) return;
+            panel.classList.toggle('open');
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function(){ buildToggles(); renderOverlays(); });
+        } else {
+            buildToggles(); renderOverlays();
+        }
+
+        document.addEventListener('click', function(e){
+            const panel = document.getElementById('dv-overlays-panel');
+            const launcher = document.getElementById('dv-overlays-launcher');
+            if (!panel || !panel.classList.contains('open')) return;
+            if (panel.contains(e.target) || (launcher && launcher.contains(e.target))) return;
+            panel.classList.remove('open');
+        });
+    })();
+    </script>
 
 </body>
 

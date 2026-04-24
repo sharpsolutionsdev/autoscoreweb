@@ -9,6 +9,7 @@ const ADMIN_EMAILS = [
   "admin@dartvoice.app",
   "support@dartvoice.app",
   "reubensharp18@gmail.com",
+  "sharpsolutionsdev@gmail.com",
 ];
 
 Deno.serve(async (req: Request) => {
@@ -30,12 +31,25 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authErr } = await anonClient.auth.getUser();
     if (authErr || !user) return new Response("Unauthorized", { status: 401, headers: CORS });
 
-    if (!ADMIN_EMAILS.includes(user.email?.toLowerCase() ?? "")) {
+    const sb = createClient(supabaseUrl, serviceKey);
+
+    // Accept either (a) hard-coded ADMIN_EMAILS list or (b) row in admin_users
+    // table keyed by user_id. This lets us grant admin access by inserting into
+    // admin_users without a function redeploy.
+    let isAdmin = ADMIN_EMAILS.includes(user.email?.toLowerCase() ?? "");
+    if (!isAdmin) {
+      try {
+        const { data: adminRow } = await sb
+          .from("admin_users")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (adminRow && adminRow.user_id) isAdmin = true;
+      } catch (_) { /* table may not exist */ }
+    }
+    if (!isAdmin) {
       return new Response("Forbidden", { status: 403, headers: CORS });
     }
-
-    // ── Service-role client for full table access ───────────────────
-    const sb = createClient(supabaseUrl, serviceKey);
 
     // ── Parallel queries ────────────────────────────────────────────
     const now = new Date();
