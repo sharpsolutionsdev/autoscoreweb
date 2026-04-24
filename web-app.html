@@ -2700,16 +2700,82 @@
             ctx.restore();
         }
 
+        // Try to find the best element to anchor game-shot overlays to (prefer the scorer iframe)
+        function _getGameShotTarget() {
+            const tries = ['#scorer-frame', 'iframe[src*="dartcounter"]', 'iframe.scorer', '.scorer-iframe', '#game-frame', 'iframe'];
+            for (let s of tries) {
+                try { const el = document.querySelector(s); if (el) return el; } catch(_){}
+            }
+            return null;
+        }
+
+        function _anchorOverlayToElement(overlay, el) {
+            if (!overlay) return;
+            try {
+                if (!el) {
+                    // fallback to full-screen
+                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100010;will-change:opacity,transform;pointer-events:none;padding:24px;';
+                    overlay._anchorTarget = null;
+                    return;
+                }
+                const rect = el.getBoundingClientRect();
+                if (!rect || rect.width <= 0 || rect.height <= 0) {
+                    // fallback
+                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100010;will-change:opacity,transform;pointer-events:none;padding:24px;';
+                    overlay._anchorTarget = null;
+                    return;
+                }
+                // Position the overlay to cover the target element
+                overlay.style.position = 'fixed';
+                overlay.style.left = (rect.left + window.scrollX) + 'px';
+                overlay.style.top = (rect.top + window.scrollY) + 'px';
+                overlay.style.width = rect.width + 'px';
+                overlay.style.height = rect.height + 'px';
+                overlay.style.boxSizing = 'border-box';
+                overlay.style.display = 'flex';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                overlay.style.padding = '12px';
+                overlay.style.pointerEvents = 'none';
+                overlay.style.zIndex = '100010';
+                overlay._anchorTarget = el;
+                // Ensure overlay repositions on layout changes
+                if (!overlay._anchorHandler) {
+                    overlay._anchorHandler = () => { try { if (overlay._anchorTarget) _anchorOverlayToElement(overlay, overlay._anchorTarget); } catch(_){} };
+                    window.addEventListener('resize', overlay._anchorHandler);
+                    window.addEventListener('scroll', overlay._anchorHandler, true);
+                }
+            } catch(e) { /* ignore */ }
+        }
+
+        function _unanchorOverlay(overlay) {
+            if (!overlay) return;
+            try {
+                if (overlay._anchorHandler) {
+                    window.removeEventListener('resize', overlay._anchorHandler);
+                    window.removeEventListener('scroll', overlay._anchorHandler, true);
+                    overlay._anchorHandler = null;
+                }
+                overlay._anchorTarget = null;
+            } catch(_){}
+        }
+
         function playDartboardAnimation(checkoutRoute) {
             if (!checkoutRoute || !checkoutRoute.length) return;
             let overlay = document.getElementById('dv-game-shot-overlay');
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'dv-game-shot-overlay';
+                // initially create as full-screen; we'll anchor below if we can find a target element
                 overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100010;will-change:opacity,transform;pointer-events:none;padding:24px;';
                 overlay.className = 'hidden';
                 document.body.appendChild(overlay);
             }
+            // Anchor overlay to scorer/frame element if present so it follows sizing/layout
+            try {
+                const tgt = _getGameShotTarget();
+                _anchorOverlayToElement(overlay, tgt);
+            } catch(e){}
 
             let canvas = overlay.querySelector('#dartboard-canvas');
             if (!canvas) {
@@ -2720,6 +2786,13 @@
                 overlay.appendChild(canvas);
             }
             canvas.style.display = 'block';
+            // Resize the visible canvas to fit the anchored overlay area where possible
+            try {
+                const r = overlay.getBoundingClientRect();
+                const maxDisplay = Math.min(560, Math.max(120, Math.floor(Math.min(r.width * 0.66, r.height * 0.66))));
+                canvas.style.width = maxDisplay + 'px';
+                canvas.style.height = maxDisplay + 'px';
+            } catch (e) { }
             const ctx = canvas.getContext('2d');
             const W = 560, H = 560, cx = W / 2, cy = H / 2, radius = 230;
 
@@ -2862,6 +2935,7 @@
             }
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
+            try { const tgt = _getGameShotTarget(); _anchorOverlayToElement(overlay, tgt); } catch(e){}
             // Play dartboard animation if we have a checkout route
             if (checkoutRoute && checkoutRoute.length) {
                 playDartboardAnimation(checkoutRoute);
@@ -2930,6 +3004,7 @@
             // Hide and clear the top-level overlay (if present)
             const overlay = document.getElementById('dv-game-shot-overlay') || document.getElementById('game-shot-overlay');
             if (overlay) {
+                try { _unanchorOverlay(overlay); } catch(_){}
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
                 const canvas = overlay.querySelector('#dartboard-canvas');
