@@ -53,3 +53,6 @@ logs/
 # ── Chrome extension metadata ──
 chrome_extension/_metadata/
 chrome_extension/__pycache__/
+
+# Node dependencies (do not commit node_modules)
+node_modules/

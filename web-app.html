@@ -962,6 +962,18 @@
             margin-top: 2px;
         }
 
+        /* Make per-player stats grid responsive: fit available space and avoid overflow */
+        .dv-live-pcard .grid {
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)) !important;
+        }
+
+        @media (max-width: 520px) {
+            .dv-live-val { font-size: 14px !important; }
+            .dv-live-stat-primary .dv-live-val { font-size: 16px !important; }
+            .dv-live-lbl { font-size: 7px !important; }
+            #dv-live-panel { padding: 10px !important; }
+        }
+
         /* --- MOBILE FLOATING BAR --- */
         .mobile-bar {
             display: none;
@@ -2845,18 +2857,18 @@
             try {
                 if (!el) {
                         // fallback to full-screen (ensure high z-index + GPU compositing)
-                        overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
+                        overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);opacity:0;';
                     overlay._anchorTarget = null;
                     return;
                 }
-                const rect = el.getBoundingClientRect();
+                setTimeout(() => {
                 if (!rect || rect.width <= 0 || rect.height <= 0) {
                     // fallback
-                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
+                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);opacity:0;';
                     overlay._anchorTarget = null;
                     return;
                 }
-                // Position the overlay to cover the target element
+                }, 460);
                 overlay.style.position = 'fixed';
                 overlay.style.left = (rect.left + window.scrollX) + 'px';
                 overlay.style.top = (rect.top + window.scrollY) + 'px';
@@ -2994,7 +3006,7 @@
                 overlay.id = 'dv-game-shot-overlay';
                 // initially create as full-screen; we'll anchor below if we can find a target element
                 // Create overlay with transitions and hardware-acceleration hints
-                overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
+                overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);opacity:0;';
                 overlay.className = 'hidden dv-game-shot-overlay';
                 document.body.appendChild(overlay);
             }
@@ -3166,7 +3178,7 @@
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'dv-game-shot-overlay';
-                overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
+                overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);opacity:0;';
                 overlay.className = '';
                 document.body.appendChild(overlay);
             }
@@ -3330,6 +3342,29 @@
             resetLiveCheckout();
         }
         initCheckoutBindings();
+
+        // Attach a ResizeObserver to `#dv-live-panel` so when the panel resizes
+        // we re-render the last known game state. This ensures stats/layout adapt
+        // when the window or iframe size changes (useful for dynamic layouts).
+        (function attachLivePanelResizeWatcher(){
+            function setup(){
+                try {
+                    const panel = document.getElementById('dv-live-panel');
+                    if (!panel || typeof ResizeObserver === 'undefined') return;
+                    try { if (window._dvLivePanelRO) { window._dvLivePanelRO.disconnect(); window._dvLivePanelRO = null; } } catch(_){}
+                    window._dvLivePanelRO = new ResizeObserver(() => {
+                        try {
+                            if (window._dvLastRenderedState) {
+                                requestAnimationFrame(() => { try { dvRenderGameState(window._dvLastRenderedState); } catch(_){} });
+                            }
+                        } catch(_){}
+                    });
+                    window._dvLivePanelRO.observe(panel);
+                } catch(e){}
+            }
+            if (document.readyState === 'complete' || document.readyState === 'interactive') setup();
+            else document.addEventListener('DOMContentLoaded', setup);
+        })();
 
         // --- DOM Elements --- //
         const DEMO_LIMIT_MS = 10 * 60 * 1000;
@@ -5050,6 +5085,8 @@ window.openScorerUrl = function(url){
                     } catch(e){/* ignore hashing errors */}
 
                     const clean = dvNormalizeLiveState(state);
+                            // remember last rendered state so resize observers can re-render on layout changes
+                            try { window._dvLastRenderedState = state; } catch(_){}
                     const panel = document.getElementById('dv-live-panel');
                     if (!panel) return;
                     panel.style.display = 'block';
