@@ -2758,7 +2758,7 @@
             const selCheckout = document.getElementById('live-checkout-select');
             const btnResetCheckout = document.getElementById('reset-leg-btn');
             let liveCheckoutPollId = null;
-            const LIVE_CHECKOUT_POLL_MS = 2000;
+            const LIVE_CHECKOUT_POLL_MS = 3000;
 
             function startLiveCheckoutPoll(){
                 if (liveCheckoutPollId) return;
@@ -4341,6 +4341,24 @@ window.openScorerUrl = function(url){
 
             window.dvRenderGameState = function(s){
                 if (!s) return;
+                // Avoid re-rendering when the incoming state is identical to the
+                // last rendered state — the extension can be chatty and flood
+                // the parent with identical payloads which causes unnecessary
+                // DOM updates and repaint thrashing.
+                try {
+                    window._dvLastGameStateHash = window._dvLastGameStateHash || null;
+                    const keyObj = {
+                        p1: s.p1Stats || null,
+                        p2: s.p2Stats || null,
+                        p1Name: s.p1Name || null,
+                        p2Name: s.p2Name || null,
+                        active: typeof s.activePlayer !== 'undefined' ? s.activePlayer : null,
+                        mode: s.mode || null
+                    };
+                    const stateKey = JSON.stringify(keyObj);
+                    if (stateKey === window._dvLastGameStateHash) return;
+                    window._dvLastGameStateHash = stateKey;
+                } catch(e){}
                 const clean = dvNormalizeLiveState(s);
                 const panel = document.getElementById('dv-live-panel');
                 if (!panel) return;
