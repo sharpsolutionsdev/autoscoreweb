@@ -11,16 +11,7 @@ class DvFooter extends HTMLElement {
                     <!-- Brand column -->
                     <div class="col-span-2 sm:col-span-4 lg:col-span-2">
                         <a href="/" class="flex items-center gap-2.5 group mb-4">
-                            <svg viewBox="0 0 36 36" class="w-8 h-8 shrink-0" fill="none">
-                                <rect width="36" height="36" rx="9" fill="var(--brand)" />
-                                <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"
-                                    fill="none" />
-                                <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"
-                                    fill="none" />
-                                <circle cx="18" cy="18" r="3" fill="white" />
-                                <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2"
-                                    stroke-linecap="round" fill="none" />
-                            </svg>
+                            <img src="/logo-transparent.png" alt="DartVoice" class="w-8 h-8 shrink-0" style="object-fit:contain;">
                             <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
                         </a>
                         <p class="text-muted text-sm leading-relaxed mb-5 max-w-xs">
