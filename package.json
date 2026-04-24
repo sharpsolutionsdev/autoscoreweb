@@ -1,0 +1,28 @@
+{
+  "name": "testomg",
+  "version": "1.0.0",
+  "description": "**Project Description:** DartVoice is a voice-controlled auto-scoring system designed to automate manual dartboard scoring software (like Target Dart Counter, Nakka, etc.). The system translates spoken words (e.g., \"Triple twenty\", \"Ton eighty\", \"Two marks on nineteen\") into system-level inputs or DOM clicks.",
+  "main": "admin.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sharpsolutionsdev/autoscoreweb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sharpsolutionsdev/autoscoreweb/issues"
+  },
+  "homepage": "https://github.com/sharpsolutionsdev/autoscoreweb#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}
