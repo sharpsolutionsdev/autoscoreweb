@@ -25,7 +25,7 @@
   "content_scripts": [
     {
       "matches": ["*://*.dartcounter.net/*", "*://nakka.com/*"],
-      "js": ["content.js"],
+      "js": ["content.js", "dartcounter-inject.js"],
       "all_frames": true,
       "run_at": "document_start"
     },
