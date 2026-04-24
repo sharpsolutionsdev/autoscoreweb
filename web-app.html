@@ -63,13 +63,20 @@
         }
         .hero-glow.listen-active { animation: heroPulse 2.6s ease-in-out infinite; transform-origin: center; }
 
-        /* Tutorial Highlights */
+        /* Tutorial Highlights — lift target above the blurred overlay so it is sharp,
+           while everything else remains dimmed/blurred behind the modal */
         .onb-highlight-target {
             position: relative;
-            z-index: 999998 !important; /* Above the bg-black/80 overlay */
+            z-index: 999998 !important; /* Above the bg-black/80 overlay (z-999997) */
+            isolation: isolate;
+            filter: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
             box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.5), 0 0 30px rgba(var(--brand-rgb), 0.8) !important;
             animation: onbPulse 2s infinite;
-            border-radius: 4px;
+            border-radius: 6px;
+            outline: 2px solid var(--brand);
+            outline-offset: 2px;
         }
         @keyframes onbPulse {
             0% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0.7); }
@@ -252,6 +259,28 @@
         }
         @keyframes dv-slowSpin { to { transform: translate(-50%,-50%) rotate(360deg); } }
 
+        /* Primary spinning loader wheel around the logo */
+        .dv-cinema-wheel {
+            position: absolute; width: 220px; height: 220px;
+            top: 50%; left: 50%; transform: translate(-50%,-50%);
+            pointer-events: none; z-index: 3;
+        }
+        .dv-cinema-wheel svg { width: 100%; height: 100%; display: block; }
+        .dv-cinema-wheel .wheel-track { stroke: rgba(255,255,255,0.06); }
+        .dv-cinema-wheel .wheel-arc {
+            stroke: var(--brand);
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 8px rgba(var(--brand-rgb),0.7));
+            animation: dv-wheelDash 1.6s ease-in-out infinite, dv-wheelRot 2.4s linear infinite;
+            transform-origin: 50% 50%;
+        }
+        @keyframes dv-wheelRot { to { transform: rotate(360deg); } }
+        @keyframes dv-wheelDash {
+            0%   { stroke-dasharray: 1 300;   stroke-dashoffset: 0; }
+            50%  { stroke-dasharray: 180 300; stroke-dashoffset: -60; }
+            100% { stroke-dasharray: 1 300;   stroke-dashoffset: -300; }
+        }
+
         /* Corner flourishes */
         .dv-cinema-corner {
             position: absolute; width: 40px; height: 40px;
@@ -373,9 +402,10 @@
         }
         iframe { width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; background-color: #ffffff; }
 
-        /* Quick-access glassmorphic slider popups */
+        /* Quick-access glassmorphic slider popups — open to the right so
+           they don't overflow when the sidebar is narrow */
         .qa-slider-popup {
-            position: absolute; top: calc(100% + 8px); right: 0;
+            position: absolute; top: calc(100% + 8px); left: 0; right: auto;
             width: 200px; padding: 14px 16px;
             background: rgba(17,17,20,0.92); backdrop-filter: blur(16px) saturate(1.4);
             border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
@@ -908,6 +938,7 @@
     <div id="dv-cinema" role="status" aria-label="Loading DartVoice">
         <!-- Video backdrop (blurred, dark, atmospheric) -->
         <video id="dv-cinema-vid" class="dv-cinema-video" autoplay muted playsinline preload="auto" loop>
+            <source src="assets/media/pulsing-android.mp4" type="video/mp4">
             <source src="assets/media/soundwave-pulse.mp4" type="video/mp4">
         </video>
         <div class="dv-cinema-vignette"></div>
@@ -915,6 +946,14 @@
         <!-- Decorative orbiting rings -->
         <div class="dv-cinema-ring" id="dv-ring1"></div>
         <div class="dv-cinema-ring r2" id="dv-ring2"></div>
+
+        <!-- Primary loader wheel -->
+        <div class="dv-cinema-wheel" aria-hidden="true">
+            <svg viewBox="0 0 100 100">
+                <circle class="wheel-track" cx="50" cy="50" r="46" fill="none" stroke-width="2"></circle>
+                <circle class="wheel-arc"   cx="50" cy="50" r="46" fill="none" stroke-width="3" pathLength="300"></circle>
+            </svg>
+        </div>
 
         <!-- Corner brackets -->
         <div class="dv-cinema-corner tl" id="dv-c-tl"></div>
@@ -974,6 +1013,13 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h1 class="display text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                                <svg viewBox="0 0 36 36" class="w-7 h-7 shrink-0" fill="none" aria-hidden="true">
+                                    <rect width="36" height="36" rx="9" fill="var(--brand)"></rect>
+                                    <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"></circle>
+                                    <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"></circle>
+                                    <circle cx="18" cy="18" r="3" fill="white"></circle>
+                                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"></path>
+                                </svg>
                                 DART<span class="text-brand">VOICE</span>
                             </h1>
                             <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Scorer Studio</p>
@@ -1774,14 +1820,17 @@
                     <button onclick="dismissOnboarding()" class="text-xs text-muted hover:text-chalk transition">Skip</button>
                 </div>
 
-                <!-- Step 1: Extension -->
+                <!-- Step 1: Extension status -->
                 <div id="onb-s1" class="onb-step">
-                    <div class="w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <div id="onb-s1-icon-wrap" class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/25 flex items-center justify-center mb-4">
+                        <svg id="onb-s1-icon-ok" class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                        <svg id="onb-s1-icon-missing" class="hidden w-6 h-6 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Install the Chrome Extension</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed mb-4">DartVoice needs the <b class="text-white">Launchpad</b> extension to inject scores into your dartboard app. Install it from the Chrome Web Store and refresh this page.</p>
-                    <a href="https://chromewebstore.google.com/detail/dartvoice-launchpad/igldnjophdpofihidpbblchgfamncpgb" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm text-brand font-semibold hover:underline">Open Chrome Web Store <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></a>
+                    <h3 id="onb-s1-title" class="text-lg font-bold text-white mb-2">Extension Recognised</h3>
+                    <p id="onb-s1-body" class="text-sm text-gray-400 leading-relaxed mb-4">DartVoice Launchpad is installed and ready to inject scores into your dartboard app.</p>
+                    <div id="onb-s1-install" class="hidden">
+                        <a href="https://chromewebstore.google.com/detail/dartvoice-launchpad/igldnjophdpofihidpbblchgfamncpgb" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm text-brand font-semibold hover:underline">Open Chrome Web Store <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></a>
+                    </div>
                 </div>
 
                 <!-- Step 2: Mic Permissions -->
@@ -1887,7 +1936,33 @@
             // Clear highlights
             document.querySelectorAll('.onb-highlight-target').forEach(el => el.classList.remove('onb-highlight-target'));
             updatePointer(null);
-            
+
+            // Step 1: reflect real extension state
+            if (_onbStep === 1) {
+                var hasExt = !!window.extensionDetected;
+                var iconWrap   = document.getElementById('onb-s1-icon-wrap');
+                var iconOk     = document.getElementById('onb-s1-icon-ok');
+                var iconMiss   = document.getElementById('onb-s1-icon-missing');
+                var title      = document.getElementById('onb-s1-title');
+                var bodyP      = document.getElementById('onb-s1-body');
+                var installBox = document.getElementById('onb-s1-install');
+                if (hasExt) {
+                    if (iconWrap) iconWrap.className = 'w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/25 flex items-center justify-center mb-4';
+                    if (iconOk)   iconOk.classList.remove('hidden');
+                    if (iconMiss) iconMiss.classList.add('hidden');
+                    if (title)    title.textContent = 'Extension Recognised';
+                    if (bodyP)    bodyP.textContent = 'DartVoice Launchpad is installed and ready to inject scores into your dartboard app.';
+                    if (installBox) installBox.classList.add('hidden');
+                } else {
+                    if (iconWrap) iconWrap.className = 'w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center mb-4';
+                    if (iconOk)   iconOk.classList.add('hidden');
+                    if (iconMiss) iconMiss.classList.remove('hidden');
+                    if (title)    title.textContent = 'Install the Chrome Extension';
+                    if (bodyP)    bodyP.textContent = 'DartVoice needs the Launchpad extension to inject scores into your dartboard app. Install it from the Chrome Web Store and refresh this page.';
+                    if (installBox) installBox.classList.remove('hidden');
+                }
+            }
+
             // Add highlights based on step
             if (_onbStep === 3) {
                 const settingsTab = document.querySelector('[data-target="tab-settings"]');
@@ -1941,9 +2016,28 @@
             }
         });
 
-        if (!localStorage.getItem('dv-onboarding-done')) {
+        function showOnboardingNow() {
             document.getElementById('onboarding-overlay').classList.remove('hidden');
             setTimeout(show, 100);
+        }
+        if (!localStorage.getItem('dv-onboarding-done')) {
+            // Wait until cinematic loader has finished so user can actually see the tutorial
+            var cinemaEl = document.getElementById('dv-cinema');
+            var alreadyHidden = !cinemaEl || cinemaEl.style.display === 'none' || cinemaEl.classList.contains('exit');
+            if (alreadyHidden) {
+                setTimeout(showOnboardingNow, 200);
+            } else {
+                window.addEventListener('dv:cinema-hidden', function handler(){
+                    window.removeEventListener('dv:cinema-hidden', handler);
+                    setTimeout(showOnboardingNow, 250);
+                });
+                // Safety fallback — 7s after page load
+                setTimeout(function(){
+                    if (document.getElementById('onboarding-overlay').classList.contains('hidden')) {
+                        showOnboardingNow();
+                    }
+                }, 7000);
+            }
         }
     })();
     </script>
@@ -2171,6 +2265,7 @@
 
         // --- EXTENSION DETECTION ---
         let extensionDetected = false;
+        window.extensionDetected = false;
         const extGate = document.getElementById('ext-gate');
         const extBadge = document.getElementById('ext-badge');
         const extBadgeDot = document.getElementById('ext-badge-dot');
@@ -2178,6 +2273,29 @@
 
         function setExtensionLinked() {
             extensionDetected = true;
+            window.extensionDetected = true;
+            // Live-refresh Step 1 if tutorial is open
+            try {
+                var ovl = document.getElementById('onboarding-overlay');
+                if (ovl && !ovl.classList.contains('hidden') && typeof window.onbNav !== 'function') {
+                    // If step 1 visible, re-render by toggling state
+                }
+                var s1 = document.getElementById('onb-s1');
+                if (s1 && !s1.classList.contains('hidden')) {
+                    var iconWrap = document.getElementById('onb-s1-icon-wrap');
+                    var iconOk = document.getElementById('onb-s1-icon-ok');
+                    var iconMiss = document.getElementById('onb-s1-icon-missing');
+                    var title = document.getElementById('onb-s1-title');
+                    var bodyP = document.getElementById('onb-s1-body');
+                    var installBox = document.getElementById('onb-s1-install');
+                    if (iconOk) iconOk.classList.remove('hidden');
+                    if (iconMiss) iconMiss.classList.add('hidden');
+                    if (iconWrap) iconWrap.className = 'w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/25 flex items-center justify-center mb-4';
+                    if (title) title.textContent = 'Extension Recognised';
+                    if (bodyP) bodyP.textContent = 'DartVoice Launchpad is installed and ready to inject scores into your dartboard app.';
+                    if (installBox) installBox.classList.add('hidden');
+                }
+            } catch(_) {}
             if (extGate && extGate.style) extGate.style.display = 'none';
             if (extBadge) extBadge.className = 'flex items-center gap-1.5 bg-green-500/10 text-green-500/80 px-2 py-0.5 rounded-full border border-green-500/20';
             if (extBadgeDot) extBadgeDot.className = 'w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]';
@@ -2969,7 +3087,10 @@
         function hideLoadingOverlay() {
             if (_cinema) _cinema.classList.add('exit');
             // Clean up after transition
-            setTimeout(() => { if (_cinema) _cinema.style.display = 'none'; }, 800);
+            setTimeout(() => {
+                if (_cinema) _cinema.style.display = 'none';
+                try { window.dispatchEvent(new CustomEvent('dv:cinema-hidden')); } catch(_) {}
+            }, 800);
         }
 
         // Drive the cinematic sequence

@@ -125,6 +125,56 @@
 
 <body class="antialiased overflow-x-hidden noise grid-bg-soft">
 
+    <!-- ═══ Page loading overlay (plays on every load) ═══ -->
+    <style>
+        #dv-index-loader{position:fixed;inset:0;z-index:100000;background:#08080A;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;transition:opacity .55s ease,visibility .55s ease;}
+        #dv-index-loader.hide{opacity:0;visibility:hidden;pointer-events:none;}
+        #dv-index-loader .dv-il-wheel{width:120px;height:120px;position:relative;}
+        #dv-index-loader .dv-il-wheel svg{width:100%;height:100%;display:block;}
+        #dv-index-loader .dv-il-track{stroke:rgba(255,255,255,0.06);}
+        #dv-index-loader .dv-il-arc{stroke:var(--brand);stroke-linecap:round;filter:drop-shadow(0 0 8px rgba(var(--brand-rgb),0.8));transform-origin:50% 50%;animation:dv-il-rot 2.4s linear infinite,dv-il-dash 1.6s ease-in-out infinite;}
+        #dv-index-loader .dv-il-logo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+        #dv-index-loader .dv-il-logo svg{width:50px;height:50px;filter:drop-shadow(0 0 12px rgba(var(--brand-rgb),0.5));}
+        #dv-index-loader .dv-il-label{font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:.25em;font-size:13px;color:rgba(255,255,255,0.75);text-transform:uppercase;}
+        @keyframes dv-il-rot{to{transform:rotate(360deg);}}
+        @keyframes dv-il-dash{0%{stroke-dasharray:1 300;stroke-dashoffset:0;}50%{stroke-dasharray:180 300;stroke-dashoffset:-60;}100%{stroke-dasharray:1 300;stroke-dashoffset:-300;}}
+    </style>
+    <div id="dv-index-loader" role="status" aria-label="Loading DartVoice">
+        <div class="dv-il-wheel">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="dv-il-track" cx="50" cy="50" r="46" fill="none" stroke-width="2"></circle>
+                <circle class="dv-il-arc"   cx="50" cy="50" r="46" fill="none" stroke-width="3" pathLength="300"></circle>
+            </svg>
+            <div class="dv-il-logo">
+                <svg viewBox="0 0 36 36" fill="none" aria-hidden="true">
+                    <rect width="36" height="36" rx="9" fill="var(--brand)"/>
+                    <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                    <circle cx="18" cy="18" r="3" fill="white"/>
+                    <path d="M 24 10 Q 30 18 24 26" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+            </div>
+        </div>
+        <div class="dv-il-label">DartVoice</div>
+    </div>
+    <script>
+        (function(){
+            // Hide after load or max 1.6s — runs on EVERY page load
+            var loader = document.getElementById('dv-index-loader');
+            var hidden = false;
+            function hideLoader(){
+                if (hidden || !loader) return;
+                hidden = true;
+                loader.classList.add('hide');
+                setTimeout(function(){ try { loader.remove(); } catch(_){} }, 700);
+                // Fire a custom event so welcome/tutorial flows can wait
+                window.dispatchEvent(new CustomEvent('dv:loader-hidden'));
+            }
+            window.addEventListener('load', function(){ setTimeout(hideLoader, 250); });
+            setTimeout(hideLoader, 1800); // hard cap
+        })();
+    </script>
+
     <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <nav class="fixed top-0 w-full z-50 bg-dark/80 backdrop-blur-xl border-b border-wire/60">
         <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
@@ -144,11 +194,6 @@
 
             <!-- Desktop links -->
             <div class="hidden sm:flex items-center gap-1">
-                <a href="#features"
-                    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
-                <a href="#scoring-modes"
-                    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Modes</a>
-                <a href="how-it-works" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">How It Works</a>
                 <a href="#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
                 <a href="web-app" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1.5">
                     <img src="dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded" style="image-rendering:auto;">
@@ -165,6 +210,9 @@
                     </button>
                     <div id="nav-more-menu"
                         class="absolute right-0 top-full mt-1 min-w-[180px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
+                        <a href="#features" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Features</a>
+                        <a href="#scoring-modes" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Modes</a>
+                        <a href="how-it-works" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">How It Works</a>
                         <a href="#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
                         <a href="guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
                         <a href="referral" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
@@ -186,8 +234,8 @@
                     class="btn-outline px-5 py-2.5 sm:px-4 sm:py-2 rounded-lg text-sm font-semibold min-h-[44px] sm:min-h-0 text-chalk">Sign
                     In</a>
                 <a href="login?intent=subscribe"
-                    class="btn-brand px-5 py-2.5 sm:px-4 sm:py-2 rounded-lg text-sm font-semibold min-h-[44px] sm:min-h-0 text-white">
-                    Start Free Trial
+                    class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white whitespace-nowrap">
+                    Start Trial
                 </a>
             </div>
 
@@ -1822,27 +1870,112 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                   var ctaText = hasActive ? 'My Dashboard' : 'My Dashboard';
                   var ctaBtn  = 'btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white';
 
-                  // Desktop
+                  var initial = (email || '?').trim().charAt(0).toUpperCase();
+                  var emailPrefix = email.split('@')[0];
+
+                  // Desktop — compact account pill, built with DOM APIs
                   var desktopEl = document.getElementById('nav-auth-desktop');
                   if (desktopEl) {
-                      desktopEl.innerHTML =
-                          '<span class="text-xs text-muted truncate max-w-[160px]">' + esc(email) + '</span>' +
-                          '<a href="' + ctaHref + '" class="' + ctaBtn + '">' + ctaText + '</a>' +
-                          '<button onclick="dvSignOut()" class="text-xs text-muted hover:text-chalk transition px-2 py-1.5 rounded-lg hover:bg-wire/30">Sign Out</button>';
+                      while (desktopEl.firstChild) desktopEl.removeChild(desktopEl.firstChild);
+
                       var curMount = document.createElement('div');
                       curMount.setAttribute('data-dv-currency-mount','');
-                      desktopEl.insertBefore(curMount, desktopEl.firstChild);
+                      desktopEl.appendChild(curMount);
+
+                      var ctaA = document.createElement('a');
+                      ctaA.href = ctaHref;
+                      ctaA.className = ctaBtn + ' whitespace-nowrap';
+                      ctaA.textContent = ctaText;
+                      desktopEl.appendChild(ctaA);
+
+                      var pillWrap = document.createElement('div');
+                      pillWrap.className = 'relative group';
+                      pillWrap.id = 'dv-account-pill';
+
+                      var pillBtn = document.createElement('button');
+                      pillBtn.type = 'button';
+                      pillBtn.className = 'flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-wire/50 hover:border-brand/60 bg-wire/20 hover:bg-wire/30 transition';
+                      pillBtn.setAttribute('aria-label','Account');
+                      var avatar = document.createElement('span');
+                      avatar.className = 'w-7 h-7 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0';
+                      avatar.textContent = initial;
+                      pillBtn.appendChild(avatar);
+                      var nameSpan = document.createElement('span');
+                      nameSpan.className = 'text-xs text-chalk font-semibold max-w-[110px] truncate';
+                      nameSpan.textContent = emailPrefix;
+                      pillBtn.appendChild(nameSpan);
+                      var caret = document.createElement('span');
+                      caret.className = 'text-muted group-hover:rotate-180 transition-transform';
+                      caret.textContent = '▾';
+                      caret.style.fontSize = '10px';
+                      pillBtn.appendChild(caret);
+                      pillWrap.appendChild(pillBtn);
+
+                      var menu = document.createElement('div');
+                      menu.className = 'absolute right-0 top-full mt-1 min-w-[220px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 z-50';
+
+                      var mHead = document.createElement('div');
+                      mHead.className = 'px-4 py-2 border-b border-wire/40';
+                      var mHeadLbl = document.createElement('p');
+                      mHeadLbl.className = 'text-[10px] text-muted uppercase tracking-widest mb-0.5';
+                      mHeadLbl.textContent = 'Signed in as';
+                      var mHeadEmail = document.createElement('p');
+                      mHeadEmail.className = 'text-xs text-chalk truncate';
+                      mHeadEmail.textContent = email;
+                      mHead.appendChild(mHeadLbl); mHead.appendChild(mHeadEmail);
+                      menu.appendChild(mHead);
+
+                      function menuLink(href, label){
+                          var a = document.createElement('a');
+                          a.href = href;
+                          a.className = 'block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition';
+                          a.textContent = label;
+                          return a;
+                      }
+                      menu.appendChild(menuLink('dartvoice-dashboard','Dashboard'));
+                      menu.appendChild(menuLink('dartvoice-dashboard#profile','Profile'));
+
+                      var signOutBtn = document.createElement('button');
+                      signOutBtn.type = 'button';
+                      signOutBtn.className = 'w-full text-left px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition';
+                      signOutBtn.textContent = 'Sign Out';
+                      signOutBtn.addEventListener('click', function(){ window.dvSignOut(); });
+                      menu.appendChild(signOutBtn);
+
+                      pillWrap.appendChild(menu);
+                      desktopEl.appendChild(pillWrap);
                   }
 
-                  // Mobile
+                  // Mobile — pill-style header + actions
                   var mobileEl = document.getElementById('nav-auth-mobile');
                   if (mobileEl) {
-                      mobileEl.innerHTML =
-                          '<p class="text-xs text-muted truncate px-2 mb-2">' + esc(email) + '</p>' +
-                          '<div class="grid grid-cols-2 gap-2">' +
-                              '<a href="' + ctaHref + '" class="' + ctaBtn + ' text-center">' + ctaText + '</a>' +
-                              '<button onclick="dvSignOut()" class="btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk">Sign Out</button>' +
-                          '</div>';
+                      while (mobileEl.firstChild) mobileEl.removeChild(mobileEl.firstChild);
+
+                      var mHeader = document.createElement('div');
+                      mHeader.className = 'flex items-center gap-2 px-2 mb-3';
+                      var mAv = document.createElement('span');
+                      mAv.className = 'w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0';
+                      mAv.textContent = initial;
+                      var mEmail = document.createElement('p');
+                      mEmail.className = 'text-xs text-chalk truncate';
+                      mEmail.textContent = email;
+                      mHeader.appendChild(mAv); mHeader.appendChild(mEmail);
+                      mobileEl.appendChild(mHeader);
+
+                      var grid = document.createElement('div');
+                      grid.className = 'grid grid-cols-2 gap-2';
+                      var gCta = document.createElement('a');
+                      gCta.href = ctaHref;
+                      gCta.className = ctaBtn + ' text-center';
+                      gCta.textContent = ctaText;
+                      var gOut = document.createElement('button');
+                      gOut.type = 'button';
+                      gOut.className = 'btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk';
+                      gOut.textContent = 'Sign Out';
+                      gOut.addEventListener('click', function(){ window.dvSignOut(); });
+                      grid.appendChild(gCta); grid.appendChild(gOut);
+                      mobileEl.appendChild(grid);
+
                       var mCurMount = document.createElement('div');
                       mCurMount.setAttribute('data-dv-currency-mount','');
                       mCurMount.className = 'flex justify-center mt-3';

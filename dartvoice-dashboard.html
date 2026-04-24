@@ -2622,7 +2622,7 @@
 
             const code = profile?.referral_code || '';
             _ambRefCode = code;
-            const url = code ? `https://dartvoice.app/login?ref=${code}` : '—';
+            const url = code ? `https://dartvoice.app/login?intent=subscribe&ref=${code}` : '—';
             $('ref-link-text').textContent = url;
 
             // Fetch ALL referrals to compute stats client-side

@@ -367,13 +367,24 @@
                     </div>
 
                     <!-- 6 character boxes -->
-                    <div class="otp-field mb-5" id="otp-boxes">
+                    <div class="otp-field mb-3" id="otp-boxes">
                         <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="0" autocomplete="one-time-code">
                         <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="1">
                         <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="2">
                         <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="3">
                         <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="4">
                         <input class="otp-char" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="5">
+                    </div>
+
+                    <!-- Paste code from clipboard helper -->
+                    <div class="flex justify-center mb-4">
+                        <button type="button" id="btn-paste-code" onclick="pasteOtpFromClipboard()"
+                                class="text-[11px] text-muted hover:text-brand transition inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-wire/50 hover:border-brand/50">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m-8 4h6m-6 4h6"/>
+                            </svg>
+                            <span id="btn-paste-label">Paste Code</span>
+                        </button>
                     </div>
 
                     <button id="btn-verify" onclick="verifyOtp()" disabled
@@ -498,6 +509,15 @@
 
     // Auto-populate referral code from ?ref URL param
     const _urlRefCode = _urlParams.get('ref') || '';
+
+    // Always reveal referral row if a ref code is in URL (link from ambassador)
+    if (_urlRefCode) {
+        document.getElementById('referral-code-row').classList.remove('hidden');
+        const refInput = document.getElementById('input-referral-code');
+        if (refInput) refInput.value = _urlRefCode.toUpperCase();
+        const refIcon = document.getElementById('ref-check-icon');
+        if (refIcon) refIcon.classList.remove('hidden');
+    }
 
     // Adapt UI for sign-up vs sign-in
     if (_isSignUp) {
@@ -634,6 +654,34 @@
                 }
             });
         });
+    }
+
+    async function pasteOtpFromClipboard() {
+        const lbl = document.getElementById('btn-paste-label');
+        try {
+            const text = await navigator.clipboard.readText();
+            const digits = (text || '').replace(/\D/g, '').slice(0, 6);
+            if (digits.length === 0) {
+                if (lbl) { lbl.textContent = 'No code found'; setTimeout(() => lbl.textContent = 'Paste Code', 1500); }
+                return;
+            }
+            const boxes = document.querySelectorAll('.otp-char');
+            boxes.forEach((b, idx) => {
+                const ch = digits[idx] || '';
+                b.value = ch;
+                b.classList.toggle('filled', !!ch);
+            });
+            checkOtpComplete();
+            if (digits.length === 6) {
+                boxes[5].focus();
+                if (lbl) { lbl.textContent = 'Pasted ✓'; }
+                setTimeout(verifyOtp, 120);
+            } else {
+                boxes[digits.length]?.focus();
+            }
+        } catch (err) {
+            if (lbl) { lbl.textContent = 'Clipboard blocked'; setTimeout(() => lbl.textContent = 'Paste Code', 1800); }
+        }
     }
 
     function checkOtpComplete() {
