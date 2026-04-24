@@ -2641,8 +2641,16 @@
 
         function playDartboardAnimation(checkoutRoute) {
             if (!checkoutRoute || !checkoutRoute.length) return;
-            const overlay = document.getElementById('game-shot-overlay');
-            if (!overlay) return;
+            // Prefer a top-level overlay that sits above the iframe so animations
+            // appear over the scorer. Fallback to the in-panel overlay if missing.
+            let overlay = document.getElementById('dv-game-shot-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'dv-game-shot-overlay';
+                overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100001;pointer-events:none;padding:24px;';
+                overlay.className = 'hidden';
+                document.body.appendChild(overlay);
+            }
 
             // Create/reuse canvas
             let canvas = overlay.querySelector('#dartboard-canvas');
@@ -2694,11 +2702,17 @@
 
         function triggerGameShot(checkoutRoute) {
             gameShotLock = true;
-            const overlay = document.getElementById('game-shot-overlay');
-            if (overlay) {
-                overlay.classList.remove('hidden');
-                overlay.classList.add('flex');
+            // Show the full-screen game shot overlay above the iframe
+            let overlay = document.getElementById('dv-game-shot-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'dv-game-shot-overlay';
+                overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100001;pointer-events:none;padding:24px;';
+                overlay.className = '';
+                document.body.appendChild(overlay);
             }
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
             // Play dartboard animation if we have a checkout route
             if (checkoutRoute && checkoutRoute.length) {
                 playDartboardAnimation(checkoutRoute);
@@ -2710,12 +2724,13 @@
             currentCheckoutScore = checkoutStartScore;
             gameShotLock = false;
             updateCheckoutUI();
-            const overlay = document.getElementById('game-shot-overlay');
+            // Hide and clear the top-level overlay (if present)
+            const overlay = document.getElementById('dv-game-shot-overlay') || document.getElementById('game-shot-overlay');
             if (overlay) {
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
                 const canvas = overlay.querySelector('#dartboard-canvas');
-                if (canvas) canvas.style.display = 'none';
+                if (canvas) canvas.remove();
             }
         }
 
@@ -4523,7 +4538,7 @@ window.openScorerUrl = function(url){
                 if (!wrap) {
                     wrap = document.createElement('div');
                     wrap.id = 'dv-checkout-prompt';
-                    wrap.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:10000;background:rgba(10,12,18,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 18px;color:#fff;font-family:Plus Jakarta Sans,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center;';
+                    wrap.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:100002;background:rgba(10,12,18,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 18px;color:#fff;font-family:Plus Jakarta Sans,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center;';
                     const hd = document.createElement('div');
                     hd.id = 'dv-checkout-head';
                     hd.style.cssText = 'font-family:Barlow Condensed,sans-serif;letter-spacing:.2em;font-weight:700;font-size:12px;opacity:.8;margin-bottom:8px;';
