@@ -1562,6 +1562,7 @@
                         <a href="#admin-sec-charts">Charts</a>
                         <a href="#admin-sec-signups">Sign-ups</a>
                         <a href="#admin-sec-subs">Subscribers</a>
+                        <a href="#admin-sec-users">Users</a>
                         <a href="#admin-sec-referrals">Referrals</a>
                     </nav>
 
@@ -1696,6 +1697,42 @@
                             </table>
                         </div>
                     </div>
+                    </section>
+
+                    <!-- All Users — export + manage access -->
+                    <section id="admin-sec-users" class="admin-section">
+                        <h2 class="admin-section-title">Users</h2>
+                        <div class="glass-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-lg font-bold text-chalk">All Users</h2>
+                                    <span id="admin-users-count" class="text-xs font-bold px-2 py-0.5 rounded-full bg-white/[0.04] text-muted border border-white/[0.06]">0</span>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <input id="admin-users-search" type="search" placeholder="Search email…"
+                                           class="bg-[#08080A] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-chalk placeholder-muted focus:outline-none focus:border-brand/60" />
+                                    <button id="admin-users-export-emails" class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-chalk hover:bg-white/[0.08]">Export Emails</button>
+                                    <button id="admin-users-export-csv" class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-brand/10 border border-brand/30 text-brand hover:bg-brand/20">Export CSV</button>
+                                    <button onclick="loadAdminStats(true)" class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-chalk hover:bg-white/[0.08]">Refresh</button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead>
+                                        <tr class="text-[10px] font-bold text-muted-2 tracking-widest uppercase border-b border-white/[0.06]">
+                                            <th class="pb-3 pr-4">Email</th>
+                                            <th class="pb-3 pr-4">Status</th>
+                                            <th class="pb-3 pr-4">Partner</th>
+                                            <th class="pb-3 pr-4">Joined</th>
+                                            <th class="pb-3 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-users-tbody" class="divide-y divide-white/[0.04]">
+                                        <tr><td colspan="5" class="py-4 text-center text-muted">Loading…</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </section>
 
                     <!-- Referrals -->
@@ -2624,8 +2661,10 @@
         }
         setInterval(updateLiveUserCount, 3000);
 
-        async function loadAdminStats() {
-            if (_adminStatsLoaded) return;
+        let _adminAllUsers = [];
+
+        async function loadAdminStats(force) {
+            if (_adminStatsLoaded && !force) return;
 
             try {
                 const { data: { session } } = await sb.auth.getSession();
@@ -2727,12 +2766,172 @@
 
                 _adminStatsLoaded = true;
 
+                // ── All users table ──
+                _adminAllUsers = Array.isArray(d.allUsers) ? d.allUsers : [];
+                renderAdminUsers('');
+
                 // ── Charts ──
                 renderSignupChart(d.newThisMonth);
                 renderDonutChart(d.byStatus);
             } catch (e) {
                 console.error('Failed to load admin stats:', e);
             }
+        }
+
+        function renderAdminUsers(filter) {
+            const tbody = $('admin-users-tbody');
+            const countEl = $('admin-users-count');
+            if (!tbody) return;
+            const q = (filter || '').trim().toLowerCase();
+            const rows = _adminAllUsers
+                .filter(u => !q || (u.email || '').toLowerCase().includes(q))
+                .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+            if (countEl) countEl.textContent = String(rows.length);
+            if (rows.length === 0) {
+                while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 5; td.className = 'py-4 text-center text-muted';
+                td.textContent = q ? `No users matching "${filter}".` : 'No users.';
+                tr.appendChild(td); tbody.appendChild(tr);
+                return;
+            }
+            while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+            const statusColors = {
+                active:    'text-success bg-success/10',
+                trialing:  'text-yellow-400 bg-yellow-400/10',
+                past_due:  'text-yellow-400 bg-yellow-400/10',
+                canceled:  'text-muted bg-white/[0.04]',
+            };
+            rows.forEach(u => {
+                const tr = document.createElement('tr');
+                const status = u.status || 'none';
+                const sc = statusColors[status] || 'text-muted-2 bg-white/[0.04]';
+                const when = u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : '—';
+
+                // Email
+                const tdE = document.createElement('td');
+                tdE.className = 'py-2.5 pr-4 text-chalk text-xs truncate max-w-[240px]';
+                tdE.textContent = u.email || '—';
+                tr.appendChild(tdE);
+
+                // Status
+                const tdS = document.createElement('td');
+                tdS.className = 'py-2.5 pr-4';
+                const sSpan = document.createElement('span');
+                sSpan.className = `text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${sc}`;
+                sSpan.textContent = status;
+                tdS.appendChild(sSpan);
+                tr.appendChild(tdS);
+
+                // Partner toggle
+                const tdP = document.createElement('td');
+                tdP.className = 'py-2.5 pr-4';
+                const pBtn = document.createElement('button');
+                pBtn.type = 'button';
+                pBtn.className = 'text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ' +
+                    (u.ambassador_partner ? 'text-brand bg-brand/10 border border-brand/30' : 'text-muted bg-white/[0.04] border border-white/[0.06] hover:text-chalk');
+                pBtn.textContent = u.ambassador_partner ? 'Partner' : 'Off';
+                pBtn.addEventListener('click', () => adminUserAction('set_ambassador', u.user_id, !u.ambassador_partner, u.email));
+                tdP.appendChild(pBtn);
+                tr.appendChild(tdP);
+
+                // Joined
+                const tdW = document.createElement('td');
+                tdW.className = 'py-2.5 pr-4 text-xs text-muted';
+                tdW.textContent = when;
+                tr.appendChild(tdW);
+
+                // Actions
+                const tdA = document.createElement('td');
+                tdA.className = 'py-2.5 text-right';
+                function mk(label, action, cls) {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ml-1 ' + cls;
+                    b.textContent = label;
+                    b.addEventListener('click', () => adminUserAction(action, u.user_id, null, u.email));
+                    return b;
+                }
+                tdA.appendChild(mk('Trial',  'grant_trial',  'text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 hover:bg-yellow-400/20'));
+                tdA.appendChild(mk('Active', 'grant_active', 'text-success bg-success/10 border border-success/20 hover:bg-success/20'));
+                tdA.appendChild(mk('Revoke', 'revoke',       'text-red-400 bg-red-400/10 border border-red-400/20 hover:bg-red-400/20'));
+                tr.appendChild(tdA);
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function adminUserAction(action, userId, value, email) {
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session) return;
+                const resp = await fetch(SUPABASE_URL + '/functions/v1/admin-stats', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action, user_id: userId, value, email }),
+                });
+                const body = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    showToast('Error: ' + (body.error || resp.statusText));
+                    return;
+                }
+                showToast('Updated — refreshing…');
+                _adminStatsLoaded = false;
+                loadAdminStats(true);
+            } catch (e) {
+                showToast('Error: ' + (e?.message || e));
+            }
+        }
+
+        // Users section: search + export
+        (function(){
+            const bind = () => {
+                const search = document.getElementById('admin-users-search');
+                if (search && !search._bound) {
+                    search._bound = true;
+                    search.addEventListener('input', e => renderAdminUsers(e.target.value));
+                }
+                const btnEmails = document.getElementById('admin-users-export-emails');
+                if (btnEmails && !btnEmails._bound) {
+                    btnEmails._bound = true;
+                    btnEmails.addEventListener('click', () => {
+                        const emails = _adminAllUsers.map(u => u.email).filter(Boolean).join('\n');
+                        downloadText('dartvoice-emails.txt', emails);
+                    });
+                }
+                const btnCsv = document.getElementById('admin-users-export-csv');
+                if (btnCsv && !btnCsv._bound) {
+                    btnCsv._bound = true;
+                    btnCsv.addEventListener('click', () => {
+                        const header = 'user_id,email,status,ambassador_partner,created_at,current_period_end';
+                        const rows = _adminAllUsers.map(u => [
+                            u.user_id, u.email || '', u.status || '', u.ambassador_partner ? 'true' : 'false',
+                            u.created_at || '', u.current_period_end || ''
+                        ].map(v => {
+                            const s = String(v);
+                            return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+                        }).join(','));
+                        downloadText('dartvoice-users.csv', [header].concat(rows).join('\n'));
+                    });
+                }
+            };
+            document.addEventListener('DOMContentLoaded', bind);
+            // Re-bind when admin tab opens (in case DOM was rebuilt)
+            setTimeout(bind, 2000);
+        })();
+
+        function downloadText(filename, text) {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 250);
         }
 
         function renderSignupChart(users) {

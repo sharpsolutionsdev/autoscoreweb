@@ -40,11 +40,13 @@
         <tr><td align="center" style="padding:40px 40px 32px;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
             <tr>
-                <td width="34" height="34" style="background-color:#CC0B20;border-radius:9px;text-align:center;vertical-align:middle;">
-                    <span style="color:white;font-size:14px;line-height:34px;">&#9679;</span>
+                <td style="text-align:center;">
+                    <a href="https://dartvoice.app" style="text-decoration:none;color:inherit;display:inline-block;">
+                        <img src="https://dartvoice.app/logo-transparent.png" alt="DartVoice" width="44" height="44"
+                             style="display:inline-block;vertical-align:middle;border:0;outline:none;border-radius:10px;">
+                        <span style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:22px;font-weight:900;font-style:italic;color:#F0F0F5;letter-spacing:1.5px;text-transform:uppercase;vertical-align:middle;margin-left:10px;">DARTVOICE</span>
+                    </a>
                 </td>
-                <td width="10">&nbsp;</td>
-                <td style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:18px;font-weight:900;font-style:italic;color:#F0F0F5;letter-spacing:1px;text-transform:uppercase;">DARTVOICE</td>
             </tr>
             </table>
 
@@ -53,15 +55,29 @@
         </td></tr>
 
         <!-- OTP Code -->
-        <tr><td align="center" class="body-cell" style="padding:0 40px 36px;">
+        <tr><td align="center" class="body-cell" style="padding:0 40px 16px;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-            <tr><td align="center" style="background-color:#08080A;border:1px solid #CC0B20;border-radius:16px;padding:24px 48px;box-shadow: 0 8px 30px rgba(204, 11, 32, 0.15);">
-                <span style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:48px;font-weight:900;color:#F0F0F5;letter-spacing:10px;line-height:1;display:block;margin-bottom:16px;">{{ .Token }}</span>
-                <!-- Faux "Copy to Clipboard" button (JS is stripped in email, so it's a visual prompt or deep link) -->
-                <a href="#" style="display:inline-block;background-color:#18181C;border:1px solid #252530;border-radius:6px;padding:8px 16px;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:600;color:#A0A0B0;text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Select & Copy Code</a>
+            <tr><td align="center" style="background-color:#08080A;border:1px solid #CC0B20;border-radius:16px;padding:28px 48px;box-shadow: 0 8px 30px rgba(204, 11, 32, 0.15);">
+                <!-- Code is wrapped in an <a> so one-tap-select on mobile / long-press → copy -->
+                <a href="https://dartvoice.app/login?otp={{ .Token }}" style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:48px;font-weight:900;color:#F0F0F5;letter-spacing:10px;line-height:1;display:block;text-decoration:none;">{{ .Token }}</a>
             </td></tr>
             </table>
             <p style="margin:20px 0 0;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;color:#CC0B20;text-transform:uppercase;letter-spacing:2px;">Expires in 10 minutes</p>
+        </td></tr>
+
+        <!-- One-click sign-in CTA -->
+        <tr><td align="center" class="body-cell" style="padding:0 40px 30px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+            <tr><td align="center" style="background-color:#CC0B20;border-radius:12px;">
+                <a href="https://dartvoice.app/login?otp={{ .Token }}"
+                   style="display:inline-block;padding:14px 28px;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:1.5px;text-transform:uppercase;">
+                    Open DartVoice to Sign In &rarr;
+                </a>
+            </td></tr>
+            </table>
+            <p style="margin:14px 0 0;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:11px;color:#6E6E82;">
+                Or tap the code above to copy it, then paste into the login page.
+            </p>
         </td></tr>
 
         <!-- Safety note -->

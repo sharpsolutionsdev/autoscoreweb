@@ -2634,37 +2634,61 @@
             }
         }
 
-        function drawDart(ctx, x, y, opacity) {
-            // Draw a dart marker
-            const s = 6;
+        // Draw a landed dart (tip at x,y). Shaft/flight trail above/behind the point.
+        function drawDart(ctx, x, y, opacity, scale) {
+            scale = scale || 1;
             ctx.save();
             ctx.globalAlpha = opacity;
-            // Flight (triangle)
-            ctx.fillStyle = '#ff4444';
+            ctx.translate(x, y);
+            // Impact ring glow around the tip (renders below the dart body)
+            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 22 * scale);
+            glow.addColorStop(0, 'rgba(255,230,120,0.55)');
+            glow.addColorStop(0.5, 'rgba(255,200,80,0.22)');
+            glow.addColorStop(1, 'rgba(255,200,80,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath(); ctx.arc(0, 0, 22 * scale, 0, Math.PI * 2); ctx.fill();
+
+            // Dart pointing INTO the board — tip at origin, body extends UP
+            const barrelH = 22 * scale;
+            const barrelW = 3.2 * scale;
+            // Point (short silver spike)
+            ctx.fillStyle = '#9aa0a8';
+            ctx.fillRect(-1 * scale, -2 * scale, 2 * scale, 3 * scale);
+            // Barrel (knurled grey)
+            const barrelGrad = ctx.createLinearGradient(-barrelW, 0, barrelW, 0);
+            barrelGrad.addColorStop(0, '#4a4d55');
+            barrelGrad.addColorStop(0.5, '#c9ccd2');
+            barrelGrad.addColorStop(1, '#3a3d44');
+            ctx.fillStyle = barrelGrad;
+            ctx.fillRect(-barrelW, -barrelH - 2 * scale, barrelW * 2, barrelH);
+            // Shaft (thin)
+            ctx.fillStyle = '#1f2228';
+            ctx.fillRect(-0.8 * scale, -barrelH - 12 * scale, 1.6 * scale, 10 * scale);
+            // Flight (two stacked triangles — red)
+            const fy = -barrelH - 12 * scale;
+            ctx.fillStyle = 'rgba(204,11,32,0.95)';
             ctx.beginPath();
-            ctx.moveTo(x, y - s * 2.5);
-            ctx.lineTo(x - s, y - s);
-            ctx.lineTo(x + s, y - s);
+            ctx.moveTo(0, fy);
+            ctx.lineTo(7 * scale, fy - 12 * scale);
+            ctx.lineTo(0, fy - 10 * scale);
             ctx.closePath();
             ctx.fill();
-            // Barrel
-            ctx.fillStyle = '#ccc';
-            ctx.fillRect(x - 1.5, y - s, 3, s * 1.5);
-            // Point
-            ctx.fillStyle = '#888';
-            ctx.fillRect(x - 0.5, y + s * 0.5, 1, s * 0.8);
-            // Impact glow
+            ctx.fillStyle = 'rgba(150,8,24,0.95)';
             ctx.beginPath();
-            ctx.arc(x, y + s * 0.5, s * 1.5, 0, 2 * Math.PI);
-            ctx.fillStyle = `rgba(255,255,100,${opacity * 0.3})`;
+            ctx.moveTo(0, fy);
+            ctx.lineTo(-7 * scale, fy - 12 * scale);
+            ctx.lineTo(0, fy - 10 * scale);
+            ctx.closePath();
             ctx.fill();
+            // Flight highlight
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 0.8 * scale;
+            ctx.beginPath(); ctx.moveTo(0, fy); ctx.lineTo(0, fy - 10 * scale); ctx.stroke();
             ctx.restore();
         }
 
         function playDartboardAnimation(checkoutRoute) {
             if (!checkoutRoute || !checkoutRoute.length) return;
-            // Prefer a top-level overlay that sits above the iframe so animations
-            // appear over the scorer. Fallback to the in-panel overlay if missing.
             let overlay = document.getElementById('dv-game-shot-overlay');
             if (!overlay) {
                 overlay = document.createElement('div');
@@ -2674,52 +2698,142 @@
                 document.body.appendChild(overlay);
             }
 
-            // Create/reuse canvas
             let canvas = overlay.querySelector('#dartboard-canvas');
             if (!canvas) {
                 canvas = document.createElement('canvas');
                 canvas.id = 'dartboard-canvas';
-                canvas.style.cssText = 'width:200px;height:200px;margin:12px auto 0;border-radius:50%;';
-                canvas.width = 400; canvas.height = 400;
+                canvas.style.cssText = 'width:280px;height:280px;margin:14px auto 0;filter:drop-shadow(0 18px 40px rgba(0,0,0,0.6));';
+                canvas.width = 560; canvas.height = 560;
                 overlay.appendChild(canvas);
             }
             canvas.style.display = 'block';
             const ctx = canvas.getContext('2d');
-            const cx = 200, cy = 200, radius = 160;
+            const W = 560, H = 560, cx = W / 2, cy = H / 2, radius = 230;
 
-            // Draw board
-            ctx.clearRect(0, 0, 400, 400);
-            drawDartboard(ctx, cx, cy, radius);
-
-            // Calculate dart positions
-            const dartPositions = checkoutRoute.map(seg => {
+            // Pre-compute dart target positions
+            const darts = checkoutRoute.map((seg, i) => {
                 const pos = dartSegmentPosition(seg, radius);
-                return { x: cx + pos.x, y: cy + pos.y, label: seg };
+                return {
+                    seg,
+                    x: cx + pos.x,
+                    y: cy + pos.y,
+                    delay: 250 + i * 520,  // stagger
+                    flightDur: 420,         // ms
+                    settled: false,
+                    lockedTrail: null       // list of {x,y,t}
+                };
             });
 
-            // Animate darts landing sequentially
-            let dartIdx = 0;
-            function landNextDart() {
-                if (dartIdx >= dartPositions.length) return;
-                const dart = dartPositions[dartIdx];
-                // Highlight segment flash
-                ctx.beginPath();
-                ctx.arc(dart.x, dart.y, 14, 0, 2 * Math.PI);
-                ctx.fillStyle = 'rgba(255,215,0,0.4)';
-                ctx.fill();
-                // Draw dart
-                drawDart(ctx, dart.x, dart.y, 1);
-                // Label
-                ctx.fillStyle = '#fff';
-                ctx.font = "bold 11px 'Inter', sans-serif";
-                ctx.textAlign = 'center';
-                ctx.fillText(dart.label, dart.x, dart.y - 22);
-                dartIdx++;
-                if (dartIdx < dartPositions.length) {
-                    setTimeout(landNextDart, 650);
-                }
+            // Flight origin: top-left corner diagonally "thrown" in for each dart,
+            // slight per-dart variation so it doesn't look identical
+            const flights = darts.map((d, i) => {
+                const side = i % 2 === 0 ? -1 : 1;
+                return { sx: cx + side * 160 - 210, sy: -40 };
+            });
+
+            // easeOutCubic
+            const ease = t => 1 - Math.pow(1 - t, 3);
+
+            const start = performance.now();
+            const totalDur = darts[darts.length - 1].delay + 900;
+
+            function frame(now) {
+                const elapsed = now - start;
+                ctx.clearRect(0, 0, W, H);
+                // board (redrawn every frame so highlights layer cleanly)
+                drawDartboard(ctx, cx, cy, radius);
+
+                darts.forEach((d, i) => {
+                    const local = elapsed - d.delay;
+                    if (local < 0) return; // not yet
+
+                    if (local < d.flightDur) {
+                        // Flying in
+                        const t = ease(local / d.flightDur);
+                        const fx = flights[i].sx + (d.x - flights[i].sx) * t;
+                        const fy = flights[i].sy + (d.y - flights[i].sy) * t;
+
+                        // motion trail
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'lighter';
+                        for (let k = 1; k <= 6; k++) {
+                            const pt = Math.max(0, t - k * 0.04);
+                            const tx = flights[i].sx + (d.x - flights[i].sx) * pt;
+                            const ty = flights[i].sy + (d.y - flights[i].sy) * pt;
+                            ctx.fillStyle = `rgba(255,80,80,${0.12 * (1 - k / 7)})`;
+                            ctx.beginPath(); ctx.arc(tx, ty, 5 - k * 0.4, 0, Math.PI * 2); ctx.fill();
+                        }
+                        ctx.restore();
+                        drawDart(ctx, fx, fy, 0.95, 1 + (1 - t) * 0.6);
+                    } else if (!d.settled) {
+                        d.settled = true;
+                        d.settledAt = now;
+                        // Play a subtle thud on impact
+                        try { dvPlayImpact(); } catch(_){}
+                    }
+
+                    if (d.settled) {
+                        // Impact shockwave (quick expand+fade)
+                        const t = Math.min(1, (now - d.settledAt) / 420);
+                        if (t < 1) {
+                            ctx.save();
+                            ctx.globalCompositeOperation = 'lighter';
+                            ctx.strokeStyle = `rgba(255,220,120,${0.65 * (1 - t)})`;
+                            ctx.lineWidth = 2;
+                            ctx.beginPath(); ctx.arc(d.x, d.y, 10 + t * 26, 0, Math.PI * 2); ctx.stroke();
+                            ctx.restore();
+                        }
+                        // Segment highlight splash
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'lighter';
+                        ctx.fillStyle = 'rgba(255,215,120,0.22)';
+                        ctx.beginPath(); ctx.arc(d.x, d.y, 16, 0, Math.PI * 2); ctx.fill();
+                        ctx.restore();
+                        // Landed dart
+                        drawDart(ctx, d.x, d.y, 1, 1);
+                        // Label pill above
+                        const lbl = d.seg;
+                        ctx.save();
+                        ctx.font = "bold 14px 'Plus Jakarta Sans', sans-serif";
+                        ctx.textAlign = 'center';
+                        const lw = ctx.measureText(lbl).width + 14;
+                        const ly = d.y - 42;
+                        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+                        ctx.beginPath();
+                        if (ctx.roundRect) ctx.roundRect(d.x - lw / 2, ly - 14, lw, 22, 11);
+                        else ctx.rect(d.x - lw / 2, ly - 14, lw, 22);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(var(--brand-rgb),0.9)';
+                        ctx.lineWidth = 1.2;
+                        ctx.stroke();
+                        ctx.fillStyle = '#fff';
+                        ctx.fillText(lbl, d.x, ly + 2);
+                        ctx.restore();
+                    }
+                });
+
+                if (elapsed < totalDur) requestAnimationFrame(frame);
             }
-            setTimeout(landNextDart, 400);
+            requestAnimationFrame(frame);
+        }
+
+        // Tiny synthesized "thud" for dart impact (respects muted state)
+        let _dvAudio = null;
+        function dvPlayImpact() {
+            try {
+                if (document.body.classList.contains('dv-muted')) return;
+                if (!_dvAudio) _dvAudio = new (window.AudioContext || window.webkitAudioContext)();
+                const a = _dvAudio;
+                const o = a.createOscillator();
+                const g = a.createGain();
+                o.type = 'square';
+                o.frequency.setValueAtTime(160, a.currentTime);
+                o.frequency.exponentialRampToValueAtTime(55, a.currentTime + 0.12);
+                g.gain.setValueAtTime(0.18, a.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 0.18);
+                o.connect(g); g.connect(a.destination);
+                o.start(); o.stop(a.currentTime + 0.2);
+            } catch(_){}
         }
 
         function triggerGameShot(checkoutRoute) {
@@ -2739,7 +2853,61 @@
             if (checkoutRoute && checkoutRoute.length) {
                 playDartboardAnimation(checkoutRoute);
             }
-            setTimeout(() => resetLiveCheckout(), 6000);
+            // After the animation, show the darts-at-double prompt
+            setTimeout(() => showDartsAtDoublePrompt(checkoutRoute), 3600);
+            setTimeout(() => resetLiveCheckout(), 9500);
+        }
+
+        // Darts-at-double stats capture. Shown only for user-driven game shots.
+        // Inferred default = number of darts in the checkout route (if all were doubles
+        // you'd have multiple, but typical is 1 — final dart at double). User can tap 1/2/3.
+        function showDartsAtDoublePrompt(route) {
+            let host = document.getElementById('dv-dad-prompt');
+            if (host) host.remove();
+            host = document.createElement('div');
+            host.id = 'dv-dad-prompt';
+            host.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) translateY(140px);z-index:100002;pointer-events:auto;background:rgba(17,17,20,0.96);backdrop-filter:blur(18px) saturate(1.3);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 18px;box-shadow:0 20px 60px rgba(0,0,0,0.6);font-family:"Plus Jakarta Sans",sans-serif;color:#fff;text-align:center;min-width:260px;';
+            const h = document.createElement('div');
+            h.style.cssText = 'font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;';
+            h.textContent = 'Stats';
+            const t = document.createElement('div');
+            t.style.cssText = 'font-size:14px;font-weight:700;margin-bottom:10px;';
+            t.textContent = 'Darts at double?';
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;gap:8px;justify-content:center;';
+            function mkBtn(n) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = String(n);
+                b.style.cssText = 'flex:1;padding:10px 14px;border-radius:10px;border:1px solid rgba(var(--brand-rgb),0.35);background:rgba(var(--brand-rgb),0.12);color:#fff;font-weight:800;font-size:16px;cursor:pointer;transition:all .15s;';
+                b.addEventListener('mouseenter', () => { b.style.background = 'var(--brand)'; });
+                b.addEventListener('mouseleave', () => { b.style.background = 'rgba(var(--brand-rgb),0.12)'; });
+                b.addEventListener('click', () => { recordDartsAtDouble(n); host.remove(); });
+                return b;
+            }
+            [1, 2, 3].forEach(n => row.appendChild(mkBtn(n)));
+            const skip = document.createElement('button');
+            skip.type = 'button';
+            skip.textContent = 'Skip';
+            skip.style.cssText = 'margin-top:10px;background:none;border:none;color:rgba(255,255,255,0.45);font-size:11px;text-decoration:underline;cursor:pointer;';
+            skip.addEventListener('click', () => host.remove());
+            host.appendChild(h); host.appendChild(t); host.appendChild(row); host.appendChild(skip);
+            document.body.appendChild(host);
+            // Auto-dismiss after 12s so the overlay doesn't linger
+            setTimeout(() => { try { host.remove(); } catch(_){} }, 12000);
+        }
+
+        function recordDartsAtDouble(n) {
+            try {
+                const key = 'dv-dad-stats-v1';
+                const raw = localStorage.getItem(key);
+                const arr = raw ? JSON.parse(raw) : [];
+                arr.push({ n: n, t: Date.now() });
+                // keep last 500
+                while (arr.length > 500) arr.shift();
+                localStorage.setItem(key, JSON.stringify(arr));
+                if (typeof dvToast === 'function') dvToast(`Logged ${n} dart${n>1?'s':''} at double`, 'success');
+            } catch(_){}
         }
 
         function resetLiveCheckout() {

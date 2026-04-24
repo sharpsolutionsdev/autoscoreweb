@@ -510,6 +510,39 @@
     // Auto-populate referral code from ?ref URL param
     const _urlRefCode = _urlParams.get('ref') || '';
 
+    // Auto-populate OTP from ?otp URL param (from email "Open DartVoice" link).
+    // If the user is returning on the same browser, the email they requested it
+    // with is in sessionStorage — we skip step 1, populate the OTP, and verify.
+    const _urlOtp = (_urlParams.get('otp') || '').replace(/\D/g, '').slice(0, 6);
+    if (_urlOtp.length === 6) {
+        window.addEventListener('load', function(){
+            try {
+                let pendingEmail = '';
+                try { pendingEmail = sessionStorage.getItem('dv-pending-email') || ''; } catch(_){}
+                if (pendingEmail) {
+                    _email = pendingEmail;
+                    const disp = document.getElementById('otp-email-display');
+                    if (disp) disp.textContent = pendingEmail;
+                    document.getElementById('step-email').classList.add('hidden');
+                    document.getElementById('step-otp').classList.remove('hidden');
+                    if (typeof initOtpBoxes === 'function') initOtpBoxes();
+                }
+                const boxes = document.querySelectorAll('.otp-char');
+                if (!boxes.length) return;
+                boxes.forEach(function(b, idx){
+                    const ch = _urlOtp[idx] || '';
+                    b.value = ch;
+                    b.classList.toggle('filled', !!ch);
+                });
+                if (typeof checkOtpComplete === 'function') checkOtpComplete();
+                // Auto-verify only if we have the email context
+                if (pendingEmail && typeof verifyOtp === 'function') {
+                    setTimeout(verifyOtp, 200);
+                }
+            } catch(_){}
+        });
+    }
+
     // Always reveal referral row if a ref code is in URL (link from ambassador)
     if (_urlRefCode) {
         document.getElementById('referral-code-row').classList.remove('hidden');
@@ -731,6 +764,7 @@
         }
 
         _email = email;
+        try { sessionStorage.setItem('dv-pending-email', email); } catch(_){}
         document.getElementById('otp-email-display').textContent = email;
         document.getElementById('step-email').classList.add('hidden');
         document.getElementById('step-otp').classList.remove('hidden');
