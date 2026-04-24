@@ -3635,6 +3635,9 @@
                 type: "DARTVOICE_SCORE_INJECT",
                 score: scoreString
             }, "*");
+            // After injecting a score, poll the iframe once after a short delay
+            // so the Live Game panel updates to reflect the new remaining values.
+            try { setTimeout(() => { try { window.requestRemainingScore(); } catch(e){} }, 600); } catch(e){}
             if (typeof window.dvPlayChime === 'function' && scoreString !== '__CANCEL__') window.dvPlayChime();
             // Arm checkout dialog watcher when this could be a checkout score
             if (scoreString !== '__CANCEL__' && window.dvCheckoutPrompt && AppConfig.checkoutDialogEnabled) {
