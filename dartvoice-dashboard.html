@@ -12,7 +12,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" href="favicon.png">
     <title>Dashboard | DartVoice</title>
     <meta name="description" content="Manage your DartVoice subscription and download the app.">
     <meta property="og:title" content="Dashboard | DartVoice">
@@ -1412,6 +1412,12 @@
                                     </div>
                                     <p id="phone-msg" class="text-xs mt-2 hidden"></p>
                                 </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">Date of Birth
+                                        <span class="text-[9px] text-muted ml-1">(optional)</span>
+                                    </label>
+                                    <input id="input-dob" type="date" class="dv-input pro w-full" style="color-scheme: dark;">
+                                </div>
                                 <button onclick="saveProfile()" id="btn-save-profile"
                                     class="btn-brand w-full py-3 rounded-2xl text-white font-semibold text-sm shadow-2xl">
                                     Save Profile
@@ -2037,11 +2043,22 @@
             showView('dashboard');
 
             // Admin gating — show Messages + Admin Stats tabs for admin emails
-            const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reubensharp18@gmail.com'];
-            if (ADMIN_EMAILS.includes(user.email?.toLowerCase())) {
-                $('tab-btn-messages').classList.remove('hidden');
-                $('tab-btn-admin').classList.remove('hidden');
-            }
+            // or anyone present in the admin_users table.
+            const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reubensharp18@gmail.com', 'sharpsolutionsdev@gmail.com'];
+            (async () => {
+                let isAdmin = ADMIN_EMAILS.includes(user.email?.toLowerCase());
+                if (!isAdmin) {
+                    try {
+                        const { data: row } = await sb.from('admin_users')
+                            .select('user_id').eq('user_id', user.id).maybeSingle();
+                        if (row && row.user_id) isAdmin = true;
+                    } catch (_) {}
+                }
+                if (isAdmin) {
+                    $('tab-btn-messages').classList.remove('hidden');
+                    $('tab-btn-admin').classList.remove('hidden');
+                }
+            })();
 
             // Creator-program banner: reveal if user is flagged as ambassador partner
             (async () => {
@@ -2064,10 +2081,10 @@
                 $('welcome-banner').classList.remove('hidden');
             }
 
-            // Fetch subscription + profile in parallel
+            // Fetch subscription + profile in parallel (include DOB)
             let [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
-                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number').eq('id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number, date_of_birth').eq('id', user.id).maybeSingle(),
             ]);
 
             // Fallback: if no sub in DB, check Stripe directly via edge function
@@ -2119,8 +2136,8 @@
             // Show profile-setup nudge if no display name set
             if (!displayName) $('profile-nudge').classList.remove('hidden');
 
-            // Populate profile tab
-            populateProfileTab(user.email, displayName, sub, profile?.phone_number);
+            // Populate profile tab (pass date_of_birth if available)
+            populateProfileTab(user.email, displayName, sub, profile?.phone_number, profile?.date_of_birth);
 
             renderSubscription(sub, user.id);
         }
@@ -2132,11 +2149,13 @@
             });
         }
 
-        function populateProfileTab(email, displayName, sub, phoneNumber) {
+        function populateProfileTab(email, displayName, sub, phoneNumber, dateOfBirth) {
             $('profile-email-show').textContent = email;
             $('profile-email-footer').textContent = email;
             $('input-display-name').value = displayName;
             $('input-phone').value = phoneNumber || '';
+            const dobEl = $('input-dob');
+            if (dobEl) dobEl.value = dateOfBirth || '';
             $('profile-display-name-show').textContent = displayName || email.split('@')[0];
             updateAvatarPreview();
 
@@ -2198,10 +2217,12 @@
             btn.textContent = 'Saving\u2026';
 
             const t0 = performance.now();
+            const dobVal = ($('input-dob')?.value || '').trim() || null;
             const { error } = await sb.from('dartvoice_profiles')
-                .update({ 
+                .update({
                     display_name: name || null,
-                    phone_number: ($('input-phone')?.value || '').trim() || null
+                    phone_number: ($('input-phone')?.value || '').trim() || null,
+                    date_of_birth: dobVal
                 })
                 .eq('id', _ambUserId);
             console.info('[saveProfile] update', { ok: !error, ms: Math.round(performance.now()-t0), err: error?.message });
