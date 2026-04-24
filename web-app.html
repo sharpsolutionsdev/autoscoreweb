@@ -2760,6 +2760,56 @@
             } catch(_){}
         }
 
+        // Listen for bounding-rect messages from same-origin iframes (or injected scripts)
+        // Expected message shape: { type: 'DV_GAME_ELEMENT_RECT', rect: { left, top, width, height } }
+        window.addEventListener('message', function (ev) {
+            try {
+                const msg = ev && ev.data ? ev.data : null;
+                if (!msg || msg.type !== 'DV_GAME_ELEMENT_RECT') return;
+                const rect = msg.rect || null;
+                if (!rect) return;
+                // Find the iframe whose contentWindow is the message source
+                let iframeEl = null;
+                const ifrs = document.getElementsByTagName('iframe');
+                for (let i = 0; i < ifrs.length; i++) {
+                    try { if (ifrs[i].contentWindow === ev.source) { iframeEl = ifrs[i]; break; } } catch(_){}
+                }
+                const overlay = document.getElementById('dv-game-shot-overlay');
+                if (!overlay) return;
+                // Compute overlay position relative to the parent document
+                const iframeRect = iframeEl ? iframeEl.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+                const left = (iframeRect.left + (rect.left || 0)) + window.scrollX;
+                const top = (iframeRect.top + (rect.top || 0)) + window.scrollY;
+                const w = rect.width || iframeRect.width;
+                const h = rect.height || iframeRect.height;
+                overlay.style.position = 'fixed';
+                overlay.style.left = left + 'px';
+                overlay.style.top = top + 'px';
+                overlay.style.width = w + 'px';
+                overlay.style.height = h + 'px';
+                overlay.style.boxSizing = 'border-box';
+                overlay.style.display = 'flex';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                overlay.style.pointerEvents = 'none';
+                overlay.style.zIndex = '100020';
+                overlay._remoteAnchor = { iframe: iframeEl, rect: rect };
+                // Ensure overlay repositions on layout changes
+                if (!overlay._remoteAnchorHandler) {
+                    overlay._remoteAnchorHandler = function () {
+                        try {
+                            const ir = overlay._remoteAnchor && overlay._remoteAnchor.iframe ? overlay._remoteAnchor.iframe.getBoundingClientRect() : iframeRect;
+                            const rx = overlay._remoteAnchor.rect || rect;
+                            overlay.style.left = (ir.left + (rx.left || 0) + window.scrollX) + 'px';
+                            overlay.style.top = (ir.top + (rx.top || 0) + window.scrollY) + 'px';
+                        } catch (_) {}
+                    };
+                    window.addEventListener('resize', overlay._remoteAnchorHandler);
+                    window.addEventListener('scroll', overlay._remoteAnchorHandler, true);
+                }
+            } catch (e) { /* ignore */ }
+        }, false);
+
         function playDartboardAnimation(checkoutRoute) {
             if (!checkoutRoute || !checkoutRoute.length) return;
             let overlay = document.getElementById('dv-game-shot-overlay');
