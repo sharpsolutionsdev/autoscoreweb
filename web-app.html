@@ -938,7 +938,7 @@
     <div id="dv-cinema" role="status" aria-label="Loading DartVoice">
         <!-- Video backdrop (blurred, dark, atmospheric) -->
         <video id="dv-cinema-vid" class="dv-cinema-video" autoplay muted playsinline preload="auto" loop>
-            <source src="assets/media/pulsing-android.mp4" type="video/mp4">
+            <source src="assets/media/android-pulsing-red.mp4" type="video/mp4">
             <source src="assets/media/soundwave-pulse.mp4" type="video/mp4">
         </video>
         <div class="dv-cinema-vignette"></div>
@@ -2830,7 +2830,7 @@
             'outer bull': 25, 'outer': 25, 'single bull': 25, 'half bull': 25,
             'tops': 40, 'double top': 40, 'double tops': 40, 'top': 40,
             'madhouse': 2, 'double one': 2,
-            'ton': 100, 'a ton': 100, 'one hundred': 100,
+            'ton': 100, 'a ton': 100, 'one hundred': 100, 'hundred': 100,
             'low ton': 100, 'high ton': 150 // Fallback to 150 if "high ton" is heard solo
         };
         const _TENS = {
@@ -2905,7 +2905,7 @@
             // Handle special keywords (bulls / misses)
             if (['bull', 'bullseye', 'bulls eye', 'bull eye'].includes(text)) return 50;
             if (['outer bull', 'outer', 'twenty five', 'twenty five'].includes(text)) return 25;
-            if (['miss', 'missed', 'nothing', 'zero', 'none', 'bounce', 'bounce out', 'bust', 'busted', 'no score', 'no-score', 'noscore', 'nil', 'null', 'zilch', 'naught', 'nought', 'off', 'off board', 'off the board', 'out'].includes(text)) return 0;
+            if (['miss', 'missed', 'nothing', 'zero', 'none', 'bounce', 'bounce out', 'bust', 'busted', 'no score', ,'no school', 'no-score', 'noscore', 'nil', 'null', 'zilch', 'naught', 'nought', 'off', 'off board', 'off the board', 'out'].includes(text)) return 0;
 
             // Handle "ton" combinations
             if (text.startsWith('ton ')) {
