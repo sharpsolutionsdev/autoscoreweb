@@ -61,63 +61,71 @@
         }
 
         // Avatar file handling: preview, localStorage persist, and best-effort Supabase upload
-        window._pendingAvatarData = null;
-        window._currentAvatarData = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            window._pendingAvatarData = null;
+            window._currentAvatarData = null;
 
-        document.addEventListener('click', (ev) => {
-            if (!ev.target) return;
-            if (ev.target.id === 'btn-edit-avatar') {
-                const inp = $('input-avatar-file');
-                if (inp) inp.click();
-            }
-        });
+            document.addEventListener('click', (ev) => {
+                if (!ev.target) return;
+                if (ev.target.id === 'btn-edit-avatar') {
+                    const inp = document.getElementById('input-avatar-file');
+                    if (inp) inp.click();
+                }
+            });
 
-        const __avatarInput = $('input-avatar-file');
-        if (__avatarInput) {
-            __avatarInput.addEventListener('change', async function () {
-                const f = this.files && this.files[0];
-                if (!f) return;
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const dataUrl = e.target.result;
-                    window._currentAvatarData = dataUrl;
-                    window._pendingAvatarData = dataUrl;
-                    const el = $('profile-avatar');
-                    if (el) {
-                        el.style.backgroundImage = `url(${dataUrl})`;
-                        el.style.backgroundSize = 'cover';
-                        el.style.backgroundPosition = 'center';
-                        el.textContent = '';
-                    }
-                    try {
-                        if (_profileEmail) localStorage.setItem('dv-avatar-' + encodeURIComponent(_profileEmail), dataUrl);
-                        else if (_ambUserId) localStorage.setItem('dv-avatar-' + _ambUserId, dataUrl);
-                    } catch (err) {
-                        console.warn('avatar localStorage failed', err);
-                    }
+            const __avatarInput = document.getElementById('input-avatar-file');
+            if (__avatarInput) {
+                __avatarInput.addEventListener('change', async function () {
+                    const f = this.files && this.files[0];
+                    if (!f) return;
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        const dataUrl = e.target.result;
+                        window._currentAvatarData = dataUrl;
+                        window._pendingAvatarData = dataUrl;
+                        const el = document.getElementById('profile-avatar');
+                        if (el) {
+                            el.style.backgroundImage = `url(${dataUrl})`;
+                            el.style.backgroundSize = 'cover';
+                            el.style.backgroundPosition = 'center';
+                            el.textContent = '';
+                        }
+                        try {
+                            if (window._profileEmail) localStorage.setItem('dv-avatar-' + encodeURIComponent(window._profileEmail), dataUrl);
+                            else if (window._ambUserId) localStorage.setItem('dv-avatar-' + window._ambUserId, dataUrl);
+                        } catch (err) {
+                            console.warn('avatar localStorage failed', err);
+                        }
 
-                    // Best-effort: upload to Supabase storage 'avatars' and save avatar_url on profile
-                    try {
-                        if (typeof sb !== 'undefined' && _ambUserId) {
-                            const path = `avatars/${_ambUserId}.png`;
-                            const res = await fetch(dataUrl);
-                            const blob = await res.blob();
-                            const up = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
-                            if (!up.error) {
-                                const { data: publicData } = sb.storage.from('avatars').getPublicUrl(path);
-                                const publicUrl = publicData?.publicUrl || null;
-                                if (publicUrl) {
-                                    await sb.from('dartvoice_profiles').update({ avatar_url: publicUrl }).eq('id', _ambUserId);
+                        // Best-effort: upload to Supabase storage 'avatars' and save avatar_url on profile
+                        try {
+                            if (typeof sb !== 'undefined' && window._ambUserId) {
+                                const path = `avatars/${window._ambUserId}.png`;
+                                const res = await fetch(dataUrl);
+                                const blob = await res.blob();
+                                const up = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
+                                if (!up.error) {
+                                    const { data: publicData } = sb.storage.from('avatars').getPublicUrl(path);
+                                    const publicUrl = publicData?.publicUrl || null;
+                                    if (publicUrl) {
+                                        try {
+                                            await sb.from('dartvoice_profiles').update({ avatar_url: publicUrl }).eq('id', window._ambUserId);
+                                            // On success prefer server URL for future loads
+                                            window._pendingAvatarData = null;
+                                            window._currentAvatarData = publicUrl;
+                                            try { if (window._profileEmail) localStorage.setItem('dv-avatar-' + encodeURIComponent(window._profileEmail), publicUrl); else if (window._ambUserId) localStorage.setItem('dv-avatar-' + window._ambUserId, publicUrl); } catch(e){}
+                                        } catch(e){ console.warn('avatar profile update failed', e); }
+                                    }
                                 }
                             }
+                        } catch (err) {
+                            console.warn('avatar upload/update failed (ignored)', err?.message || err);
                         }
-                    } catch (err) {
-                        console.warn('avatar upload/update failed (ignored)', err?.message || err);
-                    }
-                };
-                reader.readAsDataURL(f);
-            });
-        }
+                    };
+                    reader.readAsDataURL(f);
+                });
+            }
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="components/dv-footer.js"></script>

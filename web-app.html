@@ -2970,12 +2970,17 @@
             const selCheckout = document.getElementById('live-checkout-select');
             const btnResetCheckout = document.getElementById('reset-leg-btn');
             let liveCheckoutPollId = null;
-            const LIVE_CHECKOUT_POLL_MS = 3000;
-
+            // Start polling using adaptive scheduler
             function startLiveCheckoutPoll(){
                 if (liveCheckoutPollId) return;
-                try { window.requestRemainingScore(); } catch(e){}
-                liveCheckoutPollId = setInterval(() => { try { window.requestRemainingScore(); } catch(e){} }, LIVE_CHECKOUT_POLL_MS);
+                try { scheduleLiveCheckoutPoll(true); } catch(e){}
+                liveCheckoutPollId = true; // truthy marker
+            }
+
+            function stopLiveCheckoutPollMarker(){
+                if (!liveCheckoutPollId) return;
+                liveCheckoutPollId = null;
+                stopLiveCheckoutPoll();
             }
 
             if (selCheckout) {
@@ -2987,7 +2992,7 @@
             if (btnResetCheckout) {
                 btnResetCheckout.addEventListener('click', () => { resetLiveCheckout(); });
             }
-            // Auto-start polling — live checkout runs continuously now
+            // Auto-start polling — live checkout runs continuously now (adaptive)
             startLiveCheckoutPoll();
             resetLiveCheckout();
         }
@@ -4001,6 +4006,10 @@
                 if(AppConfig.liveCheckoutEnabled) checkoutPanel.style.display = 'block';
                 else checkoutPanel.style.display = 'none';
             }
+            try {
+                if (AppConfig.liveCheckoutEnabled) scheduleLiveCheckoutPoll(true);
+                else stopLiveCheckoutPoll();
+            } catch(e){}
         });
         
         const _tBust = document.getElementById('toggle-bust');
@@ -4471,6 +4480,50 @@ window.openScorerUrl = function(url){
                 } catch(e){ console.warn(e); }
             };
 
+            // Adaptive polling for remaining score: uses recursive setTimeout so interval can vary
+            window._livePollTimer = null;
+            window._livePollBackoff = 1;
+            window._dvLastGameStateUpdate = 0;
+            const LIVE_CHECKOUT_POLL_BASE_MS = (typeof LIVE_CHECKOUT_POLL_MS !== 'undefined') ? LIVE_CHECKOUT_POLL_MS : 3000;
+            const LIVE_CHECKOUT_POLL_MAX_MS = 60000;
+            const LIVE_CHECKOUT_ACTIVE_THRESHOLD = 10000; // 10s considered "active"
+
+            function computeNextPollInterval(){
+                try {
+                    const now = Date.now();
+                    const last = window._dvLastGameStateUpdate || 0;
+                    // If recent state activity, stay at base
+                    if (now - last <= LIVE_CHECKOUT_ACTIVE_THRESHOLD) {
+                        window._livePollBackoff = 1;
+                        return LIVE_CHECKOUT_POLL_BASE_MS;
+                    }
+                    // Otherwise apply exponential backoff
+                    window._livePollBackoff = Math.min(Math.max(1, (window._livePollBackoff || 1) * 2), Math.ceil(LIVE_CHECKOUT_POLL_MAX_MS / LIVE_CHECKOUT_POLL_BASE_MS));
+                    return Math.min(LIVE_CHECKOUT_POLL_BASE_MS * window._livePollBackoff, LIVE_CHECKOUT_POLL_MAX_MS);
+                } catch(e){ return LIVE_CHECKOUT_POLL_BASE_MS; }
+            }
+
+            function scheduleLiveCheckoutPoll(immediate){
+                try {
+                    if (window._livePollTimer) { clearTimeout(window._livePollTimer); window._livePollTimer = null; }
+                    if (!AppConfig || !AppConfig.liveCheckoutEnabled) return;
+                    if (immediate) {
+                        try { window.requestRemainingScore(); } catch(e){}
+                        // schedule next run after base interval
+                        window._livePollTimer = setTimeout(() => scheduleLiveCheckoutPoll(false), computeNextPollInterval());
+                        return;
+                    }
+                    const next = computeNextPollInterval();
+                    window._livePollTimer = setTimeout(() => {
+                        try { window.requestRemainingScore(); } catch(e){}
+                        // schedule the next one recursively
+                        scheduleLiveCheckoutPoll(false);
+                    }, next);
+                } catch(e){ console.warn('scheduleLiveCheckoutPoll error', e); }
+            }
+
+            function stopLiveCheckoutPoll(){ try { if (window._livePollTimer) { clearTimeout(window._livePollTimer); window._livePollTimer = null; } } catch(e){} }
+
             // transient ACK indicator (shows when iframe acknowledges postMessage)
             window.showMsgAck = function(){
                 try {
@@ -4656,9 +4709,11 @@ window.openScorerUrl = function(url){
                             active: typeof state.activePlayer !== 'undefined' ? state.activePlayer : null,
                             mode: state.mode || null
                         };
-                        const stateKey = JSON.stringify(keyObj);
-                        if (stateKey === window._dvLastGameStateHash) return;
-                        window._dvLastGameStateHash = stateKey;
+                            const stateKey = JSON.stringify(keyObj);
+                            if (stateKey === window._dvLastGameStateHash) return;
+                            window._dvLastGameStateHash = stateKey;
+                            // Mark this time as recent activity for polling backoff logic
+                            try { window._dvLastGameStateUpdate = Date.now(); window._livePollBackoff = 1; if (typeof scheduleLiveCheckoutPoll === 'function') scheduleLiveCheckoutPoll(false); } catch(e){}
                     } catch(e){/* ignore hashing errors */}
 
                     const clean = dvNormalizeLiveState(state);
