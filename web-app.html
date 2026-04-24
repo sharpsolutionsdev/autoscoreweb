@@ -2704,8 +2704,37 @@
         function _getGameShotTarget() {
             const tries = ['#scorer-frame', 'iframe[src*="dartcounter"]', 'iframe.scorer', '.scorer-iframe', '#game-frame', 'iframe'];
             for (let s of tries) {
-                try { const el = document.querySelector(s); if (el) return el; } catch(_){}
+                try { const el = document.querySelector(s); if (el) return el; } catch(_){ }
             }
+
+            // Fallback: find elements anywhere in the document whose id/class contains
+            // common scoreboard/score-related keywords. Score by keyword matches and
+            // visible area to pick the best candidate.
+            try {
+                const keywords = ['score','scoreboard','player','players','current','match','stats','team','team-score','player-score','in-game','score-panel','player-container','match-team','player-details','live-score'];
+                const all = Array.from(document.querySelectorAll('*'));
+                let best = null, bestScore = 0;
+                for (const el of all) {
+                    try {
+                        if (!(el instanceof Element)) continue;
+                        const id = (el.id || '').toLowerCase();
+                        const cls = (el.className && typeof el.className === 'string') ? el.className.toLowerCase() : '';
+                        let score = 0;
+                        for (const kw of keywords) {
+                            if (id.includes(kw)) score += 30;
+                            if (cls.includes(kw)) score += 20;
+                        }
+                        if (score === 0) continue;
+                        const r = el.getBoundingClientRect();
+                        if (r.width <= 8 || r.height <= 8) continue;
+                        // favour larger visible areas (scaled down so it doesn't dominate)
+                        score += Math.min(120, Math.floor((r.width * r.height) / 1000));
+                        if (score > bestScore) { bestScore = score; best = el; }
+                    } catch (_) { continue; }
+                }
+                if (best) return best;
+            } catch (_) { }
+
             return null;
         }
 
@@ -2740,11 +2769,26 @@
                 overlay.style.zIndex = '100010';
                 overlay._anchorTarget = el;
                 // Ensure overlay repositions on layout changes
-                if (!overlay._anchorHandler) {
-                    overlay._anchorHandler = () => { try { if (overlay._anchorTarget) _anchorOverlayToElement(overlay, overlay._anchorTarget); } catch(_){} };
-                    window.addEventListener('resize', overlay._anchorHandler);
-                    window.addEventListener('scroll', overlay._anchorHandler, true);
-                }
+                // cleanup previous handlers/observers
+                try { if (overlay._anchorHandler) { window.removeEventListener('resize', overlay._anchorHandler); window.removeEventListener('scroll', overlay._anchorHandler, true); } } catch(_) {}
+                if (overlay._resizeObserver) { try { overlay._resizeObserver.disconnect(); overlay._resizeObserver = null; } catch(_) {} }
+                if (overlay._mutationObserver) { try { overlay._mutationObserver.disconnect(); overlay._mutationObserver = null; } catch(_) {} }
+
+                overlay._anchorHandler = () => { try { if (overlay._anchorTarget) _anchorOverlayToElement(overlay, overlay._anchorTarget); } catch(_){} };
+                window.addEventListener('resize', overlay._anchorHandler);
+                window.addEventListener('scroll', overlay._anchorHandler, true);
+
+                // Observe size changes on the target element
+                try {
+                    overlay._resizeObserver = new ResizeObserver(() => { try { if (overlay._anchorTarget) _anchorOverlayToElement(overlay, overlay._anchorTarget); } catch(_){} });
+                    overlay._resizeObserver.observe(el);
+                } catch (_) {}
+
+                // Observe class/style attribute changes that may affect layout/positioning
+                try {
+                    overlay._mutationObserver = new MutationObserver(() => { try { overlay._anchorHandler(); } catch(_){} });
+                    overlay._mutationObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+                } catch (_) {}
             } catch(e) { /* ignore */ }
         }
 
@@ -2756,6 +2800,8 @@
                     window.removeEventListener('scroll', overlay._anchorHandler, true);
                     overlay._anchorHandler = null;
                 }
+                if (overlay._resizeObserver) { try { overlay._resizeObserver.disconnect(); } catch(_){} overlay._resizeObserver = null; }
+                if (overlay._mutationObserver) { try { overlay._mutationObserver.disconnect(); } catch(_){} overlay._mutationObserver = null; }
                 overlay._anchorTarget = null;
             } catch(_){}
         }
@@ -2795,18 +2841,25 @@
                 overlay.style.zIndex = '100020';
                 overlay._remoteAnchor = { iframe: iframeEl, rect: rect };
                 // Ensure overlay repositions on layout changes
-                if (!overlay._remoteAnchorHandler) {
-                    overlay._remoteAnchorHandler = function () {
-                        try {
-                            const ir = overlay._remoteAnchor && overlay._remoteAnchor.iframe ? overlay._remoteAnchor.iframe.getBoundingClientRect() : iframeRect;
-                            const rx = overlay._remoteAnchor.rect || rect;
-                            overlay.style.left = (ir.left + (rx.left || 0) + window.scrollX) + 'px';
-                            overlay.style.top = (ir.top + (rx.top || 0) + window.scrollY) + 'px';
-                        } catch (_) {}
-                    };
-                    window.addEventListener('resize', overlay._remoteAnchorHandler);
-                    window.addEventListener('scroll', overlay._remoteAnchorHandler, true);
-                }
+                try { if (overlay._remoteAnchorHandler) { window.removeEventListener('resize', overlay._remoteAnchorHandler); window.removeEventListener('scroll', overlay._remoteAnchorHandler, true); overlay._remoteAnchorHandler = null; } } catch(_){}
+                overlay._remoteAnchorHandler = function () {
+                    try {
+                        const ir = overlay._remoteAnchor && overlay._remoteAnchor.iframe ? overlay._remoteAnchor.iframe.getBoundingClientRect() : iframeRect;
+                        const rx = overlay._remoteAnchor.rect || rect;
+                        overlay.style.left = (ir.left + (rx.left || 0) + window.scrollX) + 'px';
+                        overlay.style.top = (ir.top + (rx.top || 0) + window.scrollY) + 'px';
+                    } catch (_) {}
+                };
+                window.addEventListener('resize', overlay._remoteAnchorHandler);
+                window.addEventListener('scroll', overlay._remoteAnchorHandler, true);
+                // also observe iframe size/position changes where possible
+                try {
+                    if (overlay._remoteResizeObserver) { try { overlay._remoteResizeObserver.disconnect(); } catch(_){} overlay._remoteResizeObserver = null; }
+                    if (iframeEl && window.ResizeObserver) {
+                        overlay._remoteResizeObserver = new ResizeObserver(overlay._remoteAnchorHandler);
+                        overlay._remoteResizeObserver.observe(iframeEl);
+                    }
+                } catch (_) {}
             } catch (e) { /* ignore */ }
         }, false);
 
