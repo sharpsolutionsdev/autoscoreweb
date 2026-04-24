@@ -322,10 +322,10 @@
         /* App Layout */
         .app-container { display: flex; height: 100vh; width: 100vw; }
         
-        .sidebar { 
-            width: 380px; 
-            min-width: 300px;
-            max-width: 50vw;
+        .sidebar {
+            width: 420px;
+            min-width: 330px;
+            max-width: 55vw;
             background: #08080A; 
             position: relative;
             display: flex; flex-direction: column; z-index: 10;
@@ -1973,15 +1973,15 @@
             return `${min}:${String(sec).padStart(2, '0')}`;
         }
 
-        // Insert demo timer element below account pill
+        // Insert demo timer element below the branding/pill row
         function showDemoTimer(msLeft) {
             let timerEl = document.getElementById('demo-timer-row');
             if (!timerEl) {
-                const pill = document.getElementById('account-pill');
+                const flexContainer = document.querySelector('.mb-6.flex.flex-col.gap-4 .flex.items-center.justify-between');
                 timerEl = document.createElement('div');
                 timerEl.id = 'demo-timer-row';
-                timerEl.style.cssText = 'margin-top:8px;margin-bottom:0;padding:8px 12px;background:rgba(var(--brand-rgb),0.12);border:1px solid var(--brand);border-radius:8px;color:var(--brand);font-weight:bold;font-size:12px;text-align:center;letter-spacing:0.5px;white-space:pre-line;';
-                pill.parentNode.insertBefore(timerEl, pill.nextSibling);
+                timerEl.style.cssText = 'margin-top:12px;padding:8px 12px;background:rgba(var(--brand-rgb),0.12);border:1px solid var(--brand);border-radius:8px;color:var(--brand);font-weight:bold;font-size:12px;text-align:center;letter-spacing:0.5px;white-space:pre-line;width:100%;';
+                flexContainer.parentNode.insertBefore(timerEl, flexContainer.nextSibling);
             }
             timerEl.textContent = `DEMO: ${formatDemoTime(msLeft)} left\nCreate an account for unlimited access.`;
         }
@@ -2320,10 +2320,17 @@
         function renderPlayerCheckout(targetId, pathId, remaining, playerName) {
             const targetEl = document.getElementById(targetId);
             const pathEl = document.getElementById(pathId);
+            if (!pathEl) return;
+            
+            // Only re-render if the state actually changed to prevent CSS animation flashing
+            const stateKey = String(remaining) + '|' + String(playerName);
+            if (pathEl.dataset.lastRenderState === stateKey) return;
+            pathEl.dataset.lastRenderState = stateKey;
+
             const score = parseInt(remaining, 10);
             const label = playerName || targetId.replace('checkout-target-', '').toUpperCase();
             if (targetEl) targetEl.textContent = `${label}: ${isNaN(score) ? '—' : score}`;
-            if (!pathEl) return;
+            
             if (isNaN(score) || remaining == null) {
                 while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
                 const s = document.createElement('span');
@@ -2589,7 +2596,20 @@
             }
         }
 
+        // Track when the user last submitted a voice-driven score (for leg-reset attribution)
+        window._dvLastUserCommandTime = 0;
+        window._dvLastUserCommandValue = null;
         function handleScoreDeduction(strScore) {
+            // Record every user-driven submission, even if live checkout is locked
+            try {
+                if (strScore !== "__CANCEL__") {
+                    const vv = parseInt(strScore, 10);
+                    if (!isNaN(vv)) {
+                        window._dvLastUserCommandTime = Date.now();
+                        window._dvLastUserCommandValue = vv;
+                    }
+                }
+            } catch(_) {}
             if (!liveCheckoutEnabled || gameShotLock) return;
             if (strScore === "__CANCEL__") return; // Doesn't perfectly roll back just yet
             const val = parseInt(strScore, 10);
@@ -4250,6 +4270,52 @@ window.openScorerUrl = function(url){
                 if (p1Rem != null && p1Rem > checkoutStartScore && [301, 501, 701].includes(p1Rem)) {
                     checkoutStartScore = p1Rem;
                     currentCheckoutScore = p1Rem;
+                }
+
+                // --- Leg-reset detection (catches the case where DartCounter resets
+                // before we poll 0). Triggers a checkout animation for the player
+                // we can attribute the checkout to. ---
+                if (!gameShotLock) {
+                    const prevP1 = _dvLastP1Remaining != null ? parseInt(_dvLastP1Remaining, 10) : null;
+                    const prevP2 = _dvLastP2Remaining != null ? parseInt(_dvLastP2Remaining, 10) : null;
+                    const STARTS = [301, 501, 701];
+                    const inMakeable = (n) => n != null && !isNaN(n) && n >= 2 && n <= 170;
+                    const didReset = (prev, now) => inMakeable(prev) && now != null && STARTS.includes(now) && now > prev;
+                    const p1Reset = didReset(prevP1, p1Rem);
+                    const p2Reset = didReset(prevP2, p2Rem);
+
+                    if (p1Reset || p2Reset) {
+                        // Determine who actually checked out
+                        const recentCmd = window._dvLastUserCommandTime &&
+                                          (Date.now() - window._dvLastUserCommandTime) < 8000;
+                        let winnerIdx = null;  // 0=p1, 1=p2
+                        let winnerPrev = null;
+                        if (p1Reset && !p2Reset) { winnerIdx = 0; winnerPrev = prevP1; }
+                        else if (p2Reset && !p1Reset) { winnerIdx = 1; winnerPrev = prevP2; }
+                        else if (p1Reset && p2Reset) {
+                            // Both reset simultaneously — ambiguous, use recent-command heuristic
+                            // (user is assumed to be the active player when command was issued)
+                            if (recentCmd) {
+                                winnerIdx = activeIdx;
+                                winnerPrev = activeIdx === 0 ? prevP1 : prevP2;
+                            }
+                        }
+
+                        // Only play animation if winner is the USER (recent command means user did it).
+                        // No recent command => opponent checked out on their app, no animation.
+                        const isUser = recentCmd;
+                        if (winnerIdx != null && winnerPrev != null && isUser) {
+                            let route = null;
+                            // Prefer the extension's own suggestion if it matches the previous remaining
+                            if (s.checkoutSuggestion) {
+                                route = String(s.checkoutSuggestion).split(/[\s,→▸]+/).filter(d => d.trim());
+                            }
+                            if (!route || !route.length) {
+                                route = CHECKOUT_ROUTES[winnerPrev] || null;
+                            }
+                            triggerGameShot(route);
+                        }
+                    }
                 }
 
                 // Update dual-player checkout display

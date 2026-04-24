@@ -599,11 +599,13 @@
         }
 
         /* Overview density + download hero placement */
-        #tab-overview {
+        #tab-overview:not(.hidden) {
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
+        #tab-overview.hidden { display: none !important; }
+        #tab-ambassador.hidden, #tab-profile.hidden, #tab-admin.hidden, #tab-messages.hidden { display: none !important; }
         #tab-overview > .grid {
             order: 2;
         }
@@ -710,6 +712,10 @@
             </div>
 
             <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-1.5">Display Name</label>
+                    <input type="text" id="pp-input-name" placeholder="Your name" class="dv-input pro" autocomplete="name">
+                </div>
                 <div>
                     <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-1.5">Phone Number</label>
                     <input type="tel" id="pp-input-phone" placeholder="+1 (555) 000-0000" class="dv-input pro">
@@ -2168,19 +2174,29 @@
                 : user.email.split('@')[0].replace(/[._+]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
             $('dash-greeting').textContent = `Welcome back, ${greetName}`;
 
-            // Show profile-setup popup if no display name set
-            if (!displayName) {
+            // Show profile-setup popup if no display name set (once per session if skipped)
+            const skippedKey = 'dv-profile-popup-skipped';
+            let skipped = false;
+            try { skipped = sessionStorage.getItem(skippedKey) === '1'; } catch (_) {}
+
+            if (!displayName && !skipped) {
                 const pp = $('dv-profile-popup');
                 if (pp) pp.classList.add('open');
-                
-                // Pre-fill
+
+                // Pre-fill display name from email prefix
                 const prefix = user.email.split('@')[0].replace(/[._+]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const ppName = $('pp-input-name');
+                if (ppName && !ppName.value) ppName.value = prefix;
                 const inName = $('input-display-name');
                 if (inName && !inName.value) inName.value = prefix;
-                
+
                 if (profile?.phone_number) {
                     const ppPhone = $('pp-input-phone');
                     if (ppPhone) ppPhone.value = profile.phone_number;
+                }
+                if (profile?.date_of_birth) {
+                    const ppDob = $('pp-input-dob');
+                    if (ppDob) ppDob.value = profile.date_of_birth;
                 }
             } else {
                 const nudge = $('profile-nudge');
@@ -2248,12 +2264,13 @@
         function ppSkip() {
             const pp = $('dv-profile-popup');
             if (pp) pp.classList.remove('open');
+            try { sessionStorage.setItem('dv-profile-popup-skipped', '1'); } catch (_) {}
         }
 
         async function ppSaveAndClose() {
             const phone = ($('pp-input-phone')?.value || '').trim();
             const dob = ($('pp-input-dob')?.value || '').trim();
-            const name = ($('input-display-name')?.value || '').trim();
+            const name = ($('pp-input-name')?.value || $('input-display-name')?.value || '').trim();
             
             ppSkip();
             
@@ -2261,7 +2278,11 @@
                 const inPhone = $('input-phone');
                 if (inPhone) inPhone.value = phone;
             }
-            
+            if (name) {
+                const inName = $('input-display-name');
+                if (inName) inName.value = name;
+            }
+
             if ((phone || dob || _ppAvatarFile || name) && _ambUserId) {
                 const updates = {};
                 if (phone) updates.phone_number = phone;
