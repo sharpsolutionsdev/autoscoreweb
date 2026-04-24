@@ -1536,6 +1536,13 @@
       if (event.data.type === "DARTVOICE_CALIBRATE_START") {
         startCalibration();
       }
+
+      // Volume control from parent dashboard
+      if (event.data.type === "dv-set-volume") {
+        const vol = Math.max(0, Math.min(1, parseFloat(event.data.volume) || 1));
+        document.querySelectorAll('audio, video').forEach(el => { try { el.volume = vol; } catch(e){} });
+        logTrace('Volume set to ' + Math.round(vol * 100) + '%');
+      }
       
       if (event.data.type === "DARTVOICE_SCORE_INJECT") {
         // SECURITY: Exploit prevention. Verify auth status locally in extension before allowing ANY score injection
@@ -1652,6 +1659,64 @@
               });
               mo.observe(document.body || document.documentElement, { childList: true, subtree: true });
               setTimeout(() => { if (!done) { mo.disconnect(); logTrace('DV_ACTION camera: observer timed out (3s)'); } }, 3000);
+            }
+          }
+
+          // --- START BREAK ---
+          if (action === 'break') {
+            logTrace('DV_ACTION break: Starting break sequence...');
+            const findMoreMenu = () => {
+              let el = document.querySelector('app-control-more-icon, [data-testid*="more" i], button[aria-label*="more" i]');
+              if (!el) {
+                const candidates = document.querySelectorAll('button, div[role="button"], ion-button, [role="button"]');
+                for (const c of candidates) {
+                  if (!c.offsetParent) continue;
+                  const label = ((c.getAttribute('aria-label') || '') + ' ' + (c.title || '') + ' ' + (c.textContent || '')).toLowerCase();
+                  if (/\bmore\b|\bmenu\b/.test(label)) { el = c; break; }
+                  if (c.querySelector('ion-icon[name*="ellipsis" i], ion-icon[name*="more" i]')) { el = c; break; }
+                }
+              }
+              return el;
+            };
+            const moreBtn = findMoreMenu();
+            if (moreBtn) {
+              moreBtn.click();
+              moreBtn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+              moreBtn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+              moreBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+              logTrace('DV_ACTION break: clicked more menu');
+              let breakDone = false;
+              const findBreakBtn = () => {
+                const dlgs = document.querySelectorAll('app-add-break-dialog, [role="dialog"], .mat-mdc-dialog-container, ion-modal');
+                for (const d of dlgs) {
+                  if (!d.offsetParent && !d.closest('ion-modal')) continue;
+                  const btns = d.querySelectorAll('button, [role="button"]');
+                  for (const b of btns) {
+                    const txt = (b.textContent || '').toLowerCase().trim();
+                    if (/\bbreak\b|\bpause\b|\bstart\s*break\b/.test(txt)) return b;
+                  }
+                  const actionBtns = Array.from(btns).filter(b => b.offsetParent);
+                  if (actionBtns.length > 0) return actionBtns[0];
+                }
+                return null;
+              };
+              const bmo = new MutationObserver(() => {
+                if (breakDone) return;
+                const btn = findBreakBtn();
+                if (btn) {
+                  breakDone = true;
+                  bmo.disconnect();
+                  setTimeout(() => {
+                    btn.click();
+                    btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                    logTrace('DV_ACTION break: clicked break button');
+                  }, 200);
+                }
+              });
+              bmo.observe(document.body || document.documentElement, { childList: true, subtree: true });
+              setTimeout(() => { if (!breakDone) { bmo.disconnect(); logTrace('DV_ACTION break: dialog observer timed out (4s)'); } }, 4000);
+            } else {
+              logTrace('DV_ACTION break: more menu button not found');
             }
           }
         } catch (e) { logTrace('DV_ACTION failed: ' + e.message); }

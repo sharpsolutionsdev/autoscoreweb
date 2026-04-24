@@ -115,86 +115,158 @@
         }
         .btn-brand:hover::after { opacity: 1; }
         .btn-brand:active { transform: translateY(0); }
-        /* Loading overlay (themed) */
-        /* Backdrop (video) sits below the dim overlay */
-        #dv-loading-backdrop { position: fixed; inset: 0; z-index: 99997; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility .35s ease; }
-        #dv-loading-backdrop.show { opacity: 1; visibility: visible; }
-        /* Dim overlay that covers the viewport and intercepts interactions */
-        #dv-loading-overlay {
-            position: fixed; inset: 0; z-index: 99998; display: block; background: rgba(2,2,4,0.60); backdrop-filter: blur(10px);
-            opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .35s ease, visibility .35s ease;
+        /* ═══════════════════════════════════════════════════════════════ */
+        /*  CINEMATIC LOADING SCREEN — 60fps GPU-composited              */
+        /* ═══════════════════════════════════════════════════════════════ */
+        #dv-cinema {
+            position: fixed; inset: 0; z-index: 100000;
+            background: #020204;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 1; visibility: visible;
+            transition: opacity .6s cubic-bezier(.4,0,.2,1), visibility .6s;
+            will-change: opacity;
+            overflow: hidden;
         }
-        #dv-loading-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
-        /* Top-stage loader content (above overlay) */
-        #dv-loading-stage { position: fixed; inset: 0; z-index: 99999; display:flex; align-items:center; justify-content:center; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s ease; }
-        #dv-loading-stage.show { opacity: 1; visibility: visible; pointer-events: auto; }
-        #dv-loading-stage .dv-loading-inner { position: relative; z-index: 2; text-align: center; color: #fff; transform: translateY(0); }
-        .dv-loader-graphic {
-            width: 180px; height: 180px; position: relative; margin: 0 auto 18px;
-            display: flex; align-items: center; justify-content: center; overflow: visible;
+        #dv-cinema.exit {
+            opacity: 0; visibility: hidden;
+            pointer-events: none;
         }
-        /* Outer dartboard-style ring with brand gradient */
-        .dv-loader-graphic::before {
-            content: ''; position: absolute; inset: 0; border-radius: 50%;
-            background: conic-gradient(from 0deg, rgba(var(--brand-rgb),0) 0deg, rgba(var(--brand-rgb),.9) 80deg, rgba(255,255,255,.85) 140deg, rgba(var(--brand-rgb),0) 220deg);
-            filter: blur(1px);
-            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
-                    mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
-            animation: dv-spin 1.6s cubic-bezier(.6,.2,.4,.8) infinite;
+        /* Scan-line overlay for CRT/pro effect */
+        #dv-cinema::before {
+            content: ''; position: absolute; inset: 0; z-index: 3;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent, transparent 2px,
+                rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px
+            );
+            pointer-events: none;
+            animation: dv-scanDrift 8s linear infinite;
         }
-        /* Inner softer ring spinning the other way */
-        .dv-loader-graphic::after {
-            content: ''; position: absolute; inset: 22px; border-radius: 50%;
-            border: 1.5px dashed rgba(255,255,255,.18);
-            animation: dv-spin-rev 8s linear infinite;
+        @keyframes dv-scanDrift { to { background-position: 0 100px; } }
+
+        /* Video backdrop */
+        .dv-cinema-video {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: 0;
+            filter: blur(18px) brightness(0.35) saturate(1.3);
+            opacity: 0; transform: scale(1.08);
+            transition: opacity 1.8s cubic-bezier(.4,0,.2,1), transform 4s cubic-bezier(.4,0,.2,1), filter 2s ease;
+            will-change: opacity, transform;
         }
-        /* Glowing dart head in the centre */
-        .dv-loader-core {
-            position: relative; z-index: 2;
-            width: 78px; height: 78px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.22), rgba(var(--brand-rgb),.85) 55%, rgba(90,5,15,.9) 100%);
-            box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 10px 36px rgba(var(--brand-rgb),.45), inset 0 -4px 14px rgba(0,0,0,.35);
-            display: grid; place-items: center;
-            animation: dv-pulse 1.6s ease-in-out infinite;
+        .dv-cinema-video.reveal {
+            opacity: 1; transform: scale(1);
+            filter: blur(12px) brightness(0.4) saturate(1.2);
         }
-        .dv-loader-core::before {
-            content: ''; width: 10px; height: 10px; border-radius: 50%; background: #fff;
-            box-shadow: 0 0 12px rgba(255,255,255,.9), 0 0 28px rgba(var(--brand-rgb),.9);
+        /* Dark vignette */
+        .dv-cinema-vignette {
+            position: absolute; inset: 0; z-index: 1;
+            background: radial-gradient(ellipse 80% 80% at center, transparent 30%, rgba(2,2,4,.85) 100%);
+            pointer-events: none;
         }
-        /* Three orbiting brand dots — equidistant */
-        .dv-loader-dot {
-            width: 10px; height: 10px; border-radius: 50%; background: var(--brand);
-            box-shadow: 0 0 16px rgba(var(--brand-rgb),.9), 0 0 2px #fff inset;
-            position: absolute; top: 50%; left: 50%; margin: -5px 0 0 -5px;
-            transform-origin: 5px 5px;
-            animation: dv-orbit 2.4s linear infinite;
+
+        /* Content layer */
+        .dv-cinema-content {
+            position: relative; z-index: 4;
+            text-align: center; color: #fff;
+            transform: translateY(0); opacity: 1;
+            transition: transform .5s ease, opacity .5s ease;
         }
-        .dv-loader-dot.two   { animation-delay: -.8s; }
-        .dv-loader-dot.three { animation-delay: -1.6s; }
-        @keyframes dv-orbit {
-            0%   { transform: rotate(0deg)   translate(78px) rotate(0deg); opacity: .4; }
-            50%  { opacity: 1; }
-            100% { transform: rotate(360deg) translate(78px) rotate(-360deg); opacity: .4; }
+        #dv-cinema.exit .dv-cinema-content {
+            transform: translateY(-30px); opacity: 0;
         }
-        @keyframes dv-spin { to { transform: rotate(360deg); } }
-        @keyframes dv-spin-rev { to { transform: rotate(-360deg); } }
-        @keyframes dv-pulse {
-            0%, 100% { transform: scale(1);    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 10px 36px rgba(var(--brand-rgb),.45), inset 0 -4px 14px rgba(0,0,0,.35); }
-            50%      { transform: scale(1.06); box-shadow: 0 0 0 1px rgba(255,255,255,.14), 0 14px 48px rgba(var(--brand-rgb),.7),  inset 0 -4px 14px rgba(0,0,0,.35); }
+
+        /* Logo reveal: each letter */
+        .dv-logo-letter {
+            display: inline-block;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900; font-size: clamp(36px, 8vw, 72px);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0; transform: translateY(30px) scale(0.85);
+            transition: opacity .4s cubic-bezier(.4,0,.2,1), transform .5s cubic-bezier(.34,1.56,.64,1);
+            will-change: opacity, transform;
+            text-shadow: 0 0 40px rgba(var(--brand-rgb),.5), 0 2px 8px rgba(0,0,0,.6);
         }
-        .dv-loading-text { font-weight:700; font-size:18px; letter-spacing:0.06em; }
-        .dv-loading-subtext { font-size:12px; color: rgba(255,255,255,0.65); margin-top:6px; }
+        .dv-logo-letter.show {
+            opacity: 1; transform: translateY(0) scale(1);
+        }
+        .dv-logo-letter.brand { color: var(--brand); }
+        .dv-logo-letter.white { color: #fff; }
+
+        /* Horizontal rule that wipes in */
+        .dv-cinema-rule {
+            width: 0; height: 1px; margin: 16px auto 20px;
+            background: linear-gradient(90deg, transparent, rgba(var(--brand-rgb),.8), rgba(255,255,255,.6), rgba(var(--brand-rgb),.8), transparent);
+            transition: width 1s cubic-bezier(.4,0,.2,1);
+            will-change: width;
+        }
+        .dv-cinema-rule.show { width: min(320px, 60vw); }
+
+        /* Status text below logo */
+        .dv-cinema-status {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.25em;
+            color: rgba(255,255,255,.5);
+            opacity: 0; transform: translateY(10px);
+            transition: opacity .5s ease .2s, transform .5s ease .2s;
+        }
+        .dv-cinema-status.show { opacity: 1; transform: translateY(0); }
+
+        /* Progress bar */
+        .dv-cinema-progress-track {
+            width: min(240px, 50vw); height: 2px;
+            background: rgba(255,255,255,.08);
+            border-radius: 2px; margin: 14px auto 0;
+            overflow: hidden;
+            opacity: 0; transition: opacity .4s ease .3s;
+        }
+        .dv-cinema-progress-track.show { opacity: 1; }
+        .dv-cinema-progress-fill {
+            width: 0%; height: 100%;
+            background: linear-gradient(90deg, var(--brand), rgba(255,255,255,.9), var(--brand));
+            border-radius: 2px;
+            transition: width .3s cubic-bezier(.4,0,.2,1);
+            will-change: width;
+            box-shadow: 0 0 12px rgba(var(--brand-rgb),.6);
+        }
+
+        /* Orbiting dart ring (decorative) */
+        .dv-cinema-ring {
+            position: absolute; width: min(400px, 90vw); height: min(400px, 90vw);
+            border-radius: 50%; border: 1px solid rgba(var(--brand-rgb),.08);
+            top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(0deg);
+            animation: dv-slowSpin 20s linear infinite;
+            z-index: 2; pointer-events: none;
+            opacity: 0; transition: opacity 1.5s ease .5s;
+        }
+        .dv-cinema-ring.show { opacity: 1; }
+        .dv-cinema-ring::before {
+            content: ''; position: absolute; top: -4px; left: 50%; width: 8px; height: 8px;
+            background: var(--brand); border-radius: 50%;
+            box-shadow: 0 0 16px rgba(var(--brand-rgb),.9), 0 0 4px #fff;
+        }
+        .dv-cinema-ring.r2 {
+            width: min(300px, 70vw); height: min(300px, 70vw);
+            border: 1px dashed rgba(255,255,255,.04);
+            animation-direction: reverse; animation-duration: 30s;
+        }
+        @keyframes dv-slowSpin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+        /* Corner flourishes */
+        .dv-cinema-corner {
+            position: absolute; width: 40px; height: 40px;
+            border: 1px solid rgba(var(--brand-rgb),.15); z-index: 5;
+            opacity: 0; transition: opacity .8s ease 1s;
+        }
+        .dv-cinema-corner.show { opacity: 1; }
+        .dv-cinema-corner.tl { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+        .dv-cinema-corner.tr { top: 24px; right: 24px; border-left: none; border-bottom: none; }
+        .dv-cinema-corner.bl { bottom: 24px; left: 24px; border-right: none; border-top: none; }
+        .dv-cinema-corner.br { bottom: 24px; right: 24px; border-left: none; border-top: none; }
 
         /* Listening badge */
         .listening-badge { position: relative; margin-top:8px; display:inline-block; font-size:12px; font-weight:700; color: #fff; background: rgba(var(--brand-rgb),0.14); border: 1px solid rgba(var(--brand-rgb),0.18); padding:6px 10px; border-radius:999px; text-transform:uppercase; letter-spacing:0.08em; box-shadow: 0 6px 18px rgba(0,0,0,0.45); opacity:0; transform:translateY(6px) scale(.98); transition: all .22s ease; pointer-events:none; }
         .listening-badge.show { opacity: 1; transform: translateY(0) scale(1); }
-
-        /* Loading video: full-bleed background inside the overlay */
-        .dv-loading-video {
-            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-            z-index: 0; filter: blur(10px) brightness(0.55) saturate(1.05);
-        }
-        @media (max-width:720px){ .dv-loading-video { filter: blur(8px) brightness(0.6); } }
 
         /* Referral popup */
         #dv-referral-popup { position: fixed; right: 18px; bottom: 18px; z-index: 100001; transform: translateX(120%); transition: transform 420ms cubic-bezier(.2,.9,.25,1), opacity 300ms; opacity: 0; pointer-events: none; }
@@ -297,8 +369,30 @@
             flex: 1; position: relative; 
             background: radial-gradient(circle at center, #111114 0%, #08080a 100%);
             min-width: 0;
+            padding: 8px;
         }
-        iframe { width: 100%; height: 100%; border: none; background-color: #ffffff; }
+        iframe { width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; background-color: #ffffff; }
+
+        /* Quick-access glassmorphic slider popups */
+        .qa-slider-popup {
+            position: absolute; top: calc(100% + 8px); right: 0;
+            width: 200px; padding: 14px 16px;
+            background: rgba(17,17,20,0.92); backdrop-filter: blur(16px) saturate(1.4);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset;
+            z-index: 60; display: none;
+            animation: qaSlideIn 0.18s ease-out;
+        }
+        .qa-slider-popup.open { display: block; }
+        @keyframes qaSlideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        .qa-slider-popup input[type=range] { width: 100%; accent-color: var(--brand); cursor: pointer; }
+        .qa-icon-btn {
+            width: 32px; height: 32px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.2s; position: relative; color: #888;
+        }
+        .qa-icon-btn:hover { background: rgba(255,255,255,0.08); color: #ccc; border-color: rgba(255,255,255,0.15); }
 
         /* Sidebar collapse */
         .sidebar { transition: width .3s cubic-bezier(0.16, 1, 0.3, 1), min-width .3s cubic-bezier(0.16, 1, 0.3, 1), opacity .2s ease, padding .25s ease; }
@@ -810,27 +904,41 @@
 
 <body>
     <!-- Loading backdrop (video) -->
-    <div id="dv-loading-backdrop" aria-hidden="true">
-        <video id="dv-loading-video" class="dv-loading-video" autoplay muted playsinline preload="auto" loop>
-            <source src="assets/media/android-pulsing-red.mp4" type="video/mp4">
-            <!-- fallback text -->
+    <!-- ═══ CINEMATIC LOADING SCREEN ═══ -->
+    <div id="dv-cinema" role="status" aria-label="Loading DartVoice">
+        <!-- Video backdrop (blurred, dark, atmospheric) -->
+        <video id="dv-cinema-vid" class="dv-cinema-video" autoplay muted playsinline preload="auto" loop>
+            <source src="assets/media/soundwave-pulse.mp4" type="video/mp4">
         </video>
-    </div>
+        <div class="dv-cinema-vignette"></div>
 
-    <!-- Themed dim overlay (covers viewport, sits above backdrop) -->
-    <div id="dv-loading-overlay" role="status" aria-hidden="true"></div>
+        <!-- Decorative orbiting rings -->
+        <div class="dv-cinema-ring" id="dv-ring1"></div>
+        <div class="dv-cinema-ring r2" id="dv-ring2"></div>
 
-    <!-- Loading stage content (loader graphic + text) placed above overlay -->
-    <div id="dv-loading-stage" aria-hidden="true">
-        <div class="dv-loading-inner">
-            <div class="dv-loader-graphic" aria-hidden="true">
-                <div class="dv-loader-core"></div>
-                <div class="dv-loader-dot"></div>
-                <div class="dv-loader-dot two"></div>
-                <div class="dv-loader-dot three"></div>
+        <!-- Corner brackets -->
+        <div class="dv-cinema-corner tl" id="dv-c-tl"></div>
+        <div class="dv-cinema-corner tr" id="dv-c-tr"></div>
+        <div class="dv-cinema-corner bl" id="dv-c-bl"></div>
+        <div class="dv-cinema-corner br" id="dv-c-br"></div>
+
+        <!-- Main content -->
+        <div class="dv-cinema-content">
+            <!-- Logo: letter-by-letter reveal -->
+            <div id="dv-cinema-logo" aria-hidden="true">
+                <span class="dv-logo-letter brand" style="transition-delay:.1s">D</span><span class="dv-logo-letter brand" style="transition-delay:.15s">A</span><span class="dv-logo-letter brand" style="transition-delay:.2s">R</span><span class="dv-logo-letter brand" style="transition-delay:.25s">T</span><span class="dv-logo-letter white" style="transition-delay:.35s">V</span><span class="dv-logo-letter white" style="transition-delay:.4s">O</span><span class="dv-logo-letter white" style="transition-delay:.45s">I</span><span class="dv-logo-letter white" style="transition-delay:.5s">C</span><span class="dv-logo-letter white" style="transition-delay:.55s">E</span>
             </div>
-            <div class="dv-loading-text">Loading DartVoice…</div>
-            <div class="dv-loading-subtext">Warming up voice models — hold tight.</div>
+
+            <!-- Horizontal rule wipe -->
+            <div class="dv-cinema-rule" id="dv-cinema-rule"></div>
+
+            <!-- Status label -->
+            <div class="dv-cinema-status" id="dv-cinema-status">Initializing Voice Engine</div>
+
+            <!-- Progress bar -->
+            <div class="dv-cinema-progress-track" id="dv-cinema-track">
+                <div class="dv-cinema-progress-fill" id="dv-cinema-fill"></div>
+            </div>
         </div>
     </div>
     <!-- Referral popup (auto-show) -->
@@ -871,8 +979,8 @@
                             <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Scorer Studio</p>
                             <div class="flex gap-3 mt-2 items-center">
                                 <div class="text-left">
-                                    <div id="header-stat-avg" class="text-lg font-display font-bold text-white">&mdash;</div>
-                                    <div class="text-[9px] text-gray-500 uppercase tracking-widest">Avg</div>
+                                    <div id="header-stat-avg" class="text-lg font-display font-bold text-white">—</div>
+                                    <div class="text-[9px] text-gray-500 uppercase tracking-widest">Session Avg</div>
                                 </div>
                                 <div class="text-left">
                                     <div id="header-stat-darts" class="text-lg font-display font-bold text-white">0</div>
@@ -902,8 +1010,42 @@
                         </div>
                     </div>
 
-                    <!-- Live Clock (moved out of Live Game — always visible under the account pill) -->
-                    <div class="flex items-center justify-end mt-2">
+                    <!-- Live Clock + Quick-Access Icons -->
+                    <div class="flex items-center justify-end mt-2 gap-2">
+                        <!-- Session Timer -->
+                        <span id="dv-session-timer" class="text-[9px] text-gray-500 font-mono tabular-nums tracking-wide" title="Session duration">0:00:00</span>
+
+                        <!-- Quick-Access Volume Icon -->
+                        <div class="qa-icon-btn" id="qa-volume-btn" title="Volume">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" stroke-linecap="round"/></svg>
+                            <div class="qa-slider-popup" id="qa-volume-popup">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Volume</span>
+                                    <span id="qa-volume-val" class="text-[10px] text-brand font-bold tabular-nums">80%</span>
+                                </div>
+                                <input id="qa-volume-slider" type="range" min="0" max="100" value="80">
+                            </div>
+                        </div>
+
+                        <!-- Quick-Access Mic Icon -->
+                        <div class="qa-icon-btn" id="qa-mic-btn" title="Mic Sensitivity">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke-linecap="round"/><line x1="8" y1="23" x2="16" y2="23" stroke-linecap="round"/></svg>
+                            <div class="qa-slider-popup" id="qa-mic-popup">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Mic Gain</span>
+                                    <span id="qa-mic-val" class="text-[10px] text-brand font-bold tabular-nums">100%</span>
+                                </div>
+                                <input id="qa-mic-slider" type="range" min="25" max="250" value="100">
+                                <div class="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Whisper Mode</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="toggle-whisper-mode" class="sr-only peer" title="Whisper Mode">
+                                        <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <span id="dv-clock" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0c0c10] border border-[#1f1f28] text-[10px] text-brand font-mono tabular-nums tracking-[0.12em] live-data-glow cursor-pointer select-none" title="Click to toggle 12/24h">
                             <span class="w-1.5 h-1.5 rounded-full bg-brand opacity-80" style="box-shadow:0 0 6px rgba(var(--brand-rgb),.8);animation:textGlow 2s infinite"></span>
                             <span id="dv-clock-time">--:--</span>
@@ -1010,6 +1152,7 @@
                         <button id="app-ctrl-friends" type="button" class="app-ctrl-btn" title="Friends Lobby" onclick="openScorerUrl('https://app.dartcounter.net/friends-lobby')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>Friends</button>
                         <button id="app-ctrl-lobby" type="button" class="app-ctrl-btn" title="Global Lobby" onclick="openScorerUrl('https://app.dartcounter.net/online-games/global-lobby')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M3 6h18M3 18h18"/></svg>Lobby</button>
                         <button id="app-ctrl-camera" type="button" class="app-ctrl-btn" title="Open camera setup" onclick="openScorerAction('camera')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M23 7l-7 4 7 4V7zM1 7h11v10H1V7z"/></svg>Camera</button>
+                        <button id="app-ctrl-break" type="button" class="app-ctrl-btn" title="Start a break" onclick="openScorerAction('break')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6l5-3-5-3z"/><circle cx="12" cy="12" r="10"/></svg>Break</button>
                     </div>
                 </div>
 
@@ -2790,38 +2933,107 @@
             }
         }
 
-        // --- Loading overlay helpers ---
+        // ── CINEMATIC LOADING SCREEN DRIVER ──
+        // Phases: logo reveal → video backdrop → progress bar → exit
+        const _cinema = document.getElementById('dv-cinema');
+        const _cinemaFill = document.getElementById('dv-cinema-fill');
+        const _cinemaStatus = document.getElementById('dv-cinema-status');
+        const _cinemaTrack = document.getElementById('dv-cinema-track');
+        const _cinemaRule = document.getElementById('dv-cinema-rule');
+        const _cinemaVid = document.getElementById('dv-cinema-vid');
+
         function showLoadingOverlay(ms) {
-            const overlay = document.getElementById('dv-loading-overlay');
-            const backdrop = document.getElementById('dv-loading-backdrop');
-            const stage = document.getElementById('dv-loading-stage');
-            if (backdrop) { backdrop.classList.add('show'); backdrop.removeAttribute('aria-hidden'); }
-            if (overlay) { overlay.classList.add('show'); overlay.removeAttribute('aria-hidden'); }
-            if (stage) { stage.classList.add('show'); stage.removeAttribute('aria-hidden'); }
-            // keep a shared hide timer on the overlay element
-            const el = overlay || stage || backdrop;
-            if (!el) return;
-            if (el._hideT) clearTimeout(el._hideT);
-            if (ms && ms > 0) el._hideT = setTimeout(hideLoadingOverlay, ms);
+            // Legacy compat — just ensure cinema is visible
+            if (_cinema) _cinema.classList.remove('exit');
         }
         function hideLoadingOverlay() {
-            const overlay = document.getElementById('dv-loading-overlay');
-            const backdrop = document.getElementById('dv-loading-backdrop');
-            const stage = document.getElementById('dv-loading-stage');
-            if (stage) { stage.classList.remove('show'); stage.setAttribute('aria-hidden', 'true'); }
-            if (overlay) { overlay.classList.remove('show'); overlay.setAttribute('aria-hidden', 'true'); }
-            if (backdrop) { backdrop.classList.remove('show'); backdrop.setAttribute('aria-hidden', 'true'); }
-            const el = overlay || stage || backdrop;
-            if (el && el._hideT) { clearTimeout(el._hideT); el._hideT = null; }
+            if (_cinema) _cinema.classList.add('exit');
+            // Clean up after transition
+            setTimeout(() => { if (_cinema) _cinema.style.display = 'none'; }, 800);
         }
-        // show a short branded splash on first load (ensure at least ~3.5s)
+
+        // Drive the cinematic sequence
         document.addEventListener('DOMContentLoaded', () => {
             try {
-                showLoadingOverlay(3500);
-                // try to play the video (some browsers require a user gesture unless muted)
-                try { const v = document.getElementById('dv-loading-video'); if (v && typeof v.play === 'function') { v.currentTime = 0; v.play().catch(()=>{}); } } catch(e){}
-                // show referral suggestion shortly after the splash ends
-                setTimeout(()=>{ try { if (typeof showReferralPopup === 'function') showReferralPopup(9000); } catch(e){} }, 4200);
+                if (!_cinema) return;
+
+                // Play video
+                try { if (_cinemaVid && typeof _cinemaVid.play === 'function') { _cinemaVid.currentTime = 0; _cinemaVid.play().catch(()=>{}); } } catch(e){}
+
+                const statusMessages = [
+                    'Initializing Voice Engine',
+                    'Loading Audio Pipeline',
+                    'Connecting to DartCounter',
+                    'Calibrating Mic Arrays',
+                    'Almost Ready'
+                ];
+                let msgIdx = 0;
+
+                // Phase 1 (0ms): Letter reveal
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.dv-logo-letter').forEach(l => l.classList.add('show'));
+                });
+
+                // Phase 2 (500ms): Video backdrop + decorations
+                setTimeout(() => {
+                    if (_cinemaVid) _cinemaVid.classList.add('reveal');
+                    document.querySelectorAll('.dv-cinema-ring').forEach(r => r.classList.add('show'));
+                    document.querySelectorAll('.dv-cinema-corner').forEach(c => c.classList.add('show'));
+                }, 500);
+
+                // Phase 3 (800ms): Rule wipe + status + progress bar
+                setTimeout(() => {
+                    if (_cinemaRule) _cinemaRule.classList.add('show');
+                    if (_cinemaStatus) _cinemaStatus.classList.add('show');
+                    if (_cinemaTrack) _cinemaTrack.classList.add('show');
+                }, 800);
+
+                // Progress bar animation (1s → 4s, smooth fill)
+                const progressSteps = [
+                    { t: 1000, w: '15%' },
+                    { t: 1400, w: '30%' },
+                    { t: 1800, w: '48%' },
+                    { t: 2200, w: '62%' },
+                    { t: 2600, w: '78%' },
+                    { t: 3000, w: '88%' },
+                    { t: 3400, w: '96%' },
+                    { t: 3700, w: '100%' }
+                ];
+                progressSteps.forEach(({ t, w }) => {
+                    setTimeout(() => {
+                        if (_cinemaFill) _cinemaFill.style.width = w;
+                        // Rotate status messages
+                        if (msgIdx < statusMessages.length - 1) {
+                            msgIdx++;
+                            if (_cinemaStatus) {
+                                _cinemaStatus.style.opacity = '0';
+                                setTimeout(() => {
+                                    _cinemaStatus.textContent = statusMessages[msgIdx];
+                                    _cinemaStatus.style.opacity = '';
+                                }, 200);
+                            }
+                        }
+                    }, t);
+                });
+
+                // Phase 4 (4s): Exit
+                setTimeout(() => {
+                    if (_cinemaStatus) {
+                        _cinemaStatus.style.opacity = '0';
+                        setTimeout(() => {
+                            _cinemaStatus.textContent = 'Ready';
+                            _cinemaStatus.style.color = 'var(--brand)';
+                            _cinemaStatus.style.opacity = '';
+                        }, 200);
+                    }
+                }, 3800);
+
+                setTimeout(() => {
+                    hideLoadingOverlay();
+                }, 4200);
+
+                // Referral popup after cinema exit
+                setTimeout(()=>{ try { if (typeof showReferralPopup === 'function') showReferralPopup(9000); } catch(e){} }, 5000);
             } catch(e){}
         });
 
@@ -3003,6 +3215,14 @@
                             log("Cancel Trigger", true);
                             blastScoreToIframe("__CANCEL__");
                         }
+                        continue;
+                    }
+
+                    // --- BREAK VOICE COMMAND ---
+                    if (/\bbreak\b|\bstart\s*break\b|\btake\s*a?\s*break\b|\bpause\b/.test(raw)) {
+                        log('🛑 Break command detected — triggering break...', false);
+                        if (typeof dvToast === 'function') dvToast('Starting break...', 'info');
+                        if (typeof openScorerAction === 'function') openScorerAction('break');
                         continue;
                     }
 
@@ -3288,7 +3508,7 @@
             cancelWordEnabled: true,
             liveCheckoutEnabled: true,
             checkoutDialogEnabled: true,
-            checkoutDialogTimeoutMs: 5000,
+            checkoutDialogTimeoutMs: 6000,
             checkoutDialogScoreMin: 41,
             checkoutDialogScoreMax: 170,
             bustProtection: true,
@@ -3405,13 +3625,21 @@
             log(`Pro Setting: Auto-Start Match ${AppConfig.autoStartNextMatch ? 'enabled' : 'disabled'}`);
         });
 
-        // DartCounter volume slider
+        // DartCounter volume slider — controls PAGE volume (includes iframe audio)
         const _dcVol = document.getElementById('dc-volume-slider');
         const _dcVolVal = document.getElementById('dc-volume-val');
+        const _qaVol = document.getElementById('qa-volume-slider');
+        const _qaVolVal = document.getElementById('qa-volume-val');
         function applyDcVolume(v){
             AppConfig.dcVolume = v;
+            // Sync all volume displays
             if (_dcVolVal) _dcVolVal.textContent = v + '%';
             if (_dcVol && +_dcVol.value !== v) _dcVol.value = v;
+            if (_qaVolVal) _qaVolVal.textContent = v + '%';
+            if (_qaVol && +_qaVol.value !== v) _qaVol.value = v;
+            // Apply volume to all audio/video on page
+            document.querySelectorAll('audio, video').forEach(el => { el.volume = v / 100; });
+            // Also message the iframe to set volume on its media elements
             try {
                 const fr = document.getElementById('scorer-frame');
                 if (fr && fr.contentWindow) {
@@ -3423,21 +3651,80 @@
             applyDcVolume(AppConfig.dcVolume || 80);
             _dcVol.addEventListener('input', (e) => { applyDcVolume(+e.target.value); window.saveSettings(); });
         }
+        if (_qaVol) {
+            _qaVol.addEventListener('input', (e) => { applyDcVolume(+e.target.value); window.saveSettings(); });
+        }
 
         window.saveSettings = function(){ /* Stub - implement localStorage persistence later */ console.log('Settings saved'); };
 
-        // Mic sensitivity slider
+        // Mic sensitivity slider — synced between settings and quick-access
         const _micSens = document.getElementById('mic-sensitivity-slider');
         const _micSensVal = document.getElementById('mic-sensitivity-val');
+        const _qaMic = document.getElementById('qa-mic-slider');
+        const _qaMicVal = document.getElementById('qa-mic-val');
         function applyMicSensitivity(v){
             AppConfig.micSensitivity = v;
             if (_micSensVal) _micSensVal.textContent = v + '%';
             if (_micSens && +_micSens.value !== v) _micSens.value = v;
+            if (_qaMicVal) _qaMicVal.textContent = v + '%';
+            if (_qaMic && +_qaMic.value !== v) _qaMic.value = v;
         }
         if (_micSens) {
             applyMicSensitivity(AppConfig.micSensitivity || 100);
             _micSens.addEventListener('input', (e) => { applyMicSensitivity(+e.target.value); saveSettings(); });
         }
+        if (_qaMic) {
+            _qaMic.addEventListener('input', (e) => { applyMicSensitivity(+e.target.value); saveSettings(); });
+        }
+
+        // --- WHISPER MODE ---
+        const _whisperToggle = document.getElementById('toggle-whisper-mode');
+        if (_whisperToggle) {
+            _whisperToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    applyMicSensitivity(250);
+                    AppConfig.minFinalConfidence = 0.05;
+                    log('🤫 Whisper Mode ON — max sensitivity, ultra-low threshold', false);
+                    if (typeof dvToast === 'function') dvToast('🤫 Whisper Mode', 'success');
+                } else {
+                    applyMicSensitivity(100);
+                    AppConfig.minFinalConfidence = 0.20;
+                    log('Whisper Mode OFF — normal sensitivity', false);
+                }
+            });
+        }
+
+        // --- QUICK-ACCESS POPUP SLIDERS ---
+        function setupQaPopup(btnId, popupId) {
+            const btn = document.getElementById(btnId);
+            const popup = document.getElementById(popupId);
+            if (!btn || !popup) return;
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close all other popups first
+                document.querySelectorAll('.qa-slider-popup.open').forEach(p => { if (p !== popup) p.classList.remove('open'); });
+                popup.classList.toggle('open');
+            });
+            popup.addEventListener('click', (e) => e.stopPropagation());
+        }
+        setupQaPopup('qa-volume-btn', 'qa-volume-popup');
+        setupQaPopup('qa-mic-btn', 'qa-mic-popup');
+        // Close popups on outside click
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.qa-slider-popup.open').forEach(p => p.classList.remove('open'));
+        });
+
+        // --- SESSION TIMER ---
+        const _sessionStart = Date.now();
+        setInterval(() => {
+            const el = document.getElementById('dv-session-timer');
+            if (!el) return;
+            const elapsed = Math.floor((Date.now() - _sessionStart) / 1000);
+            const h = Math.floor(elapsed / 3600);
+            const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+            const s = String(elapsed % 60).padStart(2, '0');
+            el.textContent = h + ':' + m + ':' + s;
+        }, 1000);
 
         const _tChime = document.getElementById('toggle-chime');
         if (_tChime) _tChime.addEventListener('change', (e) => {
@@ -4385,8 +4672,8 @@ window.openScorerUrl = function(url){
                     const remain = Math.max(0, this.deadline - Date.now());
                     if (promptTimer) promptTimer.textContent = (remain/1000).toFixed(1) + 's';
                     if (remain <= 0) {
-                        if (typeof log === 'function') log(`Checkout dialog timed out — no auto-submit (avoid stray input)`, false);
-                        this._end();
+                        if (typeof log === 'function') log(`Checkout dialog timed out — auto-submitting 3`, false);
+                        this._submit(3, true);
                     }
                 },
                 _submit(n, auto){
@@ -4617,13 +4904,16 @@ window.openScorerUrl = function(url){
                     }
                 } catch {}
 
-                // Toggle pill (top-right of sidebar)
+                // Toggle pill — place inside the tab area, not sidebar.firstChild
                 const toggle = document.createElement('button');
                 toggle.type = 'button';
                 toggle.id = 'dv-reorder-toggle';
                 toggle.textContent = 'Reorder';
-                toggle.style.cssText = 'position:sticky;top:0;align-self:flex-end;z-index:30;margin:0 0 8px auto;padding:4px 10px;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#aaa;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:999px;cursor:pointer;' + (REDUCED ? '' : 'transition:all .2s ease;');
-                sidebar.insertBefore(toggle, sidebar.firstChild);
+                toggle.style.cssText = 'padding:4px 10px;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#aaa;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:999px;cursor:pointer;flex-shrink:0;' + (REDUCED ? '' : 'transition:all .2s ease;');
+                // Insert into the tab navigation row (flex container with Dashboard/Settings buttons)
+                const tabRow = sidebar.querySelector('.flex.gap-2.mt-2');
+                if (tabRow) tabRow.appendChild(toggle);
+                else sidebar.insertBefore(toggle, sidebar.firstChild);
 
                 let on = false;
                 function setMode(next){
@@ -4683,7 +4973,7 @@ window.openScorerUrl = function(url){
                     const time = document.getElementById('dv-clock-time');
                     if (!time) return;
                     const d = new Date();
-                    const h24 = localStorage.getItem('dv-clock-24h') !== '0';
+                    const h24 = localStorage.getItem('dv-clock-24h') === '1';
                     let h = d.getHours();
                     const m = String(d.getMinutes()).padStart(2,'0');
                     const s = String(d.getSeconds()).padStart(2,'0');
@@ -4699,7 +4989,7 @@ window.openScorerUrl = function(url){
                     if (el && !el.dataset.bound) {
                         el.dataset.bound = '1';
                         el.addEventListener('click', () => {
-                            const cur = localStorage.getItem('dv-clock-24h') !== '0';
+                            const cur = localStorage.getItem('dv-clock-24h') === '1';
                             localStorage.setItem('dv-clock-24h', cur ? '0' : '1');
                             tick();
                         });
