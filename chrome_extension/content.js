@@ -1287,7 +1287,6 @@
       ]);
       let parsed = splitPlayerAndRemaining(rawPlayer, rawRemaining, mode);
       if (!parsed.remaining) {
-        // Fallback: some layouts place player + score in the same compact row.
         const rowText = firstText([
           '[class*="match-team-score" i]',
           '[class*="active-player" i]',
@@ -1301,13 +1300,88 @@
         '[class*="finish" i] [class*="suggestion" i]'
       ]);
       const checkout = detectCheckoutModal();
+
+      // --- Structured per-player stats extraction ---
+      // Scrape the full visible body text and parse labeled stats for both players.
+      // DartCounter layout: each player column has labeled stats like:
+      // "3-dart avg. 35.43", "Last score 11", "Darts thrown 42"
+      let p1Stats = null;
+      let p2Stats = null;
+      let p1Name = null;
+      let p2Name = null;
+      try {
+        const body = (document.body && document.body.innerText) || '';
+        // Split body into player columns by looking for the "BEST OF" header
+        // or by finding two distinct player name + score blocks.
+        // Regex approach: find all stat occurrences in order.
+        const avgMatches = [...body.matchAll(/(?:3-dart\s+)?avg\.?\s*([\d.]+)/gi)].map(m => parseFloat(m[1]));
+        const lastMatches = [...body.matchAll(/last\s*(?:score)?\s*(\d+)/gi)].map(m => parseInt(m[1], 10));
+        const dartsMatches = [...body.matchAll(/darts?\s*(?:thrown)?\s*(\d+)/gi)].map(m => parseInt(m[1], 10));
+        
+        // Find player names: look for text nodes near large score displays
+        // DartCounter pattern: Name appears as a heading, then remaining as a big number
+        const nameMatches = [...body.matchAll(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*$/gm)].map(m => m[1].trim());
+        
+        // Build structured stats for Player 1 (first occurrence of each)
+        if (avgMatches.length > 0 || lastMatches.length > 0 || dartsMatches.length > 0) {
+          const modeNum = parseInt(String(mode || ''), 10);
+          const cap = !isNaN(modeNum) && modeNum > 0 ? modeNum : 701;
+
+          // Find remaining scores from body text — numbers shown as large score displays
+          // These are typically the first large numbers <= mode
+          const bigNums = [...body.matchAll(/(?:^|\n)\s*(\d{1,3})\s*(?:\n|$)/gm)]
+            .map(m => parseInt(m[1], 10))
+            .filter(n => !isNaN(n) && n >= 0 && n <= cap);
+
+          p1Stats = {
+            remaining: bigNums.length > 0 ? String(bigNums[0]) : (parsed.remaining || null),
+            avg: avgMatches.length > 0 ? String(avgMatches[0]) : null,
+            last: lastMatches.length > 0 ? String(lastMatches[0]) : null,
+            darts: dartsMatches.length > 0 ? String(dartsMatches[0]) : null
+          };
+
+          if (avgMatches.length > 1 || lastMatches.length > 1 || dartsMatches.length > 1) {
+            p2Stats = {
+              remaining: bigNums.length > 1 ? String(bigNums[1]) : null,
+              avg: avgMatches.length > 1 ? String(avgMatches[1]) : null,
+              last: lastMatches.length > 1 ? String(lastMatches[1]) : null,
+              darts: dartsMatches.length > 1 ? String(dartsMatches[1]) : null
+            };
+          }
+        }
+
+        // Extract player names from the body text
+        // DartCounter: names appear early, before stat labels
+        const nameRe = /^([A-Za-z][A-Za-z .''-]{1,25})$/gm;
+        const possibleNames = [];
+        let nm;
+        while ((nm = nameRe.exec(body)) !== null) {
+          const name = nm[1].trim();
+          // Filter out stat labels and common non-name words
+          if (!/^(best|first|last|darts?|thrown|score|avg|average|camera|omni|remaining|legs?|sets?)/i.test(name)
+            && name.length >= 2 && name.length <= 20) {
+            possibleNames.push(name);
+            if (possibleNames.length >= 2) break;
+          }
+        }
+        if (possibleNames.length > 0) p1Name = possibleNames[0];
+        if (possibleNames.length > 1) p2Name = possibleNames[1];
+      } catch (e) {
+        // Stats extraction is best-effort; fall back to legacy blob
+      }
+
       return {
         url: location.pathname,
         mode,
-        player: parsed.player,
+        player: p1Name || parsed.player,
         remaining: parsed.remaining,
+        p1Name: p1Name || parsed.player,
+        p2Name: p2Name || null,
+        p1Stats,
+        p2Stats,
         checkoutSuggestion: checkoutSuggestion || null,
         checkoutPrompt: checkout.visible ? checkout.text : null,
+        raw: rawPlayer,
         ts: Date.now()
       };
     }

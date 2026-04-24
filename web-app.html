@@ -3591,12 +3591,32 @@ window.openScorerUrl = function(url){
                 return out;
             }
 
-            // Extract an ordered stat block for up to 2 players from a raw blob.
-            // DartCounter surfaces stats in the order: remaining, avg, last, darts —
-            // then repeats for the next player. We pull up to 8 numeric tokens and
-            // split them into P1/P2 stat objects; anything missing stays null.
+            // Extract an ordered stat block for up to 2 players.
+            // Priority: structured p1Stats/p2Stats from extension → regex-based text parsing.
             function dvExtractPlayerStats(state, mode) {
-                const modeNum = parseInt(String(mode || ''), 10);
+                const buildPlayer = (r, a, l, d) => ({
+                    remaining: r == null ? null : String(Math.round(Number(r))),
+                    avg: a == null ? null : (Number(a) >= 100 ? String(Math.round(Number(a))) : String(Number(a).toFixed(2).replace(/\.?0+$/, ''))),
+                    last: l == null ? null : String(Math.round(Number(l))),
+                    darts: d == null ? null : String(Math.round(Number(d)))
+                });
+
+                // If the extension sent structured stats, use them directly
+                if (state && state.p1Stats) {
+                    const s1 = state.p1Stats;
+                    const p1 = buildPlayer(
+                        s1.remaining || (state.remaining),
+                        s1.avg, s1.last, s1.darts
+                    );
+                    let p2 = null;
+                    if (state.p2Stats) {
+                        const s2 = state.p2Stats;
+                        p2 = buildPlayer(s2.remaining, s2.avg, s2.last, s2.darts);
+                    }
+                    return [p1, p2];
+                }
+
+                // Fallback: regex-based extraction from concatenated blob text
                 const blob = [
                     state && state.stats,
                     state && state.remaining,
@@ -3604,31 +3624,43 @@ window.openScorerUrl = function(url){
                     state && state.raw
                 ].filter(Boolean).join(' ');
                 if (!blob) return [null, null];
-                // Match both ints and decimals (avg is usually X.Y or X.YZ)
-                const tokens = blob.match(/\d+\.\d+|\d+/g) || [];
-                const nums = tokens.map(t => parseFloat(t)).filter(n => !isNaN(n) && n >= 0);
-                // Filter out obvious noise (e.g., year/epoch). If mode is set, cap
-                // "remaining" candidates to mode; but keep avg (can be up to ~180).
-                const take = (i) => (i < nums.length ? nums[i] : null);
-                const buildPlayer = (r, a, l, d) => ({
-                    remaining: r == null ? null : String(Math.round(r)),
-                    avg: a == null ? null : (a >= 100 ? Math.round(a) : a.toFixed(2).replace(/\.?0+$/, '')),
-                    last: l == null ? null : String(Math.round(l)),
-                    darts: d == null ? null : String(Math.round(d))
-                });
-                // Heuristic: remaining is an integer <= mode (or <=701 if no mode).
-                // Find the first such index to anchor P1.
-                let anchor = 0;
-                for (let i = 0; i < Math.min(nums.length, 3); i++) {
-                    const n = nums[i];
-                    const isInt = Number.isInteger(n);
-                    const cap = !isNaN(modeNum) && modeNum > 0 ? modeNum : 701;
-                    if (isInt && n <= cap) { anchor = i; break; }
+
+                const modeNum = parseInt(String(mode || ''), 10);
+
+                // Extract labeled stats using regex patterns
+                const findAll = (pattern) => {
+                    const results = [];
+                    let m;
+                    const re = new RegExp(pattern, 'gi');
+                    while ((m = re.exec(blob)) !== null) results.push(parseFloat(m[1]));
+                    return results;
+                };
+
+                const avgs = findAll('(?:3-dart\\s+)?avg\\.?\\s*([\\d.]+)');
+                const lasts = findAll('last\\s*(?:score)?\\s*(\\d+)');
+                const darts = findAll('darts?\\s*(?:thrown)?\\s*(\\d+)');
+
+                // Remaining: already parsed by dvNormalizeLiveState — use state.remaining
+                const remaining = state && state.remaining;
+
+                const p1 = buildPlayer(
+                    remaining,
+                    avgs.length > 0 ? avgs[0] : null,
+                    lasts.length > 0 ? lasts[0] : null,
+                    darts.length > 0 ? darts[0] : null
+                );
+
+                let p2 = null;
+                if (avgs.length > 1 || lasts.length > 1 || darts.length > 1) {
+                    p2 = buildPlayer(
+                        null, // P2 remaining not available in blob
+                        avgs.length > 1 ? avgs[1] : null,
+                        lasts.length > 1 ? lasts[1] : null,
+                        darts.length > 1 ? darts[1] : null
+                    );
                 }
-                const p1 = buildPlayer(take(anchor), take(anchor + 1), take(anchor + 2), take(anchor + 3));
-                const p2 = buildPlayer(take(anchor + 4), take(anchor + 5), take(anchor + 6), take(anchor + 7));
-                const p2Valid = p2.remaining !== null || p2.avg !== null || p2.last !== null || p2.darts !== null;
-                return [p1, p2Valid ? p2 : null];
+
+                return [p1, p2];
             }
 
             window.dvRenderGameState = function(s){
@@ -3646,9 +3678,20 @@ window.openScorerUrl = function(url){
                 const [p1, p2] = dvExtractPlayerStats(s, clean.mode);
                 const p1NameEl = document.querySelector('#dv-live-p1-name .dv-live-pname-txt');
                 const p2NameEl = document.querySelector('#dv-live-p2-name .dv-live-pname-txt');
-                if (p1NameEl && clean.player) p1NameEl.textContent = clean.player;
-                // Opponent name is rarely in the payload — leave default if unknown
-                if (p2NameEl && s.opponent) p2NameEl.textContent = String(s.opponent);
+                // Use structured names from extension, with fallback to cleaned player name
+                const cleanName = (name) => {
+                    if (!name) return null;
+                    return String(name)
+                        .replace(/\b\d{1,3}\b/g, ' ')  // strip numbers
+                        .replace(/\b(avg|average|dart|darts|thrown|score|last|first|best|leg|remaining|D\d+)\b/gi, ' ')
+                        .replace(/[|:(){}\[\]]+/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim() || null;
+                };
+                const p1DisplayName = s.p1Name || cleanName(clean.player);
+                const p2DisplayName = s.p2Name || s.opponent || null;
+                if (p1NameEl && p1DisplayName) p1NameEl.textContent = p1DisplayName;
+                if (p2NameEl && p2DisplayName) p2NameEl.textContent = p2DisplayName;
 
                 if (p1) {
                     set('dv-live-p1-remaining', p1.remaining);
