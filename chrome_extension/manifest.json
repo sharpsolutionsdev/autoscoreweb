@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DartVoice Launchpad",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "description": "Voice-score darts in your browser. Open the DartVoice web app, connect your scorer, call your throws. Free 10-minute demo.",
   "icons": {
     "16": "icon16.png",
