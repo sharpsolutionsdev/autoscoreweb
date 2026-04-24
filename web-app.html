@@ -23,6 +23,47 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     </script>
+
+    <script>
+    // Auto-start DartCounter injector for ambassador accounts (postMessage to iframe)
+    (function(){
+        try {
+            if (!document.body.classList.contains('dv-is-ambassador')) return;
+            // Allow opt-out via localStorage: set dv-autoinject=0 to disable
+            if (localStorage.getItem('dv-autoinject') === '0') return;
+
+            const selector = 'app-cricket-tactics-keyboard > div';
+            const intervalMs = 1200;
+
+            function sendStart(ifr){
+                try {
+                    if (!ifr || !ifr.contentWindow) return false;
+                    ifr.contentWindow.postMessage({ type: 'DV_INJECT_CMD', cmd: 'startAutoPost', selector, intervalMs }, '*');
+                    console.debug('[DV] requested injector start on iframe', ifr);
+                    return true;
+                } catch(e){ console.warn('DV injector start failed', e); return false; }
+            }
+
+            function tryFindIframeAndStart(triesLeft){
+                const iframe = document.querySelector('#scorer-frame') || document.querySelector('iframe[src*="dartcounter"]') || document.querySelector('iframe');
+                if (iframe) {
+                    if (sendStart(iframe)) return;
+                }
+                if (triesLeft > 0) setTimeout(() => tryFindIframeAndStart(triesLeft - 1), 1200);
+            }
+
+            window.addEventListener('message', function(ev){
+                try {
+                    const m = ev && ev.data;
+                    if (!m) return;
+                    if (m.type === 'DV_INJECT_STATUS') console.debug('[DV injector status]', m.status, m);
+                } catch(_){}
+            }, false);
+
+            tryFindIframeAndStart(10);
+        } catch(e) { console.warn('dv-autoinject init error', e); }
+    })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -41,6 +82,44 @@
                 }
             }
         }
+    </script>
+    <script>
+    // In-page toggle button to enable/disable auto-inject (safe UI control)
+    (function(){
+        try {
+            const id = 'dv-autoinject-toggle';
+            function createToggle(){
+                if (document.getElementById(id)) return;
+                const btn = document.createElement('button');
+                btn.id = id;
+                btn.className = 'btn-outline';
+                btn.style.position = 'fixed';
+                btn.style.right = '18px';
+                btn.style.bottom = '80px';
+                btn.style.zIndex = 100002;
+                btn.style.width = '200px';
+                btn.style.fontSize = '13px';
+                btn.style.padding = '8px 10px';
+                btn.style.backdropFilter = 'blur(4px)';
+                function updateLabel(){
+                    const disabled = localStorage.getItem('dv-autoinject') === '0';
+                    btn.textContent = disabled ? 'Auto-inject: OFF (click to enable)' : 'Auto-inject: ON (click to disable)';
+                    btn.style.background = disabled ? 'rgba(255,255,255,0.02)' : 'var(--brand)';
+                    btn.style.color = disabled ? '#ccc' : '#fff';
+                }
+                btn.addEventListener('click', ()=> {
+                    const disabled = localStorage.getItem('dv-autoinject') === '0';
+                    if (disabled) localStorage.removeItem('dv-autoinject'); else localStorage.setItem('dv-autoinject','0');
+                    updateLabel();
+                });
+                updateLabel();
+                document.addEventListener('DOMContentLoaded', ()=> document.body.appendChild(btn));
+            }
+            // Create early if body already exists
+            if (document.readyState === 'complete' || document.readyState === 'interactive') createToggle();
+            else window.addEventListener('DOMContentLoaded', createToggle);
+        } catch(e){ console.warn('dv-autoinject-toggle init failed', e); }
+    })();
     </script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #08080A; color: #F0F0F5; margin: 0; padding: 0; overflow: hidden; }
@@ -2765,15 +2844,15 @@
             if (!overlay) return;
             try {
                 if (!el) {
-                    // fallback to full-screen
-                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100010;will-change:opacity,transform;pointer-events:none;padding:24px;';
+                        // fallback to full-screen (ensure high z-index + GPU compositing)
+                        overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
                     overlay._anchorTarget = null;
                     return;
                 }
                 const rect = el.getBoundingClientRect();
                 if (!rect || rect.width <= 0 || rect.height <= 0) {
                     // fallback
-                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100010;will-change:opacity,transform;pointer-events:none;padding:24px;';
+                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
                     overlay._anchorTarget = null;
                     return;
                 }
@@ -2789,7 +2868,7 @@
                 overlay.style.justifyContent = 'center';
                 overlay.style.padding = '12px';
                 overlay.style.pointerEvents = 'none';
-                overlay.style.zIndex = '100010';
+                overlay.style.zIndex = '100050';
                 overlay._anchorTarget = el;
                 // Optional visual debug highlight for chosen anchor element
                 try {
@@ -2882,7 +2961,7 @@
                 overlay.style.alignItems = 'center';
                 overlay.style.justifyContent = 'center';
                 overlay.style.pointerEvents = 'none';
-                overlay.style.zIndex = '100020';
+                overlay.style.zIndex = '100050';
                 overlay._remoteAnchor = { iframe: iframeEl, rect: rect };
                 // Ensure overlay repositions on layout changes
                 try { if (overlay._remoteAnchorHandler) { window.removeEventListener('resize', overlay._remoteAnchorHandler); window.removeEventListener('scroll', overlay._remoteAnchorHandler, true); overlay._remoteAnchorHandler = null; } } catch(_){}
@@ -2914,8 +2993,9 @@
                 overlay = document.createElement('div');
                 overlay.id = 'dv-game-shot-overlay';
                 // initially create as full-screen; we'll anchor below if we can find a target element
-                overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100010;will-change:opacity,transform;pointer-events:none;padding:24px;';
-                overlay.className = 'hidden';
+                // Create overlay with transitions and hardware-acceleration hints
+                overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
+                overlay.className = 'hidden dv-game-shot-overlay';
                 document.body.appendChild(overlay);
             }
             // Anchor overlay to scorer/frame element if present so it follows sizing/layout
@@ -2933,6 +3013,9 @@
                 overlay.appendChild(canvas);
             }
             canvas.style.display = 'block';
+            // hint to browser for smooth compositing
+            canvas.style.willChange = 'transform,opacity';
+            canvas.style.transform = 'translateZ(0)';
             // Resize the visible canvas to fit the anchored overlay area where possible
             try {
                 const r = overlay.getBoundingClientRect();
@@ -3046,6 +3129,13 @@
                 });
 
                 if (elapsed < totalDur) requestAnimationFrame(frame);
+                else {
+                    // gently settle overlay scale/opacity so it feels like a single animation
+                    try {
+                        overlay.style.opacity = '1';
+                        overlay.style.transform = 'translateZ(0) scale(1)';
+                    } catch(_){}
+                }
             }
             requestAnimationFrame(frame);
         }
@@ -3076,13 +3166,20 @@
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'dv-game-shot-overlay';
-                overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100001;pointer-events:none;padding:24px;';
+                overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .26s ease, transform .26s ease;opacity:0;';
                 overlay.className = '';
                 document.body.appendChild(overlay);
             }
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
             try { const tgt = _getGameShotTarget(); _anchorOverlayToElement(overlay, tgt); } catch(e){}
+            // animate overlay in (use a small scale & fade for depth)
+            try {
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '0';
+                overlay.style.transform = 'translateZ(0) scale(0.98)';
+                requestAnimationFrame(() => { overlay.style.opacity = '1'; overlay.style.transform = 'translateZ(0) scale(1)'; });
+            } catch(_){}
             // Play dartboard animation if we have a checkout route
             if (checkoutRoute && checkoutRoute.length) {
                 playDartboardAnimation(checkoutRoute);
@@ -3151,11 +3248,19 @@
             // Hide and clear the top-level overlay (if present)
             const overlay = document.getElementById('dv-game-shot-overlay') || document.getElementById('game-shot-overlay');
             if (overlay) {
-                try { _unanchorOverlay(overlay); } catch(_){}
-                overlay.classList.add('hidden');
-                overlay.classList.remove('flex');
-                const canvas = overlay.querySelector('#dartboard-canvas');
-                if (canvas) canvas.remove();
+                try {
+                    // fade out nicely, then clear
+                    overlay.style.opacity = '0';
+                    overlay.style.transform = 'translateZ(0) scale(0.98)';
+                } catch(_){}
+                setTimeout(() => {
+                    try { _unanchorOverlay(overlay); } catch(_){ }
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                    const canvas = overlay.querySelector('#dartboard-canvas');
+                    if (canvas) canvas.remove();
+                    try { overlay.style.transform = ''; overlay.style.opacity = ''; } catch(_){}
+                }, 280);
             }
         }
 
