@@ -134,7 +134,8 @@
         #dv-index-loader .dv-il-track{stroke:rgba(255,255,255,0.06);}
         #dv-index-loader .dv-il-arc{stroke:var(--brand);stroke-linecap:round;filter:drop-shadow(0 0 8px rgba(var(--brand-rgb),0.8));transform-origin:50% 50%;animation:dv-il-rot 2.4s linear infinite,dv-il-dash 1.6s ease-in-out infinite;}
         #dv-index-loader .dv-il-logo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-        #dv-index-loader .dv-il-logo svg{width:50px;height:50px;filter:drop-shadow(0 0 12px rgba(var(--brand-rgb),0.5));}
+        #dv-index-loader .dv-il-logo svg,
+        #dv-index-loader .dv-il-logo img{width:60px;height:60px;filter:drop-shadow(0 0 12px rgba(var(--brand-rgb),0.5));}
         #dv-index-loader .dv-il-label{font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:.25em;font-size:13px;color:rgba(255,255,255,0.75);text-transform:uppercase;}
         @keyframes dv-il-rot{to{transform:rotate(360deg);}}
         @keyframes dv-il-dash{0%{stroke-dasharray:1 300;stroke-dashoffset:0;}50%{stroke-dasharray:180 300;stroke-dashoffset:-60;}100%{stroke-dasharray:1 300;stroke-dashoffset:-300;}}
@@ -181,6 +182,7 @@
 
             <!-- Desktop links -->
             <div class="hidden sm:flex items-center gap-1">
+                <a href="#features" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
                 <a href="#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
                 <a href="web-app" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1.5">
                     <img src="dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded" style="image-rendering:auto;">
@@ -197,7 +199,6 @@
                     </button>
                     <div id="nav-more-menu"
                         class="absolute right-0 top-full mt-1 min-w-[180px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
-                        <a href="#features" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Features</a>
                         <a href="#scoring-modes" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Modes</a>
                         <a href="how-it-works" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">How It Works</a>
                         <a href="#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
