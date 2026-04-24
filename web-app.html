@@ -637,6 +637,14 @@
         }
         .checkout-arrow { color: rgba(255,255,255,0.3); font-size: 10px; margin: 0 2px; }
 
+        /* Hide visible scrollbar on the Scores Registered box but keep scrolling functional */
+        #live-scores-box { scrollbar-width: none; -ms-overflow-style: none; }
+        #live-scores-box::-webkit-scrollbar { width: 0; height: 0; }
+
+        /* Transient pre-checkout tip that briefly overlays above iframe */
+        #dv-precheckout-tip { position: fixed; left: 50%; top: 12%; transform: translateX(-50%); z-index: 100003; pointer-events: none; background: rgba(6,8,10,0.88); border: 1px solid rgba(255,255,255,0.06); color: #fff; padding: 8px 14px; border-radius: 10px; font-weight:800; letter-spacing:0.04em; opacity:0; transition: opacity .18s ease, transform .18s ease; }
+        #dv-precheckout-tip.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
         /* Stat counter pulse */
         @keyframes statPulse {
             0% { transform: scale(1); color: #fff; }
@@ -1089,6 +1097,13 @@
                                         <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                                     </label>
                                 </div>
+                                <div class="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Mic Feedback</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="toggle-mic-feedback" class="sr-only peer" title="Play mic back locally">
+                                        <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -1156,10 +1171,17 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Checkout dialog auto-reply</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="toggle-checkout-dialog-dash" class="sr-only peer" checked title="Auto-reply checkout dialog" aria-label="Auto-reply checkout dialog">
-                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
-                            </label>
+                            <div class="flex items-center gap-3">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-checkout-dialog-dash" class="sr-only peer" checked title="Auto-reply checkout dialog" aria-label="Auto-reply checkout dialog">
+                                    <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                                </label>
+                                <label class="relative inline-flex items-center cursor-pointer" title="Show brief checkout tip when opponent submits">
+                                    <input type="checkbox" id="toggle-precheckout-tip" class="sr-only peer">
+                                    <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
+                                </label>
+                                <span class="text-[10px] text-gray-400">Pre-checkout tip</span>
+                            </div>
                         </div>
                         <!-- Input Mode (per-dart vs per-visit) — moved from Settings to be next to the mic -->
                         <div class="flex items-center justify-between pt-1">
@@ -3695,6 +3717,10 @@
             // Extra celebrations
             enableConfetti: true,
             enableAudioCues: true,
+            // Show a short transient checkout tip when opponent submits (opt-in)
+            preCheckoutTip: false,
+            // Mic feedback: play user's mic back locally live (opt-in)
+            micFeedback: false,
             // Persisted theme hex (keeps brand in settings)
             themeHex: (localStorage.getItem('dv-theme-hex') || '#CC0B20')
         };
@@ -3789,6 +3815,41 @@
             log(`Pro Setting: Auto-Start Match ${AppConfig.autoStartNextMatch ? 'enabled' : 'disabled'}`);
         });
 
+        // Pre-checkout tip toggle
+        const _tPreCheckout = document.getElementById('toggle-precheckout-tip');
+        if (_tPreCheckout) {
+            _tPreCheckout.checked = !!AppConfig.preCheckoutTip;
+            _tPreCheckout.addEventListener('change', (e) => { AppConfig.preCheckoutTip = e.target.checked; window.saveSettings(); log(`Pre-Checkout Tip ${AppConfig.preCheckoutTip ? 'ON' : 'OFF'}`); });
+        }
+
+        // Mic feedback: play microphone back to user live
+        let _micFeedbackStream = null;
+        let _micFeedbackAudio = null;
+        async function startMicFeedback() {
+            try {
+                if (_micFeedbackStream) return;
+                const s = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } });
+                _micFeedbackStream = s;
+                _micFeedbackAudio = document.createElement('audio');
+                _micFeedbackAudio.id = 'dv-mic-feedback-audio';
+                _micFeedbackAudio.autoplay = true; _micFeedbackAudio.muted = false; _micFeedbackAudio.style.display = 'none';
+                _micFeedbackAudio.srcObject = s;
+                _micFeedbackAudio.volume = (AppConfig.dcVolume || 80) / 100;
+                document.body.appendChild(_micFeedbackAudio);
+            } catch (e) { console.warn('Mic feedback failed:', e); }
+        }
+        function stopMicFeedback(){ try{ if(_micFeedbackAudio){ _micFeedbackAudio.pause(); _micFeedbackAudio.srcObject = null; _micFeedbackAudio.remove(); _micFeedbackAudio=null; } if(_micFeedbackStream){ _micFeedbackStream.getTracks().forEach(t=>t.stop()); _micFeedbackStream=null; } }catch(e){} }
+
+        const _tMicFeedback = document.getElementById('toggle-mic-feedback');
+        if (_tMicFeedback) {
+            _tMicFeedback.checked = !!AppConfig.micFeedback;
+            _tMicFeedback.addEventListener('change', (e) => {
+                AppConfig.micFeedback = e.target.checked;
+                window.saveSettings();
+                if (AppConfig.micFeedback) startMicFeedback(); else stopMicFeedback();
+            });
+        }
+
         // DartCounter volume slider — controls PAGE volume (includes iframe audio)
         const _dcVol = document.getElementById('dc-volume-slider');
         const _dcVolVal = document.getElementById('dc-volume-val');
@@ -3810,6 +3871,8 @@
                     fr.contentWindow.postMessage({ type: 'dv-set-volume', volume: v / 100 }, '*');
                 }
             } catch(e){}
+            // If mic feedback is active keep its volume in sync
+            try { const fb = document.getElementById('dv-mic-feedback-audio'); if (fb) fb.volume = v/100; } catch(e){}
         }
         if (_dcVol) {
             applyDcVolume(AppConfig.dcVolume || 80);
@@ -4529,6 +4592,21 @@ window.openScorerUrl = function(url){
                 if (clean.checkoutSuggestion) {
                     if (coVal) coVal.textContent = clean.checkoutSuggestion;
                     if (coRow) coRow.style.display = '';
+                    // If pre-checkout tip is enabled, show a brief transient overlay
+                    try {
+                        if (AppConfig && AppConfig.preCheckoutTip) {
+                            const last = window._dvLastCheckoutSuggestion || '';
+                            const now = String(clean.checkoutSuggestion || '');
+                            if (now && now !== last) {
+                                window._dvLastCheckoutSuggestion = now;
+                                let tip = document.getElementById('dv-precheckout-tip');
+                                if (!tip) { tip = document.createElement('div'); tip.id = 'dv-precheckout-tip'; document.body.appendChild(tip); }
+                                tip.textContent = now;
+                                tip.classList.add('show');
+                                setTimeout(() => { try { tip.classList.remove('show'); } catch(e){} }, 1400);
+                            }
+                        }
+                    } catch(e){}
                 } else if (coRow) { coRow.style.display = 'none'; }
             };
 
