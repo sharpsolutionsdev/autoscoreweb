@@ -2,11 +2,11 @@
 class DvFooter extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
-        <footer class="border-t border-wire/60 pt-16 pb-6">
+        <footer class="border-t border-wire/60 pt-8 pb-6">
             <div class="max-w-6xl mx-auto px-5">
 
                 <!-- Top grid: logo + 3 columns -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-10 mb-14">
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-6 mb-8">
 
                     <!-- Brand column -->
                     <div class="col-span-2 sm:col-span-4 lg:col-span-2">
@@ -80,7 +80,7 @@ class DvFooter extends HTMLElement {
                 </div>
 
                 <!-- Payment methods strip -->
-                <div class="border-t border-wire/60 pt-8 mb-6">
+                <div class="border-t border-wire/60 pt-6 mb-4">
                     <p class="footer-heading mb-4">Accepted Payment Methods</p>
                     <div class="flex flex-wrap gap-2 items-center">
 
@@ -185,7 +185,7 @@ class DvFooter extends HTMLElement {
 
                 <!-- Bottom bar -->
                 <div
-                    class="border-t border-wire/40 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted2">
+                    class="border-t border-wire/40 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted2">
                     <div class="flex items-center gap-4 flex-wrap">
                         <span>&copy; 2026 DartVoice. All rights reserved.</span>
                         <div data-dv-currency-mount></div>

@@ -59,6 +59,65 @@
                 }
             }
         }
+
+        // Avatar file handling: preview, localStorage persist, and best-effort Supabase upload
+        window._pendingAvatarData = null;
+        window._currentAvatarData = null;
+
+        document.addEventListener('click', (ev) => {
+            if (!ev.target) return;
+            if (ev.target.id === 'btn-edit-avatar') {
+                const inp = $('input-avatar-file');
+                if (inp) inp.click();
+            }
+        });
+
+        const __avatarInput = $('input-avatar-file');
+        if (__avatarInput) {
+            __avatarInput.addEventListener('change', async function () {
+                const f = this.files && this.files[0];
+                if (!f) return;
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const dataUrl = e.target.result;
+                    window._currentAvatarData = dataUrl;
+                    window._pendingAvatarData = dataUrl;
+                    const el = $('profile-avatar');
+                    if (el) {
+                        el.style.backgroundImage = `url(${dataUrl})`;
+                        el.style.backgroundSize = 'cover';
+                        el.style.backgroundPosition = 'center';
+                        el.textContent = '';
+                    }
+                    try {
+                        if (_profileEmail) localStorage.setItem('dv-avatar-' + encodeURIComponent(_profileEmail), dataUrl);
+                        else if (_ambUserId) localStorage.setItem('dv-avatar-' + _ambUserId, dataUrl);
+                    } catch (err) {
+                        console.warn('avatar localStorage failed', err);
+                    }
+
+                    // Best-effort: upload to Supabase storage 'avatars' and save avatar_url on profile
+                    try {
+                        if (typeof sb !== 'undefined' && _ambUserId) {
+                            const path = `avatars/${_ambUserId}.png`;
+                            const res = await fetch(dataUrl);
+                            const blob = await res.blob();
+                            const up = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
+                            if (!up.error) {
+                                const { data: publicData } = sb.storage.from('avatars').getPublicUrl(path);
+                                const publicUrl = publicData?.publicUrl || null;
+                                if (publicUrl) {
+                                    await sb.from('dartvoice_profiles').update({ avatar_url: publicUrl }).eq('id', _ambUserId);
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('avatar upload/update failed (ignored)', err?.message || err);
+                    }
+                };
+                reader.readAsDataURL(f);
+            });
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="components/dv-footer.js"></script>
@@ -68,6 +127,12 @@
         .pb-safe {
             padding-bottom: max(5rem, env(safe-area-inset-bottom, 5rem));
         }
+
+        /* Hide native scrollbars for the main dashboard container (still scrollable) */
+        .max-w-5xl {
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .max-w-5xl::-webkit-scrollbar { width: 0; height: 0; }
 
         /* ── Cards ── */
         .card-panel {
@@ -1362,8 +1427,11 @@
                             <!-- Avatar + info row -->
                             <div class="flex items-center gap-4 mb-6">
                                 <div id="profile-avatar"
-                                    class="dv-avatar pro shrink-0 text-white"
-                                    style="background:var(--brand);"></div>
+                                    class="dv-avatar pro shrink-0 text-white relative"
+                                    style="background:var(--brand);">
+                                    <button id="btn-edit-avatar" title="Edit avatar" style="position:absolute;right:-6px;bottom:-6px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.06);padding:6px;border-radius:12px;color:#fff;font-size:11px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.5);">✎</button>
+                                </div>
+                                <input id="input-avatar-file" type="file" accept="image/*" style="display:none" />
                                 <div class="min-w-0 flex-1">
                                     <p id="profile-display-name-show" class="font-semibold text-chalk text-sm truncate">
                                         —</p>
@@ -2084,7 +2152,7 @@
             // Fetch subscription + profile in parallel (include DOB)
             let [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
-                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number, date_of_birth').eq('id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number, date_of_birth, avatar_url').eq('id', user.id).maybeSingle(),
             ]);
 
             // Fallback: if no sub in DB, check Stripe directly via edge function
@@ -2137,7 +2205,7 @@
             if (!displayName) $('profile-nudge').classList.remove('hidden');
 
             // Populate profile tab (pass date_of_birth if available)
-            populateProfileTab(user.email, displayName, sub, profile?.phone_number, profile?.date_of_birth);
+            populateProfileTab(user.email, displayName, sub, profile?.phone_number, profile?.date_of_birth, profile?.avatar_url);
 
             renderSubscription(sub, user.id);
         }
@@ -2149,7 +2217,7 @@
             });
         }
 
-        function populateProfileTab(email, displayName, sub, phoneNumber, dateOfBirth) {
+        function populateProfileTab(email, displayName, sub, phoneNumber, dateOfBirth, avatarUrl) {
             $('profile-email-show').textContent = email;
             $('profile-email-footer').textContent = email;
             $('input-display-name').value = displayName;
@@ -2157,7 +2225,36 @@
             const dobEl = $('input-dob');
             if (dobEl) dobEl.value = dateOfBirth || '';
             $('profile-display-name-show').textContent = displayName || email.split('@')[0];
-            updateAvatarPreview();
+            // Avatar: prefer server-provided avatar_url, then client-side stored avatar, then initials
+            const el = $('profile-avatar');
+            if (avatarUrl) {
+                window._currentAvatarData = avatarUrl;
+                if (el) {
+                    el.style.backgroundImage = `url(${avatarUrl})`;
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                    el.textContent = '';
+                }
+            } else {
+                try {
+                    const stored = localStorage.getItem('dv-avatar-' + encodeURIComponent(email));
+                    if (stored) {
+                        window._currentAvatarData = stored;
+                        if (el) {
+                            el.style.backgroundImage = `url(${stored})`;
+                            el.style.backgroundSize = 'cover';
+                            el.style.backgroundPosition = 'center';
+                            el.textContent = '';
+                        }
+                    } else {
+                        window._currentAvatarData = null;
+                        updateAvatarPreview();
+                    }
+                } catch (e) {
+                    window._currentAvatarData = null;
+                    updateAvatarPreview();
+                }
+            }
 
             if (sub?.status === 'active') showProfileBadge('active');
             else if (sub?.status === 'trialing') showProfileBadge('trial');
@@ -2186,7 +2283,18 @@
             const val = ($('input-display-name')?.value || '').trim();
             const initials = val ? getInitials(val) : (_profileEmail ? _profileEmail[0].toUpperCase() : '?');
             const el = $('profile-avatar');
-            if (el) el.textContent = initials;
+            if (!el) return;
+            // If a custom image has been set, prefer that
+            if (window._currentAvatarData) {
+                el.style.backgroundImage = `url(${window._currentAvatarData})`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+                el.textContent = '';
+                return;
+            }
+            // Remove any background image and show initials
+            el.style.backgroundImage = '';
+            el.textContent = initials;
         }
 
         async function saveProfile() {
@@ -2225,6 +2333,15 @@
                     date_of_birth: dobVal
                 })
                 .eq('id', _ambUserId);
+
+            // Best-effort: if there's an avatar pending, try to save it separately so main update errors are preserved
+            if (!error && window._pendingAvatarData) {
+                try {
+                    await sb.from('dartvoice_profiles').update({ avatar_data: window._pendingAvatarData }).eq('id', _ambUserId);
+                } catch (e) {
+                    console.warn('saveProfile: avatar_data update failed (ignored)', e?.message || e);
+                }
+            }
             console.info('[saveProfile] update', { ok: !error, ms: Math.round(performance.now()-t0), err: error?.message });
 
             btn.disabled = false;
