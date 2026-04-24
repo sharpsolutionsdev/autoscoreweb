@@ -193,11 +193,11 @@ const payload = new Uint8Array(await req.arrayBuffer());
     // 1. Get referral code from referral record
     const { data: ref } = await sbAdmin
       .from("dartvoice_referrals")
-      .select("ref_code")
+      .select("referral_code")
       .eq("referred_user_id", userId)
       .maybeSingle();
 
-    const code = ref?.ref_code;
+    const code = ref?.referral_code;
     if (!code) return;
 
     // 2. Map Stripe status to our referral status lifecycle
@@ -215,7 +215,7 @@ const payload = new Uint8Array(await req.arrayBuffer());
     const { error } = await sbAdmin
       .from("dartvoice_referrals")
       .update(updateData)
-      .match({ ref_code: code, referred_user_id: userId })
+      .match({ referral_code: code, referred_user_id: userId })
       .neq("status", "rewarded");
 
     if (error) {

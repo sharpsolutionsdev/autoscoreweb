@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
       referrer_user_id: referrer.id,
       referred_user_id: user.id,
       referred_email: user.email,
-      ref_code: code,
+      referral_code: code,
       status: "signed_up",
     })
     .select("id")

@@ -55,11 +55,13 @@
         <!-- OTP Code -->
         <tr><td align="center" class="body-cell" style="padding:0 40px 36px;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-            <tr><td align="center" style="background-color:#08080A;border:1px solid #CC0B20;border-radius:16px;padding:20px 44px;">
-                <span style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:44px;font-weight:900;color:#F0F0F5;letter-spacing:8px;line-height:1;">{{ .Token }}</span>
+            <tr><td align="center" style="background-color:#08080A;border:1px solid #CC0B20;border-radius:16px;padding:24px 48px;box-shadow: 0 8px 30px rgba(204, 11, 32, 0.15);">
+                <span style="font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:48px;font-weight:900;color:#F0F0F5;letter-spacing:10px;line-height:1;display:block;margin-bottom:16px;">{{ .Token }}</span>
+                <!-- Faux "Copy to Clipboard" button (JS is stripped in email, so it's a visual prompt or deep link) -->
+                <a href="#" style="display:inline-block;background-color:#18181C;border:1px solid #252530;border-radius:6px;padding:8px 16px;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:600;color:#A0A0B0;text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Select & Copy Code</a>
             </td></tr>
             </table>
-            <p style="margin:16px 0 0;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;color:#CC0B20;text-transform:uppercase;letter-spacing:2px;">Expires in 10 minutes</p>
+            <p style="margin:20px 0 0;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;color:#CC0B20;text-transform:uppercase;letter-spacing:2px;">Expires in 10 minutes</p>
         </td></tr>
 
         <!-- Safety note -->

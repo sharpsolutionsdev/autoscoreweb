@@ -1068,16 +1068,31 @@
                         </div>
                     </div>
 
-                    <!-- Checkout path (integrated — no separate panel) -->
+                    <!-- Checkout paths — both players shown simultaneously -->
                     <div class="mt-3 pt-2 border-t border-white/10 relative z-10">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-[9px] bg-brand/20 text-brand px-2 py-0.5 rounded border border-brand/40 tracking-wider font-bold shadow-[0_0_10px_rgba(var(--brand-rgb),0.3)]" id="checkout-target">REMAINING: —</span>
-                            <span class="text-brand font-bold tracking-[0.2em] text-[9px] uppercase drop-shadow-sm ml-auto">Out</span>
+                        <!-- P1 Checkout -->
+                        <div class="mb-2">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="text-[9px] bg-brand/20 text-brand px-2 py-0.5 rounded border border-brand/40 tracking-wider font-bold shadow-[0_0_10px_rgba(var(--brand-rgb),0.3)]" id="checkout-target-p1">P1: —</span>
+                                <span class="text-brand font-bold tracking-[0.2em] text-[9px] uppercase drop-shadow-sm ml-auto">Out</span>
+                            </div>
+                            <div class="text-[13px] font-bold text-white tracking-wider flex gap-1.5 items-center flex-wrap drop-shadow-md" id="checkout-path-p1">
+                                <span class="text-[10px] text-gray-500 italic tracking-wide">Awaiting game data…</span>
+                            </div>
                         </div>
-                        <div class="text-[14px] font-bold text-white tracking-wider flex gap-2 items-center flex-wrap drop-shadow-md" id="checkout-path">
-                            <span class="text-[10px] text-gray-500 italic tracking-wide">Start scoring to see checkout path…</span>
+                        <!-- P2 Checkout -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/40 tracking-wider font-bold" id="checkout-target-p2">P2: —</span>
+                                <span class="text-blue-400 font-bold tracking-[0.2em] text-[9px] uppercase drop-shadow-sm ml-auto">Out</span>
+                            </div>
+                            <div class="text-[13px] font-bold text-white tracking-wider flex gap-1.5 items-center flex-wrap drop-shadow-md" id="checkout-path-p2">
+                                <span class="text-[10px] text-gray-500 italic tracking-wide">Awaiting game data…</span>
+                            </div>
                         </div>
-                        <!-- Legacy spans kept for backward-compat with existing JS writers -->
+                        <!-- Legacy compat spans -->
+                        <span id="checkout-target" class="hidden"></span>
+                        <span id="checkout-path" class="hidden"></span>
                         <span id="dv-live-checkout-val" class="hidden"></span>
                         <span id="dv-live-checkout" class="hidden"></span>
                         <span id="dv-live-player" class="hidden"></span>
@@ -2153,46 +2168,269 @@
                 }
             });
         }
-        function updateCheckoutUI() {
-            const targetEl = document.getElementById('checkout-target');
-            const pathEl = document.getElementById('checkout-path');
-            if(targetEl) targetEl.textContent = `REMAINING: ${currentCheckoutScore}`;
+        // --- Dual-player checkout rendering ---
+        // Each player gets their own checkout target + path container.
+        // Driven by iframe state, not manual deduction.
+        let _dvLastP1Remaining = null;
+        let _dvLastP2Remaining = null;
+
+        function renderPlayerCheckout(targetId, pathId, remaining, playerName) {
+            const targetEl = document.getElementById(targetId);
+            const pathEl = document.getElementById(pathId);
+            const score = parseInt(remaining, 10);
+            const label = playerName || targetId.replace('checkout-target-', '').toUpperCase();
+            if (targetEl) targetEl.textContent = `${label}: ${isNaN(score) ? '—' : score}`;
             if (!pathEl) return;
-            if (currentCheckoutScore === 0) {
+            if (isNaN(score) || remaining == null) {
+                while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
+                const s = document.createElement('span');
+                s.className = 'text-[10px] text-gray-500 italic tracking-wide';
+                s.textContent = 'Awaiting game data…';
+                pathEl.appendChild(s);
+            } else if (score === 0) {
                 while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
                 const gs = document.createElement('span');
                 gs.className = 'text-brand font-black tracking-widest uppercase';
-                try {
-                    const brandRgb = getComputedStyle(document.documentElement).getPropertyValue('--brand-rgb') || '204,11,32';
-                    gs.style.cssText = 'font-size:18px;text-shadow:0 0 12px rgba(' + brandRgb + ',0.6);';
-                } catch(e) { gs.style.fontSize = '18px'; }
+                gs.style.cssText = 'font-size:15px;text-shadow:0 0 12px rgba(var(--brand-rgb),0.6);';
                 gs.textContent = '🎯 Game Shot!';
                 pathEl.appendChild(gs);
-            } else if (currentCheckoutScore <= 170 && currentCheckoutScore >= 2) {
-                renderCheckoutPathInto(pathEl, currentCheckoutScore);
-            } else if (currentCheckoutScore === 1) {
+            } else if (score <= 170 && score >= 2) {
+                renderCheckoutPathInto(pathEl, score);
+            } else if (score === 1) {
                 while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
                 const w = document.createElement('span');
-                w.className = 'text-yellow-400 text-xs font-bold tracking-wider uppercase';
-                w.textContent = '⚠ Bust territory — score to double';
+                w.className = 'text-yellow-400 text-[10px] font-bold tracking-wider uppercase';
+                w.textContent = '⚠ Bust territory';
                 pathEl.appendChild(w);
             } else {
                 while (pathEl.firstChild) pathEl.removeChild(pathEl.firstChild);
                 const s = document.createElement('span');
-                s.className = 'text-xs text-gray-500 italic tracking-wide';
-                s.textContent = 'Scoring phase — no checkout yet…';
+                s.className = 'text-[10px] text-gray-500 italic tracking-wide';
+                s.textContent = score > 170 ? 'Scoring phase…' : 'No checkout available';
                 pathEl.appendChild(s);
             }
         }
 
-        function triggerGameShot() {
+        function updateCheckoutUI() {
+            // Now driven by iframe state via dvRenderGameState
+            renderPlayerCheckout('checkout-target-p1', 'checkout-path-p1', _dvLastP1Remaining, _dvLastP1Name);
+            renderPlayerCheckout('checkout-target-p2', 'checkout-path-p2', _dvLastP2Remaining, _dvLastP2Name);
+            // Legacy single-player compat
+            const legacyTarget = document.getElementById('checkout-target');
+            if (legacyTarget) legacyTarget.textContent = `REMAINING: ${currentCheckoutScore}`;
+        }
+
+        let _dvLastP1Name = null;
+        let _dvLastP2Name = null;
+
+        // --- Dartboard checkout animation ---
+        const BOARD_NUMBERS = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+
+        function dartSegmentPosition(segment, boardRadius) {
+            // Parse segment like "T20", "D16", "S15", "Bull", "25"
+            const seg = String(segment).trim().toUpperCase();
+            if (seg === 'BULL' || seg === '50' || seg === 'DB') {
+                return { x: 0, y: 0, ring: 'bull' }; // dead center
+            }
+            if (seg === '25' || seg === 'SB' || seg === 'S25') {
+                const a = Math.random() * Math.PI * 2;
+                const r = boardRadius * 0.06;
+                return { x: Math.cos(a) * r, y: Math.sin(a) * r, ring: '25' };
+            }
+            let ring = 'single'; // default
+            let num = parseInt(seg, 10);
+            if (seg.startsWith('T')) { ring = 'treble'; num = parseInt(seg.slice(1), 10); }
+            else if (seg.startsWith('D')) { ring = 'double'; num = parseInt(seg.slice(1), 10); }
+            else if (seg.startsWith('S')) { ring = 'single'; num = parseInt(seg.slice(1), 10); }
+            if (isNaN(num)) return { x: 0, y: 0, ring: 'bull' };
+
+            const idx = BOARD_NUMBERS.indexOf(num);
+            if (idx === -1) return { x: 0, y: 0, ring: 'bull' };
+
+            const sliceAngle = (2 * Math.PI) / 20;
+            const angle = -Math.PI / 2 + idx * sliceAngle; // 20 at top
+
+            let rFrac;
+            if (ring === 'double') rFrac = 0.88;
+            else if (ring === 'treble') rFrac = 0.55;
+            else if (ring === 'outer-single') rFrac = 0.72;
+            else rFrac = 0.35; // inner single
+
+            const r = boardRadius * rFrac;
+            // Add slight jitter for realism
+            const jitterR = (Math.random() - 0.5) * boardRadius * 0.04;
+            const jitterA = (Math.random() - 0.5) * 0.08;
+            return {
+                x: Math.cos(angle + jitterA) * (r + jitterR),
+                y: Math.sin(angle + jitterA) * (r + jitterR),
+                ring
+            };
+        }
+
+        function drawDartboard(ctx, cx, cy, radius) {
+            const nums = BOARD_NUMBERS;
+            const sliceAngle = (2 * Math.PI) / 20;
+            const rings = [
+                { inner: 0.88, outer: 0.95, type: 'double' },
+                { inner: 0.72, outer: 0.88, type: 'outerSingle' },
+                { inner: 0.52, outer: 0.58, type: 'treble' },
+                { inner: 0.15, outer: 0.52, type: 'innerSingle' },
+            ];
+
+            // Background circle
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fill();
+
+            // Draw segments
+            for (let i = 0; i < 20; i++) {
+                const startAngle = -Math.PI / 2 + (i - 0.5) * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+                const even = i % 2 === 0;
+
+                for (const ring of rings) {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius * ring.outer, startAngle, endAngle);
+                    ctx.arc(cx, cy, radius * ring.inner, endAngle, startAngle, true);
+                    ctx.closePath();
+                    if (ring.type === 'double' || ring.type === 'treble') {
+                        ctx.fillStyle = even ? '#cc0b20' : '#1b8c3a';
+                    } else {
+                        ctx.fillStyle = even ? '#f5e6c8' : '#222';
+                    }
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(150,150,150,0.3)';
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+
+            // Bull rings
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.15, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1b8c3a';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.065, 0, 2 * Math.PI);
+            ctx.fillStyle = '#cc0b20';
+            ctx.fill();
+
+            // Wire overlay
+            ctx.strokeStyle = 'rgba(200,200,200,0.15)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 20; i++) {
+                const angle = -Math.PI / 2 + (i - 0.5) * sliceAngle;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * radius * 0.065, cy + Math.sin(angle) * radius * 0.065);
+                ctx.lineTo(cx + Math.cos(angle) * radius * 0.95, cy + Math.sin(angle) * radius * 0.95);
+                ctx.stroke();
+            }
+
+            // Number ring
+            ctx.fillStyle = '#ddd';
+            ctx.font = `bold ${Math.round(radius * 0.09)}px 'Inter', sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let i = 0; i < 20; i++) {
+                const angle = -Math.PI / 2 + i * sliceAngle;
+                const nr = radius * 1.05;
+                ctx.fillText(String(nums[i]), cx + Math.cos(angle) * nr, cy + Math.sin(angle) * nr);
+            }
+        }
+
+        function drawDart(ctx, x, y, opacity) {
+            // Draw a dart marker
+            const s = 6;
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            // Flight (triangle)
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.moveTo(x, y - s * 2.5);
+            ctx.lineTo(x - s, y - s);
+            ctx.lineTo(x + s, y - s);
+            ctx.closePath();
+            ctx.fill();
+            // Barrel
+            ctx.fillStyle = '#ccc';
+            ctx.fillRect(x - 1.5, y - s, 3, s * 1.5);
+            // Point
+            ctx.fillStyle = '#888';
+            ctx.fillRect(x - 0.5, y + s * 0.5, 1, s * 0.8);
+            // Impact glow
+            ctx.beginPath();
+            ctx.arc(x, y + s * 0.5, s * 1.5, 0, 2 * Math.PI);
+            ctx.fillStyle = `rgba(255,255,100,${opacity * 0.3})`;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function playDartboardAnimation(checkoutRoute) {
+            if (!checkoutRoute || !checkoutRoute.length) return;
+            const overlay = document.getElementById('game-shot-overlay');
+            if (!overlay) return;
+
+            // Create/reuse canvas
+            let canvas = overlay.querySelector('#dartboard-canvas');
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.id = 'dartboard-canvas';
+                canvas.style.cssText = 'width:200px;height:200px;margin:12px auto 0;border-radius:50%;';
+                canvas.width = 400; canvas.height = 400;
+                overlay.appendChild(canvas);
+            }
+            canvas.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+            const cx = 200, cy = 200, radius = 160;
+
+            // Draw board
+            ctx.clearRect(0, 0, 400, 400);
+            drawDartboard(ctx, cx, cy, radius);
+
+            // Calculate dart positions
+            const dartPositions = checkoutRoute.map(seg => {
+                const pos = dartSegmentPosition(seg, radius);
+                return { x: cx + pos.x, y: cy + pos.y, label: seg };
+            });
+
+            // Animate darts landing sequentially
+            let dartIdx = 0;
+            function landNextDart() {
+                if (dartIdx >= dartPositions.length) return;
+                const dart = dartPositions[dartIdx];
+                // Highlight segment flash
+                ctx.beginPath();
+                ctx.arc(dart.x, dart.y, 14, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255,215,0,0.4)';
+                ctx.fill();
+                // Draw dart
+                drawDart(ctx, dart.x, dart.y, 1);
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = "bold 11px 'Inter', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.fillText(dart.label, dart.x, dart.y - 22);
+                dartIdx++;
+                if (dartIdx < dartPositions.length) {
+                    setTimeout(landNextDart, 650);
+                }
+            }
+            setTimeout(landNextDart, 400);
+        }
+
+        function triggerGameShot(checkoutRoute) {
             gameShotLock = true;
             const overlay = document.getElementById('game-shot-overlay');
             if (overlay) {
                 overlay.classList.remove('hidden');
                 overlay.classList.add('flex');
             }
-            setTimeout(() => resetLiveCheckout(), 5000);
+            // Play dartboard animation if we have a checkout route
+            if (checkoutRoute && checkoutRoute.length) {
+                playDartboardAnimation(checkoutRoute);
+            }
+            setTimeout(() => resetLiveCheckout(), 6000);
         }
 
         function resetLiveCheckout() {
@@ -2203,6 +2441,8 @@
             if (overlay) {
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
+                const canvas = overlay.querySelector('#dartboard-canvas');
+                if (canvas) canvas.style.display = 'none';
             }
         }
 
@@ -2219,7 +2459,10 @@
                 currentCheckoutScore = temp;
                 updateCheckoutUI();
                 if (currentCheckoutScore === 0) {
-                    triggerGameShot();
+                    // Look up the route from the previous remaining for the animation
+                    const prevRemaining = currentCheckoutScore + val;
+                    const route = CHECKOUT_ROUTES[prevRemaining] || null;
+                    triggerGameShot(route);
                 }
             }
         }
@@ -3670,29 +3913,21 @@ window.openScorerUrl = function(url){
                 if (!panel) return;
                 panel.style.display = '';
                 const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
-                // Legacy hidden spans (still read by handleScoreDeduction etc.)
+                // Legacy hidden spans
                 set('dv-live-player', clean.player);
                 set('dv-live-remaining', clean.remaining);
 
-                // Per-player stats (new HUD)
-                const [p1, p2] = dvExtractPlayerStats(s, clean.mode);
+                // Per-player stats — use structured data from extension directly
+                const p1 = s.p1Stats || null;
+                const p2 = s.p2Stats || null;
                 const p1NameEl = document.querySelector('#dv-live-p1-name .dv-live-pname-txt');
                 const p2NameEl = document.querySelector('#dv-live-p2-name .dv-live-pname-txt');
-                // Use structured names from extension, with fallback to cleaned player name
-                const cleanName = (name) => {
-                    if (!name) return null;
-                    return String(name)
-                        .replace(/\b\d{1,3}\b/g, ' ')  // strip numbers
-                        .replace(/\b(avg|average|dart|darts|thrown|score|last|first|best|leg|remaining|D\d+)\b/gi, ' ')
-                        .replace(/[|:(){}\[\]]+/g, ' ')
-                        .replace(/\s+/g, ' ')
-                        .trim() || null;
-                };
-                const p1DisplayName = s.p1Name || cleanName(clean.player);
-                const p2DisplayName = s.p2Name || s.opponent || null;
+                const p1DisplayName = s.p1Name || clean.player || null;
+                const p2DisplayName = s.p2Name || null;
                 if (p1NameEl && p1DisplayName) p1NameEl.textContent = p1DisplayName;
                 if (p2NameEl && p2DisplayName) p2NameEl.textContent = p2DisplayName;
 
+                // Populate stat cards
                 if (p1) {
                     set('dv-live-p1-remaining', p1.remaining);
                     set('dv-live-p1-avg', p1.avg);
@@ -3705,7 +3940,8 @@ window.openScorerUrl = function(url){
                     set('dv-live-p2-last', p2.last);
                     set('dv-live-p2-darts', p2.darts);
                 }
-                // Highlight whichever player's turn it is (if surfaced)
+
+                // Highlight active player's turn
                 const activeIdx = (s.activePlayer === 1 || s.activePlayer === 0) ? s.activePlayer : 0;
                 document.querySelectorAll('.dv-live-pcard').forEach(card => {
                     const active = parseInt(card.getAttribute('data-player-idx'), 10) === activeIdx;
@@ -3714,19 +3950,65 @@ window.openScorerUrl = function(url){
                     if (dot) dot.classList.toggle('hidden', !active);
                 });
 
+                // Mode display
                 const modeEl = document.getElementById('dv-live-mode');
                 if (modeEl) modeEl.textContent = clean.mode && clean.mode !== 'unknown' ? String(clean.mode).toUpperCase() : '';
+
+                // --- Sync checkout from iframe state ---
+                // Use the structured remaining scores to drive dual-player checkout
+                const p1Rem = p1 && p1.remaining != null ? parseInt(p1.remaining, 10) : null;
+                const p2Rem = p2 && p2.remaining != null ? parseInt(p2.remaining, 10) : null;
+
+                // Auto-detect game mode from remaining if not set
+                if (p1Rem != null && p1Rem > checkoutStartScore && [301, 501, 701].includes(p1Rem)) {
+                    checkoutStartScore = p1Rem;
+                    currentCheckoutScore = p1Rem;
+                }
+
+                // Update dual-player checkout display
+                _dvLastP1Name = p1DisplayName;
+                _dvLastP2Name = p2DisplayName;
+                _dvLastP1Remaining = p1Rem != null ? String(p1Rem) : null;
+                _dvLastP2Remaining = p2Rem != null ? String(p2Rem) : null;
+
+                // Also sync the legacy currentCheckoutScore for active player
+                const activeRem = activeIdx === 0 ? p1Rem : p2Rem;
+                if (activeRem != null && !isNaN(activeRem)) {
+                    currentCheckoutScore = activeRem;
+                }
+
+                // Render both checkout paths
+                if (!gameShotLock) {
+                    updateCheckoutUI();
+                }
+
+                // Detect game shot (either player hits 0)
+                if (!gameShotLock) {
+                    if (p1Rem === 0 || p2Rem === 0) {
+                        const winnerRem = p1Rem === 0 ? _dvLastP1Remaining : _dvLastP2Remaining;
+                        // Look up the checkout route for the score that WAS remaining before hitting 0
+                        // Use DartCounter's own checkout suggestion or our table
+                        let checkoutRoute = null;
+                        if (s.checkoutSuggestion) {
+                            checkoutRoute = String(s.checkoutSuggestion).split(/[\s,→▸]+/).filter(d => d.trim());
+                        }
+                        // If the last known remaining had a route, use it
+                        if (!checkoutRoute || !checkoutRoute.length) {
+                            const lastP1 = p1 && p1.checkout ? String(p1.checkout).split(/[\s,→▸]+/).filter(d => d.trim()) : null;
+                            const lastP2 = p2 && p2.checkout ? String(p2.checkout).split(/[\s,→▸]+/).filter(d => d.trim()) : null;
+                            checkoutRoute = p1Rem === 0 ? lastP1 : lastP2;
+                        }
+                        triggerGameShot(checkoutRoute);
+                    }
+                }
+
+                // Legacy checkout suggestion display
                 const coRow = document.getElementById('dv-live-checkout');
                 const coVal = document.getElementById('dv-live-checkout-val');
                 if (clean.checkoutSuggestion) {
                     if (coVal) coVal.textContent = clean.checkoutSuggestion;
                     if (coRow) coRow.style.display = '';
                 } else if (coRow) { coRow.style.display = 'none'; }
-                // Mirror remaining into the scorer header chip for continuity
-                try {
-                    const chip = document.getElementById('checkout-target');
-                    if (chip && clean.remaining != null && clean.remaining !== '') chip.textContent = 'REMAINING: ' + clean.remaining;
-                } catch(e){}
             };
 
             // ── Checkout darts prompt ──

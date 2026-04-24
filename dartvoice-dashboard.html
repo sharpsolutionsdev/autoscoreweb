@@ -2496,21 +2496,44 @@
 
         // ── Tab switching ─────────────────────────────────────────────
         function switchTab(name) {
-            ['overview', 'ambassador', 'profile', 'admin', 'messages'].forEach(t => {
-                const panel = $('tab-' + t);
-                const btn = $('tab-btn-' + t);
-                if (t === name) {
-                    panel.classList.remove('hidden');
-                    btn.classList.add('active');
-                } else {
-                    panel.classList.add('hidden');
-                    btn.classList.remove('active');
+            try {
+                ['overview', 'ambassador', 'profile', 'admin', 'messages'].forEach(t => {
+                    const panel = $('tab-' + t);
+                    const btn = $('tab-btn-' + t);
+                    if (panel && btn) {
+                        if (t === name) {
+                            panel.classList.remove('hidden');
+                            btn.classList.add('active');
+                        } else {
+                            panel.classList.add('hidden');
+                            btn.classList.remove('active');
+                        }
+                    }
+                });
+                
+                // Update URL hash without pushing to history stack if it's different
+                try {
+                    if (window.location.hash !== '#' + name) {
+                        history.replaceState(null, null, '#' + name);
+                    }
+                } catch (e) {
+                    console.warn("Could not update URL hash (likely file:// protocol):", e);
                 }
-            });
-            if (name === 'ambassador' && _ambUserId) loadAmbassador(_ambUserId);
-            if (name === 'messages') loadMessages();
-            if (name === 'admin') loadAdminStats();
+
+                if (name === 'ambassador' && _ambUserId) loadAmbassador(_ambUserId).catch(console.error);
+                if (name === 'messages') loadMessages().catch(console.error);
+                if (name === 'admin') loadAdminStats().catch(console.error);
+            } catch (err) {
+                console.error('switchTab error:', err);
+            }
         }
+
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.substring(1);
+            if (['overview', 'ambassador', 'profile', 'admin', 'messages'].includes(hash)) {
+                switchTab(hash);
+            }
+        });
 
         // ── Ambassador ────────────────────────────────────────────────
         let _ambUserId = null;

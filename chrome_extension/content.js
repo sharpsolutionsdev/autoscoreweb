@@ -779,35 +779,65 @@
   }
 
   function _tryDartCounterModalEdit(score, attempt, onDone) {
-    const maxAttempts = 12;
+    const maxAttempts = 15;
     const dialog =
-      document.querySelector('#ion-overlay-8 app-edit-match-scores-dialog') ||
       document.querySelector('[id^="ion-overlay-"] app-edit-match-scores-dialog') ||
       document.querySelector('app-edit-match-scores-dialog');
 
     if (dialog && _isVisible(dialog)) {
-      let input =
-        dialog.querySelector('input[inputmode="numeric"]') ||
-        dialog.querySelector('input[type="number"]') ||
-        dialog.querySelector('input[type="tel"]') ||
-        dialog.querySelector('input');
+      // Target the LAST accordion (most recent turn)
+      const accordions = dialog.querySelectorAll('app-accordion');
+      const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
 
-      if (!input || !_isVisible(input)) {
-        const toggles = dialog.querySelectorAll('app-accordion dc-icon, app-accordion button, app-accordion svg, [class*="accordion" i] svg');
-        for (const t of toggles) {
-          if (_isVisible(t)) {
-            _clickLikeUser(t.closest('button') || t);
-            break;
+      if (lastAccordion) {
+        // Check if accordion already has a visible input
+        let input = lastAccordion.querySelector('input');
+        if (input && _isVisible(input)) {
+          // Input is visible — fill and save
+          _setInputValueFrameworkSafe(input, score);
+          // Find save button within or near the accordion
+          const saveBtn =
+            lastAccordion.querySelector('button:not([aria-label])') ||
+            lastAccordion.querySelector('button') ||
+            _findModalSaveButton(dialog);
+          if (saveBtn && _isVisible(saveBtn)) {
+            setTimeout(() => {
+              _clickLikeUser(saveBtn);
+              logTrace(`AUTO-EDIT: save clicked with score ${score}`);
+              onDone(true);
+            }, 150);
+            return;
+          }
+        } else if (attempt <= 2) {
+          // Accordion not expanded — click the toggle to expand it
+          const toggle =
+            lastAccordion.querySelector('dc-icon') ||
+            lastAccordion.querySelector('svg') ||
+            lastAccordion.querySelector('[class*="toggle"]') ||
+            lastAccordion.querySelector('div > div:first-child'); // header area
+          if (toggle) {
+            const clickTarget = toggle.closest('button') || toggle.closest('[role="button"]') || toggle;
+            if (_isVisible(clickTarget)) {
+              _clickLikeUser(clickTarget);
+              logTrace('AUTO-EDIT: expanded last accordion');
+            }
           }
         }
       } else {
-        _setInputValueFrameworkSafe(input, score);
-        const saveBtn = _findModalSaveButton(dialog);
-        if (saveBtn) {
-          _clickLikeUser(saveBtn);
-          logTrace(`AUTO-EDIT: modal save clicked with score ${score}`);
-          onDone(true);
-          return;
+        // No accordions found — try direct input approach
+        let input =
+          dialog.querySelector('input[inputmode="numeric"]') ||
+          dialog.querySelector('input[type="number"]') ||
+          dialog.querySelector('input');
+        if (input && _isVisible(input)) {
+          _setInputValueFrameworkSafe(input, score);
+          const saveBtn = _findModalSaveButton(dialog);
+          if (saveBtn) {
+            _clickLikeUser(saveBtn);
+            logTrace(`AUTO-EDIT: direct save with score ${score}`);
+            onDone(true);
+            return;
+          }
         }
       }
     } else if (attempt === 0) {
@@ -815,7 +845,7 @@
     }
 
     if (attempt < maxAttempts) {
-      setTimeout(() => _tryDartCounterModalEdit(score, attempt + 1, onDone), 220);
+      setTimeout(() => _tryDartCounterModalEdit(score, attempt + 1, onDone), 250);
       return;
     }
     onDone(false);
@@ -1268,120 +1298,164 @@
       return { visible: false };
     }
 
+    // --- DartCounter DOM-aware structured scraper ---
+    // Uses actual DC Angular component selectors for reliable extraction.
+    function scrapePlayerColumn(col) {
+      if (!col) return null;
+      const result = { name: null, remaining: null, avg: null, last: null, darts: null, checkout: null, first9: null, bestLeg: null };
+      try {
+        // Player name: div[appingameplayername]
+        const nameEl = col.querySelector('div[appingameplayername], [appingameplayername]');
+        if (nameEl) result.name = normalizeSpace(nameEl.textContent);
+
+        // Remaining score: app-remaining-score
+        const remEl = col.querySelector('app-remaining-score');
+        if (remEl) {
+          const remText = normalizeSpace(remEl.textContent);
+          const remNum = remText.match(/\d+/);
+          if (remNum) result.remaining = remNum[0];
+        }
+
+        // Checkout suggestion: app-match-checkout-suggestion
+        const coEl = col.querySelector('app-match-checkout-suggestion');
+        if (coEl) {
+          const coText = normalizeSpace(coEl.textContent);
+          if (coText && coText.trim() && !/^\s*$/.test(coText) && coText !== '\u00a0') {
+            result.checkout = coText;
+          }
+        }
+
+        // Stats: app-match-team-stats rows
+        const statRows = col.querySelectorAll('.in-game-stats-spacing, app-match-team-stats .in-game-stat-items-container > div');
+        for (const row of statRows) {
+          const labelEl = row.querySelector('[appingamestatlabel], div[appingamestatlabel]');
+          const valueEl = row.querySelectorAll('div')[row.querySelectorAll('div').length - 1]; // last div = value
+          if (!labelEl) continue;
+          const label = normalizeSpace(labelEl.textContent).toLowerCase();
+          // Value is the sibling div with the stat number
+          let valText = '';
+          const valDivs = row.querySelectorAll(':scope > div');
+          if (valDivs.length >= 2) {
+            valText = normalizeSpace(valDivs[valDivs.length - 1].textContent);
+          }
+          if (!valText || valText === '-') continue;
+
+          if (/3-dart\s*avg/i.test(label) || (label === '' && !result.avg)) {
+            const m = valText.match(/[\d.]+/);
+            if (m) result.avg = m[0];
+          } else if (/first\s*9/i.test(label)) {
+            const m = valText.match(/[\d.]+/);
+            if (m) result.first9 = m[0];
+          } else if (/last\s*score/i.test(label)) {
+            const m = valText.match(/\d+/);
+            if (m) result.last = m[0];
+          } else if (/darts?\s*thrown/i.test(label)) {
+            const m = valText.match(/\d+/);
+            if (m) result.darts = m[0];
+          } else if (/best\s*leg/i.test(label)) {
+            const m = valText.match(/\d+/);
+            if (m) result.bestLeg = m[0];
+          }
+        }
+      } catch (e) {}
+      return result;
+    }
+
     function snapshotState() {
       const mode = detectMode();
-      const rawPlayer = firstText([
-        '[data-testid="current-player"]',
-        '.current-player-name',
-        '[class*="current-player" i]',
-        '[class*="active-player" i]',
-        '[class*="active" i][class*="player" i]',
-        '[class*="team" i][class*="name" i]'
-      ]);
-      const rawRemaining = firstText([
-        '[data-testid="remaining"]',
-        '[class*="remaining-score" i]',
-        '[class*="remaining" i] [class*="score" i]',
-        '[class*="player-score" i] [class*="score" i]',
-        '[class*="score" i][class*="current" i]'
-      ]);
-      let parsed = splitPlayerAndRemaining(rawPlayer, rawRemaining, mode);
-      if (!parsed.remaining) {
-        const rowText = firstText([
-          '[class*="match-team-score" i]',
-          '[class*="active-player" i]',
-          '[class*="current-player" i]'
-        ]);
-        const rem = pickRemainingFromText(rowText, mode);
-        if (rem) parsed = { ...parsed, remaining: rem };
-      }
-      const checkoutSuggestion = firstText([
-        '[class*="checkout-suggestion" i]',
-        '[class*="finish" i] [class*="suggestion" i]'
-      ]);
       const checkout = detectCheckoutModal();
 
-      // --- Structured per-player stats extraction ---
-      // Scrape the full visible body text and parse labeled stats for both players.
-      // DartCounter layout: each player column has labeled stats like:
-      // "3-dart avg. 35.43", "Last score 11", "Darts thrown 42"
-      let p1Stats = null;
-      let p2Stats = null;
-      let p1Name = null;
-      let p2Name = null;
+      // --- Primary: DOM-based structured scraping ---
+      // DartCounter uses two .current-player-arrow columns (left=P1, right=P2)
+      let p1Data = null;
+      let p2Data = null;
+      let activePlayerIdx = 0;
+
       try {
-        const body = (document.body && document.body.innerText) || '';
-        // Split body into player columns by looking for the "BEST OF" header
-        // or by finding two distinct player name + score blocks.
-        // Regex approach: find all stat occurrences in order.
-        const avgMatches = [...body.matchAll(/(?:3-dart\s+)?avg\.?\s*([\d.]+)/gi)].map(m => parseFloat(m[1]));
-        const lastMatches = [...body.matchAll(/last\s*(?:score)?\s*(\d+)/gi)].map(m => parseInt(m[1], 10));
-        const dartsMatches = [...body.matchAll(/darts?\s*(?:thrown)?\s*(\d+)/gi)].map(m => parseInt(m[1], 10));
-        
-        // Find player names: look for text nodes near large score displays
-        // DartCounter pattern: Name appears as a heading, then remaining as a big number
-        const nameMatches = [...body.matchAll(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*$/gm)].map(m => m[1].trim());
-        
-        // Build structured stats for Player 1 (first occurrence of each)
-        if (avgMatches.length > 0 || lastMatches.length > 0 || dartsMatches.length > 0) {
-          const modeNum = parseInt(String(mode || ''), 10);
-          const cap = !isNaN(modeNum) && modeNum > 0 ? modeNum : 701;
+        const columns = document.querySelectorAll('.current-player-arrow');
+        if (columns.length >= 2) {
+          p1Data = scrapePlayerColumn(columns[0]);
+          p2Data = scrapePlayerColumn(columns[1]);
 
-          // Find remaining scores from body text — numbers shown as large score displays
-          // These are typically the first large numbers <= mode
-          const bigNums = [...body.matchAll(/(?:^|\n)\s*(\d{1,3})\s*(?:\n|$)/gm)]
-            .map(m => parseInt(m[1], 10))
-            .filter(n => !isNaN(n) && n >= 0 && n <= cap);
-
-          p1Stats = {
-            remaining: bigNums.length > 0 ? String(bigNums[0]) : (parsed.remaining || null),
-            avg: avgMatches.length > 0 ? String(avgMatches[0]) : null,
-            last: lastMatches.length > 0 ? String(lastMatches[0]) : null,
-            darts: dartsMatches.length > 0 ? String(dartsMatches[0]) : null
-          };
-
-          if (avgMatches.length > 1 || lastMatches.length > 1 || dartsMatches.length > 1) {
-            p2Stats = {
-              remaining: bigNums.length > 1 ? String(bigNums[1]) : null,
-              avg: avgMatches.length > 1 ? String(avgMatches[1]) : null,
-              last: lastMatches.length > 1 ? String(lastMatches[1]) : null,
-              darts: dartsMatches.length > 1 ? String(dartsMatches[1]) : null
-            };
+          // Detect active player: .show-arrow class or .current-turn inside details
+          for (let i = 0; i < columns.length; i++) {
+            if (columns[i].classList.contains('show-arrow') ||
+                columns[i].querySelector('.current-turn')) {
+              activePlayerIdx = i;
+              break;
+            }
+          }
+        } else {
+          // Fallback: try app-match-team-score components
+          const teamScores = document.querySelectorAll('app-match-team-score');
+          if (teamScores.length >= 2) {
+            p1Data = scrapePlayerColumn(teamScores[0].closest('.current-player-arrow') || teamScores[0].parentElement);
+            p2Data = scrapePlayerColumn(teamScores[1].closest('.current-player-arrow') || teamScores[1].parentElement);
           }
         }
+      } catch (e) {}
 
-        // Extract player names from the body text
-        // DartCounter: names appear early, before stat labels
-        const nameRe = /^([A-Za-z][A-Za-z .''-]{1,25})$/gm;
-        const possibleNames = [];
-        let nm;
-        while ((nm = nameRe.exec(body)) !== null) {
-          const name = nm[1].trim();
-          // Filter out stat labels and common non-name words
-          if (!/^(best|first|last|darts?|thrown|score|avg|average|camera|omni|remaining|legs?|sets?)/i.test(name)
-            && name.length >= 2 && name.length <= 20) {
-            possibleNames.push(name);
-            if (possibleNames.length >= 2) break;
-          }
-        }
-        if (possibleNames.length > 0) p1Name = possibleNames[0];
-        if (possibleNames.length > 1) p2Name = possibleNames[1];
-      } catch (e) {
-        // Stats extraction is best-effort; fall back to legacy blob
+      // --- Fallback: legacy selector-based extraction ---
+      if (!p1Data || (!p1Data.remaining && !p1Data.name)) {
+        const rawPlayer = firstText([
+          '[data-testid="current-player"]',
+          '.current-player-name',
+          '[class*="current-player" i]',
+          'div[appingameplayername]'
+        ]);
+        const rawRemaining = firstText([
+          'app-remaining-score',
+          '[data-testid="remaining"]',
+          '[class*="remaining-score" i]'
+        ]);
+        const parsed = splitPlayerAndRemaining(rawPlayer, rawRemaining, mode);
+        if (!p1Data) p1Data = { name: null, remaining: null, avg: null, last: null, darts: null, checkout: null };
+        if (!p1Data.name && parsed.player) p1Data.name = parsed.player;
+        if (!p1Data.remaining && parsed.remaining) p1Data.remaining = parsed.remaining;
+      }
+
+      // Build the active player's remaining (for legacy compat)
+      const activeData = activePlayerIdx === 0 ? p1Data : p2Data;
+      const activeRemaining = activeData ? activeData.remaining : (p1Data ? p1Data.remaining : null);
+      const activeName = activeData ? activeData.name : (p1Data ? p1Data.name : null);
+
+      // Checkout suggestion from active player or general
+      let checkoutSuggestion = null;
+      if (p1Data && p1Data.checkout) checkoutSuggestion = p1Data.checkout;
+      if (p2Data && p2Data.checkout && !checkoutSuggestion) checkoutSuggestion = p2Data.checkout;
+      if (!checkoutSuggestion) {
+        checkoutSuggestion = firstText([
+          'app-match-checkout-suggestion',
+          '[class*="checkout-suggestion" i]'
+        ]) || null;
       }
 
       return {
         url: location.pathname,
         mode,
-        player: p1Name || parsed.player,
-        remaining: parsed.remaining,
-        p1Name: p1Name || parsed.player,
-        p2Name: p2Name || null,
-        p1Stats,
-        p2Stats,
-        checkoutSuggestion: checkoutSuggestion || null,
+        player: activeName,
+        remaining: activeRemaining,
+        activePlayer: activePlayerIdx,
+        p1Name: p1Data ? p1Data.name : null,
+        p2Name: p2Data ? p2Data.name : null,
+        p1Stats: p1Data ? {
+          remaining: p1Data.remaining,
+          avg: p1Data.avg,
+          last: p1Data.last,
+          darts: p1Data.darts,
+          checkout: p1Data.checkout,
+          first9: p1Data.first9
+        } : null,
+        p2Stats: p2Data ? {
+          remaining: p2Data.remaining,
+          avg: p2Data.avg,
+          last: p2Data.last,
+          darts: p2Data.darts,
+          checkout: p2Data.checkout,
+          first9: p2Data.first9
+        } : null,
+        checkoutSuggestion,
         checkoutPrompt: checkout.visible ? checkout.text : null,
-        raw: rawPlayer,
         ts: Date.now()
       };
     }
