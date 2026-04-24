@@ -62,6 +62,20 @@
             z-index: 0;
         }
         .hero-glow.listen-active { animation: heroPulse 2.6s ease-in-out infinite; transform-origin: center; }
+
+        /* Tutorial Highlights */
+        .onb-highlight-target {
+            position: relative;
+            z-index: 999998 !important; /* Above the bg-black/80 overlay */
+            box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.5), 0 0 30px rgba(var(--brand-rgb), 0.8) !important;
+            animation: onbPulse 2s infinite;
+            border-radius: 4px;
+        }
+        @keyframes onbPulse {
+            0% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(var(--brand-rgb), 0); }
+            100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0); }
+        }
         @keyframes heroPulse { 0% { opacity: 0.75; transform: scale(1); } 50% { opacity: 1; transform: scale(1.02); } 100% { opacity: 0.75; transform: scale(1); } }
 
         /* Status Dot Animations */
@@ -1326,6 +1340,16 @@
                         </div>
 
                         <div>
+                            <span class="text-xs text-gray-300 font-medium">Recognition Speed</span>
+                            <select id="recognition-speed" class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none mt-1">
+                                <option value="fast">Fast — instant submit, shorter pauses</option>
+                                <option value="normal" selected>Normal — balanced (recommended)</option>
+                                <option value="relaxed">Relaxed — longer pauses, more time to cancel</option>
+                            </select>
+                            <p class="text-[9px] text-gray-500 mt-1">Controls how quickly scores are submitted after recognition. Slower speeds give more time to say "cancel".</p>
+                        </div>
+
+                        <div>
                             <span class="text-xs text-gray-300 font-medium">Number Detection</span>
                             <select id="detection-mode" class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none mt-1">
                                 <option value="last">Prefer Last Number (recommended)</option>
@@ -1588,7 +1612,7 @@
             <div class="h-1 bg-wire"><div id="onb-progress" class="h-full bg-brand transition-all duration-300" style="width:25%"></div></div>
             <div class="p-6 sm:p-8">
                 <div class="flex items-center justify-between mb-5">
-                    <span id="onb-step-label" class="text-[10px] font-bold text-muted-2 tracking-widest uppercase">Step 1 of 4</span>
+                    <span id="onb-step-label" class="text-[10px] font-bold text-muted-2 tracking-widest uppercase">Step 1 of 5</span>
                     <button onclick="dismissOnboarding()" class="text-xs text-muted hover:text-chalk transition">Skip</button>
                 </div>
 
@@ -1626,8 +1650,20 @@
                     </div>
                 </div>
 
-                <!-- Step 4: Start Scoring -->
+                <!-- Step 4: Scoring Mode -->
                 <div id="onb-s4" class="onb-step hidden">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Select Scoring Mode</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed mb-4">Choose <b class="text-white">Per-Visit</b> to say your total score (e.g., "sixty"), or <b class="text-white">Per-Dart</b> to say each dart individually (e.g., "twenty, twenty, twenty").</p>
+                    <div class="bg-[#08080A] rounded-lg p-3 border border-[#252530]">
+                        <p class="text-xs text-muted leading-relaxed"><b class="text-white">Tip:</b> The mode toggle is located right next to your microphone button.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5: Start Scoring -->
+                <div id="onb-s5" class="onb-step hidden">
                     <div class="w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
                     </div>
@@ -1645,12 +1681,43 @@
                     <button id="onb-next" onclick="onbNav(1)" class="bg-brand text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-all">Next →</button>
                 </div>
             </div>
-        </div>
+    </div>
+
+    <!-- Onboarding Pointer Arrow -->
+    <div id="onb-pointer" class="hidden pointer-events-none fixed z-[999999] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex items-center justify-center filter drop-shadow-[0_0_8px_rgba(204,11,32,0.8)] animate-[bounce_1s_infinite]">
+        <svg class="w-10 h-10 text-brand" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L20 20L12 17L4 20L12 2Z" />
+        </svg>
     </div>
 
     <script>
     (function(){
-        var _onbStep = 1, _onbTotal = 4;
+        var _onbStep = 1, _onbTotal = 5;
+        function updatePointer(target, position = 'bottom') {
+            const ptr = document.getElementById('onb-pointer');
+            if (!target) {
+                ptr.classList.add('hidden');
+                return;
+            }
+            ptr.classList.remove('hidden');
+            const rect = target.getBoundingClientRect();
+            
+            // Adjust pointer position and rotation
+            if (position === 'bottom') {
+                ptr.style.top = (rect.bottom + 15) + 'px';
+                ptr.style.left = (rect.left + rect.width / 2 - 20) + 'px';
+                ptr.style.transform = 'rotate(0deg)';
+            } else if (position === 'top') {
+                ptr.style.top = (rect.top - 55) + 'px';
+                ptr.style.left = (rect.left + rect.width / 2 - 20) + 'px';
+                ptr.style.transform = 'rotate(180deg)';
+            } else if (position === 'right') {
+                ptr.style.top = (rect.top + rect.height / 2 - 20) + 'px';
+                ptr.style.left = (rect.right + 15) + 'px';
+                ptr.style.transform = 'rotate(-90deg)';
+            }
+        }
+
         function show() {
             for (var i = 1; i <= _onbTotal; i++) document.getElementById('onb-s'+i).classList.toggle('hidden', i !== _onbStep);
             document.getElementById('onb-step-label').textContent = 'Step ' + _onbStep + ' of ' + _onbTotal;
@@ -1658,6 +1725,43 @@
             document.getElementById('onb-prev').classList.toggle('hidden', _onbStep === 1);
             var btn = document.getElementById('onb-next');
             btn.textContent = _onbStep === _onbTotal ? "Let's Go!" : 'Next →';
+            
+            // Clear highlights
+            document.querySelectorAll('.onb-highlight-target').forEach(el => el.classList.remove('onb-highlight-target'));
+            updatePointer(null);
+            
+            // Add highlights based on step
+            if (_onbStep === 3) {
+                const settingsTab = document.querySelector('[data-target="tab-settings"]');
+                if (settingsTab) {
+                    settingsTab.classList.add('onb-highlight-target');
+                    updatePointer(settingsTab, 'bottom');
+                }
+                const micSel = document.getElementById('mic-select');
+                if (micSel) micSel.classList.add('onb-highlight-target'); // Highlight mic select too, but pointer points to settings or mic
+                
+                // If on mobile, pointer might be better at the bottom
+                if (window.innerWidth < 768 && micSel) {
+                   updatePointer(micSel, 'bottom'); 
+                }
+            } else if (_onbStep === 4) {
+                const modeToggle = document.getElementById('input-mode-toggle');
+                if (modeToggle) {
+                    modeToggle.classList.add('onb-highlight-target');
+                    updatePointer(modeToggle, 'bottom');
+                }
+            } else if (_onbStep === 5) {
+                const listenBtnDesktop = document.getElementById('toggle-listen');
+                const listenBtnMobile = document.getElementById('mob-listen-btn');
+                const activeBtn = window.innerWidth >= 768 ? listenBtnDesktop : listenBtnMobile;
+                
+                if (activeBtn) {
+                    activeBtn.classList.add('onb-highlight-target');
+                    // Desktop Listen button is at the bottom right, point from top
+                    // Mobile Listen button is floating at bottom center, point from top
+                    updatePointer(activeBtn, 'top');
+                }
+            }
         }
         window.onbNav = function(dir) {
             _onbStep += dir;
@@ -1668,9 +1772,20 @@
         window.dismissOnboarding = function() {
             localStorage.setItem('dv-onboarding-done', '1');
             document.getElementById('onboarding-overlay').classList.add('hidden');
+            document.querySelectorAll('.onb-highlight-target').forEach(el => el.classList.remove('onb-highlight-target'));
+            updatePointer(null);
         };
+        
+        // Handle window resize for pointer repositioning
+        window.addEventListener('resize', () => {
+            if (!document.getElementById('onboarding-overlay').classList.contains('hidden')) {
+                show();
+            }
+        });
+
         if (!localStorage.getItem('dv-onboarding-done')) {
             document.getElementById('onboarding-overlay').classList.remove('hidden');
+            setTimeout(show, 100);
         }
     })();
     </script>
@@ -2339,38 +2454,16 @@
             // Compact score forms.
             if (/^[tds]\s*\d{1,3}$/.test(t) || /^\d{1,3}$/.test(t)) return true;
 
-            const hasDartIntent = /\b(score|scored|shot|dart|darts|throw|visit|double|treble|triple|bull|bust|checkout|finish)\b/.test(t);
-            const words = t.split(' ');
-            if (words.length > 8 && !hasDartIntent) return false;
+            // Key check: if parseSpokenScore can extract a valid 0-180 score,
+            // always treat it as a score intent — even if there's junk around it.
+            const parsed = parseSpokenScore(t);
+            if (parsed !== null && parsed >= 0 && parsed <= 180) return true;
 
-            const allowed = new Set([
-                'zero','oh','nought','nil','naught','no',
-                'one','won','wan','two','too','to','tu','three','free','tree','tee','four','for','fore',
-                'five','fife','fiv','six','sicks','seeks','seven','sebben','seben','seebin','sebin',
-                'eight','ate','ait','nine','nein','nyne','ten','tin','eleven','levin','levven',
-                'twelve','twelf','thirteen','tirteen','turteen','fourteen','forteen','fifteen','fiftin',
-                'sixteen','sixtin','seventeen','seventin','eighteen','eightin','atin','nineteen','ninetin',
-                'twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety',
-                'hundred','and','ton','a','single','double','triple','treble','bull','bullseye','outer',
-                'miss','missed','nothing','none','bounce','bust','busted','off','out',
-                'score','scored','shot','dart','darts','throw','visit','checkout','finish'
-            ]);
+            // Still allow dart-related keyword phrases
+            const hasDartIntent = /\b(score|scored|shot|dart|darts|throw|visit|double|treble|triple|bull|bust|busted|checkout|finish|miss|missed|nothing|none|bounce|no score|zero|nil)\b/.test(t);
+            if (hasDartIntent) return true;
 
-            let unknown = 0;
-            let numberish = 0;
-            for (const w of words) {
-                if (/^\d+$/.test(w)) { numberish++; continue; }
-                if (allowed.has(w)) {
-                    if (/\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|ton)\b/.test(w)) {
-                        numberish++;
-                    }
-                    continue;
-                }
-                unknown++;
-            }
-
-            if (hasDartIntent && numberish >= 1 && unknown <= 2) return true;
-            return unknown === 0 && numberish >= 1;
+            return false;
         }
         
         function startEqualizer() {
@@ -2671,13 +2764,15 @@
                     }
 
                     // Extra guard when wake word is disabled:
-                    // ignore low-confidence or non-score-like speech to reduce false positives.
+                    // ignore low-confidence speech, but always let through if a number is parseable.
                     if (!AppConfig.wakeWordEnabled && AppConfig.noWakeWordIntentGate) {
-                        if (confidence > 0 && confidence < AppConfig.minFinalConfidence) {
+                        const preParseScore = parseSpokenScore(raw);
+                        const hasValidScore = preParseScore !== null && preParseScore >= 0 && preParseScore <= 180;
+                        if (confidence > 0 && confidence < AppConfig.minFinalConfidence && !hasValidScore) {
                             log(`Heard: "${raw}" (ignored: low confidence ${confidence.toFixed(2)})`);
                             continue;
                         }
-                        if (!isLikelyScoreIntent(raw)) {
+                        if (!hasValidScore && !isLikelyScoreIntent(raw)) {
                             log(`Heard: "${raw}" (ignored: non-scoring phrase)`);
                             continue;
                         }
@@ -2777,12 +2872,22 @@
                                 }
                             }
                         } else {
-                            // Total mode: send immediately — count as a visit (approx 3 darts)
-                            _sessionDarts += 3; updateSessionStats();
-                            log(score, true);
-                            log(`Heard: "${raw}" → Forwarding ${score} to scorer...`, false);
-                            handleScoreDeduction(String(score));
-                            blastScoreToIframe(String(score));
+                            // Total mode: send with optional delay based on recognition speed
+                            const submitTotal = () => {
+                                _sessionDarts += 3; updateSessionStats();
+                                log(score, true);
+                                log(`Heard: "${raw}" → Forwarding ${score} to scorer...`, false);
+                                handleScoreDeduction(String(score));
+                                blastScoreToIframe(String(score));
+                                statusText.textContent = 'Awaiting Score...';
+                            };
+                            const delay = AppConfig.totalModeSubmitDelayMs || 0;
+                            if (delay > 0) {
+                                statusText.textContent = `"${score}" — submitting…`;
+                                setTimeout(submitTotal, delay);
+                            } else {
+                                submitTotal();
+                            }
                         }
                     } else {
                         log(`Heard: "${raw}" (no score matched)`);
@@ -2946,24 +3051,48 @@
             bustProtection: true,
             autoStartNextMatch: true,
             audioChimes: false,
-            // Timing (ms) for per-dart auto-submit behaviour — configurable for testing
-            perDartSilenceMs: 6000, // auto-submit after silence for partial visits
-            perDartSubmitGraceMs: 1500, // grace period after 3rd dart before final submit
+            // Recognition speed preset: 'fast', 'normal', 'relaxed'
+            recognitionSpeed: 'normal',
+            // Timing (ms) for per-dart auto-submit behaviour — set by recognitionSpeed
+            perDartSilenceMs: 5000, // auto-submit after silence for partial visits
+            perDartSubmitGraceMs: 1200, // grace period after 3rd dart before final submit
+            totalModeSubmitDelayMs: 0, // delay before submitting in per-visit/total mode (0 = instant)
             dcVolume: 80,       // 0-100, scorer iframe volume preference
-            micSensitivity: 100 // 25-250, multiplier applied to mic level meter
-            ,
+            micSensitivity: 100, // 25-250, multiplier applied to mic level meter
             // Visual & detection options
             enableScoreBurst: true,
             popIntensity: 2, // 0..3 (reserved for future use)
             detectionMode: 'last', // 'last' or 'first' when multiple numbers are heard
             noWakeWordIntentGate: true, // stricter filtering when wake word is off
-            minFinalConfidence: 0.28, // Web Speech confidence floor (0..1) when available
+            minFinalConfidence: 0.20, // Web Speech confidence floor (0..1) — lowered to avoid dropping valid scores
             // Extra celebrations
             enableConfetti: true,
             enableAudioCues: true,
             // Persisted theme hex (keeps brand in settings)
             themeHex: (localStorage.getItem('dv-theme-hex') || '#CC0B20')
         };
+
+        // Apply recognition speed preset to timing values
+        function applyRecognitionSpeed(speed) {
+            AppConfig.recognitionSpeed = speed;
+            switch (speed) {
+                case 'fast':
+                    AppConfig.perDartSilenceMs = 3000;
+                    AppConfig.perDartSubmitGraceMs = 800;
+                    AppConfig.totalModeSubmitDelayMs = 0;
+                    break;
+                case 'relaxed':
+                    AppConfig.perDartSilenceMs = 8000;
+                    AppConfig.perDartSubmitGraceMs = 2500;
+                    AppConfig.totalModeSubmitDelayMs = 600;
+                    break;
+                default: // 'normal'
+                    AppConfig.perDartSilenceMs = 5000;
+                    AppConfig.perDartSubmitGraceMs = 1200;
+                    AppConfig.totalModeSubmitDelayMs = 0;
+                    break;
+            }
+        }
 
         // --- INTERACTIVE UI LOGIC ---
         // Input Mode Toggles
@@ -3759,7 +3888,7 @@ window.openScorerUrl = function(url){
 
             // ── Persist settings ──
             const STORAGE_KEY = 'dv-app-config-v1';
-            const persistKeys = ['inputMode','wakeWordEnabled','triggerWord','cancelWordEnabled','liveCheckoutEnabled','checkoutDialogEnabled','bustProtection','autoStartNextMatch','audioChimes','dcVolume','micSensitivity','enableScoreBurst','popIntensity','detectionMode','enableConfetti','enableAudioCues','themeHex'];
+            const persistKeys = ['inputMode','wakeWordEnabled','triggerWord','cancelWordEnabled','liveCheckoutEnabled','checkoutDialogEnabled','bustProtection','autoStartNextMatch','audioChimes','dcVolume','micSensitivity','enableScoreBurst','popIntensity','detectionMode','recognitionSpeed','enableConfetti','enableAudioCues','themeHex'];
             try {
                 const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
                 persistKeys.forEach(k => { if (k in saved && typeof AppConfig !== 'undefined') AppConfig[k] = saved[k]; });
@@ -3783,6 +3912,10 @@ window.openScorerUrl = function(url){
                 }
                 if ('detectionMode' in saved) {
                     const dm = $('detection-mode'); if (dm) dm.value = saved.detectionMode;
+                }
+                if ('recognitionSpeed' in saved) {
+                    const rs = $('recognition-speed'); if (rs) rs.value = saved.recognitionSpeed;
+                    if (typeof applyRecognitionSpeed === 'function') applyRecognitionSpeed(saved.recognitionSpeed);
                 }
                 if ('themeHex' in saved) {
                     const th = $('theme-hex-input'); const tht = $('theme-hex-text'); if (th) th.value = saved.themeHex; if (tht) tht.value = saved.themeHex;
@@ -3852,11 +3985,13 @@ window.openScorerUrl = function(url){
             const scoreBurstTog = $('toggle-score-burst');
             const popIntensityEl = $('pop-intensity');
             const detectionModeEl = $('detection-mode');
+            const recognitionSpeedEl = $('recognition-speed');
             const confettiTog = $('toggle-confetti');
             const audioCueTog = $('toggle-audio-cues');
             if (scoreBurstTog) scoreBurstTog.addEventListener('change', (e) => { AppConfig.enableScoreBurst = !!e.target.checked; saveSettings(); });
             if (popIntensityEl) popIntensityEl.addEventListener('input', (e) => { AppConfig.popIntensity = +e.target.value; saveSettings(); });
             if (detectionModeEl) detectionModeEl.addEventListener('change', (e) => { AppConfig.detectionMode = e.target.value; saveSettings(); });
+            if (recognitionSpeedEl) recognitionSpeedEl.addEventListener('change', (e) => { applyRecognitionSpeed(e.target.value); saveSettings(); log(`Recognition speed: ${e.target.value}`); });
             if (confettiTog) confettiTog.addEventListener('change', (e) => { AppConfig.enableConfetti = !!e.target.checked; saveSettings(); });
             if (audioCueTog) audioCueTog.addEventListener('change', (e) => { AppConfig.enableAudioCues = !!e.target.checked; saveSettings(); });
             // Theme input wiring
