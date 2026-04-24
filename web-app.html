@@ -1458,11 +1458,11 @@
                     </div>
                     <div class="flex items-center gap-3 pt-1 mt-1 border-t border-white/5 text-[10px]">
                         <span class="text-gray-400 font-bold uppercase tracking-wider opacity-60">OFFLINE APPS:</span>
-                        <a href="https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice_Setup.exe" class="hover:text-white transition-colors flex items-center gap-1">
+                        <a href="https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/windows-latest/DartVoice_Setup.exe" class="hover:text-white transition-colors flex items-center gap-1">
                             <svg class="w-3 h-3 text-[#00a2ed]" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
                             Windows
                         </a>
-                        <a href="https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk" class="hover:text-white transition-colors flex items-center gap-1">
+                        <a href="https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/android-latest/DartVoice.apk" class="hover:text-white transition-colors flex items-center gap-1">
                             <svg class="w-3 h-3 text-[#3DDC84]" fill="currentColor" viewBox="0 0 24 24"><path d="M17.523 2.237a.6.6 0 00-.828.18l-1.46 2.32a7.337 7.337 0 00-6.47 0L7.305 2.418a.6.6 0 10-1.008.649l1.387 2.204A7.288 7.288 0 004 11.2h16a7.288 7.288 0 00-3.684-5.929l1.387-2.204a.6.6 0 00-.18-.83zM8.4 8.8a.8.8 0 110-1.6.8.8 0 010 1.6zm7.2 0a.8.8 0 110-1.6.8.8 0 010 1.6zM4 12v6.4a1.6 1.6 0 001.6 1.6H7v2.4a1.2 1.2 0 002.4 0V20h5.2v2.4a1.2 1.2 0 002.4 0V20h1.4a1.6 1.6 0 001.6-1.6V12H4zm-2.8 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6A1.2 1.2 0 001.2 12zm21.6 0a1.2 1.2 0 00-1.2 1.2v5.6a1.2 1.2 0 002.4 0v-5.6a1.2 1.2 0 00-1.2-1.2z"/></svg>
                             Android
                         </a>
@@ -2854,34 +2854,42 @@
 
         function _anchorOverlayToElement(overlay, el) {
             if (!overlay) return;
+            // Compact bottom-right toast over the scorer iframe (or fallback to
+            // bottom-right of the viewport when no anchor target exists).
+            const TOAST_W = 240;     // px
+            const TOAST_H = 240;     // px
+            const PAD     = 16;      // gap from anchor edge
             try {
-                if (!el) {
-                        // fallback to full-screen (ensure high z-index + GPU compositing)
-                        overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);opacity:0;';
-                    overlay._anchorTarget = null;
-                    return;
+                let rect = null;
+                if (el && el.getBoundingClientRect) {
+                    try { rect = el.getBoundingClientRect(); } catch (_) {}
                 }
-                setTimeout(() => {
-                if (!rect || rect.width <= 0 || rect.height <= 0) {
-                    // fallback
-                    overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100050;will-change:opacity,transform;pointer-events:none;padding:24px;transform:translateZ(0);transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);opacity:0;';
+                const useFallback = !rect || rect.width <= 0 || rect.height <= 0;
+                if (useFallback) {
+                    overlay.style.cssText =
+                        'position:fixed;right:' + PAD + 'px;bottom:' + PAD + 'px;' +
+                        'width:' + TOAST_W + 'px;height:' + TOAST_H + 'px;' +
+                        'display:flex;align-items:center;justify-content:center;' +
+                        'z-index:100050;pointer-events:none;padding:0;' +
+                        'transform:translateZ(0);will-change:opacity,transform;' +
+                        'transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);' +
+                        'opacity:0;';
                     overlay._anchorTarget = null;
-                    return;
+                } else {
+                    const left = rect.right - TOAST_W - PAD + window.scrollX;
+                    const top  = rect.bottom - TOAST_H - PAD + window.scrollY;
+                    overlay.style.cssText =
+                        'position:fixed;' +
+                        'left:' + Math.max(0, left) + 'px;' +
+                        'top:'  + Math.max(0, top)  + 'px;' +
+                        'width:' + TOAST_W + 'px;height:' + TOAST_H + 'px;' +
+                        'display:flex;align-items:center;justify-content:center;' +
+                        'z-index:100050;pointer-events:none;padding:0;' +
+                        'transform:translateZ(0);will-change:opacity,transform;' +
+                        'transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.34,1.56,.64,1);' +
+                        'opacity:0;';
+                    overlay._anchorTarget = el;
                 }
-                }, 460);
-                overlay.style.position = 'fixed';
-                overlay.style.left = (rect.left + window.scrollX) + 'px';
-                overlay.style.top = (rect.top + window.scrollY) + 'px';
-                overlay.style.width = rect.width + 'px';
-                overlay.style.height = rect.height + 'px';
-                overlay.style.boxSizing = 'border-box';
-                overlay.style.display = 'flex';
-                overlay.style.alignItems = 'center';
-                overlay.style.justifyContent = 'center';
-                overlay.style.padding = '12px';
-                overlay.style.pointerEvents = 'none';
-                overlay.style.zIndex = '100050';
-                overlay._anchorTarget = el;
                 // Optional visual debug highlight for chosen anchor element
                 try {
                     if (window._dvOverlayDebug) {
@@ -3020,23 +3028,23 @@
             if (!canvas) {
                 canvas = document.createElement('canvas');
                 canvas.id = 'dartboard-canvas';
-                canvas.style.cssText = 'width:280px;height:280px;margin:14px auto 0;filter:drop-shadow(0 18px 40px rgba(0,0,0,0.6));';
-                canvas.width = 560; canvas.height = 560;
+                canvas.style.cssText = 'width:200px;height:200px;margin:0;border-radius:50%;background:rgba(8,8,10,0.92);filter:drop-shadow(0 12px 32px rgba(0,0,0,0.7));';
+                canvas.width = 400; canvas.height = 400;
                 overlay.appendChild(canvas);
             }
             canvas.style.display = 'block';
             // hint to browser for smooth compositing
             canvas.style.willChange = 'transform,opacity';
             canvas.style.transform = 'translateZ(0)';
-            // Resize the visible canvas to fit the anchored overlay area where possible
+            // Resize the visible canvas to fit the compact toast (max 200px)
             try {
                 const r = overlay.getBoundingClientRect();
-                const maxDisplay = Math.min(560, Math.max(120, Math.floor(Math.min(r.width * 0.66, r.height * 0.66))));
+                const maxDisplay = Math.min(200, Math.max(120, Math.floor(Math.min(r.width * 0.85, r.height * 0.85))));
                 canvas.style.width = maxDisplay + 'px';
                 canvas.style.height = maxDisplay + 'px';
             } catch (e) { }
             const ctx = canvas.getContext('2d');
-            const W = 560, H = 560, cx = W / 2, cy = H / 2, radius = 230;
+            const W = 400, H = 400, cx = W / 2, cy = H / 2, radius = 165;
 
             // Pre-compute dart target positions
             const darts = checkoutRoute.map((seg, i) => {
@@ -5068,6 +5076,16 @@ window.openScorerUrl = function(url){
                     const state = window._dvPendingRender || null;
                     window._dvPendingRender = null;
                     if (!state) return;
+
+                    // Always reassert the panel is visible, even if we end up
+                    // skipping a re-render for an unchanged state. This guards
+                    // against any external CSS/layout changes that may have
+                    // hidden the panel since the last render.
+                    try {
+                        const _p = document.getElementById('dv-live-panel');
+                        if (_p && _p.style.display === 'none') _p.style.display = 'block';
+                    } catch (_) {}
+
                     try {
                         const keyObj = {
                             p1: state.p1Stats || null,

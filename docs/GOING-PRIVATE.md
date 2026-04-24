@@ -10,9 +10,10 @@ re-platformed to services that don't care about repo visibility.
 - All three workflows (`build-android.yml`, `build-windows.yml`,
   `build-extension.yml`) now push their artefacts to Supabase Storage in
   addition to their existing destinations.
-- All download links on the site (`dartvoice-dashboard.html`, `web-app.html`)
-  point at the Supabase public URLs. GitHub Releases URLs are no longer
-  referenced by the site.
+- The site download links currently still point at GitHub Releases (so
+  they keep working while the repo is public). The Supabase URL pattern
+  is set up and ready — see step 2 below for the one-line swap once the
+  bucket is seeded.
 
 ## What you need to do (manual, one-time)
 
@@ -26,10 +27,9 @@ re-platformed to services that don't care about repo visibility.
 CI uploads will start working on the next build. Without this secret, CI
 will skip the upload step but not fail the build (safe default).
 
-### 2. Seed the current binaries into Supabase Storage
+### 2. Seed the current binaries into Supabase Storage, then swap site URLs
 
-Until the next CI build runs, the download links point at URLs that don't
-exist yet. Seed them once from your machine:
+Run once from your machine to populate the bucket:
 
 ```bash
 # WSL / Git Bash / macOS
@@ -40,6 +40,22 @@ bash scripts/upload-releases-to-supabase.sh
 This pulls the latest public `DartVoice.apk` + `DartVoice_Setup.exe` from
 GitHub Releases and uploads them to Supabase, plus the extension zip from
 `downloads/`.
+
+Verify the public URLs now serve the files:
+
+- <https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk>
+- <https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice_Setup.exe>
+
+Once both return a 200, swap the site download links to use them. From
+the repo root:
+
+```bash
+sed -i 's|https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/windows-latest/DartVoice_Setup.exe|https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice_Setup.exe|g' dartvoice-dashboard.html web-app.html
+sed -i 's|https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/android-latest/DartVoice.apk|https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk|g' dartvoice-dashboard.html web-app.html
+git add dartvoice-dashboard.html web-app.html
+git commit -m "site: cut download links over to Supabase Storage"
+git push
+```
 
 ### 3. Move site hosting off GitHub Pages
 
