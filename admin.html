@@ -80,7 +80,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         </div>
         <div class="flex items-center gap-2">
             <button class="btn-ghost" onclick="exportCsv()">Export CSV</button>
-            <a class="btn-ghost" href="dartvoice-dashboard.html">Dashboard</a>
+            <a class="btn-ghost" href="dartvoice-dashboard">Dashboard</a>
             <button class="btn-brand" onclick="openCreatorModal()">+ Add Creator</button>
         </div>
     </div>
@@ -537,5 +537,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
     }, 500);
 })();
 </script>
+    <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-discount.js" defer></script>
+    <script src="/dv-welcome.js" defer></script>
+
 </body>
 </html>

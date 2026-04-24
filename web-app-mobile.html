@@ -1361,7 +1361,7 @@
 
             if (!session || !session.user) {
                 if (fromApk) {
-                    window.location.replace('apk-gate.html');
+                    window.location.replace('/apk-gate');
                     return;
                 }
                 return;
@@ -1380,7 +1380,7 @@
             const isActive = sub && ['active','trialing'].includes(sub.status);
 
             if (fromApk && !isActive) {
-                window.location.replace('apk-gate.html');
+                window.location.replace('/apk-gate');
                 return;
             }
 
@@ -1398,5 +1398,9 @@
     })();
     </script>
     <script src="theme.js"></script>
+    <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-discount.js" defer></script>
+    <script src="/dv-welcome.js" defer></script>
+
 </body>
 </html>

@@ -153,7 +153,7 @@ btnLaunch.addEventListener('click', async function () {
 
 // ── Navigation ───────────────────────────────────────────────────────────────
 function openSignIn() {
-    chrome.tabs.create({ url: 'https://dartvoice.app/login.html' });
+    chrome.tabs.create({ url: 'https://dartvoice.app/login' });
     window.close();
 }
 
@@ -161,7 +161,7 @@ btnSignIn.addEventListener('click', openSignIn);
 btnLockoutSignin.addEventListener('click', openSignIn);
 
 btnLockoutPlans.addEventListener('click', function () {
-    chrome.tabs.create({ url: 'https://dartvoice.app/index.html#pricing' });
+    chrome.tabs.create({ url: 'https://dartvoice.app/#pricing' });
     window.close();
 });
 

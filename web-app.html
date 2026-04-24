@@ -9,7 +9,7 @@
     <meta property="og:title" content="DartVoice Web App — Live Demo">
     <meta property="og:description" content="Try DartVoice live in your browser — voice-controlled darts scoring with no download.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/web-app.html">
+    <meta property="og:url" content="https://dartvoice.app/web-app">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="DartVoice Web App — Live Demo">
@@ -677,6 +677,60 @@
             animation: textGlow 2.5s infinite ease-in-out;
         }
 
+        /* Per-player stat cards inside the unified Live Game panel */
+        .dv-live-pcard {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 8px 10px;
+            transition: border-color .25s ease, box-shadow .25s ease;
+        }
+        .dv-live-pcard.dv-active-turn {
+            border-color: rgba(var(--brand-rgb), 0.55);
+            box-shadow: 0 0 0 1px rgba(var(--brand-rgb),0.25), 0 0 18px rgba(var(--brand-rgb),0.18);
+        }
+        .dv-live-turn-dot {
+            width: 6px; height: 6px; border-radius: 999px;
+            background: var(--brand, #cc0b20);
+            box-shadow: 0 0 8px rgba(var(--brand-rgb), 0.8);
+            display: inline-block;
+            animation: textGlow 1.4s infinite ease-in-out;
+        }
+        .dv-live-turn-dot.hidden { display: none; }
+        .dv-live-stat {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 7px;
+            padding: 5px 4px 4px;
+            text-align: center;
+        }
+        .dv-live-stat-primary {
+            background: rgba(var(--brand-rgb), 0.12);
+            border-color: rgba(var(--brand-rgb), 0.35);
+        }
+        .dv-live-val {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 17px;
+            line-height: 1;
+            color: #fff;
+            letter-spacing: .02em;
+            font-variant-numeric: tabular-nums;
+        }
+        .dv-live-stat-primary .dv-live-val {
+            color: var(--brand, #cc0b20);
+            text-shadow: 0 0 8px rgba(var(--brand-rgb), 0.35);
+            font-size: 20px;
+        }
+        .dv-live-lbl {
+            font-size: 8px;
+            font-weight: 700;
+            color: #6e6e82;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin-top: 2px;
+        }
+
         /* --- MOBILE FLOATING BAR --- */
         .mobile-bar {
             display: none;
@@ -833,7 +887,15 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Live Clock (moved out of Live Game — always visible under the account pill) -->
+                    <div class="flex items-center justify-end mt-2">
+                        <span id="dv-clock" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0c0c10] border border-[#1f1f28] text-[10px] text-brand font-mono tabular-nums tracking-[0.12em] live-data-glow cursor-pointer select-none" title="Click to toggle 12/24h">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand opacity-80" style="box-shadow:0 0 6px rgba(var(--brand-rgb),.8);animation:textGlow 2s infinite"></span>
+                            <span id="dv-clock-time">--:--</span>
+                        </span>
+                    </div>
+
                     <!-- Tabs Navigation -->
                     <div class="flex gap-2 mt-2">
                         <button class="flex-1 py-1.5 text-xs font-bold text-white bg-[#252530] border border-white/10 rounded tracking-widest uppercase transition-all tab-btn active" data-target="tab-dashboard">Dashboard</button>
@@ -897,17 +959,20 @@
                                 <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                             </label>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Live Checkout Tracking</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="toggle-live-checkout-dash" class="sr-only peer" title="Enable Live Checkout" aria-label="Enable Live Checkout">
-                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
-                            </label>
+                        <!-- Input Mode (per-dart vs per-visit) — moved from Settings to be next to the mic -->
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Input Mode</span>
+                            <div class="flex bg-[#08080A] rounded border border-[#252530] p-0.5" id="input-mode-toggle" title="Per-Visit: call your total (e.g. 60). Per-Dart: call each dart — DartVoice adds 3 for you.">
+                                <button class="text-[10px] px-2 py-1 rounded bg-[#252530] text-white font-bold mode-btn active" data-mode="total">Per-Visit</button>
+                                <button class="text-[10px] px-2 py-1 rounded text-gray-400 hover:text-white font-bold mode-btn" data-mode="per-dart">Per-Dart</button>
+                            </div>
                         </div>
                         <div id="checkout-prompt-indicator" class="hidden bg-brand/10 border border-brand/30 rounded px-2 py-1 text-[10px] text-brand font-bold uppercase tracking-wider flex items-center justify-between">
                             <span id="checkout-prompt-label">Awaiting darts at double…</span>
                             <span id="checkout-prompt-timer" class="font-mono text-white">5s</span>
                         </div>
+                        <!-- Hidden legacy toggle — live checkout is now always on (built into Live Game) -->
+                        <input type="checkbox" id="toggle-live-checkout-dash" class="hidden" checked>
                     </div>
                 </div>
 
@@ -918,8 +983,8 @@
                             <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
                             App Controls
                         </div>
-                        <div class="flex items-center">
-                            <span class="text-[8px] text-gray-600 font-bold tracking-wider uppercase">F · \ · ?</span>
+                        <div class="flex items-center gap-1.5" title="Keyboard: F = Fullscreen · \\ = Collapse">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-600 opacity-70"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10" stroke-linecap="round"/></svg>
                             <span id="dv-msg-ack" class="dv-msg-ack" title="iframe acknowledged">✓</span>
                         </div>
                     </div>
@@ -934,7 +999,7 @@
                     </div>
                 </div>
 
-                <!-- UNIFIED LIVE GAME PANEL (Game State + Checkout combined) -->
+                <!-- UNIFIED LIVE GAME PANEL (Per-player stats + integrated checkout) -->
                 <div id="dv-live-panel" class="live-panel-sexy p-4 mb-4 flex-shrink-0 relative" style="display:none;">
                     <div id="game-shot-overlay" class="hidden absolute inset-0 bg-brand backdrop-blur-md z-20 flex-col items-center justify-center text-white text-center rounded-lg">
                         <div class="text-3xl font-display font-black tracking-widest uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">GAME SHOT</div>
@@ -943,43 +1008,66 @@
                     <h3 class="text-[11px] text-white font-bold tracking-[0.25em] uppercase mb-3 flex items-center gap-2 drop-shadow-md relative z-10">
                         <span id="dv-live-dot" style="width:8px;height:8px;border-radius:50%;background:#7ae582;box-shadow:0 0 10px rgba(122,229,130,.9);display:inline-block;animation:textGlow 2s infinite;"></span>
                         Live Game
-                        <span id="dv-clock" class="ml-auto text-[10px] text-brand font-mono tabular-nums tracking-[0.1em] live-data-glow" title="Click to toggle 12/24h">--:--</span>
-                        <span id="dv-live-mode" class="text-[9px] text-white/80 font-bold tracking-[0.2em]"></span>
+                        <span id="dv-live-mode" class="ml-auto text-[9px] text-white/80 font-bold tracking-[0.2em]"></span>
+                        <select id="live-checkout-select" class="bg-black/40 border border-white/20 text-[9px] text-white font-bold rounded outline-none px-1.5 py-0.5 cursor-pointer backdrop-blur hover:bg-black/60 transition-colors" title="Game mode">
+                            <option value="501">501</option>
+                            <option value="301">301</option>
+                            <option value="701">701</option>
+                        </select>
+                        <button id="reset-leg-btn" class="bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/15 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all shadow-sm" title="Reset current leg">Reset</button>
                     </h3>
-                    <div class="grid grid-cols-2 gap-3 relative z-10">
-                        <div class="bg-black/20 rounded-lg p-2 border border-white/5">
-                            <div id="dv-live-player" class="text-base font-bold text-white truncate drop-shadow">&mdash;</div>
-                            <div class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Player</div>
-                        </div>
-                        <div class="text-right bg-brand/10 rounded-lg p-2 border border-brand/20 shadow-[inset_0_0_15px_rgba(var(--brand-rgb),0.1)]">
-                            <div id="dv-live-remaining" class="text-2xl leading-none font-display font-black text-brand live-data-glow">&mdash;</div>
-                            <div class="text-[8px] text-brand/70 font-bold uppercase tracking-widest mt-1">Remaining</div>
-                        </div>
-                    </div>
-                    <div id="dv-live-checkout" class="mt-3 pt-2 border-t border-white/10 text-[12px] text-white relative z-10" style="display:none;">
-                        <span class="text-brand font-bold tracking-[0.2em] text-[10px] uppercase drop-shadow-sm">Out:</span>
-                        <span id="dv-live-checkout-val" class="font-bold tracking-wider ml-1 drop-shadow-md"></span>
-                    </div>
-                </div>
 
-                <!-- Live Checkout Tracker (standalone — shows when Live Checkout is toggled on) -->
-                <div id="live-checkout-panel" class="hidden live-panel-sexy p-4 mb-4 transition-all flex-shrink-0 relative">
-                    <div class="flex justify-between items-center mb-2 relative z-10">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-bold text-white tracking-[0.25em] uppercase drop-shadow-md">Live Checkout</span>
-                            <select id="live-checkout-select" class="bg-black/40 border border-white/20 text-[9px] text-white font-bold rounded outline-none px-1.5 py-0.5 cursor-pointer backdrop-blur hover:bg-black/60 transition-colors">
-                                <option value="501">501</option>
-                                <option value="301">301</option>
-                                <option value="701">701</option>
-                            </select>
+                    <!-- Per-player stats (Remaining / Avg / Last / Darts). Data order from the iframe:
+                         1=remaining, 2=avg, 3=last, 4=darts, then repeats for the next player. -->
+                    <div class="space-y-2 relative z-10">
+                        <!-- Player 1 -->
+                        <div class="dv-live-pcard" data-player-idx="0">
+                            <div class="flex items-center justify-between mb-1">
+                                <div id="dv-live-p1-name" class="text-[11px] font-bold text-white truncate drop-shadow flex items-center gap-1.5">
+                                    <span class="dv-live-turn-dot hidden"></span>
+                                    <span class="dv-live-pname-txt">Player 1</span>
+                                </div>
+                                <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">P1</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <div class="dv-live-stat dv-live-stat-primary"><div id="dv-live-p1-remaining" class="dv-live-val">—</div><div class="dv-live-lbl">Remain</div></div>
+                                <div class="dv-live-stat"><div id="dv-live-p1-avg" class="dv-live-val">—</div><div class="dv-live-lbl">Avg</div></div>
+                                <div class="dv-live-stat"><div id="dv-live-p1-last" class="dv-live-val">—</div><div class="dv-live-lbl">Last</div></div>
+                                <div class="dv-live-stat"><div id="dv-live-p1-darts" class="dv-live-val">—</div><div class="dv-live-lbl">Darts</div></div>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[9px] bg-brand/20 text-brand px-2 py-0.5 rounded border border-brand/40 tracking-wider font-bold shadow-[0_0_10px_rgba(var(--brand-rgb),0.3)]" id="checkout-target">REMAINING: 501</span>
-                            <button id="reset-leg-btn" class="bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/15 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all shadow-sm" title="Reset current leg">Reset</button>
+                        <!-- Player 2 -->
+                        <div class="dv-live-pcard" data-player-idx="1">
+                            <div class="flex items-center justify-between mb-1">
+                                <div id="dv-live-p2-name" class="text-[11px] font-bold text-white/80 truncate drop-shadow flex items-center gap-1.5">
+                                    <span class="dv-live-turn-dot hidden"></span>
+                                    <span class="dv-live-pname-txt">Player 2</span>
+                                </div>
+                                <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">P2</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <div class="dv-live-stat dv-live-stat-primary"><div id="dv-live-p2-remaining" class="dv-live-val">—</div><div class="dv-live-lbl">Remain</div></div>
+                                <div class="dv-live-stat"><div id="dv-live-p2-avg" class="dv-live-val">—</div><div class="dv-live-lbl">Avg</div></div>
+                                <div class="dv-live-stat"><div id="dv-live-p2-last" class="dv-live-val">—</div><div class="dv-live-lbl">Last</div></div>
+                                <div class="dv-live-stat"><div id="dv-live-p2-darts" class="dv-live-val">—</div><div class="dv-live-lbl">Darts</div></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="text-[15px] font-bold text-white tracking-wider flex gap-2 items-center relative z-10 mt-1 drop-shadow-md pb-1" id="checkout-path">
-                        START SCORING...
+
+                    <!-- Checkout path (integrated — no separate panel) -->
+                    <div class="mt-3 pt-2 border-t border-white/10 relative z-10">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[9px] bg-brand/20 text-brand px-2 py-0.5 rounded border border-brand/40 tracking-wider font-bold shadow-[0_0_10px_rgba(var(--brand-rgb),0.3)]" id="checkout-target">REMAINING: —</span>
+                            <span class="text-brand font-bold tracking-[0.2em] text-[9px] uppercase drop-shadow-sm ml-auto">Out</span>
+                        </div>
+                        <div class="text-[14px] font-bold text-white tracking-wider flex gap-2 items-center flex-wrap drop-shadow-md" id="checkout-path">
+                            <span class="text-[10px] text-gray-500 italic tracking-wide">Start scoring to see checkout path…</span>
+                        </div>
+                        <!-- Legacy spans kept for backward-compat with existing JS writers -->
+                        <span id="dv-live-checkout-val" class="hidden"></span>
+                        <span id="dv-live-checkout" class="hidden"></span>
+                        <span id="dv-live-player" class="hidden"></span>
+                        <span id="dv-live-remaining" class="hidden"></span>
                     </div>
                 </div>
 
@@ -1152,15 +1240,6 @@
                             <p class="text-[9px] text-gray-500 leading-tight">Boost or dampen the mic level meter. Raise if the meter reads too low.</p>
                         </div>
 
-                        <!-- Input Mode (Per dart vs 3 dart) -->
-                        <div class="flex items-center justify-between border-t border-white/5 pt-2">
-                            <span class="text-xs text-gray-300 font-medium">Input Mode</span>
-                            <div class="flex bg-[#08080A] rounded border border-[#252530] p-0.5" id="input-mode-toggle">
-                                <button class="text-[10px] px-2 py-1 rounded bg-[#252530] text-white font-bold mode-btn active" data-mode="total">Total</button>
-                                <button class="text-[10px] px-2 py-1 rounded text-gray-400 hover:text-white font-bold mode-btn" data-mode="per-dart">Per-Dart</button>
-                            </div>
-                        </div>
-                        
                         <!-- Trigger Word (customisable) -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
@@ -1193,15 +1272,8 @@
                             </label>
                         </div>
 
-                        <!-- Live Checkout Display -->
-                        <div class="flex items-center justify-between border-b border-white/5 pb-3">
-                            <span class="text-xs text-gray-300 font-medium">Show Live Checkout</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="toggle-live-checkout" class="sr-only peer" checked>
-                                <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
-                            </label>
-                        </div>
-                        
+                        <!-- (Live Checkout display is now built into the Live Game panel — always on) -->
+
                         <div class="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase pt-2 pb-1">
                             Pro Active Modifiers
                         </div>
@@ -1908,7 +1980,8 @@
         let lastReceivedScore = null;
 
         // --- CHECKOUT LOGIC --- //
-        let liveCheckoutEnabled = false;
+        // Live checkout is always on now — it's integrated into the Live Game panel.
+        let liveCheckoutEnabled = true;
         let checkoutStartScore = 501;
         let currentCheckoutScore = 501;
         let gameShotLock = false;
@@ -2036,13 +2109,10 @@
             }
         }
 
-        // Live checkout listeners
+        // Live checkout listeners — live checkout is always on (built into Live Game panel)
         function initCheckoutBindings() {
-            const tglCheckout = document.getElementById('toggle-live-checkout-dash');
-            const pnlCheckout = document.getElementById('live-checkout-panel');
             const selCheckout = document.getElementById('live-checkout-select');
             const btnResetCheckout = document.getElementById('reset-leg-btn');
-            // Polling state for live checkout
             let liveCheckoutPollId = null;
             const LIVE_CHECKOUT_POLL_MS = 2000;
 
@@ -2051,21 +2121,7 @@
                 try { window.requestRemainingScore(); } catch(e){}
                 liveCheckoutPollId = setInterval(() => { try { window.requestRemainingScore(); } catch(e){} }, LIVE_CHECKOUT_POLL_MS);
             }
-            function stopLiveCheckoutPoll(){ if (liveCheckoutPollId) { clearInterval(liveCheckoutPollId); liveCheckoutPollId = null; } }
-            
-            if (tglCheckout && pnlCheckout) {
-                tglCheckout.addEventListener('change', (e) => {
-                    liveCheckoutEnabled = e.target.checked;
-                    if (liveCheckoutEnabled) {
-                        pnlCheckout.classList.remove('hidden');
-                        resetLiveCheckout();
-                        startLiveCheckoutPoll();
-                    } else {
-                        pnlCheckout.classList.add('hidden');
-                        stopLiveCheckoutPoll();
-                    }
-                });
-            }
+
             if (selCheckout) {
                 selCheckout.addEventListener('change', (e) => {
                     checkoutStartScore = parseInt(e.target.value, 10);
@@ -2073,10 +2129,11 @@
                 });
             }
             if (btnResetCheckout) {
-                btnResetCheckout.addEventListener('click', () => {
-                    resetLiveCheckout();
-                });
+                btnResetCheckout.addEventListener('click', () => { resetLiveCheckout(); });
             }
+            // Auto-start polling — live checkout runs continuously now
+            startLiveCheckoutPoll();
+            resetLiveCheckout();
         }
         initCheckoutBindings();
 
@@ -2095,7 +2152,7 @@
                 listening = false;
             }
             alert("Your 10-minute demo has expired. Please subscribe to continue.");
-            window.location.replace('login.html?intent=subscribe');
+            window.location.replace('/login?intent=subscribe');
         }
 
         // --- PER-DART ACCUMULATOR ---
@@ -3405,6 +3462,46 @@ window.openScorerUrl = function(url){
                 return out;
             }
 
+            // Extract an ordered stat block for up to 2 players from a raw blob.
+            // DartCounter surfaces stats in the order: remaining, avg, last, darts —
+            // then repeats for the next player. We pull up to 8 numeric tokens and
+            // split them into P1/P2 stat objects; anything missing stays null.
+            function dvExtractPlayerStats(state, mode) {
+                const modeNum = parseInt(String(mode || ''), 10);
+                const blob = [
+                    state && state.stats,
+                    state && state.remaining,
+                    state && state.player,
+                    state && state.raw
+                ].filter(Boolean).join(' ');
+                if (!blob) return [null, null];
+                // Match both ints and decimals (avg is usually X.Y or X.YZ)
+                const tokens = blob.match(/\d+\.\d+|\d+/g) || [];
+                const nums = tokens.map(t => parseFloat(t)).filter(n => !isNaN(n) && n >= 0);
+                // Filter out obvious noise (e.g., year/epoch). If mode is set, cap
+                // "remaining" candidates to mode; but keep avg (can be up to ~180).
+                const take = (i) => (i < nums.length ? nums[i] : null);
+                const buildPlayer = (r, a, l, d) => ({
+                    remaining: r == null ? null : String(Math.round(r)),
+                    avg: a == null ? null : (a >= 100 ? Math.round(a) : a.toFixed(2).replace(/\.?0+$/, '')),
+                    last: l == null ? null : String(Math.round(l)),
+                    darts: d == null ? null : String(Math.round(d))
+                });
+                // Heuristic: remaining is an integer <= mode (or <=701 if no mode).
+                // Find the first such index to anchor P1.
+                let anchor = 0;
+                for (let i = 0; i < Math.min(nums.length, 3); i++) {
+                    const n = nums[i];
+                    const isInt = Number.isInteger(n);
+                    const cap = !isNaN(modeNum) && modeNum > 0 ? modeNum : 701;
+                    if (isInt && n <= cap) { anchor = i; break; }
+                }
+                const p1 = buildPlayer(take(anchor), take(anchor + 1), take(anchor + 2), take(anchor + 3));
+                const p2 = buildPlayer(take(anchor + 4), take(anchor + 5), take(anchor + 6), take(anchor + 7));
+                const p2Valid = p2.remaining !== null || p2.avg !== null || p2.last !== null || p2.darts !== null;
+                return [p1, p2Valid ? p2 : null];
+            }
+
             window.dvRenderGameState = function(s){
                 if (!s) return;
                 const clean = dvNormalizeLiveState(s);
@@ -3412,8 +3509,39 @@ window.openScorerUrl = function(url){
                 if (!panel) return;
                 panel.style.display = '';
                 const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
+                // Legacy hidden spans (still read by handleScoreDeduction etc.)
                 set('dv-live-player', clean.player);
                 set('dv-live-remaining', clean.remaining);
+
+                // Per-player stats (new HUD)
+                const [p1, p2] = dvExtractPlayerStats(s, clean.mode);
+                const p1NameEl = document.querySelector('#dv-live-p1-name .dv-live-pname-txt');
+                const p2NameEl = document.querySelector('#dv-live-p2-name .dv-live-pname-txt');
+                if (p1NameEl && clean.player) p1NameEl.textContent = clean.player;
+                // Opponent name is rarely in the payload — leave default if unknown
+                if (p2NameEl && s.opponent) p2NameEl.textContent = String(s.opponent);
+
+                if (p1) {
+                    set('dv-live-p1-remaining', p1.remaining);
+                    set('dv-live-p1-avg', p1.avg);
+                    set('dv-live-p1-last', p1.last);
+                    set('dv-live-p1-darts', p1.darts);
+                }
+                if (p2) {
+                    set('dv-live-p2-remaining', p2.remaining);
+                    set('dv-live-p2-avg', p2.avg);
+                    set('dv-live-p2-last', p2.last);
+                    set('dv-live-p2-darts', p2.darts);
+                }
+                // Highlight whichever player's turn it is (if surfaced)
+                const activeIdx = (s.activePlayer === 1 || s.activePlayer === 0) ? s.activePlayer : 0;
+                document.querySelectorAll('.dv-live-pcard').forEach(card => {
+                    const active = parseInt(card.getAttribute('data-player-idx'), 10) === activeIdx;
+                    card.classList.toggle('dv-active-turn', active);
+                    const dot = card.querySelector('.dv-live-turn-dot');
+                    if (dot) dot.classList.toggle('hidden', !active);
+                });
+
                 const modeEl = document.getElementById('dv-live-mode');
                 if (modeEl) modeEl.textContent = clean.mode && clean.mode !== 'unknown' ? String(clean.mode).toUpperCase() : '';
                 const coRow = document.getElementById('dv-live-checkout');
@@ -3422,7 +3550,7 @@ window.openScorerUrl = function(url){
                     if (coVal) coVal.textContent = clean.checkoutSuggestion;
                     if (coRow) coRow.style.display = '';
                 } else if (coRow) { coRow.style.display = 'none'; }
-                // Mirror remaining into the existing scorer header chip for continuity
+                // Mirror remaining into the scorer header chip for continuity
                 try {
                     const chip = document.getElementById('checkout-target');
                     if (chip && clean.remaining != null && clean.remaining !== '') chip.textContent = 'REMAINING: ' + clean.remaining;
@@ -4089,28 +4217,27 @@ window.openScorerUrl = function(url){
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 
-            /* Digital clock in live-panel header. Click to toggle 12/24h. */
+            /* Digital clock under the account pill. Click to toggle 12/24h. */
             (function clockInit(){
                 function tick(){
-                    const el = document.getElementById('dv-clock');
-                    if (!el) return;
+                    const time = document.getElementById('dv-clock-time');
+                    if (!time) return;
                     const d = new Date();
                     const h24 = localStorage.getItem('dv-clock-24h') !== '0';
                     let h = d.getHours();
                     const m = String(d.getMinutes()).padStart(2,'0');
                     const s = String(d.getSeconds()).padStart(2,'0');
-                    if (h24) el.textContent = String(h).padStart(2,'0') + ':' + m + ':' + s;
+                    if (h24) time.textContent = String(h).padStart(2,'0') + ':' + m + ':' + s;
                     else {
                         const ap = h >= 12 ? 'PM' : 'AM';
                         h = h % 12 || 12;
-                        el.textContent = String(h).padStart(2,'0') + ':' + m + ' ' + ap;
+                        time.textContent = String(h).padStart(2,'0') + ':' + m + ' ' + ap;
                     }
                 }
                 function bind(){
                     const el = document.getElementById('dv-clock');
                     if (el && !el.dataset.bound) {
                         el.dataset.bound = '1';
-                        el.style.cursor = 'pointer';
                         el.addEventListener('click', () => {
                             const cur = localStorage.getItem('dv-clock-24h') !== '0';
                             localStorage.setItem('dv-clock-24h', cur ? '0' : '1');
@@ -4124,6 +4251,10 @@ window.openScorerUrl = function(url){
             })();
         })();
     </script>
+    <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-discount.js" defer></script>
+    <script src="/dv-welcome.js" defer></script>
+
 </body>
 
 </html>

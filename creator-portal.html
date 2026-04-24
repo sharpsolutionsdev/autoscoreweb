@@ -61,7 +61,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         <p class="text-muted text-sm mb-5">Your account isn't linked to an ambassador slot yet. If you've spoken to us about joining, reply to the email we sent and we'll get you set up. Otherwise, apply below.</p>
         <div class="flex gap-2 justify-center flex-wrap">
             <a class="btn-brand" href="mailto:hello@dartvoice.app?subject=Ambassador%20Program">Apply</a>
-            <a class="btn-ghost" href="dartvoice-dashboard.html">Back to Dashboard</a>
+            <a class="btn-ghost" href="dartvoice-dashboard">Back to Dashboard</a>
         </div>
     </div>
 </div>
@@ -80,7 +80,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
             <span class="text-xs font-semibold text-muted uppercase tracking-wider">Ambassador</span>
         </div>
         <div class="flex items-center gap-2">
-            <a class="btn-ghost" href="dartvoice-dashboard.html">Dashboard</a>
+            <a class="btn-ghost" href="dartvoice-dashboard">Dashboard</a>
             <button class="btn-ghost" id="btnSignOut">Sign out</button>
         </div>
     </div>
@@ -218,7 +218,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         <div class="display text-xl mb-3">RESOURCES</div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <a class="btn-ghost !text-center" href="https://dartvoice.app" target="_blank">Homepage</a>
-            <a class="btn-ghost !text-center" href="guide.html" target="_blank">How-to guide</a>
+            <a class="btn-ghost !text-center" href="guide" target="_blank">How-to guide</a>
             <a class="btn-ghost !text-center" href="mailto:hello@dartvoice.app">Email support</a>
             <a class="btn-ghost !text-center" href="https://chromewebstore.google.com" target="_blank">Chrome Extension</a>
         </div>
@@ -258,7 +258,7 @@ let me = null, creator = null;
 async function boot() {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
-        location.href = 'login.html?next=' + encodeURIComponent('creator-portal.html');
+        location.href = '/login?next=' + encodeURIComponent('/creator-portal');
         return;
     }
     me = session.user;
@@ -351,7 +351,7 @@ document.getElementById('btnCopy').addEventListener('click', async () => {
 
 document.getElementById('btnSignOut').addEventListener('click', async () => {
     await sb.auth.signOut();
-    location.href = 'login.html';
+    location.href = '/login';
 });
 
 document.getElementById('msgForm').addEventListener('submit', async (e) => {
@@ -522,5 +522,9 @@ boot = async function() {
 boot();
 </script>
 <script src="theme.js"></script>
+    <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-discount.js" defer></script>
+    <script src="/dv-welcome.js" defer></script>
+
 </body>
 </html>

@@ -18,7 +18,7 @@
     <meta property="og:title" content="Welcome to DartVoice">
     <meta property="og:description" content="Your subscription is active. Download the app and start scoring with your voice.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/thanks.html">
+    <meta property="og:url" content="https://dartvoice.app/thanks">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Welcome to DartVoice">
@@ -192,7 +192,7 @@
                 redirected = true;
                 try { sessionStorage.setItem('dv-just-subscribed', '1'); } catch (_) {}
                 const isApk = sessionStorage.getItem('dv_apk_login') === '1';
-                window.location.href = isApk ? 'apk-gate.html' : 'dartvoice-dashboard.html?checkout=success';
+                window.location.href = isApk ? '/apk-gate' : '/dartvoice-dashboard?checkout=success';
             };
 
             try {
@@ -237,5 +237,9 @@
             }
         })();
     </script>
+    <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-discount.js" defer></script>
+    <script src="/dv-welcome.js" defer></script>
+
 </body>
 </html>

@@ -233,7 +233,17 @@
         set: (code) => setCurrency(code, true),
         get: () => localStorage.getItem(LS_KEY) || DEFAULT,
         refresh: () => renderPrices(localStorage.getItem(LS_KEY) || DEFAULT),
+        format: (gbp, decimalsOverride) => {
+            const cur = getByCode(localStorage.getItem(LS_KEY) || DEFAULT);
+            const curEff = (typeof decimalsOverride === 'number')
+                ? Object.assign({}, cur, { dp: decimalsOverride })
+                : cur;
+            return formatAmount(gbp, curEff);
+        },
     };
+    // Unified namespace used by other DV modules
+    window.DV = window.DV || {};
+    window.DV.currency = window.DVCurrency;
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();

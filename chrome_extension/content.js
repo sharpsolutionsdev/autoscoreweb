@@ -192,7 +192,7 @@
     dvAuth.micDeviceId = d.dv_mic_device_id || null;
   });
 
-  const isDartVoiceParent = window.location.href.includes('web-app.html') || window.location.href.includes('dartvoice-dashboard.html');
+  const isDartVoiceParent = window.location.href.includes('web-app') || window.location.href.includes('dartvoice-dashboard');
   const isIframe = window !== window.top;
 
   // --- SECURITY GATE: only activate on dartcounter/nakka when framed by dartvoice.app ---
@@ -438,7 +438,7 @@
     <div class="lockout-overlay" id="dv-lockout" style="display:none;">
       <h4>Demo Expired</h4>
       <p>Your 10-minute demo has ended.<br>Sign in &amp; subscribe to continue.</p>
-      <a href="https://dartvoice.app/login.html" target="_blank">Sign In →</a>
+      <a href="https://dartvoice.app/login" target="_blank">Sign In →</a>
     </div>
   `;
   shadow.appendChild(panel);
@@ -639,7 +639,7 @@
         return;
     }
 
-    // Don't run voice on the DartVoice parent page - web-app.html handles it
+    // Don't run voice on the DartVoice parent page - web-app handles it
     if (isDartVoiceParent) {
         logTrace("Mic initialization blocked on DartVoice parent page.");
         return;

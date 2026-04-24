@@ -74,6 +74,53 @@
             sessionStorage.setItem('dv_ref_code', refCode);
         }
     </script>
+    <style>
+        /* Scorer Studio Styles */
+        .ss-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .ss-head { text-align:center; margin-bottom: 48px; }
+        .ss-eyebrow { display:inline-block; font-family:'Barlow Condensed',sans-serif; font-weight:800; letter-spacing:.22em; font-size:11px; color:var(--brand); text-transform:uppercase; margin-bottom:12px; }
+        .ss-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size: clamp(32px, 5vw, 56px); line-height:1; letter-spacing:-.01em; }
+        .ss-title .accent { color:var(--brand); }
+        .ss-sub { max-width: 620px; margin: 14px auto 0; color:#9E9EB0; font-size:16px; }
+        .ss-grid { display:grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 18px; align-items: stretch; }
+        @media (max-width: 900px) { .ss-grid { grid-template-columns: 1fr; } }
+        .ss-card { background: linear-gradient(180deg, #0D0D10, #07070a); border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+        .ss-panel-title { display:flex; justify-content:space-between; align-items:center; font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.05em; font-size: 18px; margin-bottom: 14px; }
+        .ss-panel-title .tag { font-size:9px; padding:3px 8px; border-radius:999px; background:rgba(var(--brand-rgb),.12); color:var(--brand); border:1px solid rgba(var(--brand-rgb),.3); letter-spacing:.14em; font-weight:700; }
+        .ss-mini { display:flex; flex-direction:column; gap:10px; }
+        .ss-mini-row { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; opacity:0; transform: translateY(6px); transition: opacity .5s ease, transform .5s ease; }
+        .ss-mini-row.show { opacity:1; transform:none; }
+        .ss-mini-row .k { font-family:'Barlow Condensed',sans-serif; letter-spacing:.15em; font-size:10px; color:#6E6E82; text-transform:uppercase; font-weight:700; }
+        .ss-mini-row .v { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:20px; color:#fff; }
+        .ss-mini-row .v.brand { color:var(--brand); }
+        .ss-mic { background: linear-gradient(135deg, rgba(var(--brand-rgb),.08), transparent); border: 1px solid rgba(var(--brand-rgb),.25); border-radius:14px; padding:14px; margin-top:4px; }
+        .ss-mic-label { font-family:'Barlow Condensed',sans-serif; letter-spacing:.2em; font-size:10px; color:var(--brand); font-weight:800; }
+        .ss-mic-bar { margin-top:8px; height: 6px; background: rgba(255,255,255,.06); border-radius:999px; overflow:hidden; }
+        .ss-mic-fill { height:100%; width:30%; background: linear-gradient(90deg, var(--brand), var(--brand-light)); border-radius:999px; animation: ssMic 1.8s ease-in-out infinite; }
+        @keyframes ssMic { 0%,100%{ width:18%; } 40%{ width:72%; } 70%{ width:44%; } }
+        .ss-mic-quote { margin-top:10px; font-size:13px; color:#F0F0F5; font-style:italic; opacity:0; animation: ssQuote 6s ease-in-out infinite; }
+        @keyframes ssQuote { 0%,12%,88%,100%{opacity:0} 25%,75%{opacity:1} }
+        .ss-scores { display:flex; gap:8px; margin-top:4px; }
+        .ss-score { flex:1; text-align:center; background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:8px 4px; }
+        .ss-score .n { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px; color:#fff; }
+        .ss-score.low .n { color:#6E6E82; }
+        .ss-score.hi  .n { color:var(--brand); }
+        .ss-score .l { font-size:9px; letter-spacing:.18em; color:#4A4A5A; text-transform:uppercase; font-weight:700; }
+        .ss-stage { position:relative; overflow:hidden; min-height: 440px; display:flex; align-items:center; justify-content:center; background: radial-gradient(900px 400px at 80% -10%, rgba(var(--brand-rgb),.18), transparent 55%), #0a0a0e; }
+        .ss-stage-inner { width:100%; height:100%; padding: 26px; display:flex; flex-direction:column; gap: 18px; }
+        .ss-stage h3 { font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.08em; font-size:22px; }
+        .ss-board { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+        .ss-board .card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; }
+        .ss-board .card .t { font-size:10px; letter-spacing:.2em; color:#6E6E82; font-weight:700; text-transform:uppercase; }
+        .ss-board .card .v { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size: 36px; color:#fff; margin-top:6px; }
+        .ss-board .card.hi .v { color:var(--brand); }
+        .ss-flow { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top: 6px; }
+        .ss-flow .step { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:14px; position:relative; overflow:hidden; }
+        .ss-flow .step h4 { font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.06em; font-size:16px; margin-bottom: 6px; }
+        .ss-flow .step p { font-size:12px; color:#9E9EB0; line-height:1.45; }
+        .ss-flow .step .num { position:absolute; top:8px; right:10px; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size: 34px; color: rgba(var(--brand-rgb),.15); }
+        .ss-flow .step .glow { position:absolute; bottom:-30px; right:-30px; width:90px; height:90px; border-radius:50%; background: radial-gradient(circle, rgba(var(--brand-rgb),.25), transparent 70%); }
+    </style>
 </head>
 
 <body class="antialiased overflow-x-hidden noise grid-bg-soft">
@@ -97,9 +144,11 @@
 
             <!-- Desktop links -->
             <div class="hidden sm:flex items-center gap-1">
-                <a href="features.html"
+                <a href="#features"
                     class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
-                <a href="how-it-works.html" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">How It Works</a>
+                <a href="#scoring-modes"
+                    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Modes</a>
+                <a href="how-it-works" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">How It Works</a>
                 <a href="#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
                 <a href="web-app" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1.5">
                     <img src="dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded" style="image-rendering:auto;">
@@ -155,9 +204,9 @@
         <!-- Mobile dropdown -->
         <div id="mob-menu" class="mobile-menu sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
             <div class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-1">
-                <a href="features.html" onclick="closeMobMenu()"
+                <a href="/#features" onclick="closeMobMenu()"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Features</a>
-                <a href="how-it-works.html" onclick="closeMobMenu()"
+                <a href="how-it-works" onclick="closeMobMenu()"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">How It Works</a>
                 <a href="#pricing" onclick="closeMobMenu()"
                     class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
@@ -648,6 +697,75 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         </div>
     </section>
 
+    <!-- Built for the Oche section -->
+    <section id="features" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530;">
+        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at 15% 20%, rgba(var(--brand-rgb), 0.12), transparent 40%), radial-gradient(circle at 85% 80%, rgba(59,130,246,0.08), transparent 38%);"></div>
+        <div class="max-w-6xl mx-auto px-5 relative">
+            <div class="text-center mb-14 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Experience</p>
+                <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 text-chalk">BUILT FOR THE OCHE</h2>
+                <p class="text-muted max-w-lg mx-auto text-sm leading-relaxed">Everything you need to run a proper darts session without touching a scoreboard or calculator.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Voice Recognition -->
+                <div class="feature-card rounded-2xl p-6 reveal relative overflow-hidden">
+                    <img src="assets/media/mic-mesh-red.jpeg" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-[0.07] pointer-events-none" style="mix-blend-mode: screen;">
+                    <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold mb-2 text-chalk">Voice Recognition</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Just say your score out loud. DartVoice picks it up instantly with offline recognition — no internet needed.</p>
+                    <div class="demo-screen p-3 flex items-center gap-3">
+                        <div class="flex items-end gap-[3px] h-5">
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.0s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.12s ease-in-out infinite;"></div>
+                            <div class="w-[3px] bg-brand rounded-sm wave-bar" style="height:100%; animation: waveBar 0.65s 0.06s ease-in-out infinite;"></div>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-muted uppercase tracking-wider">Detected</span>
+                            <div class="display text-sm neon-score" style="color:var(--brand);">"One-forty"</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automatic Scoring -->
+                <div class="feature-card rounded-2xl p-6 reveal">
+                    <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>
+                    </div>
+                    <h3 class="font-semibold mb-2 text-chalk">Automatic Scoring</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Scores are calculated and displayed in real-time. No mental arithmetic or forgetting whose turn it is.</p>
+                    <div class="demo-screen p-3 flex items-center justify-between">
+                        <div class="text-center">
+                            <span class="text-[9px] text-muted uppercase tracking-wider">Was</span>
+                            <div class="display text-lg text-muted-2 line-through">501</div>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[9px] text-brand uppercase tracking-wider font-bold">Now</span>
+                            <div class="display text-xl neon-score" style="color:var(--brand);">361</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checkout Suggestions -->
+                <div class="feature-card rounded-2xl p-6 reveal">
+                    <div class="w-11 h-11 rounded-xl mb-4 flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--brand)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>
+                    </div>
+                    <h3 class="font-semibold mb-2 text-chalk">Checkout Suggestions</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">DartVoice shows you exactly how to finish — doubles, trebles, and bull combinations.</p>
+                    <div class="demo-screen p-3">
+                        <div class="text-[9px] text-muted uppercase tracking-wider mb-2">Remaining: 96</div>
+                        <div class="flex gap-1.5"><span class="display text-xs px-2 py-1 rounded" style="background: rgba(var(--brand-rgb), 0.1); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.2);">T20</span><span class="text-muted-2 flex items-center">→</span><span class="display text-xs px-2 py-1 rounded" style="background: rgba(var(--brand-rgb), 0.1); color:var(--brand); border: 1px solid rgba(var(--brand-rgb), 0.2);">D18</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ━━━ TICKER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div class="border-y py-3 overflow-hidden" style="border-color: #252530">
         <div
@@ -696,100 +814,178 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         </div>
     </div>
 
-    <!-- ━━━ FEATURES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <section class="py-24 sm:py-32" style="border-top: 1px solid #252530">
-        <div class="max-w-6xl mx-auto px-5">
-            <div class="text-center mb-14 reveal">
-                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Explore More</p>
-                <h2 class="display text-4xl sm:text-5xl md:text-6xl text-chalk mb-4">GO DEEPER BEFORE YOU START</h2>
-                <p class="text-muted max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">The homepage now keeps the high-level path tight. Jump into the dedicated pages for the full feature breakdown and the player setup flow.</p>
-            </div>
-
-            <div class="grid lg:grid-cols-2 gap-5">
-                <article class="bento-card rounded-2xl p-7 reveal relative overflow-hidden">
-                    <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at top right, rgba(var(--brand-rgb), 0.12), transparent 45%);"></div>
-                    <p class="text-brand text-[10px] font-bold tracking-[0.25em] uppercase mb-3 relative">Features</p>
-                    <h3 class="display text-3xl sm:text-4xl text-chalk mb-3 relative">EVERY TOOL IN THE STACK</h3>
-                    <p class="text-muted text-sm sm:text-base leading-relaxed mb-6 relative">See voice recognition, live scoring, checkout guidance, Scorer Studio, custom themes, and the full mode breakdown in one dedicated page.</p>
-                    <div class="flex flex-wrap gap-2 mb-6 relative">
-                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Voice Recognition</span>
-                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Scorer Studio</span>
-                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Three Modes</span>
-                    </div>
-                    <a href="features.html" class="btn-brand inline-block px-6 py-3 rounded-xl font-semibold text-sm text-white relative">Explore Features</a>
-                </article>
-
-                <article class="bento-card rounded-2xl p-7 reveal relative overflow-hidden">
-                    <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at top right, rgba(255,255,255,0.08), transparent 45%);"></div>
-                    <p class="text-brand text-[10px] font-bold tracking-[0.25em] uppercase mb-3 relative">How It Works</p>
-                    <h3 class="display text-3xl sm:text-4xl text-chalk mb-3 relative">SEE THE SETUP PATH</h3>
-                    <p class="text-muted text-sm sm:text-base leading-relaxed mb-6 relative">Walk through signup, installs, supported setups, and the three-step match flow so new players know exactly what happens after they start their trial.</p>
-                    <div class="grid grid-cols-3 gap-2 mb-6 relative">
-                        <div class="demo-screen p-3 text-center">
-                            <p class="display text-xl text-brand">01</p>
-                            <p class="text-[10px] text-muted mt-1">Sign up</p>
-                        </div>
-                        <div class="demo-screen p-3 text-center">
-                            <p class="display text-xl text-brand">02</p>
-                            <p class="text-[10px] text-muted mt-1">Install</p>
-                        </div>
-                        <div class="demo-screen p-3 text-center">
-                            <p class="display text-xl text-brand">03</p>
-                            <p class="text-[10px] text-muted mt-1">Play</p>
-                        </div>
-                    </div>
-                    <a href="how-it-works.html" class="btn-outline inline-block px-6 py-3 rounded-xl font-semibold text-sm text-chalk relative">View How It Works</a>
-                </article>
-            </div>
+    <!-- ━━━ SCORER STUDIO SHOWCASE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="scorer-studio" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
+      <div class="ss-wrap">
+        <div class="ss-head reveal">
+          <span class="ss-eyebrow">Scorer Studio</span>
+          <h2 class="ss-title">Your scorer, <span class="accent">your voice</span>,<br>one clean surface.</h2>
+          <p class="ss-sub">A single dashboard: your scorer runs in the middle, your camera stays connected, and DartVoice turns your call-outs into scores on the left.</p>
         </div>
-    </section>
-    <section id="brand-ambassador" class="py-24 sm:py-28 relative overflow-hidden" style="border-top: 1px solid #252530;">
-        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at 15% 20%, rgba(var(--brand-rgb), 0.12), transparent 40%), radial-gradient(circle at 85% 80%, rgba(59,130,246,0.08), transparent 38%);"></div>
-        <div class="max-w-6xl mx-auto px-5 relative">
-            <div class="grid lg:grid-cols-[1.1fr_1fr] gap-5 items-stretch">
-                <article class="bento-card rounded-2xl p-7 sm:p-8 reveal relative overflow-hidden">
-                    <div class="absolute inset-0 pointer-events-none" style="background: linear-gradient(140deg, rgba(var(--brand-rgb), 0.08), transparent 45%);"></div>
-                    <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3 relative">Brand Ambassador</p>
-                    <h2 class="display text-4xl sm:text-5xl text-chalk mb-3 relative">MEET KORKIZZ</h2>
-                    <p class="text-muted text-sm sm:text-base leading-relaxed max-w-xl mb-5 relative">Korkizz is our first official DartVoice brand ambassador. He is repping the product live, sharing real match sessions, and helping players see how voice scoring fits into actual throw rhythm.</p>
-                    <div class="flex flex-wrap gap-2 mb-6 relative">
-                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.18); color: var(--brand);">Official Ambassador</span>
-                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #22c55e;">Live Match Clips</span>
-                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #60a5fa;">Community First</span>
-                    </div>
-                    <div class="grid sm:grid-cols-3 gap-2.5 relative">
-                        <a href="https://twitch.tv/korkizz" target="_blank" rel="noopener" class="btn-outline px-4 py-3 rounded-xl text-center text-sm font-semibold text-chalk">Twitch</a>
-                        <a href="https://instagram.com/korkizz" target="_blank" rel="noopener" class="btn-outline px-4 py-3 rounded-xl text-center text-sm font-semibold text-chalk">Instagram</a>
-                        <a href="https://tiktok.com/@korkizz" target="_blank" rel="noopener" class="btn-outline px-4 py-3 rounded-xl text-center text-sm font-semibold text-chalk">TikTok</a>
-                    </div>
-                    <p class="text-[11px] text-muted-2 mt-4 relative">Video slots are wired for MP4 background clips. Replace the source files when your final edits are ready.</p>
-                </article>
 
-                <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                    <div class="media-card reveal relative overflow-hidden rounded-2xl h-[210px] border border-wire/70">
-                        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-80" poster="assets/media/dart-mic-red.jpeg">
-                            <source src="assets/media/korkizz-clip-1.mp4" type="video/mp4">
-                        </video>
-                        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(8,8,10,0.15), rgba(8,8,10,0.82));"></div>
-                        <div class="absolute left-4 bottom-4 right-4">
-                            <p class="text-[10px] text-brand font-bold tracking-[0.2em] uppercase">Clip 01</p>
-                            <p class="text-sm text-chalk font-semibold">Match Highlights</p>
+        <div class="ss-grid reveal">
+          <!-- Left: mini scorer-studio sidebar mock -->
+          <div class="ss-card">
+            <div class="ss-panel-title">Dashboard <span class="tag">LIVE</span></div>
+
+            <div class="ss-mic">
+              <div class="ss-mic-label">Listening</div>
+              <div class="ss-mic-bar"><div class="ss-mic-fill"></div></div>
+              <div class="ss-mic-quote">&ldquo;treble twenty, twenty, five&rdquo;</div>
+            </div>
+
+            <div class="ss-mini" style="margin-top:14px;" id="ss-mini-list">
+              <div class="ss-mini-row"><span class="k">Player</span><span class="v">Reuben</span></div>
+              <div class="ss-mini-row"><span class="k">Mode</span><span class="v">501</span></div>
+              <div class="ss-mini-row"><span class="k">Remaining</span><span class="v brand">326</span></div>
+              <div class="ss-mini-row"><span class="k">Avg</span><span class="v">62.1</span></div>
+            </div>
+
+            <div style="font-size:9px;letter-spacing:.2em;color:#4A4A5A;text-transform:uppercase;font-weight:700;margin-top:14px;">Last 3 scores</div>
+            <div class="ss-scores">
+              <div class="ss-score low"><div class="n">30</div><div class="l">3 legs ago</div></div>
+              <div class="ss-score"><div class="n">85</div><div class="l">2 legs ago</div></div>
+              <div class="ss-score hi"><div class="n">140</div><div class="l">last</div></div>
+            </div>
+          </div>
+
+          <!-- Right: stage -->
+          <div class="ss-card ss-stage">
+            <div class="ss-stage-inner">
+              <h3>LIVE GAME · 501 · DOUBLE OUT</h3>
+              <div class="ss-board">
+                <div class="card"><div class="t">Remaining</div><div class="v" style="color:var(--brand);">326</div></div>
+                <div class="card"><div class="t">Checkout</div><div class="v">T20 · T20 · D3</div></div>
+                <div class="card hi"><div class="t">Last score</div><div class="v">140</div></div>
+                <div class="card"><div class="t">Darts at double</div><div class="v">?</div></div>
+              </div>
+              <div class="ss-flow">
+                <div class="step"><span class="num">1</span><h4>Call it</h4><p>Say your throw naturally — treble, single, bull, or shorthand like T20.</p><span class="glow"></span></div>
+                <div class="step"><span class="num">2</span><h4>See it</h4><p>Scores land in DartCounter instantly; remaining, checkouts and averages stay in sync.</p><span class="glow"></span></div>
+                <div class="step"><span class="num">3</span><h4>Close it</h4><p>On checkouts we ask &ldquo;how many darts at double?&rdquo; — one tap and stats are perfect.</p><span class="glow"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ss-cta reveal">
+          <a href="web-app" class="btn-brand inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-white shadow-xl shadow-brand/20">Try Scorer Studio -></a>
+          <a href="how-it-works" class="btn-outline inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-chalk ml-3">See how it works</a>
+        </div>
+      </div>
+
+      <script>
+        (function(){
+          var rows = document.querySelectorAll('#ss-mini-list .ss-mini-row');
+          var io = new IntersectionObserver(function(es){
+            es.forEach(function(e){
+              if (e.isIntersecting) {
+                rows.forEach(function(r,i){ setTimeout(function(){ r.classList.add('show'); }, i*120); });
+                io.disconnect();
+              }
+            });
+          }, { threshold: 0.3 });
+          var list = document.getElementById('ss-mini-list');
+          if (list) io.observe(list);
+        })();
+      </script>
+    </section>
+
+    <!-- ━━━ DEEP DIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="deep-dive" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="text-center mb-16 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Pro Capabilities</p>
+                <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-5 text-chalk">WAY MORE THAN<br>A SCOREBOARD</h2>
+                <p class="text-muted max-w-xl mx-auto text-sm sm:text-base leading-relaxed">DartVoice isn't just listening — it's understanding. Here's what's under the hood.</p>
+            </div>
+
+            <div class="bento-card rounded-2xl p-6 sm:p-8 lg:p-10 mb-4 reveal relative overflow-hidden">
+                <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none" style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
+                    <source src="assets/media/mic-focus.mp4" type="video/mp4">
+                </video>
+                <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.15)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--brand)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                            </div>
+                            <p class="text-brand text-[10px] font-bold tracking-[0.25em] uppercase">Natural Language</p>
+                        </div>
+                        <h3 class="display text-2xl sm:text-3xl text-chalk mb-4">IT SPEAKS DARTS<br>LIKE YOU DO</h3>
+                        <p class="text-muted text-sm sm:text-base leading-relaxed mb-5">DartVoice understands exactly how real players call their scores. No rigid syntax. Just talk naturally.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Per-Dart Mode</span>
+                            <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.15); color: var(--brand);">Cricket Mode</span>
                         </div>
                     </div>
-                    <div class="media-card reveal relative overflow-hidden rounded-2xl h-[210px] border border-wire/70">
-                        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-80" poster="assets/media/stats-graph.jpeg">
-                            <source src="assets/media/korkizz-clip-2.mp4" type="video/mp4">
-                        </video>
-                        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(8,8,10,0.15), rgba(8,8,10,0.82));"></div>
-                        <div class="absolute left-4 bottom-4 right-4">
-                            <p class="text-[10px] text-brand font-bold tracking-[0.2em] uppercase">Clip 02</p>
-                            <p class="text-sm text-chalk font-semibold">Training Sessions</p>
+                    <div class="demo-screen p-5 sm:p-6">
+                        <div class="flex items-center gap-2 mb-5">
+                            <div class="w-2 h-2 rounded-full bg-brand rec-dot"></div>
+                            <span class="text-[10px] text-muted font-medium tracking-wider uppercase">Listening</span>
+                        </div>
+                        <div class="phrase-cycle mb-5" style="height: 3.2em;">
+                            <span class="display text-2xl sm:text-3xl text-chalk" style="text-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3);">"Treble 17"</span>
+                        </div>
+                        <div class="flex items-center gap-3 pt-3" style="border-top: 1px solid #1E1E28;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--brand)" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9" /></svg>
+                            <div>
+                                <span class="text-[10px] text-muted uppercase tracking-wider">Parsed as</span>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="display text-lg neon-score" style="color: var(--brand);">T17 = 51</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- ━━━ SCORING MODES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="scoring-modes" class="py-24 sm:py-32" style="border-top: 1px solid #252530">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="text-center mb-14 reveal">
+                <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Mode Breakdown</p>
+                <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-chalk mb-5">THREE MODES,<br>ONE LIVE FLOW</h2>
+                <p class="text-muted max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">Every mode includes live checkout logic, trigger controls, and ongoing improvements.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-4 mb-4">
+                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:var(--brand);">Per Dart Mode</p>
+                    <h3 class="display text-2xl text-chalk mb-3">SHOT BY SHOT</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Call each dart individually and get instant recalcs after every throw for the next best finish route.</p>
+                    <ul class="space-y-2 text-xs text-muted">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Live checkout refresh every dart</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Best for precision and practice</li>
+                    </ul>
+                </div>
+                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal" style="border-color: rgba(var(--brand-rgb), 0.22);">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:var(--brand);">3-Dart Mode</p>
+                    <h3 class="display text-2xl text-chalk mb-3">FAST VISIT SCORING</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Call your full visit total and keep play moving. DartVoice validates and applies totals in one action.</p>
+                    <ul class="space-y-2 text-xs text-muted">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Optimized for league pace</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Live checkout always visible</li>
+                    </ul>
+                </div>
+                <div class="bento-card rounded-2xl p-6 sm:p-7 reveal">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style="color:var(--brand);">Cricket Mode</p>
+                    <h3 class="display text-2xl text-chalk mb-3">MARKS, NOT MATH</h3>
+                    <p class="text-muted text-sm leading-relaxed mb-4">Call numbers naturally and DartVoice tracks marks, closes targets, and updates pressure instantly.</p>
+                    <ul class="space-y-2 text-xs text-muted">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Supports spoken Cricket calls</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Great for doubles and team games</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ━━━ PRICING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section id="pricing" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.06] pointer-events-none"
             style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.85);">
@@ -1109,7 +1305,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
 
     <!-- ━━━ VOICE FORMULA BANNER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div class="cinematic-banner" style="height: 280px;">
-        <img src="assets/media/dartboard-soundwave.jpeg" alt="Winmau dartboard with voice soundwave overlay and tablet" loading="lazy"
+        <img src="assets/media/dart-mic-red.jpeg" alt="DartVoice mic-dart hybrid with red neon glow" loading="lazy"
             style="filter: brightness(0.65);">
         <div class="overlay"></div>
         <div class="overlay-vertical"></div>
@@ -1202,6 +1398,54 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     <div class="faq-answer text-muted text-sm leading-relaxed">
                         No. You only need internet to sign in and verify your subscription. Once authenticated,
                         DartVoice works completely offline — voice recognition included.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ━━━ BRAND AMBASSADOR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section id="brand-ambassador" class="py-24 sm:py-28 relative overflow-hidden" style="border-top: 1px solid #252530;">
+        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at 15% 20%, rgba(var(--brand-rgb), 0.12), transparent 40%), radial-gradient(circle at 85% 80%, rgba(59,130,246,0.08), transparent 38%);"></div>
+        <div class="max-w-6xl mx-auto px-5 relative">
+            <div class="grid lg:grid-cols-[1.1fr_1fr] gap-5 items-stretch">
+                <article class="bento-card rounded-2xl p-7 sm:p-8 reveal relative overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background: linear-gradient(140deg, rgba(var(--brand-rgb), 0.08), transparent 45%);"></div>
+                    <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3 relative">Brand Ambassador</p>
+                    <h2 class="display text-4xl sm:text-5xl text-chalk mb-3 relative">MEET KORKIZZ</h2>
+                    <p class="text-muted text-sm sm:text-base leading-relaxed max-w-xl mb-5 relative">Korkizz is our first official DartVoice brand ambassador. He is repping the product live, sharing real match sessions, and helping players see how voice scoring fits into actual throw rhythm.</p>
+                    <div class="flex flex-wrap gap-2 mb-6 relative">
+                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.18); color: var(--brand);">Official Ambassador</span>
+                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #22c55e;">Live Match Clips</span>
+                        <span class="text-[11px] px-2.5 py-1 rounded-full font-medium" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #60a5fa;">Community First</span>
+                    </div>
+                    <div class="grid sm:grid-cols-3 gap-2.5 relative">
+                        <a href="https://twitch.tv/korkizz" target="_blank" rel="noopener" class="btn-outline px-4 py-3 rounded-xl text-center text-sm font-semibold text-chalk">Twitch</a>
+                        <a href="https://instagram.com/korkizz" target="_blank" rel="noopener" class="btn-outline px-4 py-3 rounded-xl text-center text-sm font-semibold text-chalk">Instagram</a>
+                        <a href="https://tiktok.com/@korkizz" target="_blank" rel="noopener" class="btn-outline px-4 py-3 rounded-xl text-center text-sm font-semibold text-chalk">TikTok</a>
+                    </div>
+                </article>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                    <div class="media-card reveal relative overflow-hidden rounded-2xl h-[210px] border border-wire/70">
+                        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-80" poster="assets/media/dart-mic-red.jpeg">
+                            <source src="assets/media/korkizz-clip-1.mp4" type="video/mp4">
+                        </video>
+                        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(8,8,10,0.15), rgba(8,8,10,0.82));"></div>
+                        <div class="absolute left-4 bottom-4 right-4">
+                            <p class="text-[10px] text-brand font-bold tracking-[0.2em] uppercase">Clip 01</p>
+                            <p class="text-sm text-chalk font-semibold">Match Highlights</p>
+                        </div>
+                    </div>
+                    <div class="media-card reveal relative overflow-hidden rounded-2xl h-[210px] border border-wire/70">
+                        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-80" poster="assets/media/stats-graph.jpeg">
+                            <source src="assets/media/korkizz-clip-2.mp4" type="video/mp4">
+                        </video>
+                        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(8,8,10,0.15), rgba(8,8,10,0.82));"></div>
+                        <div class="absolute left-4 bottom-4 right-4">
+                            <p class="text-[10px] text-brand font-bold tracking-[0.2em] uppercase">Clip 02</p>
+                            <p class="text-sm text-chalk font-semibold">Training Sessions</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1506,6 +1750,9 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         </div>
     </section>
 
+    <!-- ━━━ BRAND AMBASSADOR (Moved lower) ━━━━━━━━━━━━━━━━━━━━━━ -->
+
+
     <!-- ━━━ FOOTER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <dv-footer></dv-footer>
 
@@ -1611,6 +1858,10 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
     <script src="dv-currency.js"></script>
+    <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-discount.js" defer></script>
+    <script src="/dv-welcome.js" defer></script>
+
 </body>
 
 </html>

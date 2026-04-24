@@ -20,9 +20,9 @@ class DvNav extends HTMLElement {
             <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
           </a>
           <div class="hidden sm:flex items-center gap-1">
-            <a href="/features.html" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
-            <a href="/how-it-works.html" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">How It Works</a>
-            <a href="/index.html#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
+            <a href="/#features" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
+            <a href="/how-it-works" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">How It Works</a>
+            <a href="/#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
             <a href="/web-app" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1.5">
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded" style="image-rendering:auto;">
               Web App
@@ -37,7 +37,7 @@ class DvNav extends HTMLElement {
               </button>
               <div id="nav-more-menu"
                 class="absolute right-0 top-full mt-1 min-w-[180px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
-                <a href="/index.html#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
+                <a href="/#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
                 <a href="/guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
                 <a href="/referral" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
                   <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ambassador
@@ -60,10 +60,10 @@ class DvNav extends HTMLElement {
         </div>
         <div id="mob-nav" style="max-height:0;overflow:hidden;transition:max-height .35s ease" class="sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
           <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
-            <a href="/features.html" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Features</a>
-            <a href="/how-it-works.html" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">How It Works</a>
-            <a href="/index.html#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
-            <a href="/index.html#brand-ambassador" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Brand Ambassador</a>
+            <a href="/#features" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Features</a>
+            <a href="/how-it-works" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">How It Works</a>
+            <a href="/#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
+            <a href="/#brand-ambassador" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Brand Ambassador</a>
             <a href="/guide" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
             <a href="/web-app" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded">

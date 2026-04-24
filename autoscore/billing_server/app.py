@@ -39,8 +39,15 @@ stripe.api_key      = os.environ['STRIPE_SECRET_KEY']
 _WEBHOOK_SECRET     = os.environ['STRIPE_WEBHOOK_SECRET']
 _PRICE_ID           = os.environ['STRIPE_PRICE_ID']
 TRIAL_DAYS          = 7
-SUCCESS_URL         = os.environ.get('SUCCESS_URL', 'https://dartvoice.app/thanks.html')
-CANCEL_URL          = os.environ.get('CANCEL_URL',  'https://dartvoice.app/checkout-cancelled.html')
+SUCCESS_URL         = os.environ.get('SUCCESS_URL', 'https://dartvoice.app/thanks')
+CANCEL_URL          = os.environ.get('CANCEL_URL',  'https://dartvoice.app/checkout-cancelled')
+
+# ── Launch-sale promo (20% off, fixed end 2026-04-28 23:59:59 UTC) ────────────
+# The Stripe coupon/promotion code id. Create in Stripe dashboard → Products →
+# Coupons. Set STRIPE_PROMO_COUPON_ID env var, else falls back to the default id.
+PROMO_COUPON_ID     = os.environ.get('STRIPE_PROMO_COUPON_ID', 'DARTVOICE20')
+# Epoch cutoff: April 28 2026 23:59:59 UTC
+PROMO_END_EPOCH     = 1777679999
 
 # ── Supabase admin client (service key — server only, never in the app) ───────
 _sb = create_client(
@@ -222,36 +229,49 @@ def checkout():
                     email=email or '',
                     status='none')
 
-    try:
-        session = stripe.checkout.Session.create(
-            customer=customer_id,
-            mode='subscription',
-            payment_method_types=['card'],
-            # Always collect card details upfront so day-8 billing works automatically.
-            payment_method_collection='always',
-            line_items=[{'price': _PRICE_ID, 'quantity': 1}],
-            subscription_data={
-                'trial_period_days': TRIAL_DAYS,
-                # If user never adds a payment method, cancel rather than leaving
-                # them in a broken "trialing with no card" state.
-                'trial_settings': {
-                    'end_behavior': {
-                        'missing_payment_method': 'cancel',
-                    },
-                },
-                'metadata': {
-                    'supabase_user_id': user_id,
-                    'install_id':       install_id,
-                },
+    # Auto-apply launch-sale coupon while promo window is open.
+    # Note: Stripe does not allow `discounts` + `allow_promotion_codes` on the
+    # same session, so we toggle between them.
+    promo_active = int(time.time()) < PROMO_END_EPOCH and bool(PROMO_COUPON_ID)
+    session_kwargs = dict(
+        customer=customer_id,
+        mode='subscription',
+        payment_method_types=['card'],
+        payment_method_collection='always',
+        line_items=[{'price': _PRICE_ID, 'quantity': 1}],
+        subscription_data={
+            'trial_period_days': TRIAL_DAYS,
+            'trial_settings': {
+                'end_behavior': {'missing_payment_method': 'cancel'},
             },
-            client_reference_id=user_id,
-            success_url=SUCCESS_URL + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=CANCEL_URL,
-            # Allow promotion codes (for ambassador referrals)
-            allow_promotion_codes=True,
-        )
+            'metadata': {
+                'supabase_user_id': user_id,
+                'install_id':       install_id,
+            },
+        },
+        client_reference_id=user_id,
+        success_url=SUCCESS_URL + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=CANCEL_URL,
+    )
+    if promo_active:
+        session_kwargs['discounts'] = [{'coupon': PROMO_COUPON_ID}]
+    else:
+        session_kwargs['allow_promotion_codes'] = True
+
+    try:
+        session = stripe.checkout.Session.create(**session_kwargs)
         return redirect(session.url, code=303)
     except stripe.StripeError as e:
+        # If the coupon doesn't exist or expired mid-flight, retry without it
+        if promo_active and ('coupon' in str(e).lower() or 'discount' in str(e).lower()):
+            app.logger.warning('Promo coupon failed (%s); retrying with promotion codes allowed', e)
+            session_kwargs.pop('discounts', None)
+            session_kwargs['allow_promotion_codes'] = True
+            try:
+                session = stripe.checkout.Session.create(**session_kwargs)
+                return redirect(session.url, code=303)
+            except stripe.StripeError as e2:
+                return jsonify({'error': str(e2)}), 500
         return jsonify({'error': str(e)}), 500
 
 @app.route('/portal')

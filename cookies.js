@@ -15,7 +15,7 @@
     bar.innerHTML =
         '<p style="margin:0;color:#9E9EB0;font-size:13px;max-width:480px;line-height:1.5;text-align:center;">' +
             'We use cookies to improve your experience. ' +
-            '<a href="terms.html" style="color:#CC0B20;text-decoration:underline;">Learn more</a>' +
+            '<a href="/terms" style="color:#CC0B20;text-decoration:underline;">Learn more</a>' +
         '</p>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">' +
             '<button data-cc="all" style="' + btnStyle('#CC0B20', '#fff') + '">Accept All</button>' +

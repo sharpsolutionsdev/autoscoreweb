@@ -18,7 +18,7 @@
     <meta property="og:title" content="Dashboard | DartVoice">
     <meta property="og:description" content="Manage your DartVoice subscription, download apps, and track your Ambassador referrals.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/dartvoice-dashboard.html">
+    <meta property="og:url" content="https://dartvoice.app/dartvoice-dashboard">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Dashboard | DartVoice">
@@ -611,11 +611,120 @@
             order: 1;
             margin-top: 0 !important;
         }
+
+        /* ── Profile Completion Popup ── */
+        .dv-profile-popup {
+            position: fixed; inset: 0; z-index: 9998;
+            display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(var(--brand-rgb), 0.08), rgba(8, 8, 10, 0.88) 70%);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s ease;
+            -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+        }
+        .dv-profile-popup.open { opacity: 1; pointer-events: auto; }
+        .dv-profile-popup-card {
+            background: linear-gradient(160deg, #131317 0%, #0f0f12 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            padding: 32px 36px;
+            max-width: 400px; width: 92vw;
+            box-shadow: 0 24px 90px rgba(0,0,0,0.7), 0 0 0 1px rgba(var(--brand-rgb), 0.1) inset;
+            transform: translateY(16px) scale(0.96);
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+        }
+        .dv-profile-popup.open .dv-profile-popup-card {
+            transform: translateY(0) scale(1);
+        }
+        .dv-profile-popup-card .avatar-upload {
+            width: 80px; height: 80px; border-radius: 22px;
+            background: rgba(var(--brand-rgb), 0.12);
+            border: 2px dashed rgba(var(--brand-rgb), 0.35);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all .25s ease;
+            position: relative; overflow: hidden;
+        }
+        .dv-profile-popup-card .avatar-upload:hover {
+            border-color: var(--brand); background: rgba(var(--brand-rgb), 0.2);
+            transform: scale(1.05);
+        }
+        .dv-profile-popup-card .avatar-upload img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 20px;
+        }
+
+        /* ── Admin Quick Actions ── */
+        .admin-quick-btn {
+            position: relative; overflow: hidden;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 700;
+            letter-spacing: 0.06em; cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.1) 0%, rgba(var(--brand-rgb), 0.03) 100%);
+            color: #d4d4d8;
+        }
+        .admin-quick-btn:hover {
+            color: #fff; border-color: rgba(var(--brand-rgb), 0.5);
+            box-shadow: 0 6px 20px rgba(var(--brand-rgb), 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* ── Ambassador Partner Badge ── */
+        .badge-partner {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+            background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(168,85,247,0.06));
+            border: 1px solid rgba(168,85,247,0.4); color: #c084fc;
+        }
     </style>
     <link rel="stylesheet" href="css/components/modern-dashboard.css">
 </head>
 
 <body class="min-h-screen text-white antialiased noise" style="background:#08080A;">
+
+    <!-- ━━━ PROFILE COMPLETION POPUP ━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div id="dv-profile-popup" class="dv-profile-popup" role="dialog" aria-modal="true" aria-label="Complete your profile">
+        <div class="dv-profile-popup-card">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand/10 border border-brand/20 mb-4">
+                    <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+                <h2 class="display text-3xl mb-1">COMPLETE YOUR PROFILE</h2>
+                <p class="text-muted text-xs">All fields are optional — you can update them later.</p>
+            </div>
+
+            <div class="flex justify-center mb-5">
+                <label class="avatar-upload" id="pp-avatar-wrap" title="Upload profile picture">
+                    <input type="file" accept="image/*" id="pp-avatar-input" class="hidden" onchange="ppPreviewAvatar(this)">
+                    <img id="pp-avatar-img" src="" class="hidden">
+                    <svg id="pp-avatar-icon" class="w-8 h-8 text-brand/60" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <div id="pp-avatar-spin" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <div class="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-1.5">Phone Number</label>
+                    <input type="tel" id="pp-input-phone" placeholder="+1 (555) 000-0000" class="dv-input pro">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-1.5">Date of Birth</label>
+                    <input type="date" id="pp-input-dob" class="dv-input pro text-muted-2 cursor-pointer focus:text-white"
+                           style="color-scheme: dark;">
+                </div>
+            </div>
+
+            <button onclick="ppSaveAndClose()" class="btn-brand w-full py-3 rounded-2xl text-white font-semibold text-sm mb-3">Save & Continue</button>
+            <button onclick="ppSkip()" class="w-full text-center text-xs text-muted hover:text-white transition py-2">Skip for now</button>
+        </div>
+    </div>
 
     <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <nav class="border-b border-white/[0.05] sticky top-0 z-50"
@@ -638,9 +747,9 @@
             <!-- Right side -->
             <div class="flex items-center gap-3">
                 <a href="/" class="text-xs text-muted hover:text-white transition hidden lg:block">Home</a>
-                <a href="features.html" class="text-xs text-muted hover:text-white transition hidden lg:block">Features</a>
-                <a href="how-it-works.html" class="text-xs text-muted hover:text-white transition hidden lg:block">How It Works</a>
-                <a href="index.html#pricing" class="text-xs text-muted hover:text-white transition hidden lg:block">Pricing</a>
+                <a href="/features" class="text-xs text-muted hover:text-white transition hidden lg:block">Features</a>
+                <a href="/how-it-works" class="text-xs text-muted hover:text-white transition hidden lg:block">How It Works</a>
+                <a href="/#pricing" class="text-xs text-muted hover:text-white transition hidden lg:block">Pricing</a>
                 <a href="web-app" class="text-xs text-brand font-bold hover:text-brand-light transition hidden sm:flex items-center gap-1.5">
                     <img src="dc-logo.png" alt="Dart Counter" class="w-4 h-4 rounded" style="image-rendering:auto;">
                     Web App
@@ -778,6 +887,19 @@
 
             <!-- ── TAB: Overview ─────────────────────────────────── -->
             <div id="tab-overview">
+
+                <!-- Admin Quick Actions (Injected via JS if admin) -->
+                <div id="admin-quick-actions" class="hidden flex flex-wrap gap-3 mb-1">
+                    <button onclick="switchTab('admin')" class="admin-quick-btn">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                        MANAGE SYSTEM
+                    </button>
+                    <a href="https://supacall-demo.vercel.app/" target="_blank" class="admin-quick-btn">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        STREAMING OVERLAY
+                    </a>
+                </div>
+
                 <!-- ── Main grid ─────────────────────────────────────── -->
                 <div class="grid lg:grid-cols-[1fr_340px] gap-4">
 
@@ -1185,7 +1307,7 @@
             <div id="tab-ambassador" class="hidden space-y-5">
 
                 <!-- Creator Portal banner (only for creators on the paid-ambassador program) -->
-                <a id="creator-portal-banner" href="creator-portal.html"
+                <a id="creator-portal-banner" href="/creator-portal"
                     class="hidden card-panel block fade-up-2 no-underline"
                     style="border-color:rgba(var(--brand-rgb),.35);background:radial-gradient(600px 160px at 0% 0%,rgba(var(--brand-rgb),.18),transparent 60%),linear-gradient(160deg,#111114,#0A0A0D)">
                     <div class="p-5 flex items-center justify-between gap-4">
@@ -1207,8 +1329,13 @@
                     <div class="p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#4A4A5A;">
-                                    Ambassador Program</p>
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-2" style="color:#4A4A5A;">
+                                    Ambassador Program
+                                    <span id="badge-ambassador-partner" class="badge-partner hidden">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        OFFICIAL PARTNER
+                                    </span>
+                                </p>
                                 <h2 class="display text-2xl" style="color:#F0F0F5;">YOUR REFERRAL LINK</h2>
                             </div>
                             <span id="amb-status-badge" class="shrink-0">
@@ -1641,6 +1768,29 @@
                         </div>
                     </div>
 
+                    <!-- Ambassador Partners Management -->
+                    <div class="glass-card rounded-2xl p-6 lg:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold text-chalk">Ambassador Partners</h2>
+                            <p class="text-[10px] text-muted-2 uppercase tracking-widest font-bold">Toggle partner status</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead>
+                                    <tr class="text-[10px] font-bold text-muted-2 tracking-widest uppercase border-b border-white/[0.06]">
+                                        <th class="pb-3 pr-4">User ID</th>
+                                        <th class="pb-3 pr-4">Name</th>
+                                        <th class="pb-3 pr-4">Phone</th>
+                                        <th class="pb-3 text-right">Partner Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-partners-tbody" class="divide-y divide-white/[0.04]">
+                                    <tr><td colspan="4" class="py-4 text-center text-muted">Load partners manually or implement Edge Function</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div><!-- /tab-admin -->
 
@@ -1903,7 +2053,7 @@
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_KEY,
                     },
-                    body: JSON.stringify({ returnUrl: window.location.origin + '/dartvoice-dashboard.html' }),
+                    body: JSON.stringify({ returnUrl: window.location.origin + '/dartvoice-dashboard' }),
                 });
                 
                 if (resp.status === 404) {
@@ -1936,10 +2086,12 @@
             showView('dashboard');
 
             // Admin gating — show Messages + Admin Stats tabs for admin emails
-            const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reubensharp18@gmail.com'];
+            const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reubensharp18@gmail.com', 'sharpsolutionsdev@gmail.com'];
             if (ADMIN_EMAILS.includes(user.email?.toLowerCase())) {
                 $('tab-btn-messages').classList.remove('hidden');
                 $('tab-btn-admin').classList.remove('hidden');
+                const quickActions = $('admin-quick-actions');
+                if (quickActions) quickActions.classList.remove('hidden');
             }
 
             // Creator-program banner: reveal if user has an active creator row
@@ -1966,8 +2118,9 @@
             // Fetch subscription + profile in parallel
             let [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
-                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number').eq('id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number, ambassador_partner').eq('id', user.id).maybeSingle(),
             ]);
+
 
             // Fallback: if no sub in DB, check Stripe directly via edge function
             if (!sub || !['active', 'trialing'].includes(sub.status)) {
@@ -2015,8 +2168,30 @@
                 : user.email.split('@')[0].replace(/[._+]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
             $('dash-greeting').textContent = `Welcome back, ${greetName}`;
 
-            // Show profile-setup nudge if no display name set
-            if (!displayName) $('profile-nudge').classList.remove('hidden');
+            // Show profile-setup popup if no display name set
+            if (!displayName) {
+                const pp = $('dv-profile-popup');
+                if (pp) pp.classList.add('open');
+                
+                // Pre-fill
+                const prefix = user.email.split('@')[0].replace(/[._+]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const inName = $('input-display-name');
+                if (inName && !inName.value) inName.value = prefix;
+                
+                if (profile?.phone_number) {
+                    const ppPhone = $('pp-input-phone');
+                    if (ppPhone) ppPhone.value = profile.phone_number;
+                }
+            } else {
+                const nudge = $('profile-nudge');
+                if (nudge) nudge.classList.add('hidden');
+            }
+
+            // Ambassador Partner Badge check
+            if (profile?.ambassador_partner) {
+                const ambBadge = document.getElementById('badge-ambassador-partner');
+                if (ambBadge) ambBadge.classList.remove('hidden');
+            }
 
             // Populate profile tab
             populateProfileTab(user.email, displayName, sub, profile?.phone_number);
@@ -2067,6 +2242,59 @@
             const initials = val ? getInitials(val) : (_profileEmail ? _profileEmail[0].toUpperCase() : '?');
             const el = $('profile-avatar');
             if (el) el.textContent = initials;
+        }
+
+        /* ── Profile Completion Popup Logic ── */
+        function ppSkip() {
+            const pp = $('dv-profile-popup');
+            if (pp) pp.classList.remove('open');
+        }
+
+        async function ppSaveAndClose() {
+            const phone = ($('pp-input-phone')?.value || '').trim();
+            const dob = ($('pp-input-dob')?.value || '').trim();
+            const name = ($('input-display-name')?.value || '').trim();
+            
+            ppSkip();
+            
+            if (phone) {
+                const inPhone = $('input-phone');
+                if (inPhone) inPhone.value = phone;
+            }
+            
+            if ((phone || dob || _ppAvatarFile || name) && _ambUserId) {
+                const updates = {};
+                if (phone) updates.phone_number = phone;
+                if (dob) updates.date_of_birth = dob;
+                if (name) updates.display_name = name;
+                
+                if (_ppAvatarFile) {
+                    console.log('Pending avatar upload for:', _ppAvatarFile.name);
+                }
+                
+                if (Object.keys(updates).length > 0) {
+                    await sb.from('dartvoice_profiles').update(updates).eq('id', _ambUserId);
+                    $('dash-greeting').textContent = `Welcome back, ${name ? name.replace(/\b\w/g, c => c.toUpperCase()) : 'Dart Player'}`;
+                }
+            }
+        }
+
+        let _ppAvatarFile = null;
+        function ppPreviewAvatar(input) {
+            const file = input.files[0];
+            if (!file) return;
+            _ppAvatarFile = file;
+            
+            const img = $('pp-avatar-img');
+            const icon = $('pp-avatar-icon');
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                icon.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
         }
 
         async function saveProfile() {
@@ -2647,6 +2875,56 @@
             } catch (e) {
                 console.error('Failed to load admin stats:', e);
             }
+            
+            // Phase 4: Load partners
+            loadAdminPartners();
+        }
+
+        async function loadAdminPartners() {
+            try {
+                const tbody = $('admin-partners-tbody');
+                if (!tbody) return;
+                
+                const { data, error } = await sb.from('dartvoice_profiles').select('id, display_name, phone_number, ambassador_partner, referral_code').order('created_at', { ascending: false }).limit(50);
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-muted">No users found.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.map(p => {
+                    const isPartner = p.ambassador_partner === true;
+                    const toggleClass = isPartner ? 'bg-brand' : 'bg-white/[0.1]';
+                    const knobClass = isPartner ? 'translate-x-4' : 'translate-x-0';
+                    return `
+                        <tr>
+                            <td class="py-2.5 pr-4 text-xs font-mono text-muted">${p.id.substring(0,8)}...</td>
+                            <td class="py-2.5 pr-4 text-xs text-chalk">${escHtml(p.display_name || '—')}</td>
+                            <td class="py-2.5 pr-4 text-xs text-muted">${escHtml(p.phone_number || '—')}</td>
+                            <td class="py-2.5 text-right">
+                                <button onclick="toggleAdminPartner('${p.id}', ${!isPartner})" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${toggleClass}">
+                                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${knobClass} ml-1"></span>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load partners', err);
+            }
+        }
+
+        async function toggleAdminPartner(userId, newState) {
+            try {
+                const { error } = await sb.from('dartvoice_profiles').update({ ambassador_partner: newState }).eq('id', userId);
+                if (error) throw error;
+                loadAdminPartners(); // reload the list
+            } catch (err) {
+                console.error('Failed to toggle partner', err);
+                alert('Error updating partner status: ' + err.message);
+            }
         }
 
         function renderSignupChart(users) {
@@ -2790,7 +3068,7 @@
                     if (justSubscribed) sessionStorage.removeItem('dv-just-subscribed');
                     _params.delete('checkout');
                     const qs = _params.toString() ? '?' + _params.toString() : '';
-                    history.replaceState(null, '', 'dartvoice-dashboard.html' + qs);
+                    history.replaceState(null, '', 'dartvoice-dashboard' + qs);
                     
                     _ambUserId = session.user.id;
                     await loadDashboard(session.user);
@@ -2803,7 +3081,7 @@
                     // Clean the URL so refreshing doesn't re-trigger
                     _params.delete('subscribe');
                     const qs = _params.toString() ? '?' + _params.toString() : '';
-                    history.replaceState(null, '', 'dartvoice-dashboard.html' + qs);
+                    history.replaceState(null, '', 'dartvoice-dashboard' + qs);
                     // Load dashboard first, then open checkout popup
                     _ambUserId = session.user.id;
                     await loadDashboard(session.user);

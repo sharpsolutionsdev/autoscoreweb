@@ -4,7 +4,7 @@
 try {
     chrome.runtime.onInstalled.addListener(function (details) {
         if (details && details.reason === 'install') {
-            chrome.tabs.create({ url: 'https://dartvoice.app/welcome.html?src=ext_install' });
+            chrome.tabs.create({ url: 'https://dartvoice.app/welcome?src=ext_install' });
         } else if (details && details.reason === 'update') {
             // Optional: flag that an update happened so the web app can show a "what's new" toast
             chrome.storage.local.set({ dv_last_update_at: Date.now(), dv_last_version: chrome.runtime.getManifest().version });

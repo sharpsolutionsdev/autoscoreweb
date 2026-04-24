@@ -30,9 +30,9 @@ let activeFilter = 'all', gridView = true, activeSocial = 'reddit';
 // ===== AUTH GATE =====
 (async function gate() {
     const { data: { user } } = await sb.auth.getUser();
-    if (!user) { location.replace('/login.html?redirect=/admin.html'); return; }
+    if (!user) { location.replace('/login?redirect=/admin'); return; }
     const { data: admin, error } = await sb.from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle();
-    if (error || !admin) { toast('Not an admin - redirecting...', 'err'); setTimeout(() => location.replace('/dartvoice-dashboard.html'), 900); return; }
+    if (error || !admin) { toast('Not an admin - redirecting...', 'err'); setTimeout(() => location.replace('/dartvoice-dashboard'), 900); return; }
     me = user;
     document.getElementById('gate').classList.add('hide');
     document.getElementById('app').classList.remove('hide');

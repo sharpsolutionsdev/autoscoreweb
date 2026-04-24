@@ -23,19 +23,19 @@ test.describe('DartVoice smoke', () => {
   });
 
   test('web-app renders loader then scorer studio', async ({ page }) => {
-    await page.goto(BASE + '/web-app.html');
+    await page.goto(BASE + '/web-app');
     // Loader is visible briefly; studio shell should mount within 10s.
     await expect(page.locator('#dv-live-panel, .scorer-studio, main')).toBeVisible({ timeout: 10000 });
   });
 
   test('referral landing carries ?ref through to login', async ({ page }) => {
-    await page.goto(BASE + '/referral.html?ref=TESTCODE');
+    await page.goto(BASE + '/referral?ref=TESTCODE');
     const cta = page.getByRole('link', { name: /sign.?up|get started|join/i }).first();
     await expect(cta).toBeVisible();
   });
 
   test('welcome page shows onboarding steps', async ({ page }) => {
-    await page.goto(BASE + '/welcome.html?src=ext_install');
+    await page.goto(BASE + '/welcome?src=ext_install');
     await expect(page.locator('body')).toContainText(/open.*app|sign.?in|connect.*scorer/i);
   });
 });

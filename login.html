@@ -18,7 +18,7 @@
     <meta property="og:title" content="Sign In | DartVoice">
     <meta property="og:description" content="Sign in or create your DartVoice account. No password needed — we'll send you a 6-digit code.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dartvoice.app/login.html">
+    <meta property="og:url" content="https://dartvoice.app/login">
     <meta property="og:image" content="https://dartvoice.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Sign In | DartVoice">
@@ -243,7 +243,7 @@
             </a>
 
             <div class="hidden sm:flex items-center gap-1">
-                <a href="index.html"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Home</a>
+                <a href="/"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Home</a>
                 <a href="/#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
                 <a href="guide"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
                 <a href="referral" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
@@ -266,7 +266,7 @@
         </div>
         <div id="mob-nav" class="mobile-menu sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
             <div class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-1">
-                <a href="index.html"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Home</a>
+                <a href="/"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Home</a>
                 <a href="/#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
                 <a href="guide"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
                 <a href="referral" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
@@ -315,6 +315,22 @@
                                    autocomplete="email" inputmode="email"
                                    class="dv-input"
                                    onkeydown="if(event.key==='Enter') sendOtp()">
+                        </div>
+
+                        <!-- Referral code — visible on sign-up, auto-filled from ?ref -->
+                        <div id="referral-code-row" class="hidden">
+                            <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">
+                                Referral code <span class="text-[9px] text-muted ml-1">(optional)</span>
+                            </label>
+                            <div class="relative">
+                                <input id="input-referral-code" type="text" placeholder="Enter a friend's referral code"
+                                       maxlength="20" autocomplete="off" spellcheck="false"
+                                       class="dv-input pr-10"
+                                       style="text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">
+                                <svg id="ref-check-icon" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
                         </div>
 
                         <button id="btn-send" onclick="sendOtp()"
@@ -480,8 +496,19 @@
     const _intent = _urlParams.get('intent');
     const _isSignUp = _intent === 'subscribe';
 
+    // Auto-populate referral code from ?ref URL param
+    const _urlRefCode = _urlParams.get('ref') || '';
+
     // Adapt UI for sign-up vs sign-in
     if (_isSignUp) {
+        // Show referral code input row
+        document.getElementById('referral-code-row').classList.remove('hidden');
+        if (_urlRefCode) {
+            const refInput = document.getElementById('input-referral-code');
+            refInput.value = _urlRefCode.toUpperCase();
+            document.getElementById('ref-check-icon').classList.remove('hidden');
+        }
+
         // Swap nav CTA to "Sign In" — user is already on the sign-up page
         document.querySelectorAll('a.btn-brand[onclick*="dvCheckout"]').forEach(el => {
             el.textContent = 'Sign In';
@@ -529,9 +556,9 @@
     // Destination after auth
     function _authDest() {
         if (_isApkLogin) {
-            return _apkTrial ? 'dartvoice-dashboard.html?subscribe=1&apk=1' : 'apk-gate.html';
+            return _apkTrial ? '/dartvoice-dashboard?subscribe=1&apk=1' : '/apk-gate';
         }
-        const dest = _isSignUp ? 'dartvoice-dashboard.html?subscribe=1' : 'dartvoice-dashboard.html';
+        const dest = _isSignUp ? '/dartvoice-dashboard?subscribe=1' : '/dartvoice-dashboard';
         const plan = _urlParams.get('plan');
         return plan ? `${dest}${dest.includes('?') ? '&' : '?'}plan=${plan}` : dest;
     }
@@ -694,8 +721,10 @@
         if (_resendTimer) clearInterval(_resendTimer);
 
         // Preserve referral code across the redirect (referrer gets £5 on conversion; referred user gets standard 7-day trial only)
+        // Priority: manual input > URL param
+        const manualRef = (document.getElementById('input-referral-code')?.value || '').trim().toUpperCase();
         const urlParams = new URLSearchParams(window.location.search);
-        const refCode   = urlParams.get('ref');
+        const refCode   = manualRef || urlParams.get('ref') || '';
         if (refCode) sessionStorage.setItem('dv_ref_code', refCode);
 
         // ── App login: hand tokens back to the native app ───────────────
@@ -800,5 +829,9 @@
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
     <script src="dv-currency.js"></script>
+    <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-discount.js" defer></script>
+    <script src="/dv-welcome.js" defer></script>
+
 </body>
 </html>
