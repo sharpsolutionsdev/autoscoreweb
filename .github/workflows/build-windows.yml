@@ -73,7 +73,30 @@ jobs:
           path: autoscore/installer_output/DartVoice_Setup.exe
           retention-days: 30
 
-      # Public permanent URL:
+      # Primary download host — Supabase Storage public bucket.
+      # Works whether the repo is public or private.
+      # URL: https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice_Setup.exe
+      - name: Publish to Supabase Storage
+        shell: pwsh
+        env:
+          SUPABASE_URL: https://poyjykgqsvgimssbhsuz.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if (-not $env:SUPABASE_SERVICE_ROLE_KEY) {
+            Write-Host "SUPABASE_SERVICE_ROLE_KEY secret not set — skipping Storage upload."
+            exit 0
+          }
+          $headers = @{
+            'Authorization' = "Bearer $env:SUPABASE_SERVICE_ROLE_KEY"
+            'apikey'        = $env:SUPABASE_SERVICE_ROLE_KEY
+            'Content-Type'  = 'application/vnd.microsoft.portable-executable'
+            'x-upsert'      = 'true'
+          }
+          $uri = "$env:SUPABASE_URL/storage/v1/object/releases/DartVoice_Setup.exe"
+          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers `
+            -InFile autoscore\installer_output\DartVoice_Setup.exe
+
+      # Legacy download URL (kept as fallback until site cuts over entirely):
       # https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice_Setup.exe
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2

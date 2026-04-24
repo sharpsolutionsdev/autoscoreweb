@@ -588,7 +588,7 @@ APK opens → WebView 1 (control panel @ dartvoice.app/web-app-mobile.html)
 ### Status:
 - 🔄 **APK Build** — [Run #45 in progress](https://github.com/sharpsolutionsdev/autoscoreweb/actions/runs/24442552352) (~30-60 min)
 - 🔄 **GitHub Pages** — deploying `web-app-mobile.html` to dartvoice.app
-- Will be downloadable at: `https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk`
+- Will be downloadable at: `https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk`
 
 ### User Input
 

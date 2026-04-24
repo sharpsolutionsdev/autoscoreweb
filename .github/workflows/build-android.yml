@@ -111,7 +111,27 @@ jobs:
           path: autoscore/bin/DartVoice.apk
           retention-days: 30
 
-      # Public permanent URL:
+      # Primary download host — Supabase Storage public bucket.
+      # Works whether the repo is public or private.
+      # URL: https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk
+      - name: Publish to Supabase Storage
+        env:
+          SUPABASE_URL: https://poyjykgqsvgimssbhsuz.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "SUPABASE_SERVICE_ROLE_KEY secret not set — skipping Storage upload."
+            exit 0
+          fi
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            -H "x-upsert: true" \
+            --data-binary @autoscore/bin/DartVoice.apk \
+            "$SUPABASE_URL/storage/v1/object/releases/DartVoice.apk"
+
+      # Legacy download URL (kept as fallback until the site cuts over entirely):
       # https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2

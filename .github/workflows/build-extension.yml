@@ -32,6 +32,23 @@ jobs:
             manifest.json popup.html popup.js rules.json
           echo "Packaged $(ls -lh ../downloads/dartvoice-extension.zip | awk '{print $5}') zip"
 
+      - name: Publish to Supabase Storage
+        env:
+          SUPABASE_URL: https://poyjykgqsvgimssbhsuz.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "SUPABASE_SERVICE_ROLE_KEY secret not set — skipping Storage upload."
+            exit 0
+          fi
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/zip" \
+            -H "x-upsert: true" \
+            --data-binary @downloads/dartvoice-extension.zip \
+            "$SUPABASE_URL/storage/v1/object/releases/dartvoice-extension.zip"
+
       - name: Commit updated zip
         run: |
           git config user.name  "github-actions[bot]"
