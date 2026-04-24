@@ -4344,7 +4344,13 @@ window.openScorerUrl = function(url){
                 const clean = dvNormalizeLiveState(s);
                 const panel = document.getElementById('dv-live-panel');
                 if (!panel) return;
-                panel.style.display = '';
+                // Ensure the panel becomes visible and force a layout reflow so
+                // the UI renders immediately (fixes cases where it only appears
+                // after DevTools forces a repaint).
+                panel.style.display = 'block';
+                // Force synchronous reflow
+                void panel.offsetHeight;
+                try { window.dispatchEvent(new Event('resize')); } catch(e){}
                 const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
                 // Legacy hidden spans
                 set('dv-live-player', clean.player);
