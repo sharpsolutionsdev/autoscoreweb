@@ -2702,6 +2702,29 @@
 
         // Try to find the best element to anchor game-shot overlays to (prefer the scorer iframe)
         function _getGameShotTarget() {
+            // Prefer common in-page scoreboard selectors that appear in many layouts
+            const candidateSelectors = [
+                '.app-in-game-stat-item',
+                '.in-game-stat-item',
+                '.in-game-stats-wrapper',
+                '.stat-value',
+                '.stat-label',
+                '.swiper-wrapper',
+                '.swiper-slide',
+                '.current-player-arrow',
+                '.player-container-user-details',
+                '.player-container',
+                '.match-team-score',
+                '.app-match-team-score',
+                '.live-score',
+                '.scoreboard',
+                '.score-panel',
+                '.player-details'
+            ];
+            for (let s of candidateSelectors) {
+                try { const el = document.querySelector(s); if (el) return el; } catch(_){}
+            }
+
             const tries = ['#scorer-frame', 'iframe[src*="dartcounter"]', 'iframe.scorer', '.scorer-iframe', '#game-frame', 'iframe'];
             for (let s of tries) {
                 try { const el = document.querySelector(s); if (el) return el; } catch(_){ }
@@ -2768,6 +2791,22 @@
                 overlay.style.pointerEvents = 'none';
                 overlay.style.zIndex = '100010';
                 overlay._anchorTarget = el;
+                // Optional visual debug highlight for chosen anchor element
+                try {
+                    if (window._dvOverlayDebug) {
+                        // clear previous debug outline
+                        if (overlay._debugOutlineEl && overlay._debugOutlineEl !== el) {
+                            try { overlay._debugOutlineEl.style.outline = overlay._debugOutlineEl._dvPrevOutline || ''; } catch(_){}
+                            try { clearTimeout(overlay._debugOutlineTimeout); } catch(_){}
+                        }
+                        try { el._dvPrevOutline = el.style.outline; } catch(_){}
+                        try { el.style.outline = '2px dashed rgba(255,45,85,0.9)'; } catch(_){}
+                        overlay._debugOutlineEl = el;
+                        overlay._debugOutlineTimeout = setTimeout(() => {
+                            try { if (overlay._debugOutlineEl) { overlay._debugOutlineEl.style.outline = overlay._debugOutlineEl._dvPrevOutline || ''; overlay._debugOutlineEl = null; } } catch(_){}
+                        }, 10000);
+                    }
+                } catch (_) {}
                 // Ensure overlay repositions on layout changes
                 // cleanup previous handlers/observers
                 try { if (overlay._anchorHandler) { window.removeEventListener('resize', overlay._anchorHandler); window.removeEventListener('scroll', overlay._anchorHandler, true); } } catch(_) {}
@@ -2802,6 +2841,11 @@
                 }
                 if (overlay._resizeObserver) { try { overlay._resizeObserver.disconnect(); } catch(_){} overlay._resizeObserver = null; }
                 if (overlay._mutationObserver) { try { overlay._mutationObserver.disconnect(); } catch(_){} overlay._mutationObserver = null; }
+                // clear debug outline if present
+                try {
+                    if (overlay._debugOutlineEl) { try { overlay._debugOutlineEl.style.outline = overlay._debugOutlineEl._dvPrevOutline || ''; } catch(_){} overlay._debugOutlineEl = null; }
+                    if (overlay._debugOutlineTimeout) { try { clearTimeout(overlay._debugOutlineTimeout); } catch(_){} overlay._debugOutlineTimeout = null; }
+                } catch(_) {}
                 overlay._anchorTarget = null;
             } catch(_){}
         }
