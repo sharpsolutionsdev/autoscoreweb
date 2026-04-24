@@ -799,6 +799,12 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
             animation: livePulseFrame 3s infinite cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
+            /* Paint hints: force a composite layer to avoid DevTools-only repaint bugs */
+            will-change: transform, opacity;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
         .live-panel-sexy::before {
             content: '';
@@ -2700,7 +2706,7 @@
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'dv-game-shot-overlay';
-                overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100001;pointer-events:none;padding:24px;';
+                overlay.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:100010;will-change:opacity,transform;pointer-events:none;padding:24px;';
                 overlay.className = 'hidden';
                 document.body.appendChild(overlay);
             }
@@ -4720,6 +4726,14 @@ window.openScorerUrl = function(url){
                     const panel = document.getElementById('dv-live-panel');
                     if (!panel) return;
                     panel.style.display = 'block';
+                    // Add paint hints to ensure the panel is composited and repainted
+                    try {
+                        panel.style.setProperty('will-change', 'transform, opacity');
+                        panel.style.setProperty('transform', 'translateZ(0)');
+                        panel.style.setProperty('-webkit-transform', 'translateZ(0)');
+                        panel.style.setProperty('backface-visibility', 'hidden');
+                        panel.style.setProperty('-webkit-backface-visibility', 'hidden');
+                    } catch(e){}
                     void panel.offsetHeight;
                     try { window.dispatchEvent(new Event('resize')); } catch(e){}
                     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
