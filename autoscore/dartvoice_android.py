@@ -3292,7 +3292,7 @@ class LoadingScreen(FloatLayout):
 # ─────────────────────────────────────────────────────────────────────────────
 class LoginScreen(FloatLayout):
     """
-    Full-screen login view that opens dartvoice.app/login.html in the
+    Full-screen login view that opens dartvoice.app/login in the
     system browser.  A local HTTP callback server receives the session
     tokens automatically — the same polished web login the user sees on
     desktop, with consistent styling.
