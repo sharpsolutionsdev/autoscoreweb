@@ -1463,6 +1463,17 @@
                             <p class="text-[9px] text-gray-500 leading-tight">Callouts & sound FX from the scorer iframe.</p>
                         </div>
 
+                        <!-- Submission Delay -->
+                        <div class="space-y-1.5 border-t border-white/5 pt-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-300 font-medium">Submission Delay</span>
+                                <span id="dv-submit-delay-val" class="text-[10px] text-brand font-bold tabular-nums">0 ms</span>
+                            </div>
+                            <input id="dv-submit-delay-slider" type="range" min="0" max="3000" step="50" value="0"
+                                class="w-full accent-brand cursor-pointer">
+                            <p class="text-[9px] text-gray-500 leading-tight">Delay before forwarding total-mode inputs to the scorer (0–3000 ms).</p>
+                        </div>
+
                         <!-- Mic Sensitivity -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
@@ -2151,11 +2162,13 @@
 
             // On login, clear demo start so future logins get full demo if they log out
             clearDemoStart();
-            // Fetch subscription + profile
-            const [{ data: sub }, { data: profile }] = await Promise.all([
+            // Fetch subscription + profile + admin_users in parallel
+            const [{ data: sub }, { data: profile }, { data: adminRow }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('status').eq('user_id', user.id).maybeSingle(),
                 sb.from('dartvoice_profiles').select('display_name, phone_number, ambassador_partner').eq('id', user.id).maybeSingle(),
+                sb.from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle(),
             ]);
+            if (adminRow && adminRow.user_id) _isAdmin = true;
             _isAmbassador = !!profile?.ambassador_partner || _isAdmin;
             try {
                 if (_isAmbassador) document.body.classList.add('dv-is-ambassador');
@@ -3692,10 +3705,9 @@
                             const delay = AppConfig.totalModeSubmitDelayMs || 0;
                             if (delay > 0) {
                                 statusText.textContent = `"${score}" — submitting…`;
-                                setTimeout(submitTotal, delay);
-                            } else {
-                                submitTotal();
                             }
+                            // submitTotal runs now; blastScoreToIframe will respect the configured delay
+                            submitTotal();
                         }
                     } else {
                         log(`Heard: "${raw}" (no score matched)`);
@@ -3829,21 +3841,47 @@
                 }
             }
 
-            const targetIframe = document.getElementById('scorer-frame');
-            targetIframe.contentWindow.postMessage({
-                type: "DARTVOICE_SCORE_INJECT",
-                score: scoreString
-            }, "*");
-            // After injecting a score, poll the iframe once after a short delay
-            // so the Live Game panel updates to reflect the new remaining values.
-            try { setTimeout(() => { try { window.requestRemainingScore(); } catch(e){} }, 600); } catch(e){}
-            if (typeof window.dvPlayChime === 'function' && scoreString !== '__CANCEL__') window.dvPlayChime();
-            // Arm checkout dialog watcher when this could be a checkout score
-            if (scoreString !== '__CANCEL__' && window.dvCheckoutPrompt && AppConfig.checkoutDialogEnabled) {
-                const n = parseInt(scoreString, 10);
-                if (!isNaN(n) && n >= AppConfig.checkoutDialogScoreMin && n <= AppConfig.checkoutDialogScoreMax) {
-                    window.dvCheckoutPrompt.arm(n);
+            // Immediate control commands should be forwarded without delay
+            const str = String(scoreString || '');
+            const isControl = str.startsWith('__');
+
+            // Special-case cancel: clear any pending delayed injects and forward immediately
+            if (str === '__CANCEL__') {
+                try { if (window._dvPendingInjectionTimeout) { clearTimeout(window._dvPendingInjectionTimeout); window._dvPendingInjectionTimeout = null; } } catch(e){}
+            }
+
+            const delayMs = (!isControl) ? (AppConfig.totalModeSubmitDelayMs || 0) : 0;
+
+            const doPost = () => {
+                try {
+                    const targetIframe = document.getElementById('scorer-frame');
+                    if (targetIframe && targetIframe.contentWindow) {
+                        targetIframe.contentWindow.postMessage({
+                            type: "DARTVOICE_SCORE_INJECT",
+                            score: scoreString
+                        }, "*");
+                    }
+                } catch (e) { console.warn('Score inject failed', e); }
+                // After injecting a score, poll the iframe once after a short delay
+                try { setTimeout(() => { try { window.requestRemainingScore(); } catch(e){} }, 600); } catch(e){}
+                if (typeof window.dvPlayChime === 'function' && scoreString !== '__CANCEL__') window.dvPlayChime();
+                // Arm checkout dialog watcher when this could be a checkout score
+                if (scoreString !== '__CANCEL__' && window.dvCheckoutPrompt && AppConfig.checkoutDialogEnabled) {
+                    const n = parseInt(scoreString, 10);
+                    if (!isNaN(n) && n >= AppConfig.checkoutDialogScoreMin && n <= AppConfig.checkoutDialogScoreMax) {
+                        try { window.dvCheckoutPrompt.arm(n); } catch(e){}
+                    }
                 }
+            };
+
+            if (delayMs > 0 && !isControl) {
+                try {
+                    // schedule the injection; allow a cancel to clear this timeout
+                    if (window._dvPendingInjectionTimeout) clearTimeout(window._dvPendingInjectionTimeout);
+                    window._dvPendingInjectionTimeout = setTimeout(() => { window._dvPendingInjectionTimeout = null; doPost(); }, delayMs);
+                } catch (e) { doPost(); }
+            } else {
+                doPost();
             }
         }
         
@@ -4064,6 +4102,19 @@
         }
         if (_qaMic) {
             _qaMic.addEventListener('input', (e) => { applyMicSensitivity(+e.target.value); saveSettings(); });
+        }
+
+        // Submission delay slider (0..3000 ms)
+        const _delaySlider = document.getElementById('dv-submit-delay-slider');
+        const _delayVal = document.getElementById('dv-submit-delay-val');
+        function applySubmitDelay(v){
+            AppConfig.totalModeSubmitDelayMs = Number(v) || 0;
+            if (_delayVal) _delayVal.textContent = (AppConfig.totalModeSubmitDelayMs || 0) + ' ms';
+            if (_delaySlider && +_delaySlider.value !== AppConfig.totalModeSubmitDelayMs) _delaySlider.value = AppConfig.totalModeSubmitDelayMs;
+        }
+        if (_delaySlider) {
+            applySubmitDelay(AppConfig.totalModeSubmitDelayMs || 0);
+            _delaySlider.addEventListener('input', (e) => { applySubmitDelay(+e.target.value); saveSettings(); });
         }
 
         // --- WHISPER MODE ---
@@ -4582,194 +4633,156 @@ window.openScorerUrl = function(url){
                 return [p1, p2];
             }
 
+            // rAF-batched render to avoid DOM thrash when messages arrive quickly
+            window._dvPendingRender = null;
+            window._dvRenderScheduled = false;
+            window._dvLastGameStateHash = window._dvLastGameStateHash || null;
             window.dvRenderGameState = function(s){
                 if (!s) return;
-                // Avoid re-rendering when the incoming state is identical to the
-                // last rendered state — the extension can be chatty and flood
-                // the parent with identical payloads which causes unnecessary
-                // DOM updates and repaint thrashing.
-                try {
-                    window._dvLastGameStateHash = window._dvLastGameStateHash || null;
-                    const keyObj = {
-                        p1: s.p1Stats || null,
-                        p2: s.p2Stats || null,
-                        p1Name: s.p1Name || null,
-                        p2Name: s.p2Name || null,
-                        active: typeof s.activePlayer !== 'undefined' ? s.activePlayer : null,
-                        mode: s.mode || null
-                    };
-                    const stateKey = JSON.stringify(keyObj);
-                    if (stateKey === window._dvLastGameStateHash) return;
-                    window._dvLastGameStateHash = stateKey;
-                } catch(e){}
-                const clean = dvNormalizeLiveState(s);
-                const panel = document.getElementById('dv-live-panel');
-                if (!panel) return;
-                // Ensure the panel becomes visible and force a layout reflow so
-                // the UI renders immediately (fixes cases where it only appears
-                // after DevTools forces a repaint).
-                panel.style.display = 'block';
-                // Force synchronous reflow
-                void panel.offsetHeight;
-                try { window.dispatchEvent(new Event('resize')); } catch(e){}
-                const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
-                // Legacy hidden spans
-                set('dv-live-player', clean.player);
-                set('dv-live-remaining', clean.remaining);
-
-                // Per-player stats — use structured data from extension directly
-                const p1 = s.p1Stats || null;
-                const p2 = s.p2Stats || null;
-                const p1NameEl = document.querySelector('#dv-live-p1-name .dv-live-pname-txt');
-                const p2NameEl = document.querySelector('#dv-live-p2-name .dv-live-pname-txt');
-                const p1DisplayName = s.p1Name || clean.player || null;
-                const p2DisplayName = s.p2Name || null;
-                if (p1NameEl && p1DisplayName) p1NameEl.textContent = p1DisplayName;
-                if (p2NameEl && p2DisplayName) p2NameEl.textContent = p2DisplayName;
-
-                // Populate stat cards
-                if (p1) {
-                    set('dv-live-p1-remaining', p1.remaining);
-                    set('dv-live-p1-avg', p1.avg);
-                    set('dv-live-p1-last', p1.last);
-                    set('dv-live-p1-darts', p1.darts);
-                }
-                if (p2) {
-                    set('dv-live-p2-remaining', p2.remaining);
-                    set('dv-live-p2-avg', p2.avg);
-                    set('dv-live-p2-last', p2.last);
-                    set('dv-live-p2-darts', p2.darts);
-                }
-
-                // Highlight active player's turn
-                const activeIdx = (s.activePlayer === 1 || s.activePlayer === 0) ? s.activePlayer : 0;
-                document.querySelectorAll('.dv-live-pcard').forEach(card => {
-                    const active = parseInt(card.getAttribute('data-player-idx'), 10) === activeIdx;
-                    card.classList.toggle('dv-active-turn', active);
-                    const dot = card.querySelector('.dv-live-turn-dot');
-                    if (dot) dot.classList.toggle('hidden', !active);
-                });
-
-                // Mode display
-                const modeEl = document.getElementById('dv-live-mode');
-                if (modeEl) modeEl.textContent = clean.mode && clean.mode !== 'unknown' ? String(clean.mode).toUpperCase() : '';
-
-                // --- Sync checkout from iframe state ---
-                // Use the structured remaining scores to drive dual-player checkout
-                const p1Rem = p1 && p1.remaining != null ? parseInt(p1.remaining, 10) : null;
-                const p2Rem = p2 && p2.remaining != null ? parseInt(p2.remaining, 10) : null;
-
-                // Auto-detect game mode from remaining if not set
-                if (p1Rem != null && p1Rem > checkoutStartScore && [301, 501, 701].includes(p1Rem)) {
-                    checkoutStartScore = p1Rem;
-                    currentCheckoutScore = p1Rem;
-                }
-
-                // --- Leg-reset detection (catches the case where DartCounter resets
-                // before we poll 0). Triggers a checkout animation for the player
-                // we can attribute the checkout to. ---
-                if (!gameShotLock) {
-                    const prevP1 = _dvLastP1Remaining != null ? parseInt(_dvLastP1Remaining, 10) : null;
-                    const prevP2 = _dvLastP2Remaining != null ? parseInt(_dvLastP2Remaining, 10) : null;
-                    const STARTS = [301, 501, 701];
-                    const inMakeable = (n) => n != null && !isNaN(n) && n >= 2 && n <= 170;
-                    const didReset = (prev, now) => inMakeable(prev) && now != null && STARTS.includes(now) && now > prev;
-                    const p1Reset = didReset(prevP1, p1Rem);
-                    const p2Reset = didReset(prevP2, p2Rem);
-
-                    if (p1Reset || p2Reset) {
-                        // Determine who actually checked out
-                        const recentCmd = window._dvLastUserCommandTime &&
-                                          (Date.now() - window._dvLastUserCommandTime) < 8000;
-                        let winnerIdx = null;  // 0=p1, 1=p2
-                        let winnerPrev = null;
-                        if (p1Reset && !p2Reset) { winnerIdx = 0; winnerPrev = prevP1; }
-                        else if (p2Reset && !p1Reset) { winnerIdx = 1; winnerPrev = prevP2; }
-                        else if (p1Reset && p2Reset) {
-                            // Both reset simultaneously — ambiguous, use recent-command heuristic
-                            // (user is assumed to be the active player when command was issued)
-                            if (recentCmd) {
-                                winnerIdx = activeIdx;
-                                winnerPrev = activeIdx === 0 ? prevP1 : prevP2;
-                            }
-                        }
-
-                        // Only play animation if winner is the USER (recent command means user did it).
-                        // No recent command => opponent checked out on their app, no animation.
-                        const isUser = recentCmd;
-                        if (winnerIdx != null && winnerPrev != null && isUser) {
-                            let route = null;
-                            // Prefer the extension's own suggestion if it matches the previous remaining
-                            if (s.checkoutSuggestion) {
-                                route = String(s.checkoutSuggestion).split(/[\s,→▸]+/).filter(d => d.trim());
-                            }
-                            if (!route || !route.length) {
-                                route = CHECKOUT_ROUTES[winnerPrev] || null;
-                            }
-                            triggerGameShot(route);
-                        }
-                    }
-                }
-
-                // Update dual-player checkout display
-                _dvLastP1Name = p1DisplayName;
-                _dvLastP2Name = p2DisplayName;
-                _dvLastP1Remaining = p1Rem != null ? String(p1Rem) : null;
-                _dvLastP2Remaining = p2Rem != null ? String(p2Rem) : null;
-
-                // Also sync the legacy currentCheckoutScore for active player
-                const activeRem = activeIdx === 0 ? p1Rem : p2Rem;
-                if (activeRem != null && !isNaN(activeRem)) {
-                    currentCheckoutScore = activeRem;
-                }
-
-                // Render both checkout paths
-                if (!gameShotLock) {
-                    updateCheckoutUI();
-                }
-
-                // Detect game shot (either player hits 0)
-                if (!gameShotLock) {
-                    if (p1Rem === 0 || p2Rem === 0) {
-                        const winnerRem = p1Rem === 0 ? _dvLastP1Remaining : _dvLastP2Remaining;
-                        // Look up the checkout route for the score that WAS remaining before hitting 0
-                        // Use DartCounter's own checkout suggestion or our table
-                        let checkoutRoute = null;
-                        if (s.checkoutSuggestion) {
-                            checkoutRoute = String(s.checkoutSuggestion).split(/[\s,→▸]+/).filter(d => d.trim());
-                        }
-                        // If the last known remaining had a route, use it
-                        if (!checkoutRoute || !checkoutRoute.length) {
-                            const lastP1 = p1 && p1.checkout ? String(p1.checkout).split(/[\s,→▸]+/).filter(d => d.trim()) : null;
-                            const lastP2 = p2 && p2.checkout ? String(p2.checkout).split(/[\s,→▸]+/).filter(d => d.trim()) : null;
-                            checkoutRoute = p1Rem === 0 ? lastP1 : lastP2;
-                        }
-                        triggerGameShot(checkoutRoute);
-                    }
-                }
-
-                // Legacy checkout suggestion display
-                const coRow = document.getElementById('dv-live-checkout');
-                const coVal = document.getElementById('dv-live-checkout-val');
-                if (clean.checkoutSuggestion) {
-                    if (coVal) coVal.textContent = clean.checkoutSuggestion;
-                    if (coRow) coRow.style.display = '';
-                    // If pre-checkout tip is enabled, show a brief transient overlay
+                window._dvPendingRender = s;
+                if (window._dvRenderScheduled) return;
+                window._dvRenderScheduled = true;
+                requestAnimationFrame(() => {
+                    window._dvRenderScheduled = false;
+                    const state = window._dvPendingRender || null;
+                    window._dvPendingRender = null;
+                    if (!state) return;
                     try {
-                        if (AppConfig && AppConfig.preCheckoutTip) {
-                            const last = window._dvLastCheckoutSuggestion || '';
-                            const now = String(clean.checkoutSuggestion || '');
-                            if (now && now !== last) {
-                                window._dvLastCheckoutSuggestion = now;
-                                let tip = document.getElementById('dv-precheckout-tip');
-                                if (!tip) { tip = document.createElement('div'); tip.id = 'dv-precheckout-tip'; document.body.appendChild(tip); }
-                                tip.textContent = now;
-                                tip.classList.add('show');
-                                setTimeout(() => { try { tip.classList.remove('show'); } catch(e){} }, 1400);
+                        const keyObj = {
+                            p1: state.p1Stats || null,
+                            p2: state.p2Stats || null,
+                            p1Name: state.p1Name || null,
+                            p2Name: state.p2Name || null,
+                            active: typeof state.activePlayer !== 'undefined' ? state.activePlayer : null,
+                            mode: state.mode || null
+                        };
+                        const stateKey = JSON.stringify(keyObj);
+                        if (stateKey === window._dvLastGameStateHash) return;
+                        window._dvLastGameStateHash = stateKey;
+                    } catch(e){/* ignore hashing errors */}
+
+                    const clean = dvNormalizeLiveState(state);
+                    const panel = document.getElementById('dv-live-panel');
+                    if (!panel) return;
+                    panel.style.display = 'block';
+                    void panel.offsetHeight;
+                    try { window.dispatchEvent(new Event('resize')); } catch(e){}
+                    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v == null || v === '') ? '—' : String(v); };
+                    set('dv-live-player', clean.player);
+                    set('dv-live-remaining', clean.remaining);
+
+                    const p1 = state.p1Stats || null;
+                    const p2 = state.p2Stats || null;
+                    const p1NameEl = document.querySelector('#dv-live-p1-name .dv-live-pname-txt');
+                    const p2NameEl = document.querySelector('#dv-live-p2-name .dv-live-pname-txt');
+                    const p1DisplayName = state.p1Name || clean.player || null;
+                    const p2DisplayName = state.p2Name || null;
+                    if (p1NameEl && p1DisplayName) p1NameEl.textContent = p1DisplayName;
+                    if (p2NameEl && p2DisplayName) p2NameEl.textContent = p2DisplayName;
+
+                    if (p1) {
+                        set('dv-live-p1-remaining', p1.remaining);
+                        set('dv-live-p1-avg', p1.avg);
+                        set('dv-live-p1-last', p1.last);
+                        set('dv-live-p1-darts', p1.darts);
+                    }
+                    if (p2) {
+                        set('dv-live-p2-remaining', p2.remaining);
+                        set('dv-live-p2-avg', p2.avg);
+                        set('dv-live-p2-last', p2.last);
+                        set('dv-live-p2-darts', p2.darts);
+                    }
+
+                    const activeIdx = (state.activePlayer === 1 || state.activePlayer === 0) ? state.activePlayer : 0;
+                    document.querySelectorAll('.dv-live-pcard').forEach(card => {
+                        const active = parseInt(card.getAttribute('data-player-idx'), 10) === activeIdx;
+                        card.classList.toggle('dv-active-turn', active);
+                        const dot = card.querySelector('.dv-live-turn-dot');
+                        if (dot) dot.classList.toggle('hidden', !active);
+                    });
+
+                    const modeEl = document.getElementById('dv-live-mode');
+                    if (modeEl) modeEl.textContent = clean.mode && clean.mode !== 'unknown' ? String(clean.mode).toUpperCase() : '';
+
+                    const p1Rem = p1 && p1.remaining != null ? parseInt(p1.remaining, 10) : null;
+                    const p2Rem = p2 && p2.remaining != null ? parseInt(p2.remaining, 10) : null;
+                    if (p1Rem != null && p1Rem > checkoutStartScore && [301, 501, 701].includes(p1Rem)) {
+                        checkoutStartScore = p1Rem;
+                        currentCheckoutScore = p1Rem;
+                    }
+
+                    if (!gameShotLock) {
+                        const prevP1 = _dvLastP1Remaining != null ? parseInt(_dvLastP1Remaining, 10) : null;
+                        const prevP2 = _dvLastP2Remaining != null ? parseInt(_dvLastP2Remaining, 10) : null;
+                        const STARTS = [301, 501, 701];
+                        const inMakeable = (n) => n != null && !isNaN(n) && n >= 2 && n <= 170;
+                        const didReset = (prev, now) => inMakeable(prev) && now != null && STARTS.includes(now) && now > prev;
+                        const p1Reset = didReset(prevP1, p1Rem);
+                        const p2Reset = didReset(prevP2, p2Rem);
+
+                        if (p1Reset || p2Reset) {
+                            const recentCmd = window._dvLastUserCommandTime && (Date.now() - window._dvLastUserCommandTime) < 8000;
+                            let winnerIdx = null; let winnerPrev = null;
+                            if (p1Reset && !p2Reset) { winnerIdx = 0; winnerPrev = prevP1; }
+                            else if (p2Reset && !p1Reset) { winnerIdx = 1; winnerPrev = prevP2; }
+                            else if (p1Reset && p2Reset) {
+                                if (recentCmd) { winnerIdx = activeIdx; winnerPrev = activeIdx === 0 ? prevP1 : prevP2; }
+                            }
+                            const isUser = recentCmd;
+                            if (winnerIdx != null && winnerPrev != null && isUser) {
+                                let route = null;
+                                if (state.checkoutSuggestion) route = String(state.checkoutSuggestion).split(/[\s,→▸]+/).filter(d => d.trim());
+                                if (!route || !route.length) route = CHECKOUT_ROUTES[winnerPrev] || null;
+                                triggerGameShot(route);
                             }
                         }
-                    } catch(e){}
-                } else if (coRow) { coRow.style.display = 'none'; }
+                    }
+
+                    _dvLastP1Name = p1DisplayName;
+                    _dvLastP2Name = p2DisplayName;
+                    _dvLastP1Remaining = p1Rem != null ? String(p1Rem) : null;
+                    _dvLastP2Remaining = p2Rem != null ? String(p2Rem) : null;
+
+                    const activeRem = activeIdx === 0 ? p1Rem : p2Rem;
+                    if (activeRem != null && !isNaN(activeRem)) currentCheckoutScore = activeRem;
+
+                    if (!gameShotLock) updateCheckoutUI();
+
+                    if (!gameShotLock) {
+                        if (p1Rem === 0 || p2Rem === 0) {
+                            const winnerRem = p1Rem === 0 ? _dvLastP1Remaining : _dvLastP2Remaining;
+                            let checkoutRoute = null;
+                            if (state.checkoutSuggestion) checkoutRoute = String(state.checkoutSuggestion).split(/[\s,→▸]+/).filter(d => d.trim());
+                            if (!checkoutRoute || !checkoutRoute.length) {
+                                const lastP1 = p1 && p1.checkout ? String(p1.checkout).split(/[\s,→▸]+/).filter(d => d.trim()) : null;
+                                const lastP2 = p2 && p2.checkout ? String(p2.checkout).split(/[\s,→▸]+/).filter(d => d.trim()) : null;
+                                checkoutRoute = p1Rem === 0 ? lastP1 : lastP2;
+                            }
+                            triggerGameShot(checkoutRoute);
+                        }
+                    }
+
+                    const coRow = document.getElementById('dv-live-checkout');
+                    const coVal = document.getElementById('dv-live-checkout-val');
+                    if (clean.checkoutSuggestion) {
+                        if (coVal) coVal.textContent = clean.checkoutSuggestion;
+                        if (coRow) coRow.style.display = '';
+                        try {
+                            if (AppConfig && AppConfig.preCheckoutTip) {
+                                const last = window._dvLastCheckoutSuggestion || '';
+                                const now = String(clean.checkoutSuggestion || '');
+                                if (now && now !== last) {
+                                    window._dvLastCheckoutSuggestion = now;
+                                    let tip = document.getElementById('dv-precheckout-tip');
+                                    if (!tip) { tip = document.createElement('div'); tip.id = 'dv-precheckout-tip'; document.body.appendChild(tip); }
+                                    tip.textContent = now;
+                                    tip.classList.add('show');
+                                    setTimeout(() => { try { tip.classList.remove('show'); } catch(e){} }, 1400);
+                                }
+                            }
+                        } catch(e){}
+                    } else if (coRow) { coRow.style.display = 'none'; }
+                });
             };
 
             // ── Checkout darts prompt ──
@@ -4974,7 +4987,7 @@ window.openScorerUrl = function(url){
 
             // ── Persist settings ──
             const STORAGE_KEY = 'dv-app-config-v1';
-            const persistKeys = ['inputMode','wakeWordEnabled','triggerWord','cancelWordEnabled','liveCheckoutEnabled','checkoutDialogEnabled','bustProtection','autoStartNextMatch','audioChimes','dcVolume','micSensitivity','enableScoreBurst','popIntensity','detectionMode','recognitionSpeed','enableConfetti','enableAudioCues','themeHex'];
+            const persistKeys = ['inputMode','wakeWordEnabled','triggerWord','cancelWordEnabled','liveCheckoutEnabled','checkoutDialogEnabled','bustProtection','autoStartNextMatch','audioChimes','dcVolume','micSensitivity','enableScoreBurst','popIntensity','detectionMode','recognitionSpeed','totalModeSubmitDelayMs','enableConfetti','enableAudioCues','themeHex'];
             try {
                 const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
                 persistKeys.forEach(k => { if (k in saved && typeof AppConfig !== 'undefined') AppConfig[k] = saved[k]; });
@@ -5002,6 +5015,16 @@ window.openScorerUrl = function(url){
                 if ('recognitionSpeed' in saved) {
                     const rs = $('recognition-speed'); if (rs) rs.value = saved.recognitionSpeed;
                     if (typeof applyRecognitionSpeed === 'function') applyRecognitionSpeed(saved.recognitionSpeed);
+                }
+                if ('totalModeSubmitDelayMs' in saved) {
+                    try {
+                        if (typeof applySubmitDelay === 'function') applySubmitDelay(+saved.totalModeSubmitDelayMs);
+                        else {
+                            const ds = $('dv-submit-delay-slider'); const dv = $('dv-submit-delay-val');
+                            if (ds) ds.value = +saved.totalModeSubmitDelayMs;
+                            if (dv) dv.textContent = (+saved.totalModeSubmitDelayMs) + ' ms';
+                        }
+                    } catch(e){}
                 }
                 if ('themeHex' in saved) {
                     const th = $('theme-hex-input'); const tht = $('theme-hex-text'); if (th) th.value = saved.themeHex; if (tht) tht.value = saved.themeHex;
