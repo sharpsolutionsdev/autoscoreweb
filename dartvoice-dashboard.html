@@ -806,6 +806,11 @@
                         <span id="amb-earned-badge"
                             class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20"></span>
                     </button>
+                    <button onclick="switchTab('ranked')" id="tab-btn-ranked"
+                        class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition flex items-center gap-2 whitespace-nowrap">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Ranked
+                    </button>
                     <button onclick="switchTab('profile')" id="tab-btn-profile"
                         class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
                         Profile
@@ -1420,6 +1425,152 @@
                 </div>
 
             </div><!-- /tab-ambassador -->
+
+            <!-- ── TAB: Ranked ──────────────────────────────────── -->
+            <div id="tab-ranked" class="hidden space-y-5">
+
+                <!-- Ranked Hero / Not-Placed State -->
+                <div id="ranked-hero" class="card-panel fade-up-0 overflow-hidden relative">
+                    <div class="absolute inset-0 opacity-[0.04] pointer-events-none"
+                         style="background: radial-gradient(ellipse at 30% 20%, var(--brand) 0%, transparent 70%);"></div>
+                    <div class="p-6 text-center relative z-10">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand/10 border border-brand/20 mb-4">
+                            <svg class="w-8 h-8 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-chalk mb-1">Ranked Competitive</h3>
+                        <p class="text-sm text-muted mb-5 max-w-md mx-auto">Climb the ladder. Earn your rank. Compete against players at your skill level in real-time ranked matches.</p>
+                        <button id="ranked-find-match-hero" onclick="window.open('web-app?mode=ranked','_blank')" class="px-6 py-3 rounded-xl font-bold text-sm text-white transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]" style="background:linear-gradient(135deg, var(--brand) 0%, var(--brand-light) 100%); box-shadow: 0 4px 20px rgba(var(--brand-rgb), 0.3);">
+                            ⚡ Find Ranked Match
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ranked Profile Card (shown when has ranked profile) -->
+                <div id="ranked-profile-card" class="hidden">
+                    <div class="grid lg:grid-cols-[1fr_340px] gap-5">
+
+                        <!-- Left: Rank + Stats -->
+                        <div class="space-y-5">
+
+                            <!-- Rank Display Card -->
+                            <div class="card-panel fade-up-0 p-5 relative overflow-hidden">
+                                <div class="absolute right-0 top-0 w-40 h-40 opacity-[0.06] pointer-events-none" id="ranked-tier-glow"
+                                     style="background: radial-gradient(circle, var(--brand) 0%, transparent 70%); transform: translate(20%, -30%);"></div>
+                                <div class="flex items-center gap-5">
+                                    <!-- Rank Badge -->
+                                    <div class="relative">
+                                        <div id="ranked-tier-badge" class="w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5"
+                                             style="border-color: #C0C0C0; background: linear-gradient(135deg, rgba(192,192,192,0.08) 0%, rgba(192,192,192,0.02) 100%);">
+                                            <span id="ranked-tier-icon" class="text-2xl">🥈</span>
+                                            <span id="ranked-tier-label" class="text-[10px] font-black uppercase tracking-widest" style="color:#C0C0C0;">Silver</span>
+                                        </div>
+                                        <div id="ranked-placement-badge" class="hidden absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">PLACING</div>
+                                    </div>
+                                    <!-- MMR Info -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-baseline gap-2 mb-1">
+                                            <span id="ranked-mmr-value" class="text-3xl font-black text-chalk font-display tracking-tight">1200</span>
+                                            <span class="text-xs text-muted font-semibold">MMR</span>
+                                        </div>
+                                        <div class="flex items-center gap-3 text-xs">
+                                            <span class="text-muted">Peak: <span id="ranked-peak-mmr" class="text-chalk font-semibold">1200</span></span>
+                                            <span class="text-muted">•</span>
+                                            <span id="ranked-wl" class="text-muted"><span class="text-success font-semibold">0</span>W <span class="text-red-400 font-semibold">0</span>L</span>
+                                        </div>
+                                        <div class="flex items-center gap-3 mt-1.5 text-xs">
+                                            <span class="text-muted">Streak: <span id="ranked-streak" class="text-chalk font-semibold">0</span></span>
+                                            <span class="text-muted">•</span>
+                                            <span class="text-muted">Best: <span id="ranked-best-streak" class="text-chalk font-semibold">0</span></span>
+                                        </div>
+                                    </div>
+                                    <!-- Find Match CTA -->
+                                    <button onclick="window.open('web-app?mode=ranked','_blank')" class="shrink-0 px-5 py-2.5 rounded-xl font-bold text-xs text-white transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
+                                            style="background:linear-gradient(135deg, var(--brand) 0%, var(--brand-light) 100%); box-shadow: 0 4px 16px rgba(var(--brand-rgb), 0.25);">
+                                        ⚡ Find Match
+                                    </button>
+                                </div>
+                                <!-- Placement progress -->
+                                <div id="ranked-placement-bar" class="hidden mt-4 pt-3" style="border-top:1px solid rgba(255,255,255,0.06);">
+                                    <div class="flex items-center justify-between text-xs mb-1.5">
+                                        <span class="text-muted font-semibold">Placement Progress</span>
+                                        <span class="text-chalk font-bold"><span id="ranked-placement-count">0</span> / 10</span>
+                                    </div>
+                                    <div class="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                                        <div id="ranked-placement-fill" class="h-full rounded-full transition-all duration-500" style="width:0%; background:linear-gradient(90deg, var(--brand), var(--brand-light));"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats Grid -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 fade-up-1">
+                                <div class="card-panel p-4 text-center">
+                                    <p class="text-[10px] uppercase tracking-widest text-muted font-bold mb-1">Match Avg</p>
+                                    <p id="ranked-stat-avg" class="text-xl font-black text-chalk font-display">0.00</p>
+                                </div>
+                                <div class="card-panel p-4 text-center">
+                                    <p class="text-[10px] uppercase tracking-widest text-muted font-bold mb-1">Checkout %</p>
+                                    <p id="ranked-stat-checkout" class="text-xl font-black text-chalk font-display">0.0%</p>
+                                </div>
+                                <div class="card-panel p-4 text-center">
+                                    <p class="text-[10px] uppercase tracking-widest text-muted font-bold mb-1">180s</p>
+                                    <p id="ranked-stat-180s" class="text-xl font-black text-chalk font-display">0</p>
+                                </div>
+                                <div class="card-panel p-4 text-center">
+                                    <p class="text-[10px] uppercase tracking-widest text-muted font-bold mb-1">140+</p>
+                                    <p id="ranked-stat-140" class="text-xl font-black text-chalk font-display">0</p>
+                                </div>
+                                <div class="card-panel p-4 text-center">
+                                    <p class="text-[10px] uppercase tracking-widest text-muted font-bold mb-1">Best Finish</p>
+                                    <p id="ranked-stat-finish" class="text-xl font-black text-chalk font-display">0</p>
+                                </div>
+                                <div class="card-panel p-4 text-center">
+                                    <p class="text-[10px] uppercase tracking-widest text-muted font-bold mb-1">Legs W/L</p>
+                                    <p id="ranked-stat-legs" class="text-xl font-black text-chalk font-display">0/0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Rank Ladder + Recent Matches -->
+                        <div class="space-y-5">
+
+                            <!-- Rank Ladder -->
+                            <div class="card-panel p-5 fade-up-1">
+                                <h4 class="text-xs font-bold uppercase tracking-widest text-muted mb-3">Rank Ladder</h4>
+                                <div class="space-y-2" id="ranked-ladder">
+                                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:rgba(204,11,32,0.06); border:1px solid rgba(204,11,32,0.15);">
+                                        <span class="text-sm">👑</span><span class="text-xs font-bold" style="color:#CC0B20;">Apex</span><span class="ml-auto text-[10px] text-muted">3000+</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:rgba(185,242,255,0.04); border:1px solid rgba(185,242,255,0.1);">
+                                        <span class="text-sm">💎</span><span class="text-xs font-bold" style="color:#B9F2FF;">Diamond</span><span class="ml-auto text-[10px] text-muted">2500–2999</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:rgba(0,206,209,0.04); border:1px solid rgba(0,206,209,0.1);">
+                                        <span class="text-sm">💠</span><span class="text-xs font-bold" style="color:#00CED1;">Platinum</span><span class="ml-auto text-[10px] text-muted">2000–2499</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:rgba(255,215,0,0.04); border:1px solid rgba(255,215,0,0.1);">
+                                        <span class="text-sm">🥇</span><span class="text-xs font-bold" style="color:#FFD700;">Gold</span><span class="ml-auto text-[10px] text-muted">1500–1999</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:rgba(192,192,192,0.04); border:1px solid rgba(192,192,192,0.1);">
+                                        <span class="text-sm">🥈</span><span class="text-xs font-bold" style="color:#C0C0C0;">Silver</span><span class="ml-auto text-[10px] text-muted">1000–1499</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:rgba(205,127,50,0.04); border:1px solid rgba(205,127,50,0.1);">
+                                        <span class="text-sm">🥉</span><span class="text-xs font-bold" style="color:#CD7F32;">Bronze</span><span class="ml-auto text-[10px] text-muted">0–999</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Matches -->
+                            <div class="card-panel p-5 fade-up-2">
+                                <h4 class="text-xs font-bold uppercase tracking-widest text-muted mb-3">Recent Matches</h4>
+                                <div id="ranked-recent-matches" class="space-y-2">
+                                    <p class="text-xs text-muted text-center py-4">No ranked matches yet. Start your journey!</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /tab-ranked -->
 
             <!-- ── TAB: Profile ─────────────────────────────────── -->
             <div id="tab-profile" class="hidden">
@@ -2513,11 +2664,139 @@
             }
         }
 
+        // ── Ranked Mode ───────────────────────────────────────────────
+        const RANK_TIERS = {
+            bronze:   { label: 'Bronze',   icon: '🥉', color: '#CD7F32' },
+            silver:   { label: 'Silver',   icon: '🥈', color: '#C0C0C0' },
+            gold:     { label: 'Gold',     icon: '🥇', color: '#FFD700' },
+            platinum: { label: 'Platinum', icon: '💠', color: '#00CED1' },
+            diamond:  { label: 'Diamond',  icon: '💎', color: '#B9F2FF' },
+            apex:     { label: 'Apex',     icon: '👑', color: '#CC0B20' },
+        };
+
+        let _rankedLoaded = false;
+
+        async function loadRankedProfile() {
+            if (_rankedLoaded) return;
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session?.user) return;
+                const userId = session.user.id;
+
+                // Fetch ranked profile
+                const { data: rp } = await sb.from('ranked_profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .maybeSingle();
+
+                if (!rp) {
+                    // No ranked profile yet — show hero
+                    $('ranked-hero').classList.remove('hidden');
+                    $('ranked-profile-card').classList.add('hidden');
+                    _rankedLoaded = true;
+                    return;
+                }
+
+                // Show profile card, hide hero
+                $('ranked-hero').classList.add('hidden');
+                $('ranked-profile-card').classList.remove('hidden');
+
+                // Tier styling
+                const tier = RANK_TIERS[rp.rank_tier] || RANK_TIERS.silver;
+                const badge = $('ranked-tier-badge');
+                badge.style.borderColor = tier.color;
+                badge.style.background = `linear-gradient(135deg, ${tier.color}12 0%, ${tier.color}05 100%)`;
+                $('ranked-tier-icon').textContent = tier.icon;
+                const lbl = $('ranked-tier-label');
+                lbl.textContent = tier.label;
+                lbl.style.color = tier.color;
+                $('ranked-tier-glow').style.background = `radial-gradient(circle, ${tier.color} 0%, transparent 70%)`;
+
+                // Highlight current tier in ladder
+                document.querySelectorAll('#ranked-ladder > div').forEach(el => {
+                    const txt = el.querySelector('.text-xs.font-bold');
+                    if (txt && txt.textContent.toLowerCase() === rp.rank_tier) {
+                        el.style.outline = `2px solid ${tier.color}`;
+                        el.style.outlineOffset = '-1px';
+                    } else {
+                        el.style.outline = 'none';
+                    }
+                });
+
+                // MMR values
+                $('ranked-mmr-value').textContent = rp.mmr;
+                $('ranked-peak-mmr').textContent = rp.peak_mmr;
+                $('ranked-wl').innerHTML = `<span class="text-success font-semibold">${rp.wins}</span>W <span class="text-red-400 font-semibold">${rp.losses}</span>L`;
+                $('ranked-streak').textContent = rp.win_streak;
+                $('ranked-best-streak').textContent = rp.best_win_streak;
+
+                // Placement bar
+                if (!rp.is_placed) {
+                    $('ranked-placement-badge').classList.remove('hidden');
+                    $('ranked-placement-bar').classList.remove('hidden');
+                    $('ranked-placement-count').textContent = rp.placement_matches;
+                    $('ranked-placement-fill').style.width = `${(rp.placement_matches / 10) * 100}%`;
+                } else {
+                    $('ranked-placement-badge').classList.add('hidden');
+                    $('ranked-placement-bar').classList.add('hidden');
+                }
+
+                // Stats grid
+                $('ranked-stat-avg').textContent = Number(rp.avg_match_average || 0).toFixed(2);
+                $('ranked-stat-checkout').textContent = Number(rp.avg_checkout_pct || 0).toFixed(1) + '%';
+                $('ranked-stat-180s').textContent = rp.total_180s || 0;
+                $('ranked-stat-140').textContent = rp.total_140_plus || 0;
+                $('ranked-stat-finish').textContent = rp.best_finish || 0;
+                $('ranked-stat-legs').textContent = `${rp.total_legs_won || 0}/${rp.total_legs_lost || 0}`;
+
+                // Fetch recent matches
+                const { data: matches } = await sb.from('ranked_matches')
+                    .select('*')
+                    .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+                    .eq('status', 'completed')
+                    .order('completed_at', { ascending: false })
+                    .limit(10);
+
+                const container = $('ranked-recent-matches');
+                if (!matches || matches.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-muted text-center py-4">No ranked matches yet. Start your journey!</p>';
+                } else {
+                    container.innerHTML = matches.map(m => {
+                        const isP1 = m.player1_id === userId;
+                        const won = m.winner_id === userId;
+                        const myLegs = isP1 ? m.player1_legs_won : m.player2_legs_won;
+                        const oppLegs = isP1 ? m.player2_legs_won : m.player1_legs_won;
+                        const myDelta = isP1 ? m.player1_mmr_delta : m.player2_mmr_delta;
+                        const myAvg = isP1 ? m.player1_average : m.player2_average;
+                        const when = m.completed_at ? new Date(m.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+                        const deltaText = myDelta > 0 ? `<span class="text-success font-bold">+${myDelta}</span>` : `<span class="text-red-400 font-bold">${myDelta}</span>`;
+                        const resultClass = won ? 'border-success/20 bg-success/[0.03]' : 'border-red-400/20 bg-red-400/[0.03]';
+                        const resultLabel = won ? '<span class="text-success font-bold text-[10px]">WIN</span>' : '<span class="text-red-400 font-bold text-[10px]">LOSS</span>';
+
+                        return `<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg border ${resultClass}">
+                            <div class="w-7 text-center">${resultLabel}</div>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-xs text-chalk font-semibold">${myLegs} - ${oppLegs}</span>
+                                <span class="text-[10px] text-muted ml-2">avg ${Number(myAvg || 0).toFixed(1)}</span>
+                            </div>
+                            <div class="text-xs">${deltaText}</div>
+                            <span class="text-[10px] text-muted-2 shrink-0">${when}</span>
+                        </div>`;
+                    }).join('');
+                }
+
+                _rankedLoaded = true;
+            } catch (e) {
+                console.error('Failed to load ranked profile:', e);
+            }
+        }
+
         // ── Tab switching ─────────────────────────────────────────────
         function switchTab(name) {
-            ['overview', 'ambassador', 'profile', 'admin', 'messages'].forEach(t => {
+            ['overview', 'ambassador', 'ranked', 'profile', 'admin', 'messages'].forEach(t => {
                 const panel = $('tab-' + t);
                 const btn = $('tab-btn-' + t);
+                if (!panel || !btn) return;
                 if (t === name) {
                     panel.classList.remove('hidden');
                     btn.classList.add('active');
@@ -2527,6 +2806,7 @@
                 }
             });
             if (name === 'ambassador' && _ambUserId) loadAmbassador(_ambUserId);
+            if (name === 'ranked') loadRankedProfile();
             if (name === 'messages') loadMessages();
             if (name === 'admin') loadAdminStats();
         }
