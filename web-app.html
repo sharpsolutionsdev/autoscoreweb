@@ -1087,7 +1087,30 @@
         .rl-btn img { width:14px; height:14px; object-fit:contain; }
 
         #ranked-match-banner {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: linear-gradient(90deg, rgba(204,11,32,.95), rgba(128,7,20,.95));
+            color: #fff;
+            padding: 8px 14px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800;
+            font-size: 12px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 50;
+            box-shadow: 0 4px 18px rgba(0,0,0,.5);
+            animation: bannerSlideDown .4s ease;
+        }
         #ranked-match-banner.active { display: flex; }
+        #ranked-match-banner .ranked-banner-exit {
+            background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.18);
+            color: #fff; border-radius: 6px; padding: 3px 10px; font-size: 10px;
+            cursor: pointer; letter-spacing: .12em; font-weight: 800;
+        }
+        #ranked-match-banner .ranked-banner-exit:hover { background: rgba(0,0,0,.55); }
         @keyframes bannerSlideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 
         .ranked-status-group { display: flex; align-items: center; gap: 10px; }
@@ -1923,6 +1946,7 @@
                 <span>Ranked Match Active</span>
             </div>
             <div id="ranked-match-id-display" style="opacity: 0.8; font-size: 10px;">ID: --</div>
+            <button type="button" id="ranked-banner-exit" class="ranked-banner-exit" title="Exit ranked mode">Exit</button>
         </div>
         <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock"></iframe>
         <script>
@@ -6481,44 +6505,144 @@ window.openScorerUrl = function(url){
     </script>
 
     <!-- --- RANKED MODE CONTROLLER --- -->
-    <!-- Floating "Find Ranked Match" widget (visible when NOT already in a ranked match) -->
-    <div id="dv-ranked-fab" style="display:none;position:fixed;right:18px;bottom:18px;z-index:9990;
-        background:linear-gradient(135deg,#CC0B20,#800714);color:#fff;border-radius:999px;
-        padding:10px 18px 10px 14px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
-        font-size:11px;cursor:pointer;box-shadow:0 8px 30px rgba(204,11,32,.5),0 0 0 1px rgba(255,255,255,.08);
-        display:none;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;
-        transition:transform .2s ease,box-shadow .2s ease;">
-        <span id="dv-rfab-icon" style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 17 L5 22 L7 14 L2 9 L9 9 Z"/></svg>
-        </span>
-        <span id="dv-rfab-text">Find Ranked Match</span>
-    </div>
-    <div id="dv-ranked-search-overlay" style="display:none;position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;color:#fff;font-family:'Inter',sans-serif;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:900;font-size:48px;letter-spacing:-.02em;margin-bottom:6px;">SEARCHING…</div>
-        <div style="font-size:13px;color:#94a3b8;letter-spacing:.18em;text-transform:uppercase;font-weight:700;">Looking for a worthy opponent</div>
-        <div id="dv-rfab-elapsed" style="margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;color:var(--brand,#CC0B20);">0s</div>
-        <button id="dv-rfab-cancel" style="margin-top:22px;padding:10px 22px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:11px;cursor:pointer;">Cancel</button>
+    <!-- Floating non-blocking ranked widget: idle pill → searching pill → match-found card. User keeps playing the whole time. -->
+    <style>
+        #dv-ranked-widget {
+            position: fixed; right: 18px; bottom: 18px; z-index: 9990;
+            display: none; flex-direction: column; gap: 8px;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            color: #fff; pointer-events: auto;
+        }
+        #dv-ranked-widget[data-state="idle"]      .rw-pane.rw-idle      { display: flex; }
+        #dv-ranked-widget[data-state="searching"] .rw-pane.rw-searching { display: flex; }
+        #dv-ranked-widget[data-state="found"]     .rw-pane.rw-found     { display: flex; }
+        #dv-ranked-widget .rw-pane { display: none; }
+
+        .rw-idle {
+            align-items: center; gap: 8px;
+            background: linear-gradient(135deg, #CC0B20, #800714);
+            border-radius: 999px; padding: 10px 18px 10px 14px;
+            font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+            font-size: 11px; cursor: pointer;
+            box-shadow: 0 8px 30px rgba(204,11,32,.5), 0 0 0 1px rgba(255,255,255,.08);
+            font-family: 'Barlow Condensed', sans-serif;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .rw-idle:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(204,11,32,.65); }
+        .rw-idle .rw-star {
+            width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,.18);
+            display:flex; align-items:center; justify-content:center;
+        }
+
+        .rw-searching {
+            align-items: center; gap: 12px;
+            background: rgba(8,8,10,0.92); backdrop-filter: blur(12px);
+            border: 1px solid rgba(204,11,32,.35); border-radius: 14px;
+            padding: 12px 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04);
+            min-width: 240px;
+        }
+        .rw-spinner {
+            width: 22px; height: 22px; border-radius: 50%;
+            border: 2.5px solid rgba(204,11,32,.18);
+            border-top-color: #CC0B20;
+            animation: rwSpin 0.9s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes rwSpin { to { transform: rotate(360deg); } }
+        .rw-search-text { display:flex; flex-direction:column; gap:2px; flex:1; }
+        .rw-search-title {
+            font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+            color: #fff; font-family: 'Barlow Condensed', sans-serif;
+        }
+        .rw-search-sub { font-size: 11px; color: #94a3b8; }
+        .rw-search-sub b { color: #CC0B20; font-variant-numeric: tabular-nums; }
+        .rw-cancel {
+            background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
+            color: #fff; border-radius: 8px; padding: 6px 10px; cursor: pointer;
+            font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+        }
+        .rw-cancel:hover { background: rgba(255,255,255,.12); }
+
+        .rw-found {
+            flex-direction: column; gap: 10px;
+            background: linear-gradient(160deg, rgba(204,11,32,.18), rgba(8,8,10,.96));
+            border: 1px solid rgba(204,11,32,.55); border-radius: 16px;
+            padding: 14px 16px; min-width: 280px;
+            box-shadow: 0 0 30px rgba(204,11,32,.45), 0 12px 40px rgba(0,0,0,.6);
+            animation: rwPop .5s cubic-bezier(.2,1.4,.4,1);
+        }
+        @keyframes rwPop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .rw-found-eyebrow {
+            font-size: 10px; font-weight: 900; letter-spacing: .3em; text-transform: uppercase;
+            color: #CC0B20;
+        }
+        .rw-found-title {
+            font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900;
+            font-size: 22px; line-height: 1; color: #fff;
+        }
+        .rw-found-opp { font-size: 12px; color: #cbd5e1; }
+        .rw-found-actions { display: flex; gap: 8px; margin-top: 4px; }
+        .rw-btn {
+            flex: 1; padding: 9px 12px; border-radius: 10px; cursor: pointer;
+            font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+            border: 1px solid transparent; transition: all .2s;
+        }
+        .rw-btn-primary {
+            background: #CC0B20; color: #fff;
+            box-shadow: 0 0 18px rgba(204,11,32,.5);
+        }
+        .rw-btn-primary:hover { background: #e60d24; transform: translateY(-1px); }
+        .rw-btn-secondary { background: rgba(255,255,255,.05); color: #fff; border-color: rgba(255,255,255,.14); }
+        .rw-btn-secondary:hover { background: rgba(255,255,255,.1); }
+    </style>
+    <div id="dv-ranked-widget" data-state="idle">
+        <!-- Idle pill -->
+        <button type="button" class="rw-pane rw-idle" id="rw-find-btn" aria-label="Find ranked match">
+            <span class="rw-star">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 17 L5 22 L7 14 L2 9 L9 9 Z"/></svg>
+            </span>
+            <span>Find Ranked Match</span>
+        </button>
+        <!-- Searching pill -->
+        <div class="rw-pane rw-searching" role="status" aria-live="polite">
+            <div class="rw-spinner" aria-hidden="true"></div>
+            <div class="rw-search-text">
+                <div class="rw-search-title">Searching for opponent</div>
+                <div class="rw-search-sub">Keep playing — we'll ping you. <b id="rw-elapsed">0s</b></div>
+            </div>
+            <button type="button" class="rw-cancel" id="rw-cancel-btn">Cancel</button>
+        </div>
+        <!-- Match found card -->
+        <div class="rw-pane rw-found" role="alertdialog" aria-labelledby="rw-found-title-el">
+            <div class="rw-found-eyebrow">★ Ranked Match Found</div>
+            <div class="rw-found-title" id="rw-found-title-el">VS <span id="rw-opp-name">Opponent</span></div>
+            <div class="rw-found-opp" id="rw-opp-meta">Best of 5 · 501 · Double-out</div>
+            <div class="rw-found-actions">
+                <button type="button" class="rw-btn rw-btn-secondary" id="rw-decline-btn">Decline</button>
+                <button type="button" class="rw-btn rw-btn-primary"   id="rw-accept-btn">Accept</button>
+            </div>
+        </div>
     </div>
     <script>
     (function(){
-        const params = new URLSearchParams(window.location.search);
-        // Hide widget while already in a ranked match.
-        if (params.get('ranked') === 'true') return;
-
-        const fab = document.getElementById('dv-ranked-fab');
-        const overlay = document.getElementById('dv-ranked-search-overlay');
-        const elapsedEl = document.getElementById('dv-rfab-elapsed');
-        const cancelBtn = document.getElementById('dv-rfab-cancel');
-        if (!fab || !overlay) return;
+        const widget    = document.getElementById('dv-ranked-widget');
+        const findBtn   = document.getElementById('rw-find-btn');
+        const cancelBtn = document.getElementById('rw-cancel-btn');
+        const acceptBtn = document.getElementById('rw-accept-btn');
+        const declineBtn= document.getElementById('rw-decline-btn');
+        const elapsedEl = document.getElementById('rw-elapsed');
+        const oppNameEl = document.getElementById('rw-opp-name');
+        if (!widget) return;
 
         let elapsedTimer = null;
-        let pollTimer = null;
+        let pollTimer    = null;
         let realtimeChan = null;
-        let startedAt = 0;
-        let currentUser = null;
+        let startedAt    = 0;
+        let currentUser  = null;
+        let pendingMatch = null; // { match_id, opponent_name }
 
-        const showOverlay = () => { overlay.style.display = 'flex'; };
-        const hideOverlay = () => { overlay.style.display = 'none'; };
+        const setState = (s) => widget.setAttribute('data-state', s);
 
         async function ensureUser() {
             if (currentUser) return currentUser;
@@ -6529,6 +6653,11 @@ window.openScorerUrl = function(url){
         }
 
         async function joinQueue() {
+            // If already in a ranked match (banner active), don't queue.
+            if (document.getElementById('ranked-match-banner')?.classList.contains('active')) {
+                if (window.dvToast) window.dvToast('You are already in a ranked match', 'info');
+                return;
+            }
             const u = await ensureUser();
             if (!u) {
                 if (window.dvToast) window.dvToast('Sign in to play ranked', 'error');
@@ -6538,31 +6667,27 @@ window.openScorerUrl = function(url){
                 const { data, error } = await window.sb.functions.invoke('ranked-queue', { body: { action: 'join' } });
                 if (error) throw error;
                 startedAt = Date.now();
-                showOverlay();
+                setState('searching');
                 if (elapsedTimer) clearInterval(elapsedTimer);
                 elapsedTimer = setInterval(() => {
                     elapsedEl.textContent = Math.floor((Date.now()-startedAt)/1000) + 's';
                 }, 250);
-                // If join already returned a match, hop right into the lobby.
-                if (data?.match_id) {
-                    redirectToMatch(data.match_id, data.opponent_name);
-                    return;
-                }
+                if (data?.match_id) { onMatchFound(data.match_id, data.opponent_name); return; }
                 startPolling();
                 subscribeRealtime();
             } catch (e) {
-                console.warn('[RankedFAB] join failed', e);
+                console.warn('[RankedWidget] join failed', e);
                 if (window.dvToast) window.dvToast('Could not join the queue', 'error');
             }
         }
 
-        function redirectToMatch(mid, oppName) {
-            stopAll();
-            const url = new URL(window.location.href);
-            url.searchParams.set('ranked', 'true');
-            url.searchParams.set('matchId', mid);
-            if (oppName) url.searchParams.set('opponent', oppName);
-            window.location.href = url.toString();
+        function onMatchFound(mid, oppName) {
+            stopSearchTimers();
+            pendingMatch = { match_id: mid, opponent_name: oppName || null };
+            oppNameEl.textContent = oppName || 'Opponent';
+            setState('found');
+            // Subtle audio cue if available.
+            try { new Audio('/assets/media/match-found.mp3').play().catch(()=>{}); } catch(_){}
         }
 
         function startPolling() {
@@ -6570,7 +6695,7 @@ window.openScorerUrl = function(url){
             pollTimer = setInterval(async () => {
                 try {
                     const { data } = await window.sb.functions.invoke('ranked-queue', { body: { action: 'check' } });
-                    if (data?.match_id) redirectToMatch(data.match_id, data.opponent_name);
+                    if (data?.match_id) onMatchFound(data.match_id, data.opponent_name);
                 } catch(_){}
             }, 4000);
         }
@@ -6579,34 +6704,67 @@ window.openScorerUrl = function(url){
             if (!currentUser || !window.sb) return;
             try {
                 realtimeChan = window.sb
-                    .channel('rfab_match_' + currentUser.id)
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ranked_matches', filter: `player1_id=eq.${currentUser.id}` }, p => redirectToMatch(p.new.id))
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ranked_matches', filter: `player2_id=eq.${currentUser.id}` }, p => redirectToMatch(p.new.id))
+                    .channel('rw_match_' + currentUser.id)
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ranked_matches', filter: `player1_id=eq.${currentUser.id}` }, p => onMatchFound(p.new.id))
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ranked_matches', filter: `player2_id=eq.${currentUser.id}` }, p => onMatchFound(p.new.id))
                     .subscribe();
             } catch(_){}
         }
 
         async function leaveQueue() {
             try { await window.sb.functions.invoke('ranked-queue', { body: { action: 'leave' } }); } catch(_){}
-            stopAll();
-            hideOverlay();
+            stopSearchTimers();
+            setState('idle');
         }
-        function stopAll() {
+
+        function stopSearchTimers() {
             if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
             if (pollTimer)    { clearInterval(pollTimer);    pollTimer = null; }
             if (realtimeChan) { try { window.sb.removeChannel(realtimeChan); } catch(_){} realtimeChan = null; }
         }
 
-        fab.addEventListener('click', joinQueue);
-        cancelBtn?.addEventListener('click', leaveQueue);
+        function acceptMatch() {
+            if (!pendingMatch) return;
+            const { match_id, opponent_name } = pendingMatch;
+            pendingMatch = null;
+            setState('idle');
+            // Activate ranked UI in-place — no navigation, user stays in their current game view.
+            if (typeof window.dvActivateRankedMatch === 'function') {
+                window.dvActivateRankedMatch(match_id, opponent_name);
+            } else {
+                // Fallback: hard navigate (shouldn't happen — controller is on the same page).
+                const u = new URL(window.location.href);
+                u.searchParams.set('ranked', 'true');
+                u.searchParams.set('matchId', match_id);
+                if (opponent_name) u.searchParams.set('opponent', opponent_name);
+                window.location.href = u.toString();
+            }
+        }
 
-        // Reveal the FAB once the supabase client + a logged-in user are confirmed.
+        function declineMatch() {
+            // Soft decline: just dismiss the card. Server-side state may already
+            // have created the match; the user can still finish/cancel from ranked.html.
+            pendingMatch = null;
+            setState('idle');
+            if (window.dvToast) window.dvToast('Match dismissed. You can rejoin queue any time.', 'info');
+        }
+
+        findBtn?.addEventListener('click', joinQueue);
+        cancelBtn?.addEventListener('click', leaveQueue);
+        acceptBtn?.addEventListener('click', acceptMatch);
+        declineBtn?.addEventListener('click', declineMatch);
+
+        // Reveal widget once supabase + a logged-in user are confirmed, AND
+        // we are not already inside a ranked match (URL param).
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('ranked') === 'true') return; // hidden during active match
+
         let tries = 0;
         const ready = setInterval(async () => {
             if (window.sb && window.sb.auth) {
                 clearInterval(ready);
                 const u = await ensureUser();
-                if (u) fab.style.display = 'flex';
+                if (u) widget.style.display = 'flex';
             } else if (++tries > 60) { clearInterval(ready); }
         }, 100);
     })();
@@ -6649,36 +6807,82 @@ window.openScorerUrl = function(url){
     </div>
     <script>
     (function(){
-        const params = new URLSearchParams(window.location.search);
-        const isRanked = params.get('ranked') === 'true';
-        const matchId = params.get('matchId');
-        const opponentParam = params.get('opponent');
+        // Internal ranked-match state that any caller (URL param or queue widget) can activate.
+        let activeMatchId = null;
+        let activeOpponentName = null;
+        let _rankedStarted = false;
+        let _rankedFinished = false;
+        const REQUIRED_LEGS = 3; // best-of-5 → first to 3
+        const norm = s => String(s||'').trim().toLowerCase().replace(/^@/, '');
 
-        if (!isRanked) return;
-        console.info('[RankedMode] Active. ID:', matchId, 'Opponent:', opponentParam);
+        function activate(matchId, opponentParam) {
+            if (!matchId) return;
+            activeMatchId = matchId;
+            activeOpponentName = opponentParam || null;
+            _rankedStarted = false;
+            _rankedFinished = false;
+            console.info('[RankedMode] Activating. ID:', matchId, 'Opponent:', opponentParam);
 
-        // Surface the small ranked banner + finish-card UI immediately so
-        // the rest of the app already knows we're in a ranked match.
-        const banner = document.getElementById('ranked-match-banner');
-        const card   = document.getElementById('ranked-finish-card');
-        if (banner) banner.classList.add('active');
-        if (card)   card.classList.add('active');
-        const idDisplay = document.getElementById('ranked-match-id-display');
-        const oppDisplay = document.getElementById('ranked-match-opponent');
-        if (idDisplay) idDisplay.textContent = 'ID: ' + (matchId || '--');
-        if (oppDisplay) oppDisplay.textContent = 'vs ' + (opponentParam || 'Opponent');
+            const banner = document.getElementById('ranked-match-banner');
+            const card   = document.getElementById('ranked-finish-card');
+            if (banner) banner.classList.add('active');
+            if (card)   card.classList.add('active');
+            const idDisplay  = document.getElementById('ranked-match-id-display');
+            const oppDisplay = document.getElementById('ranked-match-opponent');
+            if (idDisplay)  idDisplay.textContent  = 'ID: ' + (matchId || '--').slice(0,8);
+            if (oppDisplay) oppDisplay.textContent = 'vs ' + (opponentParam || 'Opponent');
+
+            // Reflect into URL (so reload keeps state, deep-link works).
+            try {
+                const u = new URL(window.location.href);
+                u.searchParams.set('ranked', 'true');
+                u.searchParams.set('matchId', matchId);
+                if (opponentParam) u.searchParams.set('opponent', opponentParam);
+                history.replaceState(null, '', u.toString());
+            } catch(_){}
+
+            hydrateLobbyOverlay();
+        }
+
+        function deactivate() {
+            activeMatchId = null;
+            activeOpponentName = null;
+            _rankedStarted = false;
+            _rankedFinished = false;
+            window._dvLobby = null;
+            document.getElementById('ranked-match-banner')?.classList.remove('active');
+            document.getElementById('ranked-finish-card')?.classList.remove('active');
+            const o = document.getElementById('ranked-lobby-overlay');
+            if (o) { o.classList.remove('active'); o.setAttribute('aria-hidden', 'true'); }
+            try {
+                const u = new URL(window.location.href);
+                u.searchParams.delete('ranked');
+                u.searchParams.delete('matchId');
+                u.searchParams.delete('opponent');
+                history.replaceState(null, '', u.toString());
+            } catch(_){}
+        }
+
+        // Expose for queue widget + other callers.
+        window.dvActivateRankedMatch = activate;
+        window.dvDeactivateRankedMatch = deactivate;
+
+        // Wire exit button on banner.
+        document.getElementById('ranked-banner-exit')?.addEventListener('click', () => {
+            if (confirm('Exit ranked mode? Your match progress will not be submitted automatically.')) deactivate();
+        });
 
         // ── Cinematic lobby fill ─────────────────────────────────────────
         async function hydrateLobbyOverlay() {
             const overlay = document.getElementById('ranked-lobby-overlay');
-            if (!overlay || !window.sb || !matchId) return;
+            if (!overlay || !window.sb || !activeMatchId) return;
             try {
                 const { data: session } = await window.sb.auth.getSession();
                 const me = session?.session?.user;
                 if (!me) return;
 
                 const { data: match } = await window.sb.from('ranked_matches')
-                    .select('player1_id, player2_id').eq('id', matchId).maybeSingle();
+                    .select('player1_id, player2_id').eq('id', activeMatchId).maybeSingle();
                 if (!match) return;
                 const isP1 = match.player1_id === me.id;
                 const oppId = isP1 ? match.player2_id : match.player1_id;
@@ -6713,9 +6917,9 @@ window.openScorerUrl = function(url){
                 setSide('me',  meR,  meDv);
                 setSide('opp', oppR, oppDv);
 
-                // Stash for action buttons.
                 window._dvLobby = {
-                    matchId, oppId, oppName: oppR?.display_name || oppDv?.display_name || opponentParam || '',
+                    matchId: activeMatchId, oppId,
+                    oppName: oppR?.display_name || oppDv?.display_name || activeOpponentName || '',
                     oppDc: oppDv?.dartcounter_username || '',
                     myDc: meDv?.dartcounter_username || '',
                 };
@@ -6730,7 +6934,7 @@ window.openScorerUrl = function(url){
             if (o) { o.classList.remove('active'); o.setAttribute('aria-hidden', 'true'); }
         }
 
-        // Button: auto-add friend on DartCounter.
+        // Lobby action buttons.
         document.getElementById('rl-btn-add-friend')?.addEventListener('click', () => {
             const handle = window._dvLobby?.oppDc;
             if (!handle) {
@@ -6738,7 +6942,6 @@ window.openScorerUrl = function(url){
                 else alert('Opponent has no DartCounter handle saved');
                 return;
             }
-            // Send to the iframe (extension content.js relays to DC).
             const iframe = document.querySelector('#scorer-frame, iframe[src*="dartcounter"], iframe');
             if (iframe?.contentWindow) {
                 iframe.contentWindow.postMessage({ type: 'DV_ADD_DC_FRIEND', username: handle }, '*');
@@ -6748,7 +6951,6 @@ window.openScorerUrl = function(url){
             }
         });
 
-        // Button: navigate the iframe to the friends list.
         document.getElementById('rl-btn-open-lobby')?.addEventListener('click', () => {
             const handle = window._dvLobby?.oppDc;
             const iframe = document.querySelector('#scorer-frame, iframe[src*="dartcounter"], iframe');
@@ -6760,47 +6962,22 @@ window.openScorerUrl = function(url){
 
         document.getElementById('rl-btn-ready')?.addEventListener('click', dismissLobby);
 
-        // Hydrate as soon as supabase client is ready (it's created later in
-        // the page). Poll for a brief window, then bail.
-        let tries = 0;
-        const ready = setInterval(() => {
-            if (window.sb && window.sb.auth) {
-                clearInterval(ready);
-                hydrateLobbyOverlay();
-            } else if (++tries > 60) {
-                clearInterval(ready);
-                console.warn('[RankedMode] Supabase client never appeared');
-            }
-        }, 100);
-
-        // Hook the existing finish button (kept for backwards compat).
-        const finishBtn = document.getElementById('btn-finish-ranked');
-        if (finishBtn) {
-            finishBtn.addEventListener('click', () => {
-                const redirectUrl = new URL('ranked.html', window.location.origin);
-                redirectUrl.searchParams.set('prefill', 'true');
-                redirectUrl.searchParams.set('matchId', matchId);
-                if (opponentParam) redirectUrl.searchParams.set('opponent', opponentParam);
-                window.location.href = redirectUrl.toString();
-            });
-        }
+        // Finish button → submit page with prefill.
+        document.getElementById('btn-finish-ranked')?.addEventListener('click', () => {
+            if (!activeMatchId) return;
+            const redirectUrl = new URL('ranked.html', window.location.origin);
+            redirectUrl.searchParams.set('prefill', 'true');
+            redirectUrl.searchParams.set('matchId', activeMatchId);
+            if (activeOpponentName) redirectUrl.searchParams.set('opponent', activeOpponentName);
+            window.location.href = redirectUrl.toString();
+        });
 
         // ── Live ranked-match detection ──────────────────────────────────
-        // Listen for DV_GAME_STATE coming from the iframe; once we see both
-        // players' DartCounter handles match the saved usernames, mark the
-        // match as "in_progress" in Supabase and toast the user. When the
-        // match completes (one side reaches required legs), auto-prefill +
-        // redirect back to the ranked hub for result submission.
-        let _rankedStarted = false;
-        let _rankedFinished = false;
-        const REQUIRED_LEGS = 3; // best-of-5 → first to 3
-        const norm = s => String(s||'').trim().toLowerCase().replace(/^@/, '');
-
         window.addEventListener('message', (ev) => {
             const d = ev?.data;
             if (!d || d.type !== 'DV_GAME_STATE' || !d.state) return;
             const lobby = window._dvLobby;
-            if (!lobby || !matchId) return;
+            if (!lobby || !activeMatchId) return;
             const s = d.state;
             const p1 = norm(s.p1Name);
             const p2 = norm(s.p2Name);
@@ -6818,7 +6995,7 @@ window.openScorerUrl = function(url){
                 if (window.dvToast) window.dvToast('Ranked match detected — stats are now being logged', 'success');
                 try {
                     window.sb?.functions.invoke('ranked-match-result', {
-                        body: { action: 'start_match', match_id: matchId }
+                        body: { action: 'start_match', match_id: activeMatchId }
                     }).catch(()=>{});
                 } catch(_){}
             }
@@ -6829,17 +7006,28 @@ window.openScorerUrl = function(url){
             if (!_rankedFinished && _rankedStarted && (p1L >= REQUIRED_LEGS || p2L >= REQUIRED_LEGS)) {
                 _rankedFinished = true;
                 if (window.dvToast) window.dvToast('Match complete — opening result submission…', 'info');
-                // Give the iframe a beat to flush its final state into
-                // sessionStorage, then redirect with prefill intent.
                 setTimeout(() => {
                     const redirectUrl = new URL('ranked.html', window.location.origin);
                     redirectUrl.searchParams.set('prefill', 'true');
-                    redirectUrl.searchParams.set('matchId', matchId);
+                    redirectUrl.searchParams.set('matchId', activeMatchId);
                     if (lobby.oppName) redirectUrl.searchParams.set('opponent', lobby.oppName);
                     window.location.href = redirectUrl.toString();
                 }, 2500);
             }
         });
+
+        // Auto-activate from URL params on load.
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('ranked') === 'true' && params.get('matchId')) {
+            // Wait for sb client before hydrating lobby.
+            let tries = 0;
+            const ready = setInterval(() => {
+                if (window.sb && window.sb.auth) {
+                    clearInterval(ready);
+                    activate(params.get('matchId'), params.get('opponent'));
+                } else if (++tries > 60) clearInterval(ready);
+            }, 100);
+        }
     })();
     </script>
 
