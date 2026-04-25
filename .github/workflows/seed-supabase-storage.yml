@@ -1,0 +1,83 @@
+name: Seed Supabase Storage from GitHub Releases
+
+# One-click migration helper: pulls the latest published Windows installer,
+# Android APK, and (optional) Chrome-extension zip from the public GitHub
+# Releases of THIS repo, then uploads them to the public Supabase Storage
+# `releases` bucket. Re-runnable; uses x-upsert: true.
+#
+# After this completes successfully you can swap the site download links
+# from the github.com URLs over to the Supabase Storage URLs (see
+# docs/GOING-PRIVATE.md).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    name: Pull & re-upload binaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repo (for the extension zip)
+        uses: actions/checkout@v4
+
+      - name: Mirror to Supabase Storage
+        env:
+          SUPABASE_URL: https://poyjykgqsvgimssbhsuz.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Repo secret SUPABASE_SERVICE_ROLE_KEY is not set."
+            echo "Add it at:  https://github.com/sharpsolutionsdev/autoscoreweb/settings/secrets/actions"
+            exit 1
+          fi
+
+          set -euo pipefail
+          tmp=$(mktemp -d)
+
+          echo "→ Downloading current APK from GitHub Releases…"
+          curl -sSL -o "$tmp/DartVoice.apk" \
+            "https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk"
+          ls -lh "$tmp/DartVoice.apk"
+
+          echo "→ Downloading current Windows installer from GitHub Releases…"
+          curl -sSL -o "$tmp/DartVoice_Setup.exe" \
+            "https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/windows-latest/DartVoice_Setup.exe"
+          ls -lh "$tmp/DartVoice_Setup.exe"
+
+          upload () {
+            local path="$1"; local name="$2"; local mime="$3"
+            echo "→ Uploading $name ($mime)…"
+            curl --fail-with-body -X POST \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Content-Type: $mime" \
+              -H "x-upsert: true" \
+              --data-binary @"$path" \
+              "$SUPABASE_URL/storage/v1/object/releases/$name"
+            echo ""
+          }
+
+          upload "$tmp/DartVoice.apk"        "DartVoice.apk"       "application/vnd.android.package-archive"
+          upload "$tmp/DartVoice_Setup.exe"  "DartVoice_Setup.exe" "application/vnd.microsoft.portable-executable"
+
+          if [ -f downloads/dartvoice-extension.zip ]; then
+            upload "downloads/dartvoice-extension.zip" "dartvoice-extension.zip" "application/zip"
+          fi
+
+          echo ""
+          echo "Done. Public URLs:"
+          echo "  $SUPABASE_URL/storage/v1/object/public/releases/DartVoice.apk"
+          echo "  $SUPABASE_URL/storage/v1/object/public/releases/DartVoice_Setup.exe"
+          echo "  $SUPABASE_URL/storage/v1/object/public/releases/dartvoice-extension.zip"
+
+      - name: Verify URLs are live
+        run: |
+          for f in DartVoice.apk DartVoice_Setup.exe dartvoice-extension.zip; do
+            url="https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/$f"
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            echo "$f -> HTTP $code"
+            if [ "$code" != "200" ] && [ "$f" != "dartvoice-extension.zip" ]; then
+              echo "::warning::$f returned $code"
+            fi
+          done
