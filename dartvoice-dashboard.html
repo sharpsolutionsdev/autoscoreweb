@@ -451,21 +451,73 @@
             font-style: italic;
         }
 
-        /* ── Tabs ── */
+        /* ── Tabs (pill style with active glow) ── */
         .tab-btn {
-            color: #6E6E82;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
-            padding-bottom: 10px;
+            color: #8a8a99;
+            border: 1px solid transparent;
+            background: transparent;
+            border-radius: 12px;
+            transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease;
         }
-
         .tab-btn:hover {
             color: #F0F0F5;
+            background: rgba(255,255,255,0.04);
         }
-
         .tab-btn.active {
-            color: #F0F0F5;
-            border-bottom-color: var(--brand);
+            color: #fff;
+            background: linear-gradient(135deg, rgba(var(--brand-rgb,204,11,32),.22), rgba(var(--brand-rgb,204,11,32),.08));
+            border-color: rgba(var(--brand-rgb,204,11,32),.45);
+            box-shadow: 0 0 0 1px rgba(var(--brand-rgb,204,11,32),.18), 0 8px 24px -8px rgba(var(--brand-rgb,204,11,32),.45), inset 0 1px 0 rgba(255,255,255,.05);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            left: 14px; right: 14px; bottom: -1px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--brand,#cc0b20), transparent);
+            border-radius: 2px;
+            box-shadow: 0 0 12px rgba(var(--brand-rgb,204,11,32),.7);
+        }
+        .tab-btn .tab-ico { width: 14px; height: 14px; flex-shrink: 0; opacity: .9; }
+        .tab-btn.active .tab-ico { color: var(--brand,#cc0b20); opacity: 1; }
+
+        /* ── Animated dashboard hero header ── */
+        .dv-hero-bg {
+            position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+        }
+        .dv-hero-bg::before, .dv-hero-bg::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .35;
+            animation: dvHeroFloat 18s ease-in-out infinite;
+        }
+        .dv-hero-bg::before {
+            width: 420px; height: 420px;
+            top: -120px; left: -100px;
+            background: radial-gradient(circle, rgba(var(--brand-rgb,204,11,32),.55), transparent 65%);
+        }
+        .dv-hero-bg::after {
+            width: 360px; height: 360px;
+            top: -60px; right: -120px;
+            background: radial-gradient(circle, rgba(120,40,200,.45), transparent 65%);
+            animation-delay: -9s;
+            animation-duration: 22s;
+        }
+        @keyframes dvHeroFloat {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            33%      { transform: translate(40px,30px) scale(1.08); }
+            66%      { transform: translate(-30px,20px) scale(.95); }
+        }
+        .dv-hero-grid {
+            position: absolute; inset: 0; pointer-events: none; opacity: .08; z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse at center top, #000 30%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse at center top, #000 30%, transparent 75%);
         }
 
         /* ── Pro Profile ── */
@@ -778,14 +830,18 @@
                 </div>
 
                 <!-- Page header -->
-                <div class="fade-up">
-                    <p id="dash-greeting" class="text-xs font-semibold uppercase tracking-widest mb-2"
-                        style="color:#4A4A5A;">Dashboard</p>
-                    <h1 class="display"
-                        style="font-size:clamp(2.6rem,5.5vw,4rem);line-height:1;color:#F0F0F5;margin-bottom:6px;">
-                        DARTVOICE</h1>
-                    <p class="text-sm" style="color:#6E6E82;">Manage your subscription, launch your platform, compare
-                        scoring modes, and stay current with support updates.</p>
+                <div class="fade-up relative">
+                    <div class="dv-hero-bg"></div>
+                    <div class="dv-hero-grid"></div>
+                    <div class="relative" style="z-index:1">
+                        <p id="dash-greeting" class="text-xs font-semibold uppercase tracking-widest mb-2"
+                            style="color:var(--brand,#cc0b20);text-shadow:0 0 14px rgba(var(--brand-rgb,204,11,32),.4);">Dashboard</p>
+                        <h1 id="dash-title" class="display"
+                            style="font-size:clamp(2.4rem,5.2vw,3.8rem);line-height:1;color:#F0F0F5;margin-bottom:6px;">
+                            USER DASHBOARD</h1>
+                        <p id="dash-subtitle" class="text-sm" style="color:#a4a4b8;max-width:640px;">Manage your subscription, launch your platform, compare
+                            scoring modes, and stay current with support updates.</p>
+                    </div>
                 </div>
 
             </div>
@@ -794,39 +850,44 @@
         <div class="max-w-5xl mx-auto px-5 sm:px-8 pt-8 pb-safe">
 
             <!-- ── Tab nav ──────────────────────────────────────── -->
-            <div class="mb-6 fade-up overflow-x-auto" style="border-bottom:1px solid rgba(255,255,255,0.06);">
-                <div class="flex gap-1 min-w-max">
+            <div class="mb-6 fade-up overflow-x-auto">
+                <div class="flex gap-1.5 min-w-max p-1 rounded-2xl border border-white/5" style="background:linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.01));backdrop-filter:blur(8px);">
                     <button onclick="switchTab('overview')" id="tab-btn-overview"
-                        class="tab-btn active px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
+                        class="tab-btn active px-3.5 py-2 text-sm font-semibold relative flex items-center gap-2 whitespace-nowrap">
+                        <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         Overview
                     </button>
                     <button onclick="switchTab('ambassador')" id="tab-btn-ambassador"
-                        class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition flex items-center gap-2 whitespace-nowrap">
+                        class="tab-btn px-3.5 py-2 text-sm font-semibold relative flex items-center gap-2 whitespace-nowrap">
+                        <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 12v-2m9-4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Ambassador
                         <span id="amb-earned-badge"
                             class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20"></span>
                     </button>
                     <button onclick="window.location.href='ranked.html'" id="tab-btn-ranked"
-                        class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition flex items-center gap-2 whitespace-nowrap">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        class="tab-btn px-3.5 py-2 text-sm font-semibold relative flex items-center gap-2 whitespace-nowrap">
+                        <svg class="tab-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2c0 3.31-2.06 6.13-4.96 7.27.46 1.31 1.36 2.41 2.54 3.13l-1 2.6H8.42l-1-2.6c1.18-.72 2.08-1.82 2.54-3.13C7.06 11.13 5 8.31 5 5V3zM6 20h12v2H6v-2z"/></svg>
                         Ranked
                     </button>
                     <button onclick="switchTab('profile')" id="tab-btn-profile"
-                        class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
+                        class="tab-btn px-3.5 py-2 text-sm font-semibold relative flex items-center gap-2 whitespace-nowrap">
+                        <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         Profile
                     </button>
                     <button onclick="switchTab('friends')" id="tab-btn-friends"
-                        class="tab-btn px-4 py-2.5 text-sm font-semibold relative transition flex items-center gap-2 whitespace-nowrap">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        class="tab-btn px-3.5 py-2 text-sm font-semibold relative flex items-center gap-2 whitespace-nowrap">
+                        <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         Friends
                         <span id="friends-pending-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand/15 text-brand border border-brand/30"></span>
                     </button>
                     <button onclick="switchTab('admin')" id="tab-btn-admin"
-                        class="tab-btn hidden px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
+                        class="tab-btn hidden px-3.5 py-2 text-sm font-semibold relative flex items-center gap-2 whitespace-nowrap">
+                        <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                         Admin Stats
                     </button>
                     <button onclick="switchTab('messages')" id="tab-btn-messages"
-                        class="tab-btn hidden px-4 py-2.5 text-sm font-semibold relative transition whitespace-nowrap">
+                        class="tab-btn hidden px-3.5 py-2 text-sm font-semibold relative flex items-center gap-2 whitespace-nowrap">
+                        <svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         Messages
                     </button>
                 </div>
@@ -874,7 +935,7 @@
                                 
                                 <div class="flex flex-col sm:flex-row gap-3">
                                     <button onclick="window.location.href='web-app'" class="flex-[2] btn-brand py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(var(--brand-rgb), 0.3)]">
-                                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
@@ -2815,6 +2876,22 @@
                     btn.classList.remove('active');
                 }
             });
+            // Dynamic dashboard hero title per tab
+            const HEAD = {
+                overview:   { eyebrow: 'Dashboard',         title: 'USER DASHBOARD',  sub: 'Manage your subscription, launch your platform, compare scoring modes, and stay current with support updates.' },
+                ambassador: { eyebrow: 'Ambassador Program', title: 'EARN £5 / SIGN-UP', sub: 'Invite mates, track confirmed and pending referrals, and cash out via PayPal once you hit the threshold.' },
+                profile:    { eyebrow: 'Your Identity',      title: 'PROFILE',          sub: 'Pick a public DartVoice handle, link your DartCounter username, and tune how you appear across the platform.' },
+                friends:    { eyebrow: 'Players',            title: 'FRIENDS',          sub: 'Find players by handle, send and accept friend requests, and grow your DartVoice circle.' },
+                admin:      { eyebrow: 'Operator Tools',     title: 'ADMIN STATS',      sub: 'Live revenue, user activity, signups, conversions, and referral health.' },
+                messages:   { eyebrow: 'Inbox',              title: 'MESSAGES',         sub: 'Contact-form submissions sent in by the community.' }
+            };
+            const head = HEAD[name] || HEAD.overview;
+            const eb = document.getElementById('dash-greeting');
+            const ti = document.getElementById('dash-title');
+            const su = document.getElementById('dash-subtitle');
+            if (eb) eb.textContent = head.eyebrow;
+            if (ti) ti.textContent = head.title;
+            if (su) su.textContent = head.sub;
             if (name === 'ambassador' && _ambUserId) loadAmbassador(_ambUserId);
             if (name === 'friends') loadFriends();
             if (name === 'messages') loadMessages();
