@@ -2,6 +2,7 @@ class DvNav extends HTMLElement {
   connectedCallback() {
     this.render();
     this.bindMenu();
+    this.bindLeaderboard();
     this.initAuth();
   }
 
@@ -21,6 +22,28 @@ class DvNav extends HTMLElement {
               Web App
               <span class="flex h-2 w-2 relative -top-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span></span>
             </a>
+            <div class="relative" id="nav-lb-wrap">
+              <button type="button" id="nav-lb-btn"
+                class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5"
+                aria-haspopup="true" aria-expanded="false" aria-controls="nav-lb-menu" title="Live Ranked Leaderboard">
+                <svg class="w-3.5 h-3.5 text-brand" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2c0 3.31-2.06 6.13-4.96 7.27.46 1.31 1.36 2.41 2.54 3.13l-1 2.6H8.42l-1-2.6c1.18-.72 2.08-1.82 2.54-3.13C7.06 11.13 5 8.31 5 5V3zm2 2v0c0 2.36 1.5 4.36 3.6 5.13L11 11h2l.4-.87C15.5 9.36 17 7.36 17 5H7zM6 20h12v2H6v-2z"/></svg>
+                Leaderboard
+                <svg class="w-3 h-3 transition-transform" id="nav-lb-chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div id="nav-lb-menu"
+                class="absolute right-0 top-full mt-1 w-[320px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl opacity-0 invisible translate-y-1 transition-all duration-150 overflow-hidden">
+                <div class="px-4 pt-3 pb-2 flex items-center justify-between border-b border-wire/40">
+                  <div>
+                    <p class="text-[10px] font-bold tracking-widest text-brand uppercase">Top Ranked</p>
+                    <p class="text-xs text-muted">Live MMR rankings</p>
+                  </div>
+                  <a href="/ranked" class="text-[11px] text-muted hover:text-chalk transition">View all →</a>
+                </div>
+                <div id="nav-lb-list" class="py-1 max-h-[340px] overflow-y-auto">
+                  <div class="px-4 py-6 text-center text-xs text-muted">Loading…</div>
+                </div>
+              </div>
+            </div>
             <div class="relative group" id="nav-more">
               <button type="button" id="nav-more-btn"
                 class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1"
@@ -73,6 +96,13 @@ class DvNav extends HTMLElement {
             <a href="/ranked" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ranked
             </a>
+            <div class="px-2 pt-2 pb-1 flex items-center justify-between">
+              <p class="text-[10px] font-bold tracking-widest text-brand uppercase">Top Ranked</p>
+              <a href="/ranked" class="text-[11px] text-muted hover:text-chalk">View all →</a>
+            </div>
+            <div id="nav-lb-list-mobile" class="rounded-lg border border-wire/40 bg-black/30 mb-1">
+              <div class="px-3 py-3 text-center text-[11px] text-muted">Loading…</div>
+            </div>
             <a href="/referral" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
             </a>
@@ -102,6 +132,107 @@ class DvNav extends HTMLElement {
         menu.style.maxHeight = '0px';
       });
     });
+  }
+
+  /**
+   * Live ranked leaderboard popover. Fetches top 8 ranked profiles by MMR
+   * via Supabase REST. Reuses anon key. RLS allows public select on ranked_profiles.
+   */
+  bindLeaderboard() {
+    const wrap = this.querySelector('#nav-lb-wrap');
+    const btn  = this.querySelector('#nav-lb-btn');
+    const menu = this.querySelector('#nav-lb-menu');
+    const chev = this.querySelector('#nav-lb-chev');
+    const list = this.querySelector('#nav-lb-list');
+    const listMob = this.querySelector('#nav-lb-list-mobile');
+    if (!wrap || !btn || !menu || !list) return;
+
+    const setOpen = (open) => {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        menu.classList.remove('opacity-0', 'invisible', 'translate-y-1');
+        menu.classList.add('opacity-100', 'visible', 'translate-y-0');
+        chev?.classList.add('rotate-180');
+      } else {
+        menu.classList.add('opacity-0', 'invisible', 'translate-y-1');
+        menu.classList.remove('opacity-100', 'visible', 'translate-y-0');
+        chev?.classList.remove('rotate-180');
+      }
+    };
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      setOpen(!open);
+      if (!open) this.loadLeaderboard(list, listMob);
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    // Pre-warm mobile list once nav menu first opens.
+    const mobBtn = this.querySelector('#mob-btn-nav');
+    if (mobBtn && listMob) {
+      mobBtn.addEventListener('click', () => {
+        if (!listMob.dataset.loaded) this.loadLeaderboard(null, listMob);
+      }, { once: false });
+    }
+  }
+
+  /** Tier badge color */
+  static tierColor(tier) {
+    const t = (tier || '').toLowerCase();
+    if (t.includes('grand')) return '#a855f7';
+    if (t.includes('master')) return '#ef4444';
+    if (t.includes('diamond')) return '#06b6d4';
+    if (t.includes('plat')) return '#22d3ee';
+    if (t.includes('gold')) return '#f59e0b';
+    if (t.includes('silver')) return '#cbd5e1';
+    if (t.includes('bronze')) return '#b45309';
+    return '#94a3b8';
+  }
+
+  async loadLeaderboard(listEl, listMobEl) {
+    const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+    const targets = [listEl, listMobEl].filter(Boolean);
+    try {
+      const url = `${SB_URL}/rest/v1/ranked_profiles?select=id,display_name,mmr,rank_tier,wins,losses,avatar_url&order=mmr.desc&limit=8`;
+      const resp = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+      const rows = resp.ok ? await resp.json() : [];
+      const html = (rows && rows.length)
+        ? rows.map((r, i) => {
+            const name = this.escapeHtml(r.display_name || 'Player');
+            const tier = (r.rank_tier || 'silver').toString().toUpperCase();
+            const tierC = DvNav.tierColor(r.rank_tier);
+            const w = r.wins || 0; const l = r.losses || 0;
+            const wr = (w + l) > 0 ? Math.round((w / (w + l)) * 100) : 0;
+            const av = r.avatar_url
+              ? `<img src="${this.escapeHtml(r.avatar_url)}" alt="" class="w-7 h-7 rounded-full object-cover">`
+              : `<div class="w-7 h-7 rounded-full bg-wire/40 flex items-center justify-center text-[10px] font-bold text-muted">${name.slice(0,1).toUpperCase()}</div>`;
+            return `
+              <div class="flex items-center gap-2.5 px-3 py-2 hover:bg-wire/20 transition">
+                <span class="text-[11px] font-bold w-5 text-right" style="color:${i < 3 ? '#f59e0b' : '#6b7280'}">#${i + 1}</span>
+                ${av}
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs text-chalk font-semibold truncate">${name}</p>
+                  <p class="text-[10px] text-muted">${w}W · ${l}L · ${wr}% WR</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs font-bold text-chalk">${r.mmr ?? '—'}</p>
+                  <p class="text-[9px] font-bold tracking-wider" style="color:${tierC}">${this.escapeHtml(tier)}</p>
+                </div>
+              </div>`;
+          }).join('')
+        : `<div class="px-4 py-6 text-center text-xs text-muted">No ranked players yet.<br><a href="/ranked" class="text-brand hover:underline">Be the first →</a></div>`;
+      targets.forEach(el => { el.innerHTML = html; el.dataset.loaded = '1'; });
+    } catch (e) {
+      const errHtml = `<div class="px-4 py-6 text-center text-xs text-muted">Couldn’t load leaderboard.</div>`;
+      targets.forEach(el => { el.innerHTML = errHtml; });
+    }
   }
 
   initAuth() {
