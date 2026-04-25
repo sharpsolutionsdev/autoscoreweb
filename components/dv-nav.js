@@ -304,3 +304,172 @@ class DvNav extends HTMLElement {
 }
 
 customElements.define('dv-nav', DvNav);
+
+/* ──────────────────────────────────────────────────────────────────────
+   Auto-inject leaderboard pill into pages that use an inline <nav>
+   instead of <dv-nav>. Runs on DOMContentLoaded; bails out if a
+   <dv-nav> element is present (it already has the pill) or if a
+   #nav-lb-btn already exists in the DOM.
+   ────────────────────────────────────────────────────────────────────── */
+(function dvLeaderboardPill() {
+  const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+
+  // Same 6-tier ladder used on ranked.html — kept in sync intentionally.
+  const RANKS = [
+    { name:'bronze',   min:0,    color:'#cd7f32' },
+    { name:'silver',   min:800,  color:'#c0c0c0' },
+    { name:'gold',     min:1200, color:'#ffd700' },
+    { name:'platinum', min:1600, color:'#e5e4e2' },
+    { name:'diamond',  min:2000, color:'#b9f2ff' },
+    { name:'champion', min:2400, color:'#CC0B20' }
+  ];
+  function rankInfo(mmr) {
+    const m = Math.max(0, Number(mmr) || 0);
+    let i = 0;
+    for (let k = 0; k < RANKS.length; k++) if (m >= RANKS[k].min) i = k;
+    const cur = RANKS[i];
+    const next = RANKS[i + 1];
+    const span = next ? (next.min - cur.min) : 600;
+    const seg  = Math.min(2, Math.floor((m - cur.min) / (span / 3)));
+    const div  = ['III','II','I'][seg];
+    const cap  = cur.name.charAt(0).toUpperCase() + cur.name.slice(1);
+    return { name: cur.name, color: cur.color, division: div, label: `${cap} ${div}` };
+  }
+  function flagEmoji(cc) {
+    if (!cc || typeof cc !== 'string' || cc.length !== 2) return '';
+    const A = 0x1F1E6;
+    const c = cc.toUpperCase();
+    return String.fromCodePoint(A + (c.charCodeAt(0) - 65)) + String.fromCodePoint(A + (c.charCodeAt(1) - 65));
+  }
+  function esc(v) {
+    const d = document.createElement('div');
+    d.textContent = v == null ? '' : String(v);
+    return d.innerHTML;
+  }
+
+  function makePillHtml() {
+    return `
+      <div class="relative" id="dvlb-wrap" style="display:inline-block;">
+        <button type="button" id="dvlb-btn"
+          class="text-sm transition px-3 py-2 flex items-center gap-1.5"
+          style="color:rgba(255,255,255,0.65);background:transparent;border:0;cursor:pointer;font:inherit;"
+          aria-haspopup="true" aria-expanded="false" title="Live Ranked Leaderboard">
+          <svg style="width:14px;height:14px;color:#CC0B20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2c0 3.31-2.06 6.13-4.96 7.27.46 1.31 1.36 2.41 2.54 3.13l-1 2.6H8.42l-1-2.6c1.18-.72 2.08-1.82 2.54-3.13C7.06 11.13 5 8.31 5 5V3zm2 2v0c0 2.36 1.5 4.36 3.6 5.13L11 11h2l.4-.87C15.5 9.36 17 7.36 17 5H7zM6 20h12v2H6v-2z"/></svg>
+          <span>Leaderboard</span>
+          <svg id="dvlb-chev" style="width:12px;height:12px;transition:transform .15s" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div id="dvlb-menu"
+          style="position:absolute;right:0;top:100%;margin-top:4px;width:320px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,10,10,0.96);backdrop-filter:blur(16px);box-shadow:0 24px 60px rgba(0,0,0,0.6);overflow:hidden;opacity:0;visibility:hidden;transform:translateY(4px);transition:all .15s;z-index:60;">
+          <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <p style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#CC0B20;margin:0;">Top Ranked</p>
+              <p style="font-size:11px;color:rgba(255,255,255,0.5);margin:2px 0 0;">Live MMR rankings</p>
+            </div>
+            <a href="/ranked" style="font-size:11px;color:rgba(255,255,255,0.5);text-decoration:none;">View all →</a>
+          </div>
+          <div id="dvlb-list" style="padding:4px 0;max-height:340px;overflow-y:auto;">
+            <div style="padding:24px;text-align:center;font-size:12px;color:rgba(255,255,255,0.5);">Loading…</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function loadList(listEl) {
+    try {
+      const url = `${SB_URL}/rest/v1/ranked_profiles?select=id,display_name,mmr,wins,losses&is_placed=eq.true&order=mmr.desc&limit=8`;
+      const resp = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+      const rows = resp.ok ? await resp.json() : [];
+      if (!rows.length) {
+        listEl.innerHTML = `<div style="padding:24px;text-align:center;font-size:12px;color:rgba(255,255,255,0.5);">No ranked players yet.<br><a href="/ranked" style="color:#CC0B20;">Be the first →</a></div>`;
+        return;
+      }
+      // Try to enrich with avatars + country codes. Best-effort.
+      let avatarMap = {}, countryMap = {};
+      try {
+        const ids = rows.map(r => r.id);
+        const inList = ids.map(i => `"${i}"`).join(',');
+        const url2 = `${SB_URL}/rest/v1/dartvoice_profiles?select=id,avatar_url,country_code&id=in.(${inList})`;
+        const r2 = await fetch(url2, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+        if (r2.ok) {
+          const profs = await r2.json();
+          profs.forEach(p => {
+            if (p.avatar_url) avatarMap[p.id] = p.avatar_url;
+            if (p.country_code) countryMap[p.id] = p.country_code;
+          });
+        }
+      } catch(_){}
+      listEl.innerHTML = rows.map((r, i) => {
+        const name = esc(r.display_name || 'Player');
+        const ri = rankInfo(r.mmr || 1200);
+        const w = r.wins || 0, l = r.losses || 0;
+        const wr = (w + l) > 0 ? Math.round((w / (w + l)) * 100) : 0;
+        const av = avatarMap[r.id]
+          ? `<img src="${esc(avatarMap[r.id])}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+          : `<div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);flex-shrink:0;">${name.slice(0,1).toUpperCase()}</div>`;
+        const flag = flagEmoji(countryMap[r.id]);
+        const posColor = i < 3 ? '#f59e0b' : 'rgba(255,255,255,0.4)';
+        return `
+          <a href="/ranked" style="display:flex;align-items:center;gap:10px;padding:8px 14px;text-decoration:none;color:inherit;transition:background .12s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+            <span style="font-size:11px;font-weight:700;width:20px;text-align:right;color:${posColor};">#${i + 1}</span>
+            ${av}
+            <div style="flex:1;min-width:0;">
+              <p style="font-size:12px;font-weight:600;color:#fff;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${flag ? `<span style="margin-right:4px;font-size:13px;">${flag}</span>` : ''}${name}</p>
+              <p style="font-size:10px;color:rgba(255,255,255,0.45);margin:1px 0 0;">${w}W · ${l}L · ${wr}% WR</p>
+            </div>
+            <div style="text-align:right;">
+              <p style="font-size:12px;font-weight:700;color:#fff;margin:0;">${r.mmr ?? '—'}</p>
+              <p style="font-size:9px;font-weight:700;letter-spacing:.06em;margin:1px 0 0;color:${ri.color};">${esc(ri.label)}</p>
+            </div>
+          </a>`;
+      }).join('');
+    } catch (e) {
+      listEl.innerHTML = `<div style="padding:24px;text-align:center;font-size:12px;color:rgba(255,255,255,0.5);">Couldn’t load leaderboard.</div>`;
+    }
+  }
+
+  function inject() {
+    if (document.querySelector('dv-nav')) return;        // already handled by component
+    if (document.getElementById('nav-lb-btn')) return;   // duplicate
+    if (document.getElementById('dvlb-btn')) return;     // already injected
+    // Find the auth/CTA cluster on the right side of the inline nav.
+    const authBlock =
+      document.getElementById('nav-auth-desktop') ||
+      document.querySelector('nav .hidden.sm\\:flex.items-center.gap-3') ||
+      null;
+    if (!authBlock) return;
+    const wrap = document.createElement('span');
+    wrap.innerHTML = makePillHtml();
+    // Insert before the auth block so it sits between page links and Sign In.
+    authBlock.parentNode.insertBefore(wrap.firstElementChild, authBlock);
+
+    const btn  = document.getElementById('dvlb-btn');
+    const menu = document.getElementById('dvlb-menu');
+    const list = document.getElementById('dvlb-list');
+    const chev = document.getElementById('dvlb-chev');
+    const wrapEl = document.getElementById('dvlb-wrap');
+    if (!btn || !menu || !list) return;
+
+    const setOpen = (open) => {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      menu.style.opacity    = open ? '1' : '0';
+      menu.style.visibility = open ? 'visible' : 'hidden';
+      menu.style.transform  = open ? 'translateY(0)' : 'translateY(4px)';
+      if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+    };
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      setOpen(!open);
+      if (!open && !list.dataset.loaded) { loadList(list); list.dataset.loaded = '1'; }
+    });
+    document.addEventListener('click', (e) => { if (!wrapEl.contains(e.target)) setOpen(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject);
+  } else {
+    inject();
+  }
+})();

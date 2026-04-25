@@ -26,11 +26,13 @@
 
     <script>
     // Auto-start DartCounter injector for ambassador accounts (postMessage to iframe)
+    // Wrapped so document.body is guaranteed to exist when we read its classList.
     (function(){
-        try {
-            if (!document.body.classList.contains('dv-is-ambassador')) return;
-            // Allow opt-out via localStorage: set dv-autoinject=0 to disable
-            if (localStorage.getItem('dv-autoinject') === '0') return;
+        function start(){
+            try {
+                if (!document.body || !document.body.classList.contains('dv-is-ambassador')) return;
+                // Allow opt-out via localStorage: set dv-autoinject=0 to disable
+                if (localStorage.getItem('dv-autoinject') === '0') return;
 
             const selector = 'app-cricket-tactics-keyboard > div';
             const intervalMs = 1200;
@@ -61,7 +63,13 @@
             }, false);
 
             tryFindIframeAndStart(10);
-        } catch(e) { console.warn('dv-autoinject init error', e); }
+            } catch(e) { console.warn('dv-autoinject init error', e); }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', start);
+        } else {
+            start();
+        }
     })();
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -6094,6 +6102,7 @@ window.openScorerUrl = function(url){
     </script>
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
+    <script src="components/dv-nav.js" defer></script>
     <script>
         /* Opt-in reorderable sidebar cards — toggle pill turns drag mode on,
            "Done" button (or ESC) commits and persists to localStorage.
@@ -6232,6 +6241,8 @@ window.openScorerUrl = function(url){
         body:not(.dv-can-overlay) #dv-overlays-launcher,
         body:not(.dv-can-overlay) #dv-overlays-panel,
         body:not(.dv-can-overlay) .dv-stream-overlay { display: none !important; }
+        /* Force-show launcher when role is granted (defends against any stray rule). */
+        body.dv-can-overlay #dv-overlays-launcher { display: inline-flex !important; }
 
         #dv-overlays-launcher {
             position: fixed; right: 16px; bottom: 70px; z-index: 100000;
