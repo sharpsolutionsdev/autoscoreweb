@@ -73,27 +73,24 @@ jobs:
           path: autoscore/installer_output/DartVoice_Setup.exe
           retention-days: 30
 
-      # Primary download host — Supabase Storage public bucket.
-      # Works whether the repo is public or private.
-      # URL: https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice_Setup.exe
-      - name: Publish to Supabase Storage
+      # Primary download host — Cloudflare R2 (works on private repos).
+      - name: Publish to Cloudflare R2
         shell: pwsh
         env:
-          SUPABASE_URL: https://poyjykgqsvgimssbhsuz.supabase.co
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CF_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: 0585d1caa30b50424399443d3fc46628
+          R2_BUCKET:     dartvoice-releases
         run: |
-          if (-not $env:SUPABASE_SERVICE_ROLE_KEY) {
-            Write-Host "SUPABASE_SERVICE_ROLE_KEY secret not set — skipping Storage upload."
+          if (-not $env:CF_API_TOKEN) {
+            Write-Host "CLOUDFLARE_API_TOKEN secret not set — skipping R2 upload."
             exit 0
           }
+          $uri = "https://api.cloudflare.com/client/v4/accounts/$env:CF_ACCOUNT_ID/r2/buckets/$env:R2_BUCKET/objects/DartVoice_Setup.exe"
           $headers = @{
-            'Authorization' = "Bearer $env:SUPABASE_SERVICE_ROLE_KEY"
-            'apikey'        = $env:SUPABASE_SERVICE_ROLE_KEY
+            'Authorization' = "Bearer $env:CF_API_TOKEN"
             'Content-Type'  = 'application/vnd.microsoft.portable-executable'
-            'x-upsert'      = 'true'
           }
-          $uri = "$env:SUPABASE_URL/storage/v1/object/releases/DartVoice_Setup.exe"
-          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers `
+          Invoke-RestMethod -Method Put -Uri $uri -Headers $headers `
             -InFile autoscore\installer_output\DartVoice_Setup.exe
 
       # Legacy download URL (kept as fallback until site cuts over entirely):

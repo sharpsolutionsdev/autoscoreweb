@@ -1,116 +1,104 @@
 # Going private — exact steps
 
 Everything that could break when the repo is flipped to private has been
-re-platformed to services that don't care about repo visibility.
+re-platformed off of GitHub Releases.
 
-## What's already been done in code
+## What's already wired
 
-- Supabase Storage public `releases` bucket created (idempotent migration
-  in `supabase/migrations/…create_public_releases_bucket.sql`).
-- All three workflows (`build-android.yml`, `build-windows.yml`,
-  `build-extension.yml`) now push their artefacts to Supabase Storage in
-  addition to their existing destinations.
-- The site download links currently still point at GitHub Releases (so
-  they keep working while the repo is public). The Supabase URL pattern
-  is set up and ready — see step 2 below for the one-line swap once the
-  bucket is seeded.
+- Cloudflare R2 bucket `dartvoice-releases` exists in the EU/ENAM region
+  on account `0585d1caa30b50424399443d3fc46628`.
+- All three CI workflows (`build-android.yml`, `build-windows.yml`,
+  `build-extension.yml`) now push their artefacts to R2 via the
+  Cloudflare REST API. They keep publishing to GitHub Releases too, so
+  there's a fallback while you're cutting over.
+- New `seed-r2.yml` workflow: one-click pulls the current release
+  binaries from GitHub Releases and uploads them to R2, plus enables
+  the managed public hostname so they're directly downloadable.
 
-## What you need to do (manual, one-time)
+## What you need to do (one time, ~3 min)
 
-### 1. Set the `SUPABASE_SERVICE_ROLE_KEY` secret on the repo
+### 1. Create a Cloudflare API token
 
-1. Grab the key: <https://supabase.com/dashboard/project/poyjykgqsvgimssbhsuz/settings/api>
-   → copy the **service_role** key (starts with `eyJ…`, marked secret).
-2. Add it to the repo: <https://github.com/sharpsolutionsdev/autoscoreweb/settings/secrets/actions>
-   → **New repository secret** → name `SUPABASE_SERVICE_ROLE_KEY`, paste the value.
+<https://dash.cloudflare.com/profile/api-tokens> → **Create Token** →
+**Custom token**:
 
-CI uploads will start working on the next build. Without this secret, CI
-will skip the upload step but not fail the build (safe default).
+| Permission | Value |
+|---|---|
+| Account → Workers R2 Storage | **Edit** |
+| Account → Account Settings | **Read** *(only needed if you skip step 3 and let CI bind the custom domain)* |
 
-### 2. Seed the current binaries into Supabase Storage, then swap site URLs
+Token TTL: leave default. Account resources: include the
+`Sharpsolutionsdev@gmail.com's Account` only. **Continue → Create token**
+and copy the value (you only see it once).
 
-Run once from your machine to populate the bucket:
+### 2. Add the token as a repo secret
 
-```bash
-# WSL / Git Bash / macOS
-export SUPABASE_SERVICE_ROLE_KEY=eyJ…  # same key as above
-bash scripts/upload-releases-to-supabase.sh
-```
+<https://github.com/sharpsolutionsdev/autoscoreweb/settings/secrets/actions>
+→ **New repository secret**:
 
-This pulls the latest public `DartVoice.apk` + `DartVoice_Setup.exe` from
-GitHub Releases and uploads them to Supabase, plus the extension zip from
-`downloads/`.
+- Name: `CLOUDFLARE_API_TOKEN`
+- Value: paste the token from step 1.
 
-Verify the public URLs now serve the files:
+### 3. Run the seed workflow
 
-- <https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk>
-- <https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice_Setup.exe>
+<https://github.com/sharpsolutionsdev/autoscoreweb/actions/workflows/seed-r2.yml>
+→ **Run workflow** (branch: working).
 
-Once both return a 200, swap the site download links to use them. From
-the repo root:
+The job will:
 
-```bash
-sed -i 's|https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/windows-latest/DartVoice_Setup.exe|https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice_Setup.exe|g' dartvoice-dashboard.html web-app.html
-sed -i 's|https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/android-latest/DartVoice.apk|https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk|g' dartvoice-dashboard.html web-app.html
-git add dartvoice-dashboard.html web-app.html
-git commit -m "site: cut download links over to Supabase Storage"
-git push
-```
+1. Verify the token works.
+2. Toggle the R2 bucket's managed-public hostname on — this gives you a
+   `https://pub-<HASH>.r2.dev` URL. The hostname is printed at the top
+   of the **Enable managed public hostname on R2 bucket** step.
+3. Pull the current `DartVoice.apk` + `DartVoice_Setup.exe` from your
+   public GitHub Releases and PUT them into the bucket.
+4. Verify each download URL returns HTTP 200.
 
-### 3. Move site hosting off GitHub Pages
+Copy the `R2_PUBLIC_HOST` value from the logs (looks like
+`pub-9f8e7d…r2.dev`) and paste it back to me. I'll do the URL swap.
 
-The repo has a `CNAME` file → `dartvoice.app` is currently served via
-GitHub Pages. Free-plan GitHub Pages does NOT work on private repos, so
-we have to move the site first.
+### 4. (Optional but cleaner) Bind a custom subdomain
 
-Fastest migration path — **Cloudflare Pages** (free, built on your existing
-Cloudflare account):
+Instead of the long `pub-….r2.dev` URL you can use `releases.dartvoice.app`.
 
-1. <https://dash.cloudflare.com/> → Workers & Pages → **Create** → Pages →
-   **Connect to Git** → select this repo. (Requires you to authorize the
-   Cloudflare Pages GitHub app; one click.)
-2. Build settings:
-   - Framework preset: **None**
-   - Build command: (leave empty)
-   - Build output directory: `/`
-3. **Save and deploy** — takes ~30 s. You'll get a `*.pages.dev` URL.
-4. In the Pages project → **Custom domains** → add `dartvoice.app` and
-   `www.dartvoice.app`. Cloudflare will tell you which DNS record to
-   update (or create it automatically if the domain is already on
-   Cloudflare DNS).
-5. Wait for the `*.pages.dev` site to serve the latest deploy, then verify
-   `https://dartvoice.app` is still healthy.
+<https://dash.cloudflare.com/0585d1caa30b50424399443d3fc46628/r2/default/buckets/dartvoice-releases/settings>
+→ **Public access** → **Connect Domain** → enter `releases.dartvoice.app`.
+Cloudflare will auto-create the proxied CNAME because `dartvoice.app` is
+already on your account.
 
-Alternative: **Vercel** or **Netlify** — same shape, both free, both
-private-repo friendly.
+After it shows "Connected", paste that custom hostname back to me.
 
-### 4. Disable the old GitHub Pages deploy
+### 5. I cut the site over
 
-Once Cloudflare Pages is live at `dartvoice.app`:
+Once you give me the public hostname (either `pub-…r2.dev` or
+`releases.dartvoice.app`), I do the URL swap in `dartvoice-dashboard.html`
++ `web-app.html` in one commit.
 
-1. <https://github.com/sharpsolutionsdev/autoscoreweb/settings/pages>
-   → set **Source** to *None*.
-2. Delete the `CNAME` file from the repo root (or leave it, doesn't hurt).
-
-### 5. Flip the repo private
+### 6. Flip the repo private
 
 <https://github.com/sharpsolutionsdev/autoscoreweb/settings> →
-scroll to **Danger Zone** → **Change visibility** → **Make private**.
+**Danger Zone** → **Change visibility** → **Make private**.
 
-### 6. Verify everything still works
+GitHub Pro keeps the Pages site working for `dartvoice.app` (no DNS
+change needed). Release downloads now come from R2, which is fully
+public. Site continues to load on a fresh device with no cached state.
 
-- `https://dartvoice.app` loads (Cloudflare Pages)
-- `https://dartvoice.app/web-app` loads
-- APK download button in the dashboard downloads a valid APK
-- Windows installer button downloads a valid `.exe`
-- Sign-in + OTP flow still works (unchanged — Supabase-side)
-- Admin panel loads stats (unchanged — Supabase Edge Function)
+### 7. Verify
 
-If any download 404s, it means Step 2 wasn't run — do that.
+Open `https://dartvoice.app` in a private tab on a device that has
+never visited it:
+
+- Landing page + nav images render
+- Sign-in OTP flow works (Supabase, untouched)
+- Dashboard download buttons (Windows + APK) → start downloading
+- Web app loads, scorer iframe loads
+- Streaming overlays appear for ambassador/admin profiles
+
+If anything 404s: paste it to me and I'll fix.
 
 ## Rollback
 
-If anything goes sideways, you can re-enable the repo publicly from the
-same settings page and GitHub Pages will resume automatically. The
-Supabase Storage uploads are additive — they never replace GitHub's
-copy of the binaries, so the old URLs keep working too.
+If something breaks after you flip private, you can re-enable visibility
+from the same settings page and the GitHub Pages + Releases URLs come
+right back. The R2 mirror keeps working in either mode — it's purely
+additive.

@@ -1,0 +1,102 @@
+name: Seed Cloudflare R2 from GitHub Releases
+
+# One-shot: pull the current Windows installer + Android APK from this
+# repo's public GitHub Releases, push them to the Cloudflare R2 bucket
+# `dartvoice-releases`, and enable the managed-public r2.dev hostname so
+# the bucket can serve direct downloads. Re-runnable.
+
+on:
+  workflow_dispatch:
+
+env:
+  CF_ACCOUNT_ID: 0585d1caa30b50424399443d3fc46628
+  R2_BUCKET: dartvoice-releases
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Cloudflare token
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CF_API_TOKEN" ]; then
+            echo "::error::Repo secret CLOUDFLARE_API_TOKEN is not set."
+            echo "Create one at https://dash.cloudflare.com/profile/api-tokens with R2 Edit + Workers R2 permissions, then add it at"
+            echo "https://github.com/sharpsolutionsdev/autoscoreweb/settings/secrets/actions"
+            exit 1
+          fi
+          # Sanity: hit the verify endpoint
+          curl -sS https://api.cloudflare.com/client/v4/user/tokens/verify \
+            -H "Authorization: Bearer $CF_API_TOKEN" | tee /tmp/verify.json
+          jq -e '.success == true' /tmp/verify.json >/dev/null
+
+      - name: Enable managed public hostname on R2 bucket
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -e
+          # Idempotent: enable r2.dev managed access (returns the hostname)
+          curl -sS -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/domains/managed" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"enabled":true}' | tee /tmp/domain.json
+          host=$(jq -r '.result.domain // empty' /tmp/domain.json)
+          if [ -z "$host" ]; then
+            # Some accounts already have it enabled; query state
+            curl -sS \
+              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/domains/managed" \
+              -H "Authorization: Bearer $CF_API_TOKEN" > /tmp/domain.json
+            host=$(jq -r '.result.domain // empty' /tmp/domain.json)
+          fi
+          echo "R2_PUBLIC_HOST=$host" >> $GITHUB_ENV
+          echo "R2 public host: https://$host"
+
+      - name: Fetch & upload binaries to R2
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -e
+          tmp=$(mktemp -d)
+
+          fetch_to () {
+            local url="$1"; local out="$2"
+            echo "→ $url"
+            curl -fsSL -o "$out" "$url"
+            ls -lh "$out"
+          }
+
+          put_object () {
+            local path="$1"; local key="$2"; local mime="$3"
+            echo "→ Uploading $key ($mime, $(stat -c%s "$path") bytes)"
+            curl -fsS -X PUT \
+              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects/${key}" \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: $mime" \
+              --data-binary @"$path" | jq '.success, .errors'
+          }
+
+          fetch_to "https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk"        "$tmp/DartVoice.apk"
+          fetch_to "https://github.com/sharpsolutionsdev/autoscoreweb/releases/download/windows-latest/DartVoice_Setup.exe" "$tmp/DartVoice_Setup.exe"
+
+          put_object "$tmp/DartVoice.apk"        "DartVoice.apk"        "application/vnd.android.package-archive"
+          put_object "$tmp/DartVoice_Setup.exe"  "DartVoice_Setup.exe"  "application/vnd.microsoft.portable-executable"
+
+          if [ -f downloads/dartvoice-extension.zip ]; then
+            put_object "downloads/dartvoice-extension.zip" "dartvoice-extension.zip" "application/zip"
+          fi
+
+      - name: Verify downloads work
+        run: |
+          for f in DartVoice.apk DartVoice_Setup.exe dartvoice-extension.zip; do
+            url="https://${R2_PUBLIC_HOST}/$f"
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            echo "$f -> HTTP $code  ($url)"
+          done
+          echo ""
+          echo "All set. Public URL pattern:"
+          echo "  https://${R2_PUBLIC_HOST}/<filename>"

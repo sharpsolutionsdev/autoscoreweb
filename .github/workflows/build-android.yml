@@ -111,25 +111,23 @@ jobs:
           path: autoscore/bin/DartVoice.apk
           retention-days: 30
 
-      # Primary download host — Supabase Storage public bucket.
-      # Works whether the repo is public or private.
-      # URL: https://poyjykgqsvgimssbhsuz.supabase.co/storage/v1/object/public/releases/DartVoice.apk
-      - name: Publish to Supabase Storage
+      # Primary download host — Cloudflare R2 (works on private repos).
+      # URL pattern: https://<R2 public hostname>/DartVoice.apk
+      - name: Publish to Cloudflare R2
         env:
-          SUPABASE_URL: https://poyjykgqsvgimssbhsuz.supabase.co
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CF_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: 0585d1caa30b50424399443d3fc46628
+          R2_BUCKET:     dartvoice-releases
         run: |
-          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "SUPABASE_SERVICE_ROLE_KEY secret not set — skipping Storage upload."
+          if [ -z "$CF_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN secret not set — skipping R2 upload."
             exit 0
           fi
-          curl --fail-with-body -X POST \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+          curl --fail-with-body -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects/DartVoice.apk" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/vnd.android.package-archive" \
-            -H "x-upsert: true" \
-            --data-binary @autoscore/bin/DartVoice.apk \
-            "$SUPABASE_URL/storage/v1/object/releases/DartVoice.apk"
+            --data-binary @autoscore/bin/DartVoice.apk
 
       # Legacy download URL (kept as fallback until the site cuts over entirely):
       # https://github.com/sharpsolutionsdev/autoscoreweb/releases/latest/download/DartVoice.apk
