@@ -2021,52 +2021,131 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         const key = new THREE.DirectionalLight(0xffe9d8, 0.9); key.position.set(4, 6, 8); scene.add(key);
         const rim = new THREE.PointLight(0xCC0B20, 1.6, 30); rim.position.set(-6, -2, 4); scene.add(rim);
 
-        // Build a dart from primitive geometries.
+        // Build a tournament-grade dart from primitive geometries.
+        // Refined dimensions: slim tungsten barrel with knurl, anodised shaft,
+        // sharp steel point, dimpled red flight (crossed planes).
         function makeDart() {
             const dart = new THREE.Group();
+
+            // Materials (shared so we only allocate once per dart).
+            const matSteel    = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, metalness: 0.95, roughness: 0.18 });
+            const matTungsten = new THREE.MeshStandardMaterial({ color: 0xc8ccd2, metalness: 0.95, roughness: 0.22 });
+            const matAccent   = new THREE.MeshStandardMaterial({ color: 0xCC0B20, metalness: 0.55, roughness: 0.35 });
+            const matShaft    = new THREE.MeshStandardMaterial({ color: 0x14151a, metalness: 0.85, roughness: 0.3 });
+            const matPoint    = new THREE.MeshStandardMaterial({ color: 0x2a2a30, metalness: 1.0,  roughness: 0.12 });
+            const matFlight   = new THREE.MeshBasicMaterial   ({ color: 0xCC0B20, side: THREE.DoubleSide, transparent: true, opacity: 0.92 });
+            const matFlightEdge = new THREE.MeshBasicMaterial({ color: 0x880616, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+
+            // ── Barrel: 3 segments (front taper / knurled body / rear taper) ──
+            const barrelGroup = new THREE.Group();
+
+            const frontTaper = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.06, 0.085, 0.16, 18),
+                matTungsten
+            );
+            frontTaper.position.y = 0.42;
+
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.085, 0.085, 0.62, 22),
+                matTungsten
+            );
+
+            // Knurl rings (3 thin grooves).
+            const ring = new THREE.CylinderGeometry(0.088, 0.088, 0.012, 22);
+            for (let i = -1; i <= 1; i++) {
+                const r = new THREE.Mesh(ring, matAccent);
+                r.position.y = i * 0.16;
+                barrelGroup.add(r);
+            }
+
+            const rearTaper = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.085, 0.055, 0.14, 18),
+                matTungsten
+            );
+            rearTaper.position.y = -0.41;
+
+            barrelGroup.add(frontTaper, body, rearTaper);
+            barrelGroup.rotation.z = Math.PI / 2;
+            barrelGroup.position.x = 0.18;
+            dart.add(barrelGroup);
+
+            // ── Shaft (anodised black + tiny accent ring near collar) ──
             const shaft = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.06, 0.06, 1.6, 12),
-                new THREE.MeshStandardMaterial({ color: 0x101014, metalness: 0.6, roughness: 0.4 })
+                new THREE.CylinderGeometry(0.028, 0.034, 0.78, 14),
+                matShaft
             );
             shaft.rotation.z = Math.PI / 2;
+            shaft.position.x = -0.55;
             dart.add(shaft);
-
-            const barrel = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.13, 0.1, 0.7, 14),
-                new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.95, roughness: 0.25 })
+            const collar = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.045, 0.045, 0.04, 16),
+                matAccent
             );
-            barrel.rotation.z = Math.PI / 2; barrel.position.x = 0.45;
-            dart.add(barrel);
+            collar.rotation.z = Math.PI / 2;
+            collar.position.x = -0.16;
+            dart.add(collar);
 
-            const tip = new THREE.Mesh(
-                new THREE.ConeGeometry(0.05, 0.4, 12),
-                new THREE.MeshStandardMaterial({ color: 0x1a1a20, metalness: 0.9, roughness: 0.2 })
+            // ── Steel point (sharper, longer, with subtle bevel cone) ──
+            const point = new THREE.Mesh(
+                new THREE.ConeGeometry(0.04, 0.38, 16),
+                matPoint
             );
-            tip.rotation.z = -Math.PI / 2; tip.position.x = 1.0;
-            dart.add(tip);
+            point.rotation.z = -Math.PI / 2;
+            point.position.x = 0.74;
+            dart.add(point);
+            const pointBevel = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.045, 0.04, 0.05, 16),
+                matSteel
+            );
+            pointBevel.rotation.z = Math.PI / 2;
+            pointBevel.position.x = 0.55;
+            dart.add(pointBevel);
 
-            // Flight (red): two crossed planes.
-            const flightMat = new THREE.MeshBasicMaterial({ color: 0xCC0B20, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-            const flightGeo = new THREE.PlaneGeometry(0.7, 0.5);
-            const f1 = new THREE.Mesh(flightGeo, flightMat); f1.position.x = -0.55;
-            const f2 = new THREE.Mesh(flightGeo, flightMat); f2.position.x = -0.55; f2.rotation.x = Math.PI / 2;
-            dart.add(f1); dart.add(f2);
+            // ── Flight: 4 crossed half-planes (cleaner standard "no.6" silhouette) ──
+            const flightShape = new THREE.Shape();
+            // Half-flight outline (mirrored across X by DoubleSide rendering).
+            flightShape.moveTo(0, 0);
+            flightShape.lineTo(0.46, 0.08);
+            flightShape.lineTo(0.46, 0.32);
+            flightShape.lineTo(0.0,  0.04);
+            flightShape.lineTo(0, 0);
+            const flightGeo = new THREE.ShapeGeometry(flightShape);
 
+            function makeFlightWing(rotZ) {
+                const g = new THREE.Group();
+                const a = new THREE.Mesh(flightGeo, matFlight);
+                const b = new THREE.Mesh(flightGeo, matFlight);
+                b.rotation.x = Math.PI; // mirror to make symmetric kite
+                g.add(a, b);
+                g.rotation.x = rotZ;
+                return g;
+            }
+            const wing1 = makeFlightWing(0);
+            const wing2 = makeFlightWing(Math.PI / 2);
+            const flightGroup = new THREE.Group();
+            flightGroup.add(wing1, wing2);
+            flightGroup.rotation.z = Math.PI; // point flight backward (toward -X tail)
+            flightGroup.position.x = -0.95;
+            dart.add(flightGroup);
+
+            // Slight forward tilt so the front "leads" visually.
+            dart.rotation.y = -0.18;
             return dart;
         }
 
         const darts = [];
-        const COUNT = 5;
+        const COUNT = 3;
         for (let i = 0; i < COUNT; i++) {
             const d = makeDart();
-            d.userData.spin = 0.005 + Math.random() * 0.012;
+            d.userData.spin = 0.004 + Math.random() * 0.008;
             d.userData.driftY = (Math.random() - 0.5) * 0.004;
-            d.userData.baseY = (Math.random() - 0.5) * 6;
-            d.userData.baseZ = (Math.random() - 0.5) * 4;
+            d.userData.baseY = (Math.random() - 0.5) * 5;
+            d.userData.baseZ = (Math.random() - 0.5) * 3;
             d.userData.phase = Math.random() * Math.PI * 2;
-            d.position.set(-12 + i * 5, d.userData.baseY, d.userData.baseZ);
-            d.rotation.y = -0.3;
-            d.rotation.z = (Math.random() - 0.5) * 0.4;
+            d.userData.scale = 0.85 + Math.random() * 0.35;
+            d.scale.setScalar(d.userData.scale);
+            d.position.set(-14 + i * 8, d.userData.baseY, d.userData.baseZ);
+            d.rotation.z = (Math.random() - 0.5) * 0.35;
             scene.add(d);
             darts.push(d);
         }
@@ -2079,10 +2158,10 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             if (!running) return;
             const t = (now - start) / 1000;
             for (const d of darts) {
-                d.position.x += 0.025;
-                d.position.y = d.userData.baseY + Math.sin(t * 0.6 + d.userData.phase) * 0.5;
+                d.position.x += 0.022;
+                d.position.y = d.userData.baseY + Math.sin(t * 0.55 + d.userData.phase) * 0.45;
                 d.rotation.x += d.userData.spin;
-                if (d.position.x > 12) d.position.x = -12;
+                if (d.position.x > 14) d.position.x = -14;
             }
             renderer.render(scene, camera);
         }
