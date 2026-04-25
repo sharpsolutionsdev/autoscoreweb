@@ -2498,7 +2498,7 @@
             if (!e.target || !e.target.closest('#btn-copy-profile-link')) return;
             const dvu = (document.getElementById('input-dv-username')?.value || '').toLowerCase();
             if (!dvu) return;
-            const url = `${window.location.origin}/u/${encodeURIComponent(dvu)}`;
+            const url = `${window.location.origin}/u.html?u=${encodeURIComponent(dvu)}`;
             navigator.clipboard?.writeText(url).then(() => showToast?.('Profile link copied', 'success'))
                 .catch(() => showToast?.('Could not copy', 'error'));
         });

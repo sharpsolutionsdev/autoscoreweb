@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title id="page-title">DartVoice Player</title>
+  <meta name="description" id="page-desc" content="DartVoice player profile.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-rgb',r+','+g+','+b);}()</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{display:['"Barlow Condensed"','sans-serif'],sans:['"Plus Jakarta Sans"','sans-serif']},colors:{brand:'var(--brand,#CC0B20)',dark:'#08080A',card:'#111114',wire:'#252530',muted:'#6E6E82',chalk:'#F0F0F5'}}}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5;min-height:100vh;}
+    .display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-.02em;text-transform:uppercase;}
+    .panel{background:linear-gradient(160deg,#131317 0%,#0f0f12 100%);border:1px solid rgba(255,255,255,.07);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);}
+    .stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-.02em;}
+    .glow-bg::before,.glow-bg::after{content:'';position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;}
+    .glow-bg::before{width:480px;height:480px;top:-160px;left:-120px;background:radial-gradient(circle,rgba(var(--brand-rgb,204,11,32),.45),transparent 65%);animation:gFloat 18s ease-in-out infinite;}
+    .glow-bg::after{width:360px;height:360px;top:-60px;right:-120px;background:radial-gradient(circle,rgba(120,40,200,.4),transparent 65%);animation:gFloat 22s ease-in-out infinite -9s;}
+    @keyframes gFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,30px) scale(1.08)}66%{transform:translate(-30px,20px) scale(.95)}}
+    .tier-badge{display:inline-flex;align-items:center;gap:.4em;padding:.3em .7em;border-radius:8px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border:1px solid;}
+    .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:sk 1.4s ease-in-out infinite;border-radius:8px;}
+    @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  </style>
+</head>
+<body>
+  <!-- Top nav (lightweight; relies on global components if loaded) -->
+  <dv-nav></dv-nav>
+  <script src="components/dv-nav.js" defer></script>
+
+  <main class="relative pt-20 pb-20 px-5">
+    <div class="absolute inset-0 glow-bg overflow-hidden pointer-events-none" aria-hidden="true"></div>
+
+    <div class="relative max-w-3xl mx-auto" style="z-index:1">
+      <!-- Loading state -->
+      <div id="state-loading" class="panel p-8 text-center">
+        <div class="skeleton w-32 h-32 rounded-full mx-auto mb-5"></div>
+        <div class="skeleton w-56 h-7 mx-auto mb-2"></div>
+        <div class="skeleton w-40 h-4 mx-auto"></div>
+      </div>
+
+      <!-- Not found -->
+      <div id="state-notfound" class="panel p-10 text-center hidden">
+        <div class="display text-5xl mb-3" style="color:#fff">PLAYER NOT FOUND</div>
+        <p class="text-sm text-muted mb-6">No DartVoice player with the handle <span id="nf-handle" class="text-chalk font-semibold">@—</span>.</p>
+        <a href="/login" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[color:var(--brand)] text-white font-bold text-sm hover:opacity-90 transition">Claim a username →</a>
+      </div>
+
+      <!-- Profile -->
+      <div id="state-profile" class="hidden">
+        <div class="panel overflow-hidden">
+          <div class="relative p-7 sm:p-9" style="background:linear-gradient(135deg,rgba(var(--brand-rgb,204,11,32),.10),rgba(var(--brand-rgb,204,11,32),0) 60%);">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+              <div id="pf-avatar-wrap" class="relative">
+                <div id="pf-avatar" class="w-28 h-28 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl bg-white/[0.04] flex items-center justify-center text-3xl font-black"></div>
+                <div id="pf-tier-pip" class="hidden absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-[#0f0f12] flex items-center justify-center text-[10px] font-black uppercase"></div>
+              </div>
+              <div class="flex-1 text-center sm:text-left min-w-0">
+                <p class="text-[10px] font-bold tracking-widest uppercase mb-1" style="color:var(--brand)">DartVoice Player</p>
+                <h1 id="pf-name" class="display text-4xl sm:text-5xl mb-1" style="line-height:1">PLAYER</h1>
+                <p id="pf-handle" class="text-sm text-muted mb-3">@—</p>
+                <div id="pf-tier-badge-wrap"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.04]">
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">MMR</p>
+              <p id="pf-mmr" class="stat-num text-3xl text-chalk">—</p>
+            </div>
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">Peak</p>
+              <p id="pf-peak" class="stat-num text-3xl text-chalk">—</p>
+            </div>
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">Wins</p>
+              <p id="pf-wins" class="stat-num text-3xl" style="color:#22c55e">—</p>
+            </div>
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">Losses</p>
+              <p id="pf-losses" class="stat-num text-3xl" style="color:#ef4444">—</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.04] border-t border-white/[0.04]">
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">180s</p>
+              <p id="pf-180s" class="stat-num text-3xl text-chalk">—</p>
+            </div>
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">140+</p>
+              <p id="pf-140s" class="stat-num text-3xl text-chalk">—</p>
+            </div>
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">Best Streak</p>
+              <p id="pf-streak" class="stat-num text-3xl text-chalk">—</p>
+            </div>
+            <div class="p-5 bg-[#0f0f12] text-center">
+              <p class="text-[10px] font-bold tracking-widest uppercase text-muted mb-1.5">Best Finish</p>
+              <p id="pf-bestfin" class="stat-num text-3xl text-chalk">—</p>
+            </div>
+          </div>
+
+          <!-- Footer / actions -->
+          <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-3 items-center justify-between bg-black/30 border-t border-white/[0.05]">
+            <div class="flex items-center gap-3">
+              <a id="pf-add-friend" href="#" class="hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[color:var(--brand)] text-white font-bold text-sm hover:opacity-90 transition">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM20 8v6M23 11h-6"/></svg>
+                Add friend
+              </a>
+              <button id="pf-share" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-chalk text-sm hover:bg-white/5 transition">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                Share profile
+              </button>
+            </div>
+            <a href="/ranked" class="text-xs text-muted hover:text-chalk transition">View full leaderboard →</a>
+          </div>
+        </div>
+
+        <p class="text-center text-xs text-muted mt-6">
+          Want a profile like this? <a href="/login" class="text-brand hover:underline">Join DartVoice →</a>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (async () => {
+    const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+    const $ = id => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+    const handle = (params.get('u') || '').trim().toLowerCase().replace(/^@+/, '').replace(/[^a-z0-9_]/g, '');
+    if (!handle) { showNotFound(''); return; }
+
+    document.title = `@${handle} — DartVoice`;
+    const desc = document.getElementById('page-desc');
+    if (desc) desc.setAttribute('content', `DartVoice profile @${handle} — MMR, win/loss, 180s and more.`);
+
+    const tierColor = (t) => {
+      const x = (t || '').toLowerCase();
+      if (x.includes('grand')) return '#a855f7';
+      if (x.includes('master')) return '#ef4444';
+      if (x.includes('diamond')) return '#06b6d4';
+      if (x.includes('plat')) return '#22d3ee';
+      if (x.includes('gold')) return '#f59e0b';
+      if (x.includes('silver')) return '#cbd5e1';
+      if (x.includes('bronze')) return '#b45309';
+      return '#94a3b8';
+    };
+    const escHtml = (s) => { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
+
+    function showNotFound(h) {
+      $('state-loading').classList.add('hidden');
+      $('state-notfound').classList.remove('hidden');
+      $('nf-handle').textContent = h ? '@' + h : '@—';
+    }
+
+    try {
+      // 1) Look up the public profile by dv_username (case-insensitive).
+      const { data: prof } = await sb.from('dartvoice_profiles')
+        .select('id, display_name, dv_username, avatar_url')
+        .ilike('dv_username', handle).limit(1).maybeSingle();
+      if (!prof) { showNotFound(handle); return; }
+
+      // 2) Fetch ranked stats (may be missing if user never played ranked).
+      const { data: rp } = await sb.from('ranked_profiles')
+        .select('mmr, peak_mmr, rank_tier, wins, losses, total_180s, total_140_plus, best_win_streak, best_finish')
+        .eq('id', prof.id).maybeSingle();
+
+      // Render
+      $('state-loading').classList.add('hidden');
+      $('state-profile').classList.remove('hidden');
+
+      const name = prof.display_name || ('@' + prof.dv_username);
+      $('pf-name').textContent = name;
+      $('pf-handle').textContent = '@' + prof.dv_username;
+
+      const av = $('pf-avatar');
+      if (prof.avatar_url) {
+        av.innerHTML = `<img src="${escHtml(prof.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+      } else {
+        av.style.background = 'linear-gradient(135deg, rgba(var(--brand-rgb),.4), rgba(var(--brand-rgb),.1))';
+        av.style.color = '#fff';
+        av.textContent = (name || 'P').slice(0, 1).toUpperCase();
+      }
+
+      const tier = rp?.rank_tier || 'Unranked';
+      const tc = tierColor(tier);
+      const tierBadge = $('pf-tier-badge-wrap');
+      tierBadge.innerHTML = `<span class="tier-badge" style="color:${tc};border-color:${tc}55;background:${tc}1a">
+        <span style="width:6px;height:6px;border-radius:50%;background:${tc};box-shadow:0 0 8px ${tc}"></span>
+        ${escHtml((tier || 'Unranked').toUpperCase())}
+      </span>`;
+      const pip = $('pf-tier-pip');
+      pip.style.background = tc;
+      pip.style.color = '#0f0f12';
+      pip.textContent = (tier || 'U').slice(0, 1).toUpperCase();
+      pip.classList.remove('hidden');
+
+      $('pf-mmr').textContent     = rp?.mmr ?? '—';
+      $('pf-peak').textContent    = rp?.peak_mmr ?? '—';
+      $('pf-wins').textContent    = rp?.wins ?? 0;
+      $('pf-losses').textContent  = rp?.losses ?? 0;
+      $('pf-180s').textContent    = rp?.total_180s ?? 0;
+      $('pf-140s').textContent    = rp?.total_140_plus ?? 0;
+      $('pf-streak').textContent  = rp?.best_win_streak ?? 0;
+      $('pf-bestfin').textContent = rp?.best_finish ?? 0;
+
+      // Share button
+      $('pf-share').addEventListener('click', () => {
+        const url = location.href;
+        if (navigator.share) navigator.share({ title: name, url }).catch(()=>{});
+        else navigator.clipboard?.writeText(url);
+      });
+
+      // Add friend button (only if logged in and not self)
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const me = session?.user?.id;
+        if (me && me !== prof.id) {
+          const btn = $('pf-add-friend');
+          btn.classList.remove('hidden');
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            const { error } = await sb.from('dv_friends').insert({ requester_id: me, recipient_id: prof.id, status: 'pending' });
+            if (error) {
+              btn.textContent = error.message?.includes('duplicate') ? 'Already requested' : 'Could not send';
+            } else {
+              btn.innerHTML = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Request sent';
+            }
+          });
+        }
+      } catch (_) {}
+    } catch (e) {
+      console.warn('[u.html] error', e);
+      showNotFound(handle);
+    }
+  })();
+  </script>
+  <script src="theme.js" defer></script>
+</body>
+</html>
