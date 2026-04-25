@@ -1302,7 +1302,7 @@
     // Uses actual DC Angular component selectors for reliable extraction.
     function scrapePlayerColumn(col) {
       if (!col) return null;
-      const result = { name: null, remaining: null, avg: null, last: null, darts: null, checkout: null, first9: null, bestLeg: null };
+      const result = { name: null, remaining: null, avg: null, last: null, darts: null, checkout: null, first9: null, bestLeg: null, count180: null, count140: null, count100: null, checkoutPercent: null };
       try {
         // Player name: div[appingameplayername]
         const nameEl = col.querySelector('div[appingameplayername], [appingameplayername]');
@@ -1355,6 +1355,18 @@
           } else if (/best\s*leg/i.test(label)) {
             const m = valText.match(/\d+/);
             if (m) result.bestLeg = m[0];
+          } else if (/180s?/i.test(label) || label === '180') {
+            const m = valText.match(/\d+/);
+            if (m) result.count180 = m[0];
+          } else if (/140\+/i.test(label)) {
+            const m = valText.match(/\d+/);
+            if (m) result.count140 = m[0];
+          } else if (/100\+/i.test(label)) {
+            const m = valText.match(/\d+/);
+            if (m) result.count100 = m[0];
+          } else if (/checkout\s*%/i.test(label) || label === 'co %') {
+            const m = valText.match(/[\d.]+/);
+            if (m) result.checkoutPercent = m[0];
           }
         }
       } catch (e) {}
@@ -1444,7 +1456,12 @@
           last: p1Data.last,
           darts: p1Data.darts,
           checkout: p1Data.checkout,
-          first9: p1Data.first9
+          first9: p1Data.first9,
+          bestLeg: p1Data.bestLeg,
+          count180: p1Data.count180,
+          count140: p1Data.count140,
+          count100: p1Data.count100,
+          checkoutPercent: p1Data.checkoutPercent
         } : null,
         p2Stats: p2Data ? {
           remaining: p2Data.remaining,
@@ -1452,7 +1469,12 @@
           last: p2Data.last,
           darts: p2Data.darts,
           checkout: p2Data.checkout,
-          first9: p2Data.first9
+          first9: p2Data.first9,
+          bestLeg: p2Data.bestLeg,
+          count180: p2Data.count180,
+          count140: p2Data.count140,
+          count100: p2Data.count100,
+          checkoutPercent: p2Data.checkoutPercent
         } : null,
         checkoutSuggestion,
         checkoutPrompt: checkout.visible ? checkout.text : null,
@@ -1537,11 +1559,50 @@
         startCalibration();
       }
 
-      // Volume control from parent dashboard
+      // Volume control from parent dashboard. We persist the desired volume
+      // and apply it to any newly-created media elements as well — DartCounter
+      // creates <audio> elements on demand for celebration sounds.
       if (event.data.type === "dv-set-volume") {
         const vol = Math.max(0, Math.min(1, parseFloat(event.data.volume) || 1));
-        document.querySelectorAll('audio, video').forEach(el => { try { el.volume = vol; } catch(e){} });
-        logTrace('Volume set to ' + Math.round(vol * 100) + '%');
+        try { window.__dvDesiredVolume = vol; } catch(e){}
+        const apply = (el) => { try { el.volume = vol; el.muted = vol === 0; } catch(e){} };
+        document.querySelectorAll('audio, video').forEach(apply);
+        if (!window.__dvVolumeObserver) {
+          try {
+            const mo = new MutationObserver((mutations) => {
+              const v = window.__dvDesiredVolume;
+              if (v == null) return;
+              for (const m of mutations) {
+                m.addedNodes && m.addedNodes.forEach(n => {
+                  if (!(n instanceof Element)) return;
+                  if (n.tagName === 'AUDIO' || n.tagName === 'VIDEO') {
+                    try { n.volume = v; n.muted = v === 0; } catch(e){}
+                    n.addEventListener('loadedmetadata', () => { try { n.volume = window.__dvDesiredVolume; n.muted = window.__dvDesiredVolume === 0; } catch(e){} });
+                    n.addEventListener('play', () => { try { n.volume = window.__dvDesiredVolume; n.muted = window.__dvDesiredVolume === 0; } catch(e){} });
+                  } else if (n.querySelectorAll) {
+                    n.querySelectorAll('audio, video').forEach(el => { try { el.volume = v; el.muted = v === 0; } catch(e){} });
+                  }
+                });
+              }
+            });
+            mo.observe(document.documentElement, { childList: true, subtree: true });
+            window.__dvVolumeObserver = mo;
+            // Patch HTMLMediaElement.play so even media that bypasses DOM mutation gets it
+            try {
+              const origPlay = HTMLMediaElement.prototype.play;
+              HTMLMediaElement.prototype.play = function() {
+                try {
+                  if (window.__dvDesiredVolume != null) {
+                    this.volume = window.__dvDesiredVolume;
+                    this.muted = window.__dvDesiredVolume === 0;
+                  }
+                } catch(e){}
+                return origPlay.apply(this, arguments);
+              };
+            } catch(e){}
+          } catch(e){}
+        }
+        logTrace('Volume set to ' + Math.round(vol * 100) + '% (persistent)');
       }
       
       if (event.data.type === "DARTVOICE_SCORE_INJECT") {

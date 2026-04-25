@@ -31,6 +31,9 @@ class DvNav extends HTMLElement {
               <div id="nav-more-menu"
                 class="absolute right-0 top-full mt-1 min-w-[180px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
                 <a href="/how-it-works" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">How It Works</a>
+                <a href="/ranked" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
+                  <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ranked
+                </a>
                 <a href="/#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
                 <a href="/guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
                 <a href="/referral" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
@@ -62,6 +65,9 @@ class DvNav extends HTMLElement {
             <a href="/web-app" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded">
               Web App
+            </a>
+            <a href="/ranked" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ranked
             </a>
             <a href="/referral" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program

@@ -36,7 +36,7 @@ let activeFilter = 'all', gridView = true, activeSocial = 'reddit';
     me = user;
     document.getElementById('gate').classList.add('hide');
     document.getElementById('app').classList.remove('hide');
-    await Promise.all([loadCreators(), loadTemplates(), loadProspects(), loadQueue()]);
+    await Promise.all([loadCreators(), loadTemplates(), loadProspects(), loadQueue(), loadDisputes()]);
 })();
 
 // ===== NAV =====
@@ -45,6 +45,7 @@ document.querySelectorAll('[data-top]').forEach(b => b.onclick = () => {
     const pane = b.dataset.top;
     document.querySelectorAll('[data-pane]').forEach(p => p.classList.toggle('hide', p.dataset.pane !== pane));
     if (pane === 'queue') loadQueue();
+    if (pane === 'ranked') loadDisputes();
 });
 document.querySelectorAll('[data-social]').forEach(b => b.onclick = () => {
     activeSocial = b.dataset.social;
@@ -610,6 +611,182 @@ function exportCsv() {
     URL.revokeObjectURL(url);
 }
 function csvCell(v) { if (v == null) return ''; const s = String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; }
+
+// ===== RANKED =====
+let disputes = [];
+async function loadDisputes() {
+    const { data, error } = await sb.from('ranked_matches')
+        .select('*')
+        .eq('status', 'disputed')
+        .order('created_at', { ascending: false });
+    
+    if (error) { console.error(error); return; }
+    const matches = data || [];
+
+    // Fetch ranked profiles for involved players (player1_id/player2_id reference auth.users,
+    // so PostgREST can't auto-embed; resolve via a separate query).
+    const ids = Array.from(new Set(matches.flatMap(m => [m.player1_id, m.player2_id]).filter(Boolean)));
+    let profileMap = {};
+    if (ids.length) {
+        const { data: profs } = await sb.from('ranked_profiles')
+            .select('id, display_name')
+            .in('id', ids);
+        (profs || []).forEach(p => { profileMap[p.id] = p; });
+    }
+    disputes = matches.map(m => ({
+        ...m,
+        p1: { display_name: profileMap[m.player1_id]?.display_name || 'Player 1', email: '' },
+        p2: { display_name: profileMap[m.player2_id]?.display_name || 'Player 2', email: '' }
+    }));
+    renderDisputes();
+    
+    const badge = document.getElementById('disputeBadge');
+    badge.textContent = disputes.length;
+    badge.classList.toggle('hide', disputes.length === 0);
+}
+
+function renderDisputes() {
+    const host = document.getElementById('disputeList');
+    if (!disputes.length) {
+        setHTML(host, '<div class="text-center py-12 text-muted text-sm italic">No active disputes. Good job!</div>');
+        return;
+    }
+
+    setHTML(host, disputes.map(m => {
+        const p1 = m.p1 || { display_name: 'Unknown' };
+        const p2 = m.p2 || { display_name: 'Unknown' };
+        
+        return `
+        <div class="crm-card p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-wire/20 pb-3">
+                <div class="text-xs text-muted uppercase font-bold tracking-widest">Match #${m.id.slice(0,8)}</div>
+                <div class="pill" style="background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#f87171">DISPUTED</div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-8 relative">
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-dark border border-wire/40 flex items-center justify-center text-[10px] font-bold text-muted">VS</div>
+                
+                <div class="text-center space-y-2">
+                    <div class="font-bold text-sm truncate">${esc(p1.display_name)}</div>
+                    <div class="text-[10px] text-muted truncate">${esc(p1.email)}</div>
+                    <div class="bg-brand/5 border border-brand/20 rounded p-2">
+                        <div class="text-[10px] uppercase text-brand font-bold mb-1">Claimed</div>
+                        <div class="text-2xl display">${m.player1_claimed_p1_legs} - ${m.player1_claimed_p2_legs}</div>
+                    </div>
+                </div>
+
+                <div class="text-center space-y-2">
+                    <div class="font-bold text-sm truncate">${esc(p2.display_name)}</div>
+                    <div class="text-[10px] text-muted truncate">${esc(p2.email)}</div>
+                    <div class="bg-orange-500/5 border border-orange-500/20 rounded p-2">
+                        <div class="text-[10px] uppercase text-orange-500 font-bold mb-1">Claimed</div>
+                        <div class="text-2xl display">${m.player2_claimed_p1_legs} - ${m.player2_claimed_p2_legs}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button class="btn-brand flex-1" onclick="resolveDispute('${m.id}', ${m.player1_claimed_p1_legs}, ${m.player1_claimed_p2_legs})">Award P1 Claim</button>
+                <button class="btn-brand flex-1" onclick="resolveDispute('${m.id}', ${m.player2_claimed_p1_legs}, ${m.player2_claimed_p2_legs})">Award P2 Claim</button>
+                <button class="btn-danger" onclick="resolveDispute('${m.id}', 0, 0, true)">Cancel Match</button>
+            </div>
+        </div>
+        `;
+    }).join(''));
+}
+
+async function resolveDispute(matchId, p1Legs, p2Legs, cancel = false) {
+    if (!confirm(cancel ? 'Really cancel this match?' : `Confirm resolution: P1 ${p1Legs} - P2 ${p2Legs}?`)) return;
+    
+    toast('Resolving...');
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/ranked-match-result`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+            action: 'admin_resolve',
+            match_id: matchId,
+            p1_legs: p1Legs,
+            p2_legs: p2Legs,
+            cancel: cancel
+        })
+    });
+
+    const j = await res.json();
+    if (j.error) return toast('Error: ' + j.error, 'err');
+    
+    toast('Match resolved successfully');
+    await loadDisputes();
+}
+
+let activeEditPlayer = null;
+async function lookupPlayer() {
+    const q = document.getElementById('playerSearchInp').value.trim();
+    if (!q) return;
+
+    toast('Searching...');
+
+    // ranked_profiles has no email column, and player ids reference auth.users
+    // (no readable join). Search by id or display_name only.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
+    let query = sb.from('ranked_profiles').select('*');
+    query = isUuid
+        ? query.eq('id', q)
+        : query.ilike('display_name', `%${q}%`);
+    const { data, error } = await query.maybeSingle();
+
+    if (error) return toast(error.message, 'err');
+    if (!data) return toast('Player not found', 'err');
+
+    activeEditPlayer = data;
+    document.getElementById('playerEditArea').classList.remove('hide');
+    document.getElementById('playerEditName').textContent = data.display_name || '(no name)';
+    document.getElementById('playerEditTier').textContent = data.rank_tier;
+    document.getElementById('playerEditMmr').value = data.mmr;
+    document.getElementById('playerEditPlacements').value = data.placement_matches;
+    document.getElementById('playerEditPlaced').checked = data.is_placed;
+
+    if (data.avatar_url) {
+        setHTML('playerEditAvatar', `<img src="${data.avatar_url}" class="w-full h-full rounded-full object-cover">`);
+    } else {
+        setHTML('playerEditAvatar', (data.display_name || '?').slice(0,1).toUpperCase());
+    }
+}
+
+async function savePlayerOverride() {
+    if (!activeEditPlayer) return;
+    
+    const mmr = parseInt(document.getElementById('playerEditMmr').value);
+    const placements = parseInt(document.getElementById('playerEditPlacements').value);
+    const placed = document.getElementById('playerEditPlaced').checked;
+
+    toast('Saving override...');
+    const { error } = await sb.from('ranked_profiles')
+        .update({
+            mmr,
+            placement_matches: placements,
+            is_placed: placed,
+            rank_tier: computeRankTier(mmr) // We should copy this logic or call it
+        })
+        .eq('id', activeEditPlayer.id);
+
+    if (error) return toast(error.message, 'err');
+    
+    toast('Player override saved');
+    lookupPlayer(); // refresh
+}
+
+function computeRankTier(mmr) {
+    if (mmr >= 3000) return "apex";
+    if (mmr >= 2500) return "diamond";
+    if (mmr >= 2000) return "platinum";
+    if (mmr >= 1500) return "gold";
+    if (mmr >= 1000) return "silver";
+    return "bronze";
+}
 
 // ===== SETTINGS =====
 function openSettings() {

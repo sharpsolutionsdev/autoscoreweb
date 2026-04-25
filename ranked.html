@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ranked | DartVoice</title>
+    <meta name="description" content="DartVoice Ranked Mode - Climb the leaderboard, earn your rank, and prove your skills.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="css/general/base.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Components -->
+    <script src="components/dv-nav.js"></script>
+    <script src="components/dv-footer.js"></script>
+
+    <style>
+        /* ── Core Typography ── */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0b0e; color: #f0f0f5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+        
+        /* ── Colors ── */
+        :root {
+            --brand: #CC0B20;
+            --brand-rgb: 204, 11, 32;
+        }
+
+        /* ── Background & Effects ── */
+        .page-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(204,11,32,0.1) 0%, transparent 50%),
+                        linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* ── Cards ── */
+        .card-panel {
+            background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+            position: relative; overflow: hidden;
+            transition: all 0.25s ease;
+        }
+        .card-panel::before {
+            content: ''; position: absolute; inset: 0; border-radius: 16px; padding: 1px;
+            background: linear-gradient(140deg, rgba(204,11,32,0.35), transparent 35%, transparent 65%, rgba(204,11,32,0.18));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            pointer-events: none; opacity: 0.6; transition: opacity 0.3s ease;
+        }
+        .card-panel:hover::before { opacity: 1; }
+
+        /* ── Rank Tier Colors ── */
+        .tier-unranked { color: #8e8e93; border-color: rgba(142, 142, 147, 0.3); background: rgba(142, 142, 147, 0.1); }
+        .tier-bronze { color: #cd7f32; border-color: rgba(205, 127, 50, 0.3); background: rgba(205, 127, 50, 0.1); }
+        .tier-silver { color: #c0c0c0; border-color: rgba(192, 192, 192, 0.3); background: rgba(192, 192, 192, 0.1); }
+        .tier-gold { color: #ffd700; border-color: rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.1); }
+        .tier-platinum { color: #e5e4e2; border-color: rgba(229, 228, 226, 0.4); background: rgba(229, 228, 226, 0.1); box-shadow: 0 0 15px rgba(229, 228, 226, 0.2); }
+        .tier-diamond { color: #b9f2ff; border-color: rgba(185, 242, 255, 0.4); background: rgba(185, 242, 255, 0.1); box-shadow: 0 0 20px rgba(185, 242, 255, 0.3), 0 0 40px rgba(185, 242, 255, 0.1); }
+        .tier-apex { 
+            color: #CC0B20; border-color: rgba(204, 11, 32, 0.6); background: rgba(204, 11, 32, 0.2); 
+            box-shadow: 0 0 25px rgba(204, 11, 32, 0.5), 0 0 50px rgba(204, 11, 32, 0.2); 
+            font-weight: 800;
+            animation: apexGlow 3s infinite alternate;
+        }
+        @keyframes apexGlow {
+            from { box-shadow: 0 0 15px rgba(204, 11, 32, 0.4); }
+            to { box-shadow: 0 0 35px rgba(204, 11, 32, 0.7), 0 0 60px rgba(204, 11, 32, 0.3); }
+        }
+
+        .leaderboard-row { transition: background-color 0.2s ease; }
+        .leaderboard-row:hover { background-color: rgba(255,255,255,0.02); }
+        
+        .pulse-finding { animation: pulseBg 2s infinite; }
+        @keyframes pulseBg { 0% { background-color: rgba(204,11,32,0.1); } 50% { background-color: rgba(204,11,32,0.25); } 100% { background-color: rgba(204,11,32,0.1); } }
+
+        /* ── Modals ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; items: center; justify-content: center; z-index: 100;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-container {
+            background: #131317; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+            width: 100%; max-width: 500px; padding: 2rem; transform: translateY(20px); transition: transform 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal-overlay.active .modal-container { transform: translateY(0); }
+
+        /* ── Profile Stats ── */
+        .stat-circle {
+            position: relative; width: 120px; height: 120px;
+            display: flex; flex-direction: column; items: center; justify-content: center;
+            border-radius: 50%; background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05);
+        }
+        .stat-value { font-size: 1.75rem; font-weight: 800; font-family: 'Barlow Condensed', sans-serif; line-height: 1; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; color: #8e8e93; letter-spacing: 0.05em; margin-top: 2px; }
+
+        /* ── Ranking Animations ── */
+        .rank-up { animation: rankUp 1s ease-out forwards; }
+        @keyframes rankUp {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.1); filter: brightness(1.5); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        .mmr-count { font-variant-numeric: tabular-nums; }
+
+        /* ── Progress Bars ── */
+        .progress-bar-bg { background: rgba(255,255,255,0.05); height: 6px; border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { background: var(--brand); height: 100%; width: 0%; transition: width 1s ease-out; }
+
+        /* ── Promotion Overlay ── */
+        #promotion-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: radial-gradient(circle at center, rgba(204, 11, 32, 0.2) 0%, rgba(0,0,0,0.95) 100%);
+            display: flex; flex-direction: column; items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        #promotion-overlay.active { opacity: 1; pointer-events: auto; }
+        .promo-content { text-align: center; transform: scale(0.8); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #promotion-overlay.active .promo-content { transform: scale(1); }
+        .promo-glow {
+            position: absolute; width: 300px; height: 300px; border-radius: 50%;
+            background: var(--brand); filter: blur(80px); opacity: 0.3; animation: promo-pulse 2s infinite alternate;
+        }
+        @keyframes promo-pulse { from { transform: scale(1); opacity: 0.2; } to { transform: scale(1.3); opacity: 0.4; } }
+        
+        .pulse-brand {
+            animation: pulse-brand 2s infinite;
+        }
+        @keyframes pulse-brand {
+            0% { box-shadow: 0 0 0 0 rgba(204, 11, 32, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(204, 11, 32, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(204, 11, 32, 0); }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col pt-16">
+    <div class="page-bg"></div>
+    <dv-nav></dv-nav>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
+        
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4">Ranked <span class="text-[#CC0B20]">Series</span></h1>
+            <p class="text-lg text-gray-400 max-w-2xl mx-auto">Compete against the best. Climb the ladder. Become Apex.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Column: User Profile & Queue -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- User Profile Card -->
+                <div class="card-panel p-6" id="ranked-profile-card">
+                    <div class="flex items-center justify-center py-8" id="profile-loading">
+                        <div class="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    
+                    <div id="profile-content" class="hidden">
+                        <div class="text-center mb-6 relative group/prof">
+                            <div id="player-tier-badge" class="inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase mb-4 border tier-unranked">
+                                Unranked
+                            </div>
+                            <h2 id="player-name" class="text-2xl font-bold mb-1">Loading...</h2>
+                            <p class="text-gray-400 text-sm mb-4">Season 1</p>
+                            <button onclick="openEditProfile()" class="inline-flex items-center gap-2 text-[10px] text-gray-500 hover:text-brand uppercase tracking-widest font-bold transition-colors">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                Edit Profile
+                            </button>
+                        </div>
+
+                        <!-- Placement Progress -->
+                        <div id="placement-progress-container" class="hidden mb-6">
+                            <div class="flex justify-between items-end mb-2">
+                                <p class="text-xs text-gray-400 uppercase tracking-widest">Placement Matches</p>
+                                <p id="placement-count" class="text-xs font-bold text-white">0 / 10</p>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div id="placement-bar" class="progress-bar-fill"></div>
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-2 text-center">Complete 10 matches to reveal your rank.</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6 text-center">
+                            <div class="bg-white/5 rounded-xl p-3 border border-white/10 relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 relative z-10">Global Rank</p>
+                                <p id="player-global-rank" class="text-xl font-bold font-mono relative z-10">---</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 border border-white/10 relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 relative z-10">Win Rate</p>
+                                <p id="player-winrate" class="text-xl font-bold font-mono relative z-10">0%</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/5 rounded-xl p-4 border border-white/10 mb-6 text-center group">
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">MMR Rating</p>
+                            <p id="player-mmr" class="text-3xl font-black font-mono mmr-count text-white group-hover:text-brand transition-colors">1200</p>
+                        </div>
+
+                        <button onclick="openFullStats()" class="w-full mb-4 text-xs text-brand font-bold uppercase tracking-widest py-2 hover:bg-brand/5 rounded-lg transition border border-transparent hover:border-brand/20">
+                            View Detailed Statistics
+                        </button>
+
+                        <!-- Matchmaking Button -->
+                        <button id="queue-btn" onclick="toggleQueue()" class="w-full bg-[#CC0B20] hover:bg-[#b0091b] text-white font-bold py-4 px-6 rounded-xl transition shadow-lg shadow-brand/20 flex items-center justify-center gap-2 group">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>Find Match</span>
+                        </button>
+                        
+                        <div id="queue-status" class="hidden mt-4 text-center">
+                            <p class="text-sm text-brand animate-pulse font-medium">Searching for opponent...</p>
+                            <p id="queue-timer" class="text-xs text-gray-400 mt-1 font-mono">00:00</p>
+                        </div>
+                    </div>
+
+                    <div id="auth-prompt" class="hidden text-center py-6">
+                        <p class="text-gray-400 mb-4">Sign in to view your rank and play matches.</p>
+                        <a href="login.html" class="inline-block bg-white/10 hover:bg-white/15 text-white font-semibold py-2 px-6 rounded-lg transition border border-white/10">Sign In</a>
+                    </div>
+                </div>
+
+                <!-- Active Match UI (Hidden by default) -->
+                <div class="card-panel p-6 hidden" id="active-match-panel">
+                    <h3 class="text-xl font-bold mb-4 text-[#CC0B20]" id="active-match-title">Match Found!</h3>
+                    
+                    <div id="active-match-lobby" class="hidden text-center mb-6">
+                        <p class="text-gray-300 mb-4 text-sm">Your match is ready. Play your match using the DartVoice web app.</p>
+                        <button onclick="startRankedMatch()" class="inline-block w-full bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-gray-200 transition">Open Match Lobby</button>
+                    </div>
+
+                    <div id="active-match-submit" class="hidden">
+                        <p class="text-gray-300 mb-4 text-sm">Match complete? Verify the stats scraped from DartCounter and submit your result.</p>
+                        <form id="submit-result-form" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Legs Won</label>
+                                    <input type="number" id="res-my-legs" min="0" max="10" required class="w-full bg-black/40 border border-white/10 rounded p-2 text-white text-center font-mono text-xl">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Opponent Legs</label>
+                                    <input type="number" id="res-opp-legs" min="0" max="10" required class="w-full bg-black/40 border border-white/10 rounded p-2 text-white text-center font-mono text-xl">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div>
+                                    <label class="block text-xs text-gray-400">Average</label>
+                                    <input type="number" step="0.01" id="res-avg" class="w-full bg-black/40 border border-white/10 rounded p-1 text-center font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">Checkout %</label>
+                                    <input type="number" step="0.01" id="res-co" class="w-full bg-black/40 border border-white/10 rounded p-1 text-center font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">High Finish</label>
+                                    <input type="number" id="res-hf" class="w-full bg-black/40 border border-white/10 rounded p-1 text-center font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">180s</label>
+                                    <input type="number" id="res-180" class="w-full bg-black/40 border border-white/10 rounded p-1 text-center font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">140+</label>
+                                    <input type="number" id="res-140" class="w-full bg-black/40 border border-white/10 rounded p-1 text-center font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">100+</label>
+                                    <input type="number" id="res-100" class="w-full bg-black/40 border border-white/10 rounded p-1 text-center font-mono">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" id="submit-result-btn" class="w-full bg-[#CC0B20] hover:bg-[#b0091b] text-white font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-brand/20">Submit Result</button>
+                        </form>
+                        <div id="submit-error" class="text-red-400 text-xs mt-2 hidden"></div>
+                    </div>
+                    
+                        <div id="active-match-waiting" class="hidden text-center py-4">
+                            <div class="inline-block w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin mb-2"></div>
+                            <p class="text-gray-300 text-sm">Waiting for opponent to confirm...</p>
+                        </div>
+
+                        <div id="active-match-disputed" class="hidden space-y-4">
+                            <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center">
+                                <p class="text-red-400 text-sm font-bold mb-2">Score Conflict Detected</p>
+                                <p class="text-gray-400 text-xs mb-4">Your claim does not match your opponent's. Please double check or wait for an admin to resolve the dispute.</p>
+                                
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div class="bg-black/40 rounded-lg p-3">
+                                        <div class="text-[10px] uppercase text-gray-500 font-bold mb-1">Your Claim</div>
+                                        <div class="text-xl font-bold" id="dispute-my-claim">0 - 0</div>
+                                    </div>
+                                    <div class="bg-black/40 rounded-lg p-3">
+                                        <div class="text-[10px] uppercase text-gray-500 font-bold mb-1">Opponent</div>
+                                        <div class="text-xl font-bold" id="dispute-opp-claim">0 - 0</div>
+                                    </div>
+                                </div>
+
+                                <button onclick="document.getElementById('active-match-disputed').classList.add('hidden'); document.getElementById('active-match-submit').classList.remove('hidden');" class="text-xs text-brand hover:underline">Edit my submission</button>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Recent Matches Mini -->
+                <div class="card-panel p-6">
+                    <h3 class="display text-xl font-bold mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Recent Matches
+                    </h3>
+                    <div id="recent-matches-list" class="space-y-3">
+                        <p class="text-gray-500 text-sm italic text-center py-4">No recent matches.</p>
+                    </div>
+                </div>
+
+                <!-- Season Progress -->
+                <div class="card-panel p-6 bg-gradient-to-br from-[#131317] to-[#0b0b0e]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="display text-lg font-bold">Season 1 Progress</h3>
+                        <span class="text-[10px] bg-brand/10 text-brand px-2 py-0.5 rounded-full font-bold uppercase tracking-widest border border-brand/20">Active</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">
+                                <span>Time Remaining</span>
+                                <span class="text-white font-bold">24 Days</span>
+                            </div>
+                            <div class="progress-bar-bg h-1.5">
+                                <div class="progress-bar-fill w-[65%]"></div>
+                            </div>
+                        </div>
+                        <div class="pt-2">
+                            <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-3">Season Rewards</p>
+                            <div class="flex gap-2">
+                                <div class="flex-1 bg-white/5 border border-white/5 rounded-lg p-2 text-center">
+                                    <div class="text-lg mb-1">🏆</div>
+                                    <div class="text-[8px] text-gray-400 uppercase font-bold">Apex Tag</div>
+                                </div>
+                                <div class="flex-1 bg-white/5 border border-white/5 rounded-lg p-2 text-center">
+                                    <div class="text-lg mb-1">✨</div>
+                                    <div class="text-[8px] text-gray-400 uppercase font-bold">Glow Aura</div>
+                                </div>
+                                <div class="flex-1 bg-white/5 border border-white/5 rounded-lg p-2 text-center">
+                                    <div class="text-lg mb-1">💎</div>
+                                    <div class="text-[8px] text-gray-400 uppercase font-bold">Badge</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Leaderboard -->
+            <div class="lg:col-span-2">
+                <div class="card-panel p-0 overflow-hidden flex flex-col h-full min-h-[600px]">
+                    <div class="p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                        <h2 class="display text-2xl font-bold">Global Leaderboard</h2>
+                        <div class="text-sm text-gray-400 bg-black/20 px-3 py-1 rounded-full border border-white/5">
+                            Season 1
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto flex-grow">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/5 text-xs uppercase tracking-wider text-gray-500 bg-black/20">
+                                    <th class="p-4 font-semibold w-16 text-center">#</th>
+                                    <th class="p-4 font-semibold">Player</th>
+                                    <th class="p-4 font-semibold">Tier</th>
+                                    <th class="p-4 font-semibold text-right">MMR</th>
+                                    <th class="p-4 font-semibold text-right hidden sm:table-cell">W/L</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body" class="text-sm">
+                                <!-- Loading State -->
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center">
+                                        <div class="inline-block w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Edit Profile Modal -->
+    <div id="modal-edit-profile" class="modal-overlay">
+        <div class="modal-container">
+            <h3 class="display text-2xl font-bold mb-6">Edit Profile</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-widest mb-2">Display Name</label>
+                    <input type="text" id="edit-display-name" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand transition" placeholder="Enter display name...">
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button onclick="closeModals()" class="flex-1 px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition font-bold">Cancel</button>
+                    <button id="save-profile-btn" onclick="saveProfile()" class="flex-1 px-6 py-3 rounded-xl bg-brand hover:bg-brand/80 text-white transition font-bold">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Stats Modal -->
+    <div id="modal-full-stats" class="modal-overlay">
+        <div class="modal-container max-w-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="display text-3xl font-bold">Performance Analytics</h3>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-circle mx-auto">
+                    <span id="stat-avg" class="stat-value">0.0</span>
+                    <span class="stat-label">Average</span>
+                </div>
+                <div class="stat-circle mx-auto">
+                    <span id="stat-checkout" class="stat-value">0%</span>
+                    <span class="stat-label">Checkout</span>
+                </div>
+                <div class="stat-circle mx-auto">
+                    <span id="stat-streak" class="stat-value">0</span>
+                    <span class="stat-label">Win Streak</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex justify-between items-center">
+                    <span class="text-gray-400">Total 180s</span>
+                    <span id="stat-180s" class="font-mono font-bold text-lg">0</span>
+                </div>
+                <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex justify-between items-center">
+                    <span class="text-gray-400">High Finish</span>
+                    <span id="stat-high-finish" class="font-mono font-bold text-lg">0</span>
+                </div>
+                <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex justify-between items-center">
+                    <span class="text-gray-400">Matches Played</span>
+                    <span id="stat-matches" class="font-mono font-bold text-lg">0</span>
+                </div>
+                <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex justify-between items-center">
+                    <span class="text-gray-400">Current Rank</span>
+                    <span id="stat-rank" class="font-bold text-brand uppercase">Placing</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rank Promotion Overlay -->
+    <div id="promotion-overlay" onclick="this.classList.remove('active')">
+        <div class="promo-glow"></div>
+        <div class="promo-content relative z-10">
+            <p class="text-brand font-black tracking-[0.4em] uppercase mb-2 animate-bounce">Promotion</p>
+            <h2 class="display text-7xl font-black italic text-white mb-6 drop-shadow-2xl">RANK UP!</h2>
+            <div id="promo-badge" class="inline-block px-12 py-4 rounded-full text-4xl font-black tracking-widest uppercase mb-8 border-4 shadow-[0_0_50px_rgba(204,11,32,0.5)]">
+                GOLD
+            </div>
+            <p class="text-gray-400 text-lg">You have ascended to a new competitive tier.</p>
+            <p class="text-xs text-gray-500 mt-8 uppercase tracking-widest">Click anywhere to continue</p>
+        </div>
+    </div>
+
+    <dv-footer></dv-footer>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+        const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let isQueueing = false;
+        let queueInterval = null;
+        let queueSeconds = 0;
+        let activeMatchId = null;
+        let lastRank = localStorage.getItem('dv_last_rank');
+
+        async function init() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('auth-prompt').classList.add('hidden');
+                document.getElementById('profile-content').classList.remove('hidden');
+                await loadUserProfile();
+                await loadActiveMatch();
+                await loadRecentMatches();
+                subscribeToMatches();
+
+                // Check for prefill from web-app
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('prefill') === 'true') {
+                    setTimeout(() => {
+                        const submitDiv = document.getElementById('active-match-submit');
+                        if (submitDiv && !submitDiv.classList.contains('hidden')) {
+                            submitDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Add a temporary glow to the submit button to draw attention
+                            const btn = document.getElementById('submit-result-btn');
+                            btn.classList.add('pulse-brand');
+                        }
+                    }, 800);
+                }
+            } else {
+                document.getElementById('profile-loading').classList.add('hidden');
+                document.getElementById('auth-prompt').classList.remove('hidden');
+            }
+            
+            loadLeaderboard();
+
+            // Listen for auth changes
+            sb.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && !currentUser) {
+                    window.location.reload();
+                } else if (event === 'SIGNED_OUT') {
+                    window.location.reload();
+                }
+            });
+        }
+
+        async function loadUserProfile() {
+            try {
+                // Fetch from both tables for redundancy and specific ranked data
+                const { data: profile } = await sb.from('dartvoice_profiles').select('display_name, avatar_url').eq('id', currentUser.id).maybeSingle();
+                const { data: rankedData } = await sb.from('ranked_profiles').select('*').eq('id', currentUser.id).maybeSingle();
+                
+                const displayName = rankedData?.display_name || profile?.display_name || 'Dart Player';
+                document.getElementById('player-name').textContent = displayName;
+                document.getElementById('edit-display-name').value = displayName;
+
+                if (rankedData) {
+                    const wins = rankedData.wins || 0;
+                    const losses = rankedData.losses || 0;
+                    const total = wins + losses;
+                    const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+                    const placementMatches = rankedData.placement_matches || 0;
+                    const isPlacing = !rankedData.is_placed || placementMatches < 10;
+                    const currentRank = (rankedData.rank_tier || 'silver').toLowerCase();
+
+                    // Detect Promotion (tiers stored lowercase in DB)
+                    if (lastRank && lastRank !== 'Loading...' && lastRank !== currentRank && !isPlacing) {
+                        const tiers = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'apex'];
+                        if (tiers.indexOf(currentRank) > tiers.indexOf((lastRank || '').toLowerCase())) {
+                            showPromotion(currentRank);
+                        }
+                    }
+                    lastRank = currentRank;
+                    localStorage.setItem('dv_last_rank', currentRank);
+                    
+                    // MMR Animation
+                    const targetMMR = isPlacing ? 1200 : Math.round(rankedData.mmr);
+                    animateMMR(targetMMR);
+
+                    document.getElementById('player-winrate').textContent = `${winRate}%`;
+                    
+                    // Placement Progress
+                    const placementContainer = document.getElementById('placement-progress-container');
+                    if (isPlacing) {
+                        placementContainer.classList.remove('hidden');
+                        document.getElementById('placement-count').textContent = `${placementMatches} / 10`;
+                        document.getElementById('placement-bar').style.width = `${(placementMatches / 10) * 100}%`;
+                    } else {
+                        placementContainer.classList.add('hidden');
+                    }
+
+                    const badge = document.getElementById('player-tier-badge');
+                    badge.className = `inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase mb-4 border tier-${currentRank}`;
+                    badge.textContent = isPlacing ? `Placing (${placementMatches}/10)` : currentRank;
+
+                    // Populate Full Stats Modal
+                    document.getElementById('stat-avg').textContent = Number(rankedData.avg_match_average || 0).toFixed(1);
+                    document.getElementById('stat-checkout').textContent = Math.round(rankedData.avg_checkout_pct || 0) + '%';
+                    document.getElementById('stat-180s').textContent = rankedData.total_180s || 0;
+                    document.getElementById('stat-high-finish').textContent = rankedData.best_finish || 0;
+                    document.getElementById('stat-matches').textContent = total;
+                    document.getElementById('stat-streak').textContent = rankedData.win_streak || 0;
+                    
+                    document.getElementById('stat-rank').textContent = isPlacing ? "Placing" : currentRank;
+                    document.getElementById('stat-rank').className = `font-bold uppercase tier-${currentRank}`;
+
+                    // Fetch Global Rank
+                    if (!isPlacing) {
+                        const { count } = await sb.from('ranked_profiles')
+                            .select('*', { count: 'exact', head: true })
+                            .gt('mmr', rankedData.mmr)
+                            .eq('is_placed', true);
+                        document.getElementById('player-global-rank').textContent = `#${(count || 0) + 1}`;
+                    } else {
+                        document.getElementById('player-global-rank').textContent = 'TBD';
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading profile:", err);
+            } finally {
+                document.getElementById('profile-loading').classList.add('hidden');
+                document.getElementById('profile-content').classList.remove('hidden');
+            }
+        }
+
+        function animateMMR(target) {
+            const el = document.getElementById('player-mmr');
+            const currentStr = el.textContent.trim();
+            const current = (currentStr === '---' || currentStr === 'Loading...') ? 1200 : parseInt(currentStr);
+            
+            if (isNaN(current)) {
+                el.textContent = target;
+                return;
+            }
+            if (current === target) return;
+            
+            let start = current;
+            const duration = 1200;
+            const startTime = performance.now();
+            
+            function update(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const value = Math.floor(start + (target - start) * easeOutExpo(progress));
+                
+                el.textContent = value;
+                
+                if (progress < 1) requestAnimationFrame(update);
+                else el.textContent = target;
+            }
+            requestAnimationFrame(update);
+        }
+
+        function easeOutExpo(x) {
+            return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+        }
+
+        // --- Active Match ---
+        async function loadActiveMatch() {
+            if (!currentUser) return;
+            try {
+                const { data, error } = await sb
+                    .from('ranked_matches')
+                    .select('*')
+                    .or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`)
+                    .not('status', 'in', '("completed","cancelled")')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+                
+                if (error && error.code !== 'PGRST116') throw error;
+                
+                const activePanel = document.getElementById('active-match-panel');
+                const queueBtn = document.getElementById('queue-btn');
+                const queueStatus = document.getElementById('queue-status');
+                
+                if (data) {
+                    activeMatchId = data.id;
+                    const isP1 = data.player1_id === currentUser.id;
+                    const mySubmitted = isP1 ? data.player1_result_submitted : data.player2_result_submitted;
+                    
+                    queueBtn.classList.add('hidden');
+                    queueStatus.classList.add('hidden');
+                    activePanel.classList.remove('hidden');
+                    
+                    const lobbyDiv = document.getElementById('active-match-lobby');
+                    const submitDiv = document.getElementById('active-match-submit');
+                    const waitingDiv = document.getElementById('active-match-waiting');
+                    const disputeDiv = document.getElementById('active-match-disputed');
+                    
+                    lobbyDiv.classList.add('hidden');
+                    submitDiv.classList.add('hidden');
+                    waitingDiv.classList.add('hidden');
+                    disputeDiv.classList.add('hidden');
+                    
+                    if (data.status === 'pending' || data.status === 'lobby' || data.status === 'in_progress') {
+                        document.getElementById('active-match-title').textContent = "Match Active";
+                        lobbyDiv.classList.remove('hidden');
+                        submitDiv.classList.remove('hidden');
+                        prefillStats(isP1);
+                    } else if (data.status === 'awaiting_confirmation') {
+                        document.getElementById('active-match-title').textContent = "Awaiting Confirmation";
+                        if (mySubmitted) waitingDiv.classList.remove('hidden');
+                        else {
+                            submitDiv.classList.remove('hidden');
+                            prefillStats(isP1);
+                        }
+                    } else if (data.status === 'disputed') {
+                        document.getElementById('active-match-title').textContent = "Disputed Match";
+                        disputeDiv.classList.remove('hidden');
+                        
+                        if (isP1) {
+                            document.getElementById('dispute-my-claim').textContent = `${data.player1_claimed_p1_legs} - ${data.player1_claimed_p2_legs}`;
+                            document.getElementById('dispute-opp-claim').textContent = `${data.player2_claimed_p1_legs} - ${data.player2_claimed_p2_legs}`;
+                        } else {
+                            document.getElementById('dispute-my-claim').textContent = `${data.player2_claimed_p2_legs} - ${data.player2_claimed_p1_legs}`;
+                            document.getElementById('dispute-opp-claim').textContent = `${data.player1_claimed_p2_legs} - ${data.player1_claimed_p1_legs}`;
+                        }
+                    }
+                } else {
+                    activeMatchId = null;
+                    queueBtn.classList.remove('hidden');
+                    if (isQueueing) queueStatus.classList.remove('hidden');
+                    activePanel.classList.add('hidden');
+                }
+            } catch (e) { console.error("Error loading active match", e); }
+        }
+
+        function prefillStats(isP1) {
+            try {
+                const statsRaw = sessionStorage.getItem('dv_latest_match_stats');
+                if (!statsRaw) return;
+                const parsed = JSON.parse(statsRaw);
+                
+                // Legs
+                if (isP1) {
+                    document.getElementById('res-my-legs').value = parsed.p1Legs || 0;
+                    document.getElementById('res-opp-legs').value = parsed.p2Legs || 0;
+                } else {
+                    document.getElementById('res-my-legs').value = parsed.p2Legs || 0;
+                    document.getElementById('res-opp-legs').value = parsed.p1Legs || 0;
+                }
+
+                const myStats = isP1 ? parsed.p1 : parsed.p2;
+                if (!myStats) return;
+                
+                if (myStats.avg) document.getElementById('res-avg').value = myStats.avg;
+                if (myStats.checkoutPercent) document.getElementById('res-co').value = myStats.checkoutPercent;
+                if (myStats.bestLeg) document.getElementById('res-hf').value = myStats.bestLeg;
+                if (myStats.count180) document.getElementById('res-180').value = myStats.count180;
+                if (myStats.count140) document.getElementById('res-140').value = myStats.count140;
+                if (myStats.count100) document.getElementById('res-100').value = myStats.count100;
+
+                // Add pulsate to submit button if prefilled
+                document.getElementById('submit-result-btn').classList.add('pulse-brand');
+            } catch(e){}
+        }
+
+        window.startRankedMatch = async () => {
+            if (!activeMatchId) return;
+            try {
+                await sb.functions.invoke('ranked-match-result', { body: { action: 'start_match', match_id: activeMatchId } });
+            } catch (err) { /* fall through to redirect anyway */ }
+            // Look up opponent display_name for the in-game banner
+            let opponentName = '';
+            try {
+                const { data: m } = await sb.from('ranked_matches').select('player1_id, player2_id').eq('id', activeMatchId).maybeSingle();
+                if (m) {
+                    const oppId = m.player1_id === currentUser.id ? m.player2_id : m.player1_id;
+                    const { data: oppProfile } = await sb.from('ranked_profiles').select('display_name').eq('id', oppId).maybeSingle();
+                    opponentName = oppProfile?.display_name || '';
+                }
+            } catch(_) {}
+            const url = new URL('web-app.html', window.location.origin);
+            url.searchParams.set('ranked', 'true');
+            url.searchParams.set('matchId', activeMatchId);
+            if (opponentName) url.searchParams.set('opponent', opponentName);
+            window.location.href = url.toString();
+        }
+
+        function subscribeToMatches() {
+            if (!currentUser) return;
+            sb.channel('match_updates')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_matches', filter: `player1_id=eq.${currentUser.id}` }, () => handleMatchUpdate())
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_matches', filter: `player2_id=eq.${currentUser.id}` }, () => handleMatchUpdate())
+                .subscribe();
+        }
+
+        async function handleMatchUpdate() {
+            await loadActiveMatch();
+            await loadRecentMatches();
+            await loadUserProfile();
+            await loadLeaderboard();
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const { data, error } = await sb.from('ranked_profiles').select('*').eq('is_placed', true).order('mmr', { ascending: false }).limit(50);
+                if (error) throw error;
+                const tbody = document.getElementById('leaderboard-body');
+                tbody.innerHTML = '';
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">No placed players yet.</td></tr>`;
+                    return;
+                }
+                data.forEach((p, idx) => {
+                    const wins = p.wins || 0;
+                    const losses = p.losses || 0;
+                    let rankHtml = `<span class="text-gray-400 font-mono">${idx + 1}</span>`;
+                    if (idx === 0) rankHtml = `<span class="text-[#ffd700] font-bold text-lg drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]">1</span>`;
+                    else if (idx === 1) rankHtml = `<span class="text-[#c0c0c0] font-bold text-lg drop-shadow-[0_0_8px_rgba(192,192,192,0.5)]">2</span>`;
+                    else if (idx === 2) rankHtml = `<span class="text-[#cd7f32] font-bold text-lg drop-shadow-[0_0_8px_rgba(205,127,50,0.5)]">3</span>`;
+
+                    const row = document.createElement('tr');
+                    const isMe = currentUser && p.id === currentUser.id;
+                    row.className = `border-b border-white/5 leaderboard-row ${isMe ? 'bg-brand/10' : ''}`;
+                    row.innerHTML = `
+                        <td class="p-4 text-center">${rankHtml}</td>
+                        <td class="p-4 font-semibold">${p.display_name || 'Anonymous'} ${isMe ? '<span class="text-xs text-brand ml-1 font-bold">(YOU)</span>' : ''}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold uppercase border tier-${(p.rank_tier||'silver').toLowerCase()}">${p.rank_tier}</span></td>
+                        <td class="p-4 text-right font-mono font-bold">${Math.round(p.mmr)}</td>
+                        <td class="p-4 text-right hidden sm:table-cell font-mono text-gray-400">${wins}W - ${losses}L</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) { console.error("Leaderboard error:", err); }
+        }
+
+        async function loadRecentMatches() {
+            if (!currentUser) return;
+            const container = document.getElementById('recent-matches-list');
+            try {
+                const { data, error } = await sb.from('ranked_matches').select('*').or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`).eq('status', 'completed').order('completed_at', { ascending: false }).limit(5);
+                if (error || !data || data.length === 0) {
+                    container.innerHTML = `<p class="text-gray-500 text-sm italic text-center py-4">No recent matches.</p>`;
+                    return;
+                }
+                // Resolve opponent display names from ranked_profiles (player1/2_id reference auth.users)
+                const oppIds = Array.from(new Set(data.map(m => m.player1_id === currentUser.id ? m.player2_id : m.player1_id)));
+                const nameMap = {};
+                if (oppIds.length) {
+                    const { data: profs } = await sb.from('ranked_profiles').select('id, display_name').in('id', oppIds);
+                    (profs || []).forEach(p => { nameMap[p.id] = p.display_name; });
+                }
+                container.innerHTML = '';
+                data.forEach(m => {
+                    const isP1 = m.player1_id === currentUser.id;
+                    const opponentId = isP1 ? m.player2_id : m.player1_id;
+                    const opponentName = nameMap[opponentId] || 'Anonymous';
+                    const myLegs = isP1 ? m.player1_legs_won : m.player2_legs_won;
+                    const oppLegs = isP1 ? m.player2_legs_won : m.player1_legs_won;
+                    const won = (isP1 && m.winner_id === m.player1_id) || (!isP1 && m.winner_id === m.player2_id);
+                    const mmrDelta = isP1 ? m.player1_mmr_delta : m.player2_mmr_delta;
+                    
+                    const matchEl = document.createElement('div');
+                    matchEl.className = 'group flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 transition-all cursor-default';
+                    matchEl.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-black/40 border ${won ? 'border-green-500/30 text-green-400' : 'border-red-500/30 text-red-400'} flex items-center justify-center text-xs font-black shadow-lg shadow-black/20">${won ? 'WIN' : 'LOSS'}</div>
+                            <div>
+                                <div class="text-sm font-bold text-white group-hover:text-brand transition-colors">${opponentName}</div>
+                                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-tighter">${new Date(m.completed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-black font-mono text-white tracking-widest">${myLegs}-${oppLegs}</div>
+                            <div class="flex items-center justify-end gap-1">
+                                <div class="text-[10px] font-black font-mono ${mmrDelta >= 0 ? 'text-green-400' : 'text-red-400'}">${mmrDelta >= 0 ? '+' : ''}${mmrDelta}</div>
+                                <div class="text-[8px] text-gray-600 font-bold uppercase tracking-widest">MMR</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(matchEl);
+                });
+            } catch (err) { console.error("Error loading matches:", err); }
+        }
+
+        window.toggleQueue = async () => {
+            if (!currentUser) return alert("Please sign in.");
+            const btn = document.getElementById('queue-btn');
+            const statusDiv = document.getElementById('queue-status');
+            const timerEl = document.getElementById('queue-timer');
+            if (isQueueing) {
+                isQueueing = false;
+                clearInterval(queueInterval);
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <span>Find Match</span>`;
+                btn.className = "w-full bg-[#CC0B20] hover:bg-[#b0091b] text-white font-bold py-4 px-6 rounded-xl transition shadow-lg shadow-brand/20 flex items-center justify-center gap-2 group";
+                statusDiv.classList.add('hidden');
+                await sb.functions.invoke('ranked-queue', { body: { action: 'leave' }});
+                return;
+            }
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> <span>Joining...</span>`;
+                await sb.functions.invoke('ranked-queue', { body: { action: 'join' }});
+                isQueueing = true;
+                queueSeconds = 0;
+                btn.disabled = false;
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> <span>Cancel Queue</span>`;
+                btn.className = "w-full bg-black/40 hover:bg-black/60 text-white font-bold py-4 px-6 rounded-xl transition border border-white/10 flex items-center justify-center gap-2";
+                statusDiv.classList.remove('hidden');
+                queueInterval = setInterval(async () => {
+                    queueSeconds++;
+                    const m = Math.floor(queueSeconds / 60).toString().padStart(2, '0');
+                    const s = (queueSeconds % 60).toString().padStart(2, '0');
+                    timerEl.textContent = `${m}:${s}`;
+                    if (queueSeconds % 5 === 0) {
+                        const { data: matchData } = await sb.functions.invoke('ranked-queue', { body: { action: 'check' }});
+                        if (matchData && matchData.match_id) {
+                            clearInterval(queueInterval);
+                            loadActiveMatch();
+                        }
+                    }
+                }, 1000);
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = `<span>Find Match</span>`;
+            }
+        };
+
+        const submitForm = document.getElementById('submit-result-form');
+        if (submitForm) {
+            submitForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('submit-result-btn');
+                const errDiv = document.getElementById('submit-error');
+                if (!activeMatchId) return;
+                btn.disabled = true;
+                btn.textContent = "Submitting...";
+                try {
+                    const { error } = await sb.functions.invoke('ranked-match-result', {
+                        body: {
+                            action: 'submit_result',
+                            match_id: activeMatchId,
+                            my_legs_won: parseInt(document.getElementById('res-my-legs').value) || 0,
+                            opponent_legs_won: parseInt(document.getElementById('res-opp-legs').value) || 0,
+                            stats: {
+                                average: parseFloat(document.getElementById('res-avg').value) || 0,
+                                checkout_pct: parseFloat(document.getElementById('res-co').value) || 0,
+                                high_finish: parseInt(document.getElementById('res-hf').value) || 0,
+                                tons_180: parseInt(document.getElementById('res-180').value) || 0,
+                                tons_140_plus: parseInt(document.getElementById('res-140').value) || 0,
+                                tons_100_plus: parseInt(document.getElementById('res-100').value) || 0
+                            }
+                        }
+                    });
+                    if (error) throw error;
+                    sessionStorage.removeItem('dv_latest_match_stats');
+                    await loadActiveMatch();
+                    await loadUserProfile();
+                } catch (err) {
+                    errDiv.textContent = err.message || "Failed to submit.";
+                    errDiv.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.textContent = "Submit Result";
+                }
+            });
+        }
+
+        // --- Modals ---
+        window.openEditProfile = () => document.getElementById('modal-edit-profile').classList.add('active');
+        window.openFullStats = () => document.getElementById('modal-full-stats').classList.add('active');
+        window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+
+        window.saveProfile = async () => {
+            const name = document.getElementById('edit-display-name').value.trim();
+            if (!name) return;
+            const btn = document.getElementById('save-profile-btn');
+            btn.disabled = true;
+            btn.textContent = "Saving...";
+            try {
+                await sb.from('dartvoice_profiles').update({ display_name: name }).eq('id', currentUser.id);
+                await sb.from('ranked_profiles').update({ display_name: name }).eq('id', currentUser.id);
+                await loadUserProfile();
+                closeModals();
+            } catch (err) { alert("Save failed"); }
+            finally { btn.disabled = false; btn.textContent = "Save Changes"; }
+        };
+
+        window.showPromotion = (tier) => {
+            const overlay = document.getElementById('promotion-overlay');
+            const badge = document.getElementById('promo-badge');
+            badge.textContent = tier;
+            badge.className = `inline-block px-12 py-4 rounded-full text-4xl font-black tracking-widest uppercase mb-8 border-4 shadow-[0_0_50px_rgba(204,11,32,0.5)] tier-${tier.toLowerCase()}`;
+            overlay.classList.add('active');
+            
+            // Confetti effect (simulated with emojis or similar if library not present, but let's stick to CSS/HTML)
+            console.info("PROMOTED TO " + tier);
+        };
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModals(); });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
