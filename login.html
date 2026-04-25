@@ -885,15 +885,19 @@
     const DV_CHECKOUT_URL = 'https://buy.stripe.com/6oU7sD6gF6868Vb9KAf7i00';
     function dvCheckout(e) {
         if (e) e.preventDefault();
+        // Apply launch-sale promo (DARTVOICE20) if active.
+        const url = (window.DV?.discount?.applyToCheckoutUrl)
+            ? window.DV.discount.applyToCheckoutUrl(DV_CHECKOUT_URL)
+            : DV_CHECKOUT_URL;
         const isMobile = /Mobi|Android|iPhone|iPad|IEMobile/i.test(navigator.userAgent)
                          || window.innerWidth < 768;
-        if (isMobile) { window.location.href = DV_CHECKOUT_URL; return; }
+        if (isMobile) { window.location.href = url; return; }
         const w = 520, h = 720;
         const left = Math.max(0, Math.round((screen.width  - w) / 2));
         const top  = Math.max(0, Math.round((screen.height - h) / 2));
-        const popup = window.open(DV_CHECKOUT_URL, 'dvCheckout',
+        const popup = window.open(url, 'dvCheckout',
             `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,toolbar=no,menubar=no`);
-        if (!popup || popup.closed) window.open(DV_CHECKOUT_URL, '_blank', 'noopener');
+        if (!popup || popup.closed) window.open(url, '_blank', 'noopener');
     }
     </script>
     <script src="theme.js"></script>

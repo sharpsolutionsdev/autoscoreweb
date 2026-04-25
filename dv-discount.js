@@ -256,6 +256,25 @@
     pct: PROMO.pct,
     endsAt: PROMO.endsAt,
     couponId: PROMO.couponId,
-    refresh: function () { enhancePrices(); rerenderAllNewSpans(); }
+    refresh: function () { enhancePrices(); rerenderAllNewSpans(); },
+    /**
+     * Append `prefilled_promo_code=DARTVOICE20` to a Stripe Payment Link
+     * URL when the promo is live. Idempotent — won't double-add.
+     * Use for any `https://buy.stripe.com/...` checkout link in the app.
+     */
+    applyToCheckoutUrl: function (url) {
+      if (!url || !isLive()) return url;
+      try {
+        var u = new URL(url, window.location.origin);
+        if (!u.searchParams.has('prefilled_promo_code')) {
+          u.searchParams.set('prefilled_promo_code', PROMO.couponId);
+        }
+        return u.toString();
+      } catch (e) {
+        // Fallback for malformed URLs: append manually.
+        if (url.indexOf('prefilled_promo_code=') !== -1) return url;
+        return url + (url.indexOf('?') === -1 ? '?' : '&') + 'prefilled_promo_code=' + encodeURIComponent(PROMO.couponId);
+      }
+    }
   };
 })();

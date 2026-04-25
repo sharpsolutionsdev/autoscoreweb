@@ -1971,12 +1971,16 @@
             const params = new URLSearchParams(window.location.search);
             const plan = params.get('plan') || 'monthly';
             const baseUrl = PAYMENT_LINKS[plan];
+            // Build URL with client_reference_id, then let dv-discount append
+            // the active promotion code (DARTVOICE20) when the launch sale is live.
+            const applyPromo = (u) => (window.DV?.discount?.applyToCheckoutUrl ? window.DV.discount.applyToCheckoutUrl(u) : u);
             if (!baseUrl) {
                 console.warn('Unknown plan:', plan, '- using monthly');
-                window.location.href = STRIPE_PAY_URL + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : '');
+                const fallback = STRIPE_PAY_URL + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : '');
+                window.location.href = applyPromo(fallback);
                 return;
             }
-            const url = baseUrl + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : '');
+            const url = applyPromo(baseUrl + (userId ? '?client_reference_id=' + encodeURIComponent(userId) : ''));
             const isMobile = /Mobi|Android|iPhone|iPad|IEMobile/i.test(navigator.userAgent) || window.innerWidth < 768;
             if (isMobile) {
                 window.open(url, '_blank', 'noopener');
