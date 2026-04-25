@@ -25,9 +25,9 @@ class DvNav extends HTMLElement {
             <div class="relative" id="nav-lb-wrap">
               <button type="button" id="nav-lb-btn"
                 class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5"
-                aria-haspopup="true" aria-expanded="false" aria-controls="nav-lb-menu" title="Live Ranked Leaderboard">
+                aria-haspopup="true" aria-expanded="false" aria-controls="nav-lb-menu" title="Order of Merit · Live Rankings">
                 <svg class="w-3.5 h-3.5 text-brand" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2c0 3.31-2.06 6.13-4.96 7.27.46 1.31 1.36 2.41 2.54 3.13l-1 2.6H8.42l-1-2.6c1.18-.72 2.08-1.82 2.54-3.13C7.06 11.13 5 8.31 5 5V3zm2 2v0c0 2.36 1.5 4.36 3.6 5.13L11 11h2l.4-.87C15.5 9.36 17 7.36 17 5H7zM6 20h12v2H6v-2z"/></svg>
-                Leaderboard
+                Rankings
                 <svg class="w-3 h-3 transition-transform" id="nav-lb-chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <div id="nav-lb-menu"
@@ -37,7 +37,7 @@ class DvNav extends HTMLElement {
                     <p class="text-[10px] font-bold tracking-widest text-brand uppercase">Top Ranked</p>
                     <p class="text-xs text-muted">Live MMR rankings</p>
                   </div>
-                  <a href="/ranked" class="text-[11px] text-muted hover:text-chalk transition">View all →</a>
+                  <a href="/rankings" class="text-[11px] text-muted hover:text-chalk transition">Order of Merit →</a>
                 </div>
                 <div id="nav-lb-list" class="py-1 max-h-[340px] overflow-y-auto">
                   <div class="px-4 py-6 text-center text-xs text-muted">Loading…</div>
@@ -354,9 +354,9 @@ customElements.define('dv-nav', DvNav);
         <button type="button" id="dvlb-btn"
           class="text-sm transition px-3 py-2 flex items-center gap-1.5"
           style="color:rgba(255,255,255,0.65);background:transparent;border:0;cursor:pointer;font:inherit;"
-          aria-haspopup="true" aria-expanded="false" title="Live Ranked Leaderboard">
+          aria-haspopup="true" aria-expanded="false" title="Order of Merit · Live Rankings">
           <svg style="width:14px;height:14px;color:#CC0B20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2c0 3.31-2.06 6.13-4.96 7.27.46 1.31 1.36 2.41 2.54 3.13l-1 2.6H8.42l-1-2.6c1.18-.72 2.08-1.82 2.54-3.13C7.06 11.13 5 8.31 5 5V3zm2 2v0c0 2.36 1.5 4.36 3.6 5.13L11 11h2l.4-.87C15.5 9.36 17 7.36 17 5H7zM6 20h12v2H6v-2z"/></svg>
-          <span>Leaderboard</span>
+          <span>Rankings</span>
           <svg id="dvlb-chev" style="width:12px;height:12px;transition:transform .15s" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div id="dvlb-menu"
@@ -366,7 +366,7 @@ customElements.define('dv-nav', DvNav);
               <p style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#CC0B20;margin:0;">Top Ranked</p>
               <p style="font-size:11px;color:rgba(255,255,255,0.5);margin:2px 0 0;">Live MMR rankings</p>
             </div>
-            <a href="/ranked" style="font-size:11px;color:rgba(255,255,255,0.5);text-decoration:none;">View all →</a>
+            <a href="/rankings" style="font-size:11px;color:rgba(255,255,255,0.5);text-decoration:none;">Order of Merit →</a>
           </div>
           <div id="dvlb-list" style="padding:4px 0;max-height:340px;overflow-y:auto;">
             <div style="padding:24px;text-align:center;font-size:12px;color:rgba(255,255,255,0.5);">Loading…</div>

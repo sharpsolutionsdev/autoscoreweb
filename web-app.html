@@ -6245,13 +6245,22 @@ window.openScorerUrl = function(url){
         body.dv-can-overlay #dv-overlays-launcher { display: inline-flex !important; }
 
         #dv-overlays-launcher {
-            position: fixed; right: 16px; bottom: 70px; z-index: 100000;
-            background: linear-gradient(135deg, rgba(var(--brand-rgb),0.9), rgba(var(--brand-rgb),0.6));
-            color: #fff; border: 1px solid rgba(255,255,255,0.15);
+            position: fixed; right: 16px; bottom: 90px; z-index: 100000;
+            background: linear-gradient(135deg, rgba(var(--brand-rgb),0.95), rgba(var(--brand-rgb),0.7));
+            color: #fff; border: 1px solid rgba(255,255,255,0.18);
             border-radius: 999px; padding: 10px 16px; font-weight: 700;
             font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
-            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(var(--brand-rgb),0.4);
+            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 24px rgba(var(--brand-rgb),0.55);
             display: flex; align-items: center; gap: 8px;
+            animation: dvLauncherPulse 2.6s ease-in-out infinite;
+        }
+        @keyframes dvLauncherPulse {
+            0%,100% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 24px rgba(var(--brand-rgb),0.55); }
+            50%     { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 38px rgba(var(--brand-rgb),0.85); }
+        }
+        @media (max-width: 768px) {
+            #dv-overlays-launcher { bottom: 110px; }
+            #dv-overlays-panel    { bottom: 162px; }
         }
         #dv-overlays-launcher:hover { filter: brightness(1.1); }
         #dv-overlays-launcher svg { width: 14px; height: 14px; }
@@ -6298,6 +6307,21 @@ window.openScorerUrl = function(url){
             font-size: 12px; cursor: pointer; z-index: 2;
         }
         .dv-stream-overlay:hover .dv-ovl-close { display: flex; }
+
+        .dv-ovl-resize {
+            position: absolute; right: -2px; bottom: -2px;
+            width: 16px; height: 16px;
+            cursor: nwse-resize;
+            background: linear-gradient(135deg, transparent 0%, transparent 50%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.55) 60%, transparent 60%, transparent 70%, rgba(255,255,255,0.4) 70%, rgba(255,255,255,0.4) 80%, transparent 80%);
+            border-bottom-right-radius: 6px;
+            display: none; z-index: 3;
+        }
+        .dv-stream-overlay:hover .dv-ovl-resize { display: block; }
+        .dv-stream-overlay.resizing { cursor: nwse-resize; }
+        /* When a custom size is applied, child elements should fill so resize is visible. */
+        .dv-stream-overlay[data-sized="1"] > *:not(.dv-ovl-close):not(.dv-ovl-resize) {
+            width: 100%; height: 100%; box-sizing: border-box;
+        }
 
         .dv-ovl-brand {
             background: linear-gradient(135deg, rgba(var(--brand-rgb),0.95), rgba(var(--brand-rgb),0.75));
@@ -6560,7 +6584,7 @@ window.openScorerUrl = function(url){
         function attachDrag(el, spec){
             let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
             function down(e){
-                if (e.target && e.target.classList && e.target.classList.contains('dv-ovl-close')) return;
+                if (e.target && e.target.classList && (e.target.classList.contains('dv-ovl-close') || e.target.classList.contains('dv-ovl-resize'))) return;
                 if (e.target && (e.target.isContentEditable || (e.target.closest && e.target.closest('[contenteditable="true"]')))) return;
                 dragging = true;
                 el.classList.add('dragging');
@@ -6596,6 +6620,45 @@ window.openScorerUrl = function(url){
             window.addEventListener('touchend', up);
         }
 
+        function attachResize(el, handle, spec){
+            let sx = 0, sy = 0, sw = 0, sh = 0, resizing = false;
+            function down(e){
+                resizing = true;
+                el.classList.add('resizing');
+                const p = 'touches' in e ? e.touches[0] : e;
+                const rect = el.getBoundingClientRect();
+                sx = p.clientX; sy = p.clientY;
+                sw = rect.width; sh = rect.height;
+                // Lock dimensions explicitly so growth tracks the cursor.
+                el.style.width  = sw + 'px';
+                el.style.height = sh + 'px';
+                el.dataset.sized = '1';
+                e.preventDefault(); e.stopPropagation();
+            }
+            function move(e){
+                if (!resizing) return;
+                const p = 'touches' in e ? e.touches[0] : e;
+                const nw = Math.max(80,  Math.min(900, sw + (p.clientX - sx)));
+                const nh = Math.max(40,  Math.min(700, sh + (p.clientY - sy)));
+                el.style.width  = nw + 'px';
+                el.style.height = nh + 'px';
+            }
+            function up(){
+                if (!resizing) return;
+                resizing = false;
+                el.classList.remove('resizing');
+                const rect = el.getBoundingClientRect();
+                state[spec.id] = Object.assign({}, state[spec.id] || {}, { on: true, w: rect.width, h: rect.height });
+                writeState(state);
+            }
+            handle.addEventListener('mousedown', down);
+            handle.addEventListener('touchstart', down, { passive: false });
+            window.addEventListener('mousemove', move);
+            window.addEventListener('touchmove', move, { passive: false });
+            window.addEventListener('mouseup', up);
+            window.addEventListener('touchend', up);
+        }
+
         function renderOverlays(){
             document.querySelectorAll('.dv-stream-overlay').forEach(el => el.remove());
             OVERLAYS.forEach(spec => {
@@ -6620,8 +6683,20 @@ window.openScorerUrl = function(url){
                 });
                 el.appendChild(close);
 
+                // Restore previous size if user resized before.
+                if (s.w && s.h) {
+                    el.style.width  = s.w + 'px';
+                    el.style.height = s.h + 'px';
+                    el.dataset.sized = '1';
+                }
+                const grip = document.createElement('div');
+                grip.className = 'dv-ovl-resize';
+                grip.title = 'Drag to resize';
+                el.appendChild(grip);
+
                 document.body.appendChild(el);
                 attachDrag(el, spec);
+                attachResize(el, grip, spec);
             });
         }
 

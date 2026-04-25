@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Order of Merit | DartVoice</title>
+    <meta name="description" content="The DartVoice Order of Merit — live world ranking of every player who plays Ranked. Country, rank, MMR, average, 180s, and more.">
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/general/base.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="components/dv-nav.js" defer></script>
+    <script src="components/dv-footer.js" defer></script>
+    <script src="theme.js" defer></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0b0e; color: #f0f0f5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+        :root { --brand: #CC0B20; --brand-rgb: 204, 11, 32; }
+
+        .page-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(var(--brand-rgb),0.10) 0%, transparent 50%),
+                        linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
+            z-index: -1; pointer-events: none;
+        }
+
+        .card-panel {
+            background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Tier pills (mirrors ranked.html) */
+        .tier-bronze    { color: #cd7f32; border-color: rgba(205,127,50,0.3);  background: rgba(205,127,50,0.10); }
+        .tier-silver    { color: #c0c0c0; border-color: rgba(192,192,192,0.3); background: rgba(192,192,192,0.10); }
+        .tier-gold      { color: #ffd700; border-color: rgba(255,215,0,0.3);   background: rgba(255,215,0,0.10); }
+        .tier-platinum  { color: #e5e4e2; border-color: rgba(229,228,226,0.4); background: rgba(229,228,226,0.10); }
+        .tier-diamond   { color: #b9f2ff; border-color: rgba(185,242,255,0.4); background: rgba(185,242,255,0.10); box-shadow: 0 0 14px rgba(185,242,255,0.18); }
+        .tier-apex,
+        .tier-champion  { color: var(--brand); border-color: rgba(var(--brand-rgb),0.6); background: rgba(var(--brand-rgb),0.18); box-shadow: 0 0 18px rgba(var(--brand-rgb),0.4); font-weight: 800; }
+        .tier-unranked  { color: #8e8e93; border-color: rgba(142,142,147,0.3); background: rgba(142,142,147,0.10); }
+
+        .tier-pill {
+            display: inline-flex; align-items: center;
+            padding: 3px 10px; border-radius: 999px;
+            font-size: 11px; font-weight: 700;
+            border: 1px solid currentColor;
+            white-space: nowrap;
+        }
+
+        /* Top-3 podium glow */
+        .pos-1 { background: linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,215,0,0.04)); border-left: 3px solid #ffd700; }
+        .pos-2 { background: linear-gradient(135deg, rgba(192,192,192,0.14), rgba(192,192,192,0.03)); border-left: 3px solid #c0c0c0; }
+        .pos-3 { background: linear-gradient(135deg, rgba(205,127,50,0.14), rgba(205,127,50,0.03)); border-left: 3px solid #cd7f32; }
+
+        .lb-row {
+            display: grid;
+            grid-template-columns: 56px 1.5fr 110px 80px 80px 70px 70px 80px;
+            gap: 12px;
+            padding: 14px 16px;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background-color .15s ease;
+        }
+        .lb-row:hover { background: rgba(255,255,255,0.025); }
+        .lb-head {
+            font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+            color: #8e8e93;
+            background: rgba(255,255,255,0.02);
+        }
+        .lb-pos {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800; font-size: 22px;
+            text-align: center;
+            color: #fff;
+        }
+        .lb-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .lb-name .flag { font-size: 18px; line-height: 1; }
+        .lb-name .nm   { font-weight: 700; color: #fff; truncate: ellipsis; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
+        .lb-name .nm a { color: inherit; }
+        .lb-name .nm a:hover { color: var(--brand); }
+
+        .lb-stat {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            color: #d0d0d8;
+            text-align: right;
+            font-size: 13px;
+        }
+        .lb-stat.dim { color: #8e8e93; font-weight: 500; }
+
+        @media (max-width: 880px) {
+            .lb-row {
+                grid-template-columns: 44px 1.4fr 90px 64px;
+                gap: 10px;
+                padding: 12px;
+            }
+            .lb-row > .col-hide-mobile { display: none; }
+            .lb-head { font-size: 9px; }
+        }
+
+        .filter-pill {
+            padding: 6px 14px; border-radius: 999px;
+            font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #8e8e93;
+            cursor: pointer;
+            transition: all .15s ease;
+            background: transparent;
+        }
+        .filter-pill:hover { color: #fff; border-color: rgba(255,255,255,0.18); }
+        .filter-pill.active {
+            color: #fff;
+            border-color: rgba(var(--brand-rgb), 0.5);
+            background: rgba(var(--brand-rgb), 0.12);
+            box-shadow: 0 0 0 1px rgba(var(--brand-rgb), 0.2) inset;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+            background-size: 200% 100%;
+            animation: skel 1.4s linear infinite;
+            border-radius: 6px; height: 14px;
+        }
+        @keyframes skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body>
+    <div class="page-bg"></div>
+
+    <!-- Top nav: dv-nav auto-injected on dv-nav element OR by leaderboard-pill IIFE on plain <nav>. -->
+    <nav class="fixed top-0 inset-x-0 z-40 backdrop-blur-md" style="background: rgba(11,11,14,0.7); border-bottom: 1px solid rgba(255,255,255,0.06);">
+        <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5 font-black tracking-tight">
+                <img src="assets/dartvoice-logo-v2.svg" alt="DartVoice" class="h-7 w-7">
+                <span class="display text-xl">DartVoice</span>
+            </a>
+            <div class="hidden sm:flex items-center gap-3" id="nav-auth-desktop">
+                <a href="ranked.html" class="text-xs font-bold tracking-widest uppercase text-muted hover:text-chalk transition">Ranked</a>
+                <a href="how-it-works" class="text-xs font-bold tracking-widest uppercase text-muted hover:text-chalk transition">How It Works</a>
+                <a href="login.html" class="text-xs font-bold tracking-widest uppercase text-muted hover:text-chalk transition">Sign in</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 sm:pt-28 pb-20">
+        <div class="max-w-6xl mx-auto px-5">
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <p class="text-[10px] font-bold tracking-[0.3em] uppercase mb-3" style="color:var(--brand);">Live World Ranking</p>
+                <h1 class="display text-5xl sm:text-6xl md:text-7xl text-chalk mb-4">ORDER OF MERIT</h1>
+                <p class="text-muted max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+                    Every Ranked match feeds this board live. Climb the table, earn your tier, fly your flag.
+                    Watching is free for everyone — <a href="ranked.html" class="text-brand hover:underline font-semibold">queue up</a> to play.
+                </p>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <div class="flex flex-wrap gap-2" id="tier-filters">
+                    <button type="button" class="filter-pill active" data-tier="all">All Tiers</button>
+                    <button type="button" class="filter-pill" data-tier="champion">Champion</button>
+                    <button type="button" class="filter-pill" data-tier="diamond">Diamond</button>
+                    <button type="button" class="filter-pill" data-tier="platinum">Platinum</button>
+                    <button type="button" class="filter-pill" data-tier="gold">Gold</button>
+                    <button type="button" class="filter-pill" data-tier="silver">Silver</button>
+                    <button type="button" class="filter-pill" data-tier="bronze">Bronze</button>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted">
+                    <span id="lb-count">—</span> ranked players
+                    <button type="button" id="lb-refresh"
+                            class="ml-2 px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/30 transition text-[10px] font-bold tracking-widest uppercase text-chalk">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="card-panel overflow-hidden">
+                <div class="lb-row lb-head">
+                    <div class="lb-pos" style="font-size:10px; color:#8e8e93;">#</div>
+                    <div>Player</div>
+                    <div style="text-align:center;">Tier</div>
+                    <div class="lb-stat">MMR</div>
+                    <div class="lb-stat col-hide-mobile">W&nbsp;-&nbsp;L</div>
+                    <div class="lb-stat col-hide-mobile">Avg</div>
+                    <div class="lb-stat col-hide-mobile">180s</div>
+                    <div class="lb-stat col-hide-mobile">Peak</div>
+                </div>
+                <div id="lb-body">
+                    <!-- skeleton rows -->
+                    <template id="lb-skeleton-tpl">
+                        <div class="lb-row">
+                            <div class="lb-pos"><div class="skeleton" style="height:18px;width:24px;margin:auto;"></div></div>
+                            <div><div class="skeleton" style="height:16px; width:60%;"></div></div>
+                            <div style="text-align:center;"><div class="skeleton" style="height:14px;width:62px;margin:auto;"></div></div>
+                            <div class="lb-stat"><div class="skeleton" style="height:14px;width:42px;margin-left:auto;"></div></div>
+                            <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:46px;margin-left:auto;"></div></div>
+                            <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:36px;margin-left:auto;"></div></div>
+                            <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:30px;margin-left:auto;"></div></div>
+                            <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:40px;margin-left:auto;"></div></div>
+                        </div>
+                    </template>
+                </div>
+                <div id="lb-empty" class="hidden text-center py-12 text-muted text-sm">
+                    No ranked players yet. <a href="ranked.html" class="text-brand font-semibold hover:underline">Be the first.</a>
+                </div>
+            </div>
+
+            <!-- Helper notes -->
+            <div class="mt-6 grid sm:grid-cols-3 gap-3 text-xs text-muted">
+                <div class="card-panel p-4">
+                    <div class="display text-base text-chalk mb-1">Average column</div>
+                    <p>Rolling 3-dart average across <strong class="text-chalk">ranked matches only</strong>. Practice and casual games never touch this number.</p>
+                </div>
+                <div class="card-panel p-4">
+                    <div class="display text-base text-chalk mb-1">MMR vs Average</div>
+                    <p>You move on <em>who</em> you beat, not <em>what</em> you average. A lower-avg player can rank higher by winning the matches that count.</p>
+                </div>
+                <div class="card-panel p-4">
+                    <div class="display text-base text-chalk mb-1">Placement</div>
+                    <p>Players are listed once they've completed <strong class="text-chalk">5 placement matches</strong> — keeps the table free of one-game flukes.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <dv-footer></dv-footer>
+
+    <!-- Supabase init -->
+    <script>
+        const SB_URL  = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2JodXp1IiwicmVybGUiOiJhbm9uIiwiaWF0IjoxNzMxMjQ1MTAwLCJleHAiOjIwNDY4MjExMDB9.rg9SCwcv8GLyZ6Ajt6JWJTymWS8XjCe5qVL5TcKRrP0';
+    </script>
+    <script>
+        // Use the same anon key your other pages use.
+        const sb = window.supabase.createClient(
+            'https://poyjykgqsvgimssbhsuz.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2JodXp1IiwicmVybGUiOiJhbm9uIiwiaWF0IjoxNzMxMjQ1MTAwLCJleHAiOjIwNDY4MjExMDB9.rg9SCwcv8GLyZ6Ajt6JWJTymWS8XjCe5qVL5TcKRrP0'
+        );
+        try { window.sb = sb; } catch(_){}
+    </script>
+
+    <!-- Order of Merit logic -->
+    <script>
+    (function(){
+        // ── Rank ladder (mirrors ranked.html) ─────────────────────────
+        const DV_RANKS = [
+            { name: 'bronze',   min: 0,    max: 800  },
+            { name: 'silver',   min: 800,  max: 1200 },
+            { name: 'gold',     min: 1200, max: 1600 },
+            { name: 'platinum', min: 1600, max: 2000 },
+            { name: 'diamond',  min: 2000, max: 2400 },
+            { name: 'champion', min: 2400, max: 9999 }
+        ];
+        function rankInfo(mmr) {
+            const m = mmr | 0;
+            let i = 0;
+            for (let k = 0; k < DV_RANKS.length; k++) if (m >= DV_RANKS[k].min) i = k;
+            const cur = DV_RANKS[i];
+            const span = cur.max - cur.min;
+            const within = (m - cur.min) / span;          // 0..1
+            const division = within < 1/3 ? 'III' : within < 2/3 ? 'II' : 'I';
+            const label = `${cur.name[0].toUpperCase()}${cur.name.slice(1)} ${division}`;
+            return { name: cur.name, label, division };
+        }
+        function flagEmoji(cc) {
+            if (!cc || typeof cc !== 'string' || cc.length !== 2) return '';
+            const A = 0x1F1E6 - 65;
+            try { return String.fromCodePoint(A + cc.charCodeAt(0)|0, A + cc.charCodeAt(1)|0); }
+            catch(_) { return ''; }
+        }
+        function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        const body  = document.getElementById('lb-body');
+        const empty = document.getElementById('lb-empty');
+        const countEl = document.getElementById('lb-count');
+        const skelTpl = document.getElementById('lb-skeleton-tpl');
+
+        function showSkeleton() {
+            body.innerHTML = '';
+            for (let i = 0; i < 10; i++) body.appendChild(skelTpl.content.cloneNode(true));
+        }
+
+        let _allRows = [];
+        let _activeTier = 'all';
+
+        async function loadAll() {
+            showSkeleton();
+            empty.classList.add('hidden');
+            try {
+                // Try the placed-only filter first; on edge cases (no rows yet) we
+                // fall back to the full set so the page never reads as broken.
+                let { data, error } = await sb
+                    .from('ranked_profiles')
+                    .select('id, display_name, mmr, peak_mmr, rank_tier, wins, losses, total_180s, avg_match_average, avatar_url, is_placed')
+                    .eq('is_placed', true)
+                    .order('mmr', { ascending: false })
+                    .limit(500);
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    const fb = await sb.from('ranked_profiles')
+                        .select('id, display_name, mmr, peak_mmr, rank_tier, wins, losses, total_180s, avg_match_average, avatar_url, is_placed')
+                        .order('mmr', { ascending: false }).limit(500);
+                    data = fb.data || [];
+                }
+                // Country code lives on dartvoice_profiles — separate join to keep RLS clean.
+                const ids = data.map(r => r.id);
+                let countryMap = {};
+                if (ids.length) {
+                    const { data: profs } = await sb.from('dartvoice_profiles')
+                        .select('id, country_code').in('id', ids);
+                    (profs || []).forEach(p => { if (p.country_code) countryMap[p.id] = p.country_code; });
+                }
+                _allRows = data.map(r => ({
+                    ...r,
+                    country_code: countryMap[r.id] || null,
+                    _rankInfo: rankInfo(r.mmr || 1200)
+                }));
+                render();
+            } catch (e) {
+                body.innerHTML = '';
+                empty.textContent = 'Couldn\u2019t load the leaderboard. Try refreshing.';
+                empty.classList.remove('hidden');
+                console.warn('rankings load failed', e);
+            }
+        }
+
+        function render() {
+            const rows = _activeTier === 'all'
+                ? _allRows
+                : _allRows.filter(r => r._rankInfo.name === _activeTier);
+
+            countEl.textContent = String(rows.length);
+            body.innerHTML = '';
+            if (!rows.length) { empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+
+            const frag = document.createDocumentFragment();
+            rows.forEach((r, idx) => {
+                const pos = idx + 1;
+                const ri  = r._rankInfo;
+                const w   = r.wins | 0;
+                const l   = r.losses | 0;
+                const avg = Number(r.avg_match_average || 0).toFixed(1);
+                const peak = r.peak_mmr | 0;
+                const flag = r.country_code ? flagEmoji(r.country_code) : '';
+                const div = document.createElement('div');
+                div.className = 'lb-row' + (pos <= 3 ? ` pos-${pos}` : '');
+                div.innerHTML =
+                    `<div class="lb-pos">${pos}</div>` +
+                    `<div class="lb-name">` +
+                        (flag ? `<span class="flag" title="${esc(r.country_code)}">${flag}</span>` : `<span class="flag" style="opacity:.3">·</span>`) +
+                        `<span class="nm"><a href="u.html?id=${encodeURIComponent(r.id)}">${esc(r.display_name || 'Unnamed')}</a></span>` +
+                    `</div>` +
+                    `<div style="text-align:center;"><span class="tier-pill tier-${ri.name}">${ri.label}</span></div>` +
+                    `<div class="lb-stat">${(r.mmr|0)}</div>` +
+                    `<div class="lb-stat col-hide-mobile">${w}\u00a0-\u00a0${l}</div>` +
+                    `<div class="lb-stat col-hide-mobile">${avg}</div>` +
+                    `<div class="lb-stat col-hide-mobile">${(r.total_180s|0)}</div>` +
+                    `<div class="lb-stat col-hide-mobile dim">${peak}</div>`;
+                frag.appendChild(div);
+            });
+            body.appendChild(frag);
+        }
+
+        // Filter pill wiring
+        document.getElementById('tier-filters').addEventListener('click', (ev) => {
+            const btn = ev.target.closest('.filter-pill');
+            if (!btn) return;
+            document.querySelectorAll('#tier-filters .filter-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            _activeTier = btn.dataset.tier || 'all';
+            render();
+        });
+        document.getElementById('lb-refresh').addEventListener('click', loadAll);
+
+        // Live refresh on any ranked_profiles change.
+        try {
+            sb.channel('rankings-live')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_profiles' }, () => loadAll())
+              .subscribe();
+        } catch(_){}
+
+        loadAll();
+    })();
+    </script>
+</body>
+</html>
