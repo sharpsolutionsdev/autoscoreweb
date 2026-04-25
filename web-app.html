@@ -2478,6 +2478,8 @@
             try {
                 if (_isAmbassador) document.body.classList.add('dv-is-ambassador');
                 if (_isCreator)    document.body.classList.add('dv-is-creator');
+                if (_isAdmin)      document.body.classList.add('dv-is-admin');
+                console.log('[DV] roles', { admin: _isAdmin, creator: _isCreator, ambassador: _isAmbassador });
             } catch(_) {}
 
             _userSub = sub;
@@ -6230,7 +6232,7 @@ window.openScorerUrl = function(url){
         body:not(.dv-is-ambassador) .dv-stream-overlay { display: none !important; }
 
         #dv-overlays-launcher {
-            position: fixed; right: 16px; bottom: 16px; z-index: 9998;
+            position: fixed; right: 16px; bottom: 70px; z-index: 100000;
             background: linear-gradient(135deg, rgba(var(--brand-rgb),0.9), rgba(var(--brand-rgb),0.6));
             color: #fff; border: 1px solid rgba(255,255,255,0.15);
             border-radius: 999px; padding: 10px 16px; font-weight: 700;
@@ -6242,7 +6244,7 @@ window.openScorerUrl = function(url){
         #dv-overlays-launcher svg { width: 14px; height: 14px; }
 
         #dv-overlays-panel {
-            position: fixed; right: 16px; bottom: 68px; z-index: 9999;
+            position: fixed; right: 16px; bottom: 122px; z-index: 100001;
             width: 320px; max-height: 70vh;
             background: rgba(17,17,20,0.96); backdrop-filter: blur(20px) saturate(1.4);
             border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
@@ -6636,7 +6638,7 @@ window.openScorerUrl = function(url){
     <!-- Floating non-blocking ranked widget: idle pill → searching pill → match-found card. User keeps playing the whole time. -->
     <style>
         #dv-ranked-widget {
-            position: fixed; right: 18px; bottom: 18px; z-index: 9990;
+            position: fixed; left: 18px; bottom: 18px; z-index: 9990;
             display: none; flex-direction: column; gap: 8px;
             font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
             color: #fff; pointer-events: auto;
