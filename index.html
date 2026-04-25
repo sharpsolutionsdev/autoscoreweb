@@ -289,6 +289,11 @@
     <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <section class="hero-glow pt-28 pb-16 sm:pt-36 sm:pb-24 relative overflow-hidden">
 
+        <!-- Three.js floating darts (purely decorative, behind everything) -->
+        <canvas id="dv-three-darts"
+                class="absolute inset-0 w-full h-full pointer-events-none"
+                style="z-index:0; opacity:0.55; mix-blend-mode:screen;"></canvas>
+
         <!-- High-speed soundwave video bg -->
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none"
             style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
@@ -1984,6 +1989,106 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     <script src="/dv-welcome.js" defer></script>
     <script>try { window.sb = sb; } catch(_){}</script>
     <script src="/dv-presence.js" defer></script>
+
+    <!-- Three.js floating darts (decorative; auto-disables on prefers-reduced-motion) -->
+    <script type="module">
+    (async () => {
+        const canvas = document.getElementById('dv-three-darts');
+        if (!canvas) return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        // Skip on very low-power / mobile to save battery.
+        if (window.innerWidth < 700) return;
+        let THREE;
+        try {
+            THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+        } catch (e) { console.warn('three.js failed to load', e); return; }
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / Math.max(canvas.clientHeight,1), 0.1, 100);
+        camera.position.set(0, 0, 14);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        const resize = () => {
+            const w = canvas.clientWidth, h = canvas.clientHeight;
+            renderer.setSize(w, h, false);
+            camera.aspect = w / Math.max(h,1); camera.updateProjectionMatrix();
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Lighting: brand red rim + warm key.
+        scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+        const key = new THREE.DirectionalLight(0xffe9d8, 0.9); key.position.set(4, 6, 8); scene.add(key);
+        const rim = new THREE.PointLight(0xCC0B20, 1.6, 30); rim.position.set(-6, -2, 4); scene.add(rim);
+
+        // Build a dart from primitive geometries.
+        function makeDart() {
+            const dart = new THREE.Group();
+            const shaft = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.06, 0.06, 1.6, 12),
+                new THREE.MeshStandardMaterial({ color: 0x101014, metalness: 0.6, roughness: 0.4 })
+            );
+            shaft.rotation.z = Math.PI / 2;
+            dart.add(shaft);
+
+            const barrel = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.13, 0.1, 0.7, 14),
+                new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.95, roughness: 0.25 })
+            );
+            barrel.rotation.z = Math.PI / 2; barrel.position.x = 0.45;
+            dart.add(barrel);
+
+            const tip = new THREE.Mesh(
+                new THREE.ConeGeometry(0.05, 0.4, 12),
+                new THREE.MeshStandardMaterial({ color: 0x1a1a20, metalness: 0.9, roughness: 0.2 })
+            );
+            tip.rotation.z = -Math.PI / 2; tip.position.x = 1.0;
+            dart.add(tip);
+
+            // Flight (red): two crossed planes.
+            const flightMat = new THREE.MeshBasicMaterial({ color: 0xCC0B20, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+            const flightGeo = new THREE.PlaneGeometry(0.7, 0.5);
+            const f1 = new THREE.Mesh(flightGeo, flightMat); f1.position.x = -0.55;
+            const f2 = new THREE.Mesh(flightGeo, flightMat); f2.position.x = -0.55; f2.rotation.x = Math.PI / 2;
+            dart.add(f1); dart.add(f2);
+
+            return dart;
+        }
+
+        const darts = [];
+        const COUNT = 5;
+        for (let i = 0; i < COUNT; i++) {
+            const d = makeDart();
+            d.userData.spin = 0.005 + Math.random() * 0.012;
+            d.userData.driftY = (Math.random() - 0.5) * 0.004;
+            d.userData.baseY = (Math.random() - 0.5) * 6;
+            d.userData.baseZ = (Math.random() - 0.5) * 4;
+            d.userData.phase = Math.random() * Math.PI * 2;
+            d.position.set(-12 + i * 5, d.userData.baseY, d.userData.baseZ);
+            d.rotation.y = -0.3;
+            d.rotation.z = (Math.random() - 0.5) * 0.4;
+            scene.add(d);
+            darts.push(d);
+        }
+
+        let running = true;
+        document.addEventListener('visibilitychange', () => { running = !document.hidden; });
+        const start = performance.now();
+        function tick(now) {
+            requestAnimationFrame(tick);
+            if (!running) return;
+            const t = (now - start) / 1000;
+            for (const d of darts) {
+                d.position.x += 0.025;
+                d.position.y = d.userData.baseY + Math.sin(t * 0.6 + d.userData.phase) * 0.5;
+                d.rotation.x += d.userData.spin;
+                if (d.position.x > 12) d.position.x = -12;
+            }
+            renderer.render(scene, camera);
+        }
+        requestAnimationFrame(tick);
+    })();
+    </script>
 
 </body>
 

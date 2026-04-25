@@ -2352,8 +2352,14 @@
         let _userSub = null;
 
         // --- DEMO LIMITER STATE ---
-        const DEMO_DURATION_MS = 10 * 60 * 1000;
+        // Anonymous visitors get 10 minutes; signed-in users without an active
+        // subscription get an extended 60-minute "registered demo" before the
+        // paywall locks them out.
+        const DEMO_DURATION_MS_GUEST = 10 * 60 * 1000;
+        const DEMO_DURATION_MS_REGISTERED = 60 * 60 * 1000;
+        let DEMO_DURATION_MS = DEMO_DURATION_MS_GUEST;
         let demoStartedAt = null;
+        let _isRegisteredDemo = false;
 
         // Utility: Format ms as mm:ss
         function formatDemoTime(ms) {
@@ -2372,7 +2378,7 @@
                 timerEl.style.cssText = 'margin-top:12px;padding:8px 12px;background:rgba(var(--brand-rgb),0.12);border:1px solid var(--brand);border-radius:8px;color:var(--brand);font-weight:bold;font-size:12px;text-align:center;letter-spacing:0.5px;white-space:pre-line;width:100%;';
                 flexContainer.parentNode.insertBefore(timerEl, flexContainer.nextSibling);
             }
-            timerEl.textContent = `DEMO: ${formatDemoTime(msLeft)} left\nCreate an account for unlimited access.`;
+            timerEl.textContent = `${_isRegisteredDemo ? 'TRIAL' : 'DEMO'}: ${formatDemoTime(msLeft)} left\n${_isRegisteredDemo ? 'Subscribe to keep playing past the hour.' : 'Create an account for 60 minutes free.'}`;
         }
 
         // Remove demo timer if present
@@ -2381,17 +2387,21 @@
             if (timerEl) timerEl.remove();
         }
 
-        // Persist demo start time in localStorage for guests
-        function getOrSetDemoStart() {
-            let t = localStorage.getItem('dv-demo-start');
+        // Persist demo start time. Guests share a single localStorage key;
+        // registered-but-unsubscribed users get a per-user key tracked in
+        // Supabase as well so they can't reset by clearing storage.
+        function getOrSetDemoStart(userId) {
+            const key = userId ? `dv-demo-start-${userId}` : 'dv-demo-start';
+            let t = localStorage.getItem(key);
             if (!t) {
                 t = Date.now();
-                localStorage.setItem('dv-demo-start', t);
+                localStorage.setItem(key, t);
             }
             return parseInt(t, 10);
         }
 
-        // Clear demo start (on login/signup)
+        // Clear guest demo start (on login/signup) — registered demo lives on
+        // a per-user key and persists across sessions intentionally.
         function clearDemoStart() {
             localStorage.removeItem('dv-demo-start');
         }
@@ -2402,8 +2412,10 @@
             const { data: { session } } = await sb.auth.getSession();
 
             // Helper to show/hide demo timer
-            function enableDemoTimer() {
-                demoStartedAt = getOrSetDemoStart();
+            function enableDemoTimer(userId) {
+                _isRegisteredDemo = !!userId;
+                DEMO_DURATION_MS = _isRegisteredDemo ? DEMO_DURATION_MS_REGISTERED : DEMO_DURATION_MS_GUEST;
+                demoStartedAt = getOrSetDemoStart(userId);
                 const updateDemoTimer = () => {
                     const msLeft = Math.max(0, DEMO_DURATION_MS - (Date.now() - demoStartedAt));
                     if (msLeft > 0) {
@@ -2419,7 +2431,7 @@
 
             if (!session?.user) {
                 // True guest
-                enableDemoTimer();
+                enableDemoTimer(null);
                 return;
             }
 
@@ -2460,7 +2472,7 @@
             } else {
                 statusEl.textContent = 'No Subscription';
                 statusEl.className = 'text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-none';
-                enableDemoTimer(); // treat as demo
+                enableDemoTimer(user.id); // 60-min registered demo
             }
 
             // Pro access banner above the transcript
@@ -4381,13 +4393,27 @@
             const isPro = userHasActiveSubscription();
 
             if (!isPro) {
-                // Always use persisted demo start for guests
-                demoStartedAt = getOrSetDemoStart();
+                // Always use persisted demo start. If the demoStartedAt is
+                // already set (initAccount has run), respect it; otherwise
+                // fall back to the guest key.
+                if (!demoStartedAt) demoStartedAt = getOrSetDemoStart(null);
                 if (Date.now() - demoStartedAt > DEMO_DURATION_MS) {
                     log("DEMO WINDOW EXPIRED. Showing trial prompt...", false);
                     if(recognition) recognition.stop();
                     const paywall = document.getElementById('paywall-modal');
                     const paywallContent = document.getElementById('paywall-content');
+                    // Tailor copy depending on whether they're already a registered user.
+                    try {
+                        const headline = paywall.querySelector('h2');
+                        const sub = paywall.querySelector('p');
+                        if (_isRegisteredDemo) {
+                            if (headline) headline.textContent = 'Free Hour Is Up';
+                            if (sub) sub.textContent = 'Your 60-minute trial has ended. Subscribe for unlimited DartVoice scoring, ranked play, and stats.';
+                        } else {
+                            if (headline) headline.textContent = 'Demo Time Is Up';
+                            if (sub) sub.textContent = 'Your 10-minute live demo has ended. Create a free account to unlock 60 more minutes — then start your free trial for full access.';
+                        }
+                    } catch(_){}
                     paywall.classList.remove('hidden');
                     paywall.classList.add('flex');
                     setTimeout(() => {

@@ -767,6 +767,21 @@
       ...document.querySelectorAll('div.pl-4 > div.relative svg, app-match-team-score dc-icon svg')
     ];
 
+    // Layout-tolerant fallback: any visible button/icon adjacent to the
+    // remaining-score that looks like a pencil. The expanded-sidebar layout
+    // re-flows the scoreboard, so positional selectors like `div.pl-4` can
+    // miss — searching by icon shape catches both states.
+    try {
+      const teamScores = document.querySelectorAll('app-match-team-score, app-remaining-score');
+      teamScores.forEach(ts => {
+        const root = ts.parentElement || ts;
+        const icons = root.querySelectorAll(
+          'dc-icon, ion-icon[name*="pencil" i], ion-icon[name*="create" i], svg[class*="pencil" i], svg[class*="edit" i]'
+        );
+        icons.forEach(ic => candidates.push(ic));
+      });
+    } catch(_){}
+
     for (const raw of candidates) {
       const el = raw && raw.closest ? (raw.closest('button') || raw.closest('[role="button"]') || raw) : raw;
       if (_isVisible(el)) {
@@ -1325,18 +1340,45 @@
           }
         }
 
-        // Stats: app-match-team-stats rows
-        const statRows = col.querySelectorAll('.in-game-stats-spacing, app-match-team-stats .in-game-stat-items-container > div');
+        // Stats: app-match-team-stats rows.
+        // DartCounter renders stats as <app-in-game-stat-item> rows whose
+        // children include a <div appingamestatlabel> and a sibling value
+        // <div>. The number of stat rows changes with the layout (collapsed
+        // vs expanded sidebar shows 3 vs 6 rows), so we MUST extract by
+        // label, never by index.
+        const statRows = col.querySelectorAll(
+          'app-in-game-stat-item, .in-game-stats-spacing,' +
+          ' app-match-team-stats .in-game-stat-items-container > div'
+        );
         for (const row of statRows) {
           const labelEl = row.querySelector('[appingamestatlabel], div[appingamestatlabel]');
-          const valueEl = row.querySelectorAll('div')[row.querySelectorAll('div').length - 1]; // last div = value
           if (!labelEl) continue;
           const label = normalizeSpace(labelEl.textContent).toLowerCase();
-          // Value is the sibling div with the stat number
+          // Value is any sibling element that is NOT the label and contains
+          // a digit. We try a few strategies because DC's layout differs
+          // between collapsed and expanded sidebar states.
           let valText = '';
-          const valDivs = row.querySelectorAll(':scope > div');
-          if (valDivs.length >= 2) {
-            valText = normalizeSpace(valDivs[valDivs.length - 1].textContent);
+          // Strategy 1: explicit value attr / data-testid
+          const explicit = row.querySelector('[appingamestatvalue], [data-testid*="stat-value" i]');
+          if (explicit) valText = normalizeSpace(explicit.textContent);
+          // Strategy 2: last direct-child div whose text differs from the label
+          if (!valText) {
+            const directDivs = row.querySelectorAll(':scope > div');
+            for (let i = directDivs.length - 1; i >= 0; i--) {
+              const t = normalizeSpace(directDivs[i].textContent);
+              if (t && t !== label && /\d/.test(t) && t !== normalizeSpace(labelEl.textContent)) {
+                valText = t; break;
+              }
+            }
+          }
+          // Strategy 3: any descendant whose text contains digits and isn't the label
+          if (!valText) {
+            const candidates = row.querySelectorAll('div, span');
+            for (const c of candidates) {
+              if (c === labelEl || labelEl.contains(c) || c.contains(labelEl)) continue;
+              const t = normalizeSpace(c.textContent);
+              if (t && /\d/.test(t) && t.length <= 12) { valText = t; break; }
+            }
           }
           if (!valText || valText === '-') continue;
 
