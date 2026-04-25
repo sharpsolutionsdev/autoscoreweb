@@ -1030,24 +1030,63 @@
         .mobile-panel-backdrop.open { display: block; opacity: 1; }
 
         /* --- RANKED MATCH UI --- */
-        #ranked-match-banner {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            background: linear-gradient(90deg, #CC0B20 0%, #800714 100%);
-            color: white;
-            padding: 8px 16px;
-            z-index: 1000;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            animation: bannerSlideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        /* Pre-match cinematic lobby (shown when arriving via ?ranked=true) */
+        #ranked-lobby-overlay {
+            position: fixed; inset: 0; z-index: 99996;
+            background: radial-gradient(ellipse at center, rgba(20,0,5,0.93) 0%, rgba(0,0,0,0.98) 70%);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; padding: 24px; overflow-y: auto;
+            opacity: 0; transition: opacity 0.4s ease;
         }
+        #ranked-lobby-overlay.active { display: flex; opacity: 1; }
+        #ranked-lobby-overlay::before {
+            content:''; position:absolute; inset:-10%;
+            background: repeating-linear-gradient(110deg, transparent 0 38px, rgba(204,11,32,.05) 38px 39px);
+            animation: rlScan 8s linear infinite; pointer-events:none;
+        }
+        @keyframes rlScan { from { transform: translateX(0); } to { transform: translateX(80px); } }
+        .rl-eyebrow { font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:.4em; text-transform:uppercase; color:var(--brand,#CC0B20); font-size:13px; margin-bottom:4px; opacity:0; }
+        #ranked-lobby-overlay.active .rl-eyebrow { animation: rlFade 0.5s ease 0.1s forwards; }
+        .rl-title { font-family:'Barlow Condensed',sans-serif; font-style:italic; font-weight:900; font-size:clamp(40px,8vw,80px); color:#fff; letter-spacing:-.02em; text-shadow:0 4px 40px rgba(204,11,32,.4); opacity:0; }
+        #ranked-lobby-overlay.active .rl-title { animation: rlSlam 0.65s cubic-bezier(.2,1.4,.4,1) 0.2s forwards; }
+        @keyframes rlSlam { 0% { opacity:0; transform:scale(1.5); filter:blur(8px);} 100% { opacity:1; transform:scale(1); filter:blur(0);} }
+        @keyframes rlFade { to { opacity:1; } }
+
+        .rl-cards { display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(10px,3vw,28px); align-items:center; max-width:1000px; width:100%; margin:24px 0; position:relative; z-index:2; }
+        .rl-card { background: linear-gradient(160deg, rgba(204,11,32,0.12), rgba(20,20,24,0.85)); border: 1px solid rgba(204,11,32,0.3); border-radius:22px; padding:clamp(14px,2.6vw,24px); text-align:center; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); opacity:0; }
+        .rl-card.rl-me  { transform: translateX(-60px); }
+        .rl-card.rl-opp { transform: translateX(60px); }
+        #ranked-lobby-overlay.active .rl-card { animation: rlSlideIn 0.7s cubic-bezier(.2,1,.4,1) 0.3s forwards; }
+        @keyframes rlSlideIn { to { opacity:1; transform:translateX(0); } }
+        .rl-avatar { width:clamp(64px,9vw,108px); height:clamp(64px,9vw,108px); border-radius:999px; margin:0 auto 12px; border:3px solid rgba(204,11,32,.55); background:linear-gradient(135deg,#1a1a22,#0d0d12); display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:clamp(20px,3vw,34px); overflow:hidden; box-shadow:0 0 24px rgba(204,11,32,.35); }
+        .rl-avatar img { width:100%; height:100%; object-fit:cover; }
+        .rl-name { font-weight:800; font-size:clamp(15px,1.9vw,20px); color:#fff; margin-bottom:4px; word-break:break-word; }
+        .rl-dc { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#cbd5e1; opacity:0.85; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:3px 10px; border-radius:999px; margin-bottom:8px; }
+        .rl-dc img { width:12px; height:12px; object-fit:contain; }
+        .rl-dc.rl-dc-missing { color:#f59e0b; border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.08); }
+        .rl-mmr { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(22px,3.6vw,34px); color:#fff; line-height:1; }
+        .rl-mmr-label { font-size:10px; color:#6b6b78; letter-spacing:.18em; text-transform:uppercase; margin-top:3px; }
+        .rl-vs { font-family:'Barlow Condensed',sans-serif; font-style:italic; font-weight:900; font-size:clamp(40px,7vw,72px); color:var(--brand,#CC0B20); text-shadow:0 0 30px rgba(204,11,32,.7); transform:scale(0); opacity:0; }
+        #ranked-lobby-overlay.active .rl-vs { animation: rlVsPop 0.7s cubic-bezier(.2,1.6,.4,1) 0.5s forwards; }
+        @keyframes rlVsPop { to { transform:scale(1); opacity:1; } }
+
+        .rl-steps { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:14px 18px; max-width:620px; width:100%; margin: 8px 0 18px; position:relative; z-index:2; opacity:0; }
+        #ranked-lobby-overlay.active .rl-steps { animation: rlFadeUp 0.55s ease 0.85s forwards; }
+        @keyframes rlFadeUp { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
+        .rl-steps h4 { font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:#94a3b8; font-weight:800; margin-bottom:10px; }
+        .rl-step { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13px; color:#e5e7eb; }
+        .rl-step .rl-step-num { width:22px; height:22px; border-radius:999px; background:rgba(204,11,32,.18); border:1px solid rgba(204,11,32,.4); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:var(--brand,#CC0B20); flex-shrink:0; }
+
+        .rl-actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; position:relative; z-index:2; opacity:0; }
+        #ranked-lobby-overlay.active .rl-actions { animation: rlFadeUp 0.55s ease 1s forwards; }
+        .rl-btn { font-weight:800; letter-spacing:.16em; text-transform:uppercase; font-size:12px; padding:13px 22px; border-radius:12px; cursor:pointer; border:1px solid transparent; transition: transform .18s ease, box-shadow .18s ease, background .18s; display:inline-flex; align-items:center; gap:8px; }
+        .rl-btn-primary { background: var(--brand,#CC0B20); color:#fff; box-shadow:0 0 30px rgba(204,11,32,.45); }
+        .rl-btn-primary:hover { transform: translateY(-2px); box-shadow:0 0 40px rgba(204,11,32,.7); }
+        .rl-btn-secondary { background: rgba(255,255,255,.05); color:#fff; border-color: rgba(255,255,255,.12); }
+        .rl-btn-secondary:hover { background: rgba(255,255,255,.1); }
+        .rl-btn img { width:14px; height:14px; object-fit:contain; }
+
+        #ranked-match-banner {
         #ranked-match-banner.active { display: flex; }
         @keyframes bannerSlideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 
@@ -2303,6 +2342,9 @@
             console.warn('Supabase client not available. Ensure the Supabase JS library is loaded.');
         }
         const sb = (typeof supabase !== 'undefined') ? supabase.createClient(SB_URL, SB_KEY) : null;
+        // Expose so the ranked-mode lobby controller (defined later in the
+        // page) can wait for the client to be ready.
+        if (sb) window.sb = sb;
         const ADMIN_EMAILS = ['admin@dartvoice.app', 'support@dartvoice.app', 'reuben@dartvoice.app', 'callum@dartvoice.app', 'reubensharp18@gmail.com', 'sharpsolutionsdev@gmail.com'];
         let _isAdmin = false;
         let _isAmbassador = false;
@@ -3332,8 +3374,13 @@
             if (checkoutRoute && checkoutRoute.length) {
                 playDartboardAnimation(checkoutRoute);
             }
-            // After the animation, show the darts-at-double prompt
-            setTimeout(() => showDartsAtDoublePrompt(checkoutRoute), 3600);
+            // NOTE: We intentionally do NOT show DartVoice's own
+            // "darts at double?" prompt here — DartCounter raises its own
+            // native dialog after a checkout, and the extension forwards it
+            // via DV_CHECKOUT_PROMPT which is handled by `dvCheckoutPrompt`.
+            // Showing two stacked prompts confused users, so the DV-side one
+            // is suppressed. The function is still available for direct
+            // invocation if needed for stats capture.
             setTimeout(() => resetLiveCheckout(), 9500);
         }
 
@@ -6408,46 +6455,365 @@ window.openScorerUrl = function(url){
     </script>
 
     <!-- --- RANKED MODE CONTROLLER --- -->
+    <!-- Floating "Find Ranked Match" widget (visible when NOT already in a ranked match) -->
+    <div id="dv-ranked-fab" style="display:none;position:fixed;right:18px;bottom:18px;z-index:9990;
+        background:linear-gradient(135deg,#CC0B20,#800714);color:#fff;border-radius:999px;
+        padding:10px 18px 10px 14px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+        font-size:11px;cursor:pointer;box-shadow:0 8px 30px rgba(204,11,32,.5),0 0 0 1px rgba(255,255,255,.08);
+        display:none;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;
+        transition:transform .2s ease,box-shadow .2s ease;">
+        <span id="dv-rfab-icon" style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 17 L5 22 L7 14 L2 9 L9 9 Z"/></svg>
+        </span>
+        <span id="dv-rfab-text">Find Ranked Match</span>
+    </div>
+    <div id="dv-ranked-search-overlay" style="display:none;position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;color:#fff;font-family:'Inter',sans-serif;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:900;font-size:48px;letter-spacing:-.02em;margin-bottom:6px;">SEARCHING…</div>
+        <div style="font-size:13px;color:#94a3b8;letter-spacing:.18em;text-transform:uppercase;font-weight:700;">Looking for a worthy opponent</div>
+        <div id="dv-rfab-elapsed" style="margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;color:var(--brand,#CC0B20);">0s</div>
+        <button id="dv-rfab-cancel" style="margin-top:22px;padding:10px 22px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:11px;cursor:pointer;">Cancel</button>
+    </div>
+    <script>
+    (function(){
+        const params = new URLSearchParams(window.location.search);
+        // Hide widget while already in a ranked match.
+        if (params.get('ranked') === 'true') return;
+
+        const fab = document.getElementById('dv-ranked-fab');
+        const overlay = document.getElementById('dv-ranked-search-overlay');
+        const elapsedEl = document.getElementById('dv-rfab-elapsed');
+        const cancelBtn = document.getElementById('dv-rfab-cancel');
+        if (!fab || !overlay) return;
+
+        let elapsedTimer = null;
+        let pollTimer = null;
+        let realtimeChan = null;
+        let startedAt = 0;
+        let currentUser = null;
+
+        const showOverlay = () => { overlay.style.display = 'flex'; };
+        const hideOverlay = () => { overlay.style.display = 'none'; };
+
+        async function ensureUser() {
+            if (currentUser) return currentUser;
+            if (!window.sb) return null;
+            const { data } = await window.sb.auth.getSession();
+            currentUser = data?.session?.user || null;
+            return currentUser;
+        }
+
+        async function joinQueue() {
+            const u = await ensureUser();
+            if (!u) {
+                if (window.dvToast) window.dvToast('Sign in to play ranked', 'error');
+                return;
+            }
+            try {
+                const { data, error } = await window.sb.functions.invoke('ranked-queue', { body: { action: 'join' } });
+                if (error) throw error;
+                startedAt = Date.now();
+                showOverlay();
+                if (elapsedTimer) clearInterval(elapsedTimer);
+                elapsedTimer = setInterval(() => {
+                    elapsedEl.textContent = Math.floor((Date.now()-startedAt)/1000) + 's';
+                }, 250);
+                // If join already returned a match, hop right into the lobby.
+                if (data?.match_id) {
+                    redirectToMatch(data.match_id, data.opponent_name);
+                    return;
+                }
+                startPolling();
+                subscribeRealtime();
+            } catch (e) {
+                console.warn('[RankedFAB] join failed', e);
+                if (window.dvToast) window.dvToast('Could not join the queue', 'error');
+            }
+        }
+
+        function redirectToMatch(mid, oppName) {
+            stopAll();
+            const url = new URL(window.location.href);
+            url.searchParams.set('ranked', 'true');
+            url.searchParams.set('matchId', mid);
+            if (oppName) url.searchParams.set('opponent', oppName);
+            window.location.href = url.toString();
+        }
+
+        function startPolling() {
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(async () => {
+                try {
+                    const { data } = await window.sb.functions.invoke('ranked-queue', { body: { action: 'check' } });
+                    if (data?.match_id) redirectToMatch(data.match_id, data.opponent_name);
+                } catch(_){}
+            }, 4000);
+        }
+
+        function subscribeRealtime() {
+            if (!currentUser || !window.sb) return;
+            try {
+                realtimeChan = window.sb
+                    .channel('rfab_match_' + currentUser.id)
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ranked_matches', filter: `player1_id=eq.${currentUser.id}` }, p => redirectToMatch(p.new.id))
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ranked_matches', filter: `player2_id=eq.${currentUser.id}` }, p => redirectToMatch(p.new.id))
+                    .subscribe();
+            } catch(_){}
+        }
+
+        async function leaveQueue() {
+            try { await window.sb.functions.invoke('ranked-queue', { body: { action: 'leave' } }); } catch(_){}
+            stopAll();
+            hideOverlay();
+        }
+        function stopAll() {
+            if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+            if (pollTimer)    { clearInterval(pollTimer);    pollTimer = null; }
+            if (realtimeChan) { try { window.sb.removeChannel(realtimeChan); } catch(_){} realtimeChan = null; }
+        }
+
+        fab.addEventListener('click', joinQueue);
+        cancelBtn?.addEventListener('click', leaveQueue);
+
+        // Reveal the FAB once the supabase client + a logged-in user are confirmed.
+        let tries = 0;
+        const ready = setInterval(async () => {
+            if (window.sb && window.sb.auth) {
+                clearInterval(ready);
+                const u = await ensureUser();
+                if (u) fab.style.display = 'flex';
+            } else if (++tries > 60) { clearInterval(ready); }
+        }, 100);
+    })();
+    </script>
+
+    <!-- Pre-match cinematic lobby overlay (only fills when ?ranked=true) -->
+    <div id="ranked-lobby-overlay" aria-hidden="true">
+        <p class="rl-eyebrow">Match Lobby</p>
+        <h1 class="rl-title">VS</h1>
+        <div class="rl-cards">
+            <div class="rl-card rl-me">
+                <div class="rl-avatar" id="rl-me-avatar"><span>?</span></div>
+                <div class="rl-name" id="rl-me-name">You</div>
+                <div class="rl-dc" id="rl-me-dc"><img src="/dc-logo.png" alt="DC"><span id="rl-me-dc-text">add DC handle</span></div>
+                <div class="rl-mmr" id="rl-me-mmr">1200</div>
+                <div class="rl-mmr-label">Your MMR</div>
+            </div>
+            <div class="rl-vs">VS</div>
+            <div class="rl-card rl-opp">
+                <div class="rl-avatar" id="rl-opp-avatar"><span>?</span></div>
+                <div class="rl-name" id="rl-opp-name">Opponent</div>
+                <div class="rl-dc" id="rl-opp-dc"><img src="/dc-logo.png" alt="DC"><span id="rl-opp-dc-text">no handle</span></div>
+                <div class="rl-mmr" id="rl-opp-mmr">1200</div>
+                <div class="rl-mmr-label">Opponent MMR</div>
+            </div>
+        </div>
+        <div class="rl-steps">
+            <h4>Get into the match</h4>
+            <div class="rl-step"><span class="rl-step-num">1</span><span>Add your opponent on DartCounter (we can do it for you).</span></div>
+            <div class="rl-step"><span class="rl-step-num">2</span><span>Open their friend lobby and start a Best of 5, 501.</span></div>
+            <div class="rl-step"><span class="rl-step-num">3</span><span>DartVoice auto-detects the game and logs your stats.</span></div>
+        </div>
+        <div class="rl-actions">
+            <button id="rl-btn-add-friend" class="rl-btn rl-btn-primary">
+                <img src="/dc-logo.png" alt=""> Auto-add as DC Friend
+            </button>
+            <button id="rl-btn-open-lobby" class="rl-btn rl-btn-secondary">Open Friend Lobby</button>
+            <button id="rl-btn-ready" class="rl-btn rl-btn-secondary">I'm Ready &rarr;</button>
+        </div>
+    </div>
     <script>
     (function(){
         const params = new URLSearchParams(window.location.search);
         const isRanked = params.get('ranked') === 'true';
         const matchId = params.get('matchId');
-        const opponent = params.get('opponent');
+        const opponentParam = params.get('opponent');
 
-        if (isRanked) {
-            console.info('[RankedMode] Active. ID:', matchId, 'Opponent:', opponent);
-            
-            // Show UI elements
-            const banner = document.getElementById('ranked-match-banner');
-            const card = document.getElementById('ranked-finish-card');
-            if (banner) banner.classList.add('active');
-            if (card) card.classList.add('active');
+        if (!isRanked) return;
+        console.info('[RankedMode] Active. ID:', matchId, 'Opponent:', opponentParam);
 
-            // Populate match details
-            const idDisplay = document.getElementById('ranked-match-id-display');
-            const oppDisplay = document.getElementById('ranked-match-opponent');
-            if (idDisplay) idDisplay.textContent = 'ID: ' + (matchId || '--');
-            if (oppDisplay) oppDisplay.textContent = 'vs ' + (opponent || 'Opponent');
+        // Surface the small ranked banner + finish-card UI immediately so
+        // the rest of the app already knows we're in a ranked match.
+        const banner = document.getElementById('ranked-match-banner');
+        const card   = document.getElementById('ranked-finish-card');
+        if (banner) banner.classList.add('active');
+        if (card)   card.classList.add('active');
+        const idDisplay = document.getElementById('ranked-match-id-display');
+        const oppDisplay = document.getElementById('ranked-match-opponent');
+        if (idDisplay) idDisplay.textContent = 'ID: ' + (matchId || '--');
+        if (oppDisplay) oppDisplay.textContent = 'vs ' + (opponentParam || 'Opponent');
 
-            // Handle Finish Button
-            const finishBtn = document.getElementById('btn-finish-ranked');
-            if (finishBtn) {
-                finishBtn.addEventListener('click', () => {
-                    // Save stats for pre-fill in ranked.html
-                    // We use session storage to pass the most recent stats
-                    const latestStats = sessionStorage.getItem('dv_latest_match_stats');
-                    
-                    // Redirect back to ranked page with pre-fill intent
+        // ── Cinematic lobby fill ─────────────────────────────────────────
+        async function hydrateLobbyOverlay() {
+            const overlay = document.getElementById('ranked-lobby-overlay');
+            if (!overlay || !window.sb || !matchId) return;
+            try {
+                const { data: session } = await window.sb.auth.getSession();
+                const me = session?.session?.user;
+                if (!me) return;
+
+                const { data: match } = await window.sb.from('ranked_matches')
+                    .select('player1_id, player2_id').eq('id', matchId).maybeSingle();
+                if (!match) return;
+                const isP1 = match.player1_id === me.id;
+                const oppId = isP1 ? match.player2_id : match.player1_id;
+
+                const [{ data: meR }, { data: oppR }, { data: meDv }, { data: oppDv }] = await Promise.all([
+                    window.sb.from('ranked_profiles').select('display_name, mmr, rank_tier').eq('id', me.id).maybeSingle(),
+                    window.sb.from('ranked_profiles').select('display_name, mmr, rank_tier').eq('id', oppId).maybeSingle(),
+                    window.sb.from('dartvoice_profiles').select('display_name, avatar_url, dartcounter_username').eq('id', me.id).maybeSingle(),
+                    window.sb.from('dartvoice_profiles').select('display_name, avatar_url, dartcounter_username').eq('id', oppId).maybeSingle(),
+                ]);
+
+                const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                const setSide = (side, ranked, dv) => {
+                    const name = ranked?.display_name || dv?.display_name || (side === 'me' ? 'You' : 'Opponent');
+                    const initial = (name.charAt(0) || '?').toUpperCase();
+                    const av = document.getElementById(`rl-${side}-avatar`);
+                    if (av) av.innerHTML = dv?.avatar_url
+                        ? `<img src="${esc(dv.avatar_url)}" alt="">`
+                        : `<span>${esc(initial)}</span>`;
+                    document.getElementById(`rl-${side}-name`).textContent = name;
+                    const dcWrap = document.getElementById(`rl-${side}-dc`);
+                    const dcText = document.getElementById(`rl-${side}-dc-text`);
+                    if (dv?.dartcounter_username) {
+                        dcText.textContent = '@' + dv.dartcounter_username;
+                        dcWrap.classList.remove('rl-dc-missing');
+                    } else {
+                        dcText.textContent = side === 'me' ? 'Add your DC handle in profile' : 'No DC handle set';
+                        dcWrap.classList.add('rl-dc-missing');
+                    }
+                    document.getElementById(`rl-${side}-mmr`).textContent = Math.round(ranked?.mmr || 1200);
+                };
+                setSide('me',  meR,  meDv);
+                setSide('opp', oppR, oppDv);
+
+                // Stash for action buttons.
+                window._dvLobby = {
+                    matchId, oppId, oppName: oppR?.display_name || oppDv?.display_name || opponentParam || '',
+                    oppDc: oppDv?.dartcounter_username || '',
+                    myDc: meDv?.dartcounter_username || '',
+                };
+
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
+            } catch (e) { console.warn('[RankedMode] hydrate lobby', e); }
+        }
+
+        function dismissLobby() {
+            const o = document.getElementById('ranked-lobby-overlay');
+            if (o) { o.classList.remove('active'); o.setAttribute('aria-hidden', 'true'); }
+        }
+
+        // Button: auto-add friend on DartCounter.
+        document.getElementById('rl-btn-add-friend')?.addEventListener('click', () => {
+            const handle = window._dvLobby?.oppDc;
+            if (!handle) {
+                if (window.dvToast) window.dvToast('Opponent has no DartCounter handle saved', 'error');
+                else alert('Opponent has no DartCounter handle saved');
+                return;
+            }
+            // Send to the iframe (extension content.js relays to DC).
+            const iframe = document.querySelector('#scorer-frame, iframe[src*="dartcounter"], iframe');
+            if (iframe?.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'DV_ADD_DC_FRIEND', username: handle }, '*');
+                if (window.dvToast) window.dvToast(`Adding @${handle} on DartCounter…`, 'info');
+            } else {
+                alert('No DartCounter iframe detected. Open it first.');
+            }
+        });
+
+        // Button: navigate the iframe to the friends list.
+        document.getElementById('rl-btn-open-lobby')?.addEventListener('click', () => {
+            const handle = window._dvLobby?.oppDc;
+            const iframe = document.querySelector('#scorer-frame, iframe[src*="dartcounter"], iframe');
+            if (iframe?.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'DV_NAVIGATE', path: '/friends' }, '*');
+                if (handle && window.dvToast) window.dvToast(`Find @${handle} → start a Best of 5, 501`, 'info');
+            }
+        });
+
+        document.getElementById('rl-btn-ready')?.addEventListener('click', dismissLobby);
+
+        // Hydrate as soon as supabase client is ready (it's created later in
+        // the page). Poll for a brief window, then bail.
+        let tries = 0;
+        const ready = setInterval(() => {
+            if (window.sb && window.sb.auth) {
+                clearInterval(ready);
+                hydrateLobbyOverlay();
+            } else if (++tries > 60) {
+                clearInterval(ready);
+                console.warn('[RankedMode] Supabase client never appeared');
+            }
+        }, 100);
+
+        // Hook the existing finish button (kept for backwards compat).
+        const finishBtn = document.getElementById('btn-finish-ranked');
+        if (finishBtn) {
+            finishBtn.addEventListener('click', () => {
+                const redirectUrl = new URL('ranked.html', window.location.origin);
+                redirectUrl.searchParams.set('prefill', 'true');
+                redirectUrl.searchParams.set('matchId', matchId);
+                if (opponentParam) redirectUrl.searchParams.set('opponent', opponentParam);
+                window.location.href = redirectUrl.toString();
+            });
+        }
+
+        // ── Live ranked-match detection ──────────────────────────────────
+        // Listen for DV_GAME_STATE coming from the iframe; once we see both
+        // players' DartCounter handles match the saved usernames, mark the
+        // match as "in_progress" in Supabase and toast the user. When the
+        // match completes (one side reaches required legs), auto-prefill +
+        // redirect back to the ranked hub for result submission.
+        let _rankedStarted = false;
+        let _rankedFinished = false;
+        const REQUIRED_LEGS = 3; // best-of-5 → first to 3
+        const norm = s => String(s||'').trim().toLowerCase().replace(/^@/, '');
+
+        window.addEventListener('message', (ev) => {
+            const d = ev?.data;
+            if (!d || d.type !== 'DV_GAME_STATE' || !d.state) return;
+            const lobby = window._dvLobby;
+            if (!lobby || !matchId) return;
+            const s = d.state;
+            const p1 = norm(s.p1Name);
+            const p2 = norm(s.p2Name);
+            const me = norm(lobby.myDc);
+            const opp = norm(lobby.oppDc);
+
+            // Verify names align with the saved handles before counting
+            // anything as a true ranked match.
+            const namesMatch = me && opp && (
+                (p1 === me && p2 === opp) || (p1 === opp && p2 === me)
+            );
+
+            if (!_rankedStarted && namesMatch) {
+                _rankedStarted = true;
+                if (window.dvToast) window.dvToast('Ranked match detected — stats are now being logged', 'success');
+                try {
+                    window.sb?.functions.invoke('ranked-match-result', {
+                        body: { action: 'start_match', match_id: matchId }
+                    }).catch(()=>{});
+                } catch(_){}
+            }
+
+            // Auto-finish detection: someone reached the required legs.
+            const p1L = s.p1Legs || 0;
+            const p2L = s.p2Legs || 0;
+            if (!_rankedFinished && _rankedStarted && (p1L >= REQUIRED_LEGS || p2L >= REQUIRED_LEGS)) {
+                _rankedFinished = true;
+                if (window.dvToast) window.dvToast('Match complete — opening result submission…', 'info');
+                // Give the iframe a beat to flush its final state into
+                // sessionStorage, then redirect with prefill intent.
+                setTimeout(() => {
                     const redirectUrl = new URL('ranked.html', window.location.origin);
                     redirectUrl.searchParams.set('prefill', 'true');
                     redirectUrl.searchParams.set('matchId', matchId);
-                    if (opponent) redirectUrl.searchParams.set('opponent', opponent);
-                    
+                    if (lobby.oppName) redirectUrl.searchParams.set('opponent', lobby.oppName);
                     window.location.href = redirectUrl.toString();
-                });
+                }, 2500);
             }
-        }
+        });
     })();
     </script>
 

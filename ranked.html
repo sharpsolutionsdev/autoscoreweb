@@ -84,6 +84,81 @@
 
         .leaderboard-row { transition: background-color 0.2s ease; }
         .leaderboard-row:hover { background-color: rgba(255,255,255,0.02); }
+
+        /* Profile-pill leaderboard rows */
+        .leaderboard-pills { list-style: none; margin: 0; padding: 0; }
+        .lb-pill {
+            display: grid;
+            grid-template-columns: 56px 1fr auto auto;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 18px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .lb-pill:hover { background: rgba(255,255,255,0.025); transform: translateX(2px); }
+        .lb-pill.lb-me { background: linear-gradient(90deg, rgba(var(--brand-rgb,204,11,32),0.12), rgba(var(--brand-rgb,204,11,32),0.02) 70%); }
+        .lb-pill.lb-flash { animation: lbFlash 1.4s ease-out; }
+        @keyframes lbFlash {
+            0% { background-color: rgba(var(--brand-rgb,204,11,32),0.35); }
+            100% { background-color: transparent; }
+        }
+        .lb-pos {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 38px; height: 38px; padding: 0 10px;
+            border-radius: 999px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800; font-size: 18px;
+            background: rgba(255,255,255,0.04);
+            color: #888;
+            border: 1px solid rgba(255,255,255,0.06);
+            font-variant-numeric: tabular-nums;
+        }
+        .lb-pos.lb-1 { background: linear-gradient(135deg, #ffd700, #b8860b); color: #1a1300; border-color: rgba(255,215,0,0.4); box-shadow: 0 0 14px rgba(255,215,0,0.45); }
+        .lb-pos.lb-2 { background: linear-gradient(135deg, #d8d8d8, #888); color: #1a1a1a; border-color: rgba(192,192,192,0.4); box-shadow: 0 0 12px rgba(192,192,192,0.35); }
+        .lb-pos.lb-3 { background: linear-gradient(135deg, #cd7f32, #6b3a18); color: #fff; border-color: rgba(205,127,50,0.5); box-shadow: 0 0 12px rgba(205,127,50,0.4); }
+        .lb-player { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .lb-avatar {
+            width: 40px; height: 40px; border-radius: 999px;
+            background: linear-gradient(135deg, #1a1a22, #0d0d12);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: #aaa; font-size: 14px;
+            flex-shrink: 0; overflow: hidden;
+        }
+        .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .lb-meta { min-width: 0; }
+        .lb-name {
+            font-weight: 700; color: #fff; font-size: 14px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        .lb-sub { font-size: 11px; color: #6b6b78; display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+        .lb-sub .lb-sub-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+        .lb-tier-pill {
+            display: inline-block; padding: 3px 10px;
+            border-radius: 999px; font-size: 10px;
+            font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; border: 1px solid;
+        }
+        .lb-stats { text-align: right; font-variant-numeric: tabular-nums; }
+        .lb-mmr {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900; font-size: 22px; color: #fff;
+            line-height: 1; letter-spacing: -0.01em;
+        }
+        .lb-avg { font-size: 11px; color: #6b6b78; margin-top: 2px; }
+        .lb-you-tag {
+            display: inline-block; margin-left: 6px;
+            font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
+            background: var(--brand, #CC0B20); color: #fff;
+            padding: 2px 6px; border-radius: 4px;
+        }
+        @media (max-width: 640px) {
+            .lb-pill { grid-template-columns: 44px 1fr auto; gap: 10px; padding: 10px 12px; }
+            .lb-tier-pill { display: none; }
+            .lb-name { max-width: 140px; font-size: 13px; }
+            .lb-mmr { font-size: 18px; }
+        }
         
         .pulse-finding { animation: pulseBg 2s infinite; }
         @keyframes pulseBg { 0% { background-color: rgba(204,11,32,0.1); } 50% { background-color: rgba(204,11,32,0.25); } 100% { background-color: rgba(204,11,32,0.1); } }
@@ -149,6 +224,173 @@
             70% { box-shadow: 0 0 0 10px rgba(204, 11, 32, 0); }
             100% { box-shadow: 0 0 0 0 rgba(204, 11, 32, 0); }
         }
+
+        /* ── Match-Found Cinematic VS Overlay ── */
+        #match-found-overlay {
+            position: fixed; inset: 0; z-index: 1100;
+            background: radial-gradient(ellipse at center, rgba(20,0,5,0.92) 0%, rgba(0,0,0,0.98) 70%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            overflow: hidden; padding: 24px;
+        }
+        #match-found-overlay.active { opacity: 1; pointer-events: auto; }
+        #match-found-overlay::before {
+            content:''; position:absolute; inset:-10%;
+            background: repeating-linear-gradient(110deg, transparent 0 38px, rgba(204,11,32,.05) 38px 39px);
+            animation: vsScan 8s linear infinite;
+        }
+        @keyframes vsScan { from { transform: translateX(0); } to { transform: translateX(80px); } }
+        .mf-headline {
+            position: relative; z-index: 2;
+            font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.4em;
+            color: var(--brand); font-size: 14px; margin-bottom: 6px;
+            opacity: 0; transform: translateY(-12px);
+        }
+        #match-found-overlay.active .mf-headline { animation: mfFadeDown 0.5s ease-out 0.1s forwards; }
+        .mf-title {
+            position: relative; z-index: 2;
+            font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic;
+            font-size: clamp(48px, 9vw, 96px); color: #fff;
+            text-shadow: 0 6px 50px rgba(204,11,32,0.45);
+            letter-spacing: -0.02em;
+            opacity: 0;
+        }
+        #match-found-overlay.active .mf-title { animation: mfTitleSlam 0.65s cubic-bezier(.2,1.4,.4,1) 0.2s forwards; }
+        @keyframes mfTitleSlam { 0%{opacity:0;transform:scale(1.6) translateY(20px);filter:blur(8px);} 100%{opacity:1;transform:scale(1) translateY(0);filter:blur(0);} }
+        @keyframes mfFadeDown { to { opacity:1; transform:translateY(0); } }
+
+        .mf-vs-row {
+            position: relative; z-index: 2;
+            display: grid; grid-template-columns: 1fr auto 1fr;
+            gap: clamp(10px, 3vw, 32px);
+            align-items: center;
+            margin: clamp(20px, 4vw, 36px) 0;
+            width: 100%; max-width: 1100px;
+        }
+        .mf-card {
+            background: linear-gradient(160deg, rgba(204,11,32,0.12), rgba(20,20,24,0.85));
+            border: 1px solid rgba(204,11,32,0.3);
+            border-radius: 22px;
+            padding: clamp(16px, 3vw, 28px);
+            text-align: center;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.04);
+            opacity: 0;
+        }
+        .mf-card.mf-me   { transform: translateX(-60px); }
+        .mf-card.mf-opp  { transform: translateX(60px); }
+        #match-found-overlay.active .mf-card.mf-me  { animation: mfSlideIn 0.7s cubic-bezier(.2,1,.4,1) 0.35s forwards; }
+        #match-found-overlay.active .mf-card.mf-opp { animation: mfSlideIn 0.7s cubic-bezier(.2,1,.4,1) 0.35s forwards; }
+        @keyframes mfSlideIn { to { opacity:1; transform:translateX(0); } }
+
+        .mf-avatar {
+            width: clamp(72px, 11vw, 132px); height: clamp(72px, 11vw, 132px);
+            border-radius: 999px; margin: 0 auto 14px;
+            border: 3px solid rgba(204,11,32,0.55);
+            background: linear-gradient(135deg, #1a1a22, #0d0d12);
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(24px, 4vw, 40px); font-weight: 900; color: #fff;
+            overflow: hidden; box-shadow: 0 0 30px rgba(204,11,32,0.4);
+        }
+        .mf-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .mf-name {
+            font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800;
+            font-size: clamp(16px, 2.2vw, 22px); color: #fff;
+            margin-bottom: 4px; word-break: break-word;
+        }
+        .mf-dc {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11px; color: #cbd5e1; opacity: 0.8;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+        }
+        .mf-dc img { width: 12px; height: 12px; border-radius: 2px; object-fit: contain; }
+        .mf-dc.mf-dc-missing { color: #f59e0b; border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.08); }
+        .mf-tier-row {
+            display: flex; justify-content: center; gap: 10px;
+            font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.18em; font-size: 11px;
+        }
+        .mf-mmr {
+            font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+            font-size: clamp(28px, 5vw, 44px); color: #fff;
+            line-height: 1; margin-top: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+        .mf-mmr-label { font-size: 10px; color: #6b6b78; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 4px; }
+        .mf-vs-badge {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900; font-style: italic;
+            font-size: clamp(48px, 8vw, 88px);
+            color: var(--brand);
+            text-shadow: 0 0 30px rgba(204,11,32,0.7), 0 0 60px rgba(204,11,32,0.35);
+            transform: scale(0); opacity: 0;
+        }
+        #match-found-overlay.active .mf-vs-badge { animation: mfVsPop 0.7s cubic-bezier(.2,1.6,.4,1) 0.55s forwards; }
+        @keyframes mfVsPop { to { transform: scale(1); opacity: 1; } }
+
+        .mf-actions { position: relative; z-index: 2; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; opacity: 0; }
+        #match-found-overlay.active .mf-actions { animation: mfFadeUp 0.5s ease-out 0.95s forwards; }
+        @keyframes mfFadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .mf-btn-primary {
+            background: var(--brand); color: #fff;
+            font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; font-size: 13px;
+            padding: 14px 28px; border-radius: 12px; border: none; cursor: pointer;
+            box-shadow: 0 0 30px rgba(204,11,32,.45);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .mf-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(204,11,32,.7); }
+        .mf-btn-secondary {
+            background: rgba(255,255,255,0.04); color: #fff;
+            font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-size: 12px;
+            padding: 13px 22px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12); cursor: pointer;
+            transition: background .2s;
+        }
+        .mf-btn-secondary:hover { background: rgba(255,255,255,0.08); }
+
+        /* ── Post-Match Result Overlay ── */
+        #postmatch-overlay {
+            position: fixed; inset: 0; z-index: 1100;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,.95) 30%, rgba(0,0,0,.99) 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            padding: 24px; overflow-y: auto;
+        }
+        #postmatch-overlay.active { opacity: 1; pointer-events: auto; }
+        #postmatch-overlay.win { background: radial-gradient(ellipse at center, rgba(34,197,94,.18) 0%, rgba(0,0,0,.97) 70%); }
+        #postmatch-overlay.loss { background: radial-gradient(ellipse at center, rgba(204,11,32,.18) 0%, rgba(0,0,0,.97) 70%); }
+        .pm-banner {
+            font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic;
+            font-size: clamp(56px, 11vw, 130px); letter-spacing: -.02em;
+            text-shadow: 0 6px 60px currentColor;
+            opacity: 0; transform: scale(1.5);
+        }
+        #postmatch-overlay.active .pm-banner { animation: mfTitleSlam 0.7s cubic-bezier(.2,1.4,.4,1) 0.05s forwards; }
+        #postmatch-overlay.win .pm-banner { color: #4ade80; }
+        #postmatch-overlay.loss .pm-banner { color: var(--brand); }
+        .pm-mmr-row {
+            display: flex; align-items: center; gap: clamp(14px, 3vw, 32px);
+            font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+            font-size: clamp(40px, 7vw, 72px); color: #fff;
+            margin: 18px 0;
+            font-variant-numeric: tabular-nums;
+        }
+        .pm-mmr-arrow { color: var(--brand); font-size: 0.6em; }
+        .pm-mmr-delta {
+            font-size: clamp(18px, 3vw, 28px); color: #94a3b8;
+            font-variant-numeric: tabular-nums;
+        }
+        .pm-mmr-delta.positive { color: #4ade80; }
+        .pm-mmr-delta.negative { color: #f87171; }
+        .pm-tier-change {
+            font-size: 12px; letter-spacing: .3em; text-transform: uppercase;
+            color: var(--brand); font-weight: 800; margin-bottom: 8px;
+        }
+        .pm-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 30px; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col pt-16">
@@ -175,6 +417,11 @@
                     
                     <div id="profile-content" class="hidden">
                         <div class="text-center mb-6 relative group/prof">
+                            <div id="player-avatar-wrap" class="mx-auto mb-4 relative" style="width:88px;height:88px;">
+                                <div id="player-avatar" class="w-[88px] h-[88px] rounded-full border-2 border-brand/40 bg-gradient-to-br from-[#1a1a22] to-[#0d0d12] flex items-center justify-center text-3xl font-bold text-white overflow-hidden shadow-[0_0_24px_rgba(var(--brand-rgb),0.25)]">
+                                    <span id="player-avatar-initial">?</span>
+                                </div>
+                            </div>
                             <div id="player-tier-badge" class="inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase mb-4 border tier-unranked">
                                 Unranked
                             </div>
@@ -378,25 +625,11 @@
                     </div>
                     
                     <div class="overflow-x-auto flex-grow">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-white/5 text-xs uppercase tracking-wider text-gray-500 bg-black/20">
-                                    <th class="p-4 font-semibold w-16 text-center">#</th>
-                                    <th class="p-4 font-semibold">Player</th>
-                                    <th class="p-4 font-semibold">Tier</th>
-                                    <th class="p-4 font-semibold text-right">MMR</th>
-                                    <th class="p-4 font-semibold text-right hidden sm:table-cell">W/L</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-body" class="text-sm">
-                                <!-- Loading State -->
-                                <tr>
-                                    <td colspan="5" class="p-8 text-center">
-                                        <div class="inline-block w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <ul id="leaderboard-body" class="leaderboard-pills divide-y divide-white/[0.04]">
+                            <li class="p-8 text-center">
+                                <div class="inline-block w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -413,6 +646,14 @@
                 <div>
                     <label class="block text-xs text-gray-400 uppercase tracking-widest mb-2">Display Name</label>
                     <input type="text" id="edit-display-name" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand transition" placeholder="Enter display name...">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <img src="/dc-logo.png" alt="DartCounter" class="w-4 h-4 rounded-sm" style="object-fit:contain;">
+                        DartCounter Username
+                    </label>
+                    <input type="text" id="edit-dc-username" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand transition" placeholder="Your DartCounter handle" autocomplete="off">
+                    <p class="text-[10px] text-gray-500 mt-1.5">Used for ranked-match opponent display, the cinematic VS screen, and the auto-add-friend helper. Must match your handle on app.dartcounter.net.</p>
                 </div>
                 <div class="pt-4 flex gap-3">
                     <button onclick="closeModals()" class="flex-1 px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition font-bold">Cancel</button>
@@ -482,6 +723,53 @@
         </div>
     </div>
 
+    <!-- Match-Found Cinematic VS Overlay -->
+    <div id="match-found-overlay" aria-hidden="true">
+        <p class="mf-headline">Match Found</p>
+        <h1 class="mf-title">VS</h1>
+        <div class="mf-vs-row">
+            <div class="mf-card mf-me">
+                <div class="mf-avatar" id="mf-me-avatar"><span>?</span></div>
+                <div class="mf-name" id="mf-me-name">You</div>
+                <div class="mf-dc" id="mf-me-dc"><img src="/dc-logo.png" alt="DC"><span id="mf-me-dc-text">add DC handle</span></div>
+                <div class="mf-tier-row"><span class="lb-tier-pill" id="mf-me-tier">Silver</span></div>
+                <div class="mf-mmr" id="mf-me-mmr">1200</div>
+                <div class="mf-mmr-label">Your MMR</div>
+            </div>
+            <div class="mf-vs-badge">VS</div>
+            <div class="mf-card mf-opp">
+                <div class="mf-avatar" id="mf-opp-avatar"><span>?</span></div>
+                <div class="mf-name" id="mf-opp-name">Opponent</div>
+                <div class="mf-dc" id="mf-opp-dc"><img src="/dc-logo.png" alt="DC"><span id="mf-opp-dc-text">DC handle hidden</span></div>
+                <div class="mf-tier-row"><span class="lb-tier-pill" id="mf-opp-tier">Silver</span></div>
+                <div class="mf-mmr" id="mf-opp-mmr">1200</div>
+                <div class="mf-mmr-label">Opponent MMR</div>
+            </div>
+        </div>
+        <div class="mf-actions">
+            <button class="mf-btn-primary" onclick="launchMatchLobby()">Launch Match Lobby</button>
+            <button class="mf-btn-secondary" onclick="dismissMatchFound()">View Match Panel</button>
+        </div>
+    </div>
+
+    <!-- Post-Match Result Overlay -->
+    <div id="postmatch-overlay" aria-hidden="true">
+        <div class="pm-tier-change" id="pm-tier-change" style="display:none;">Promoted to Diamond</div>
+        <div class="pm-banner" id="pm-banner">VICTORY</div>
+        <div class="pm-mmr-row">
+            <span id="pm-mmr-before">1200</span>
+            <span class="pm-mmr-arrow">&rarr;</span>
+            <span id="pm-mmr-after">1224</span>
+            <span class="pm-mmr-delta" id="pm-mmr-delta">+24</span>
+        </div>
+        <div class="text-gray-400 text-sm" id="pm-summary">Best of 5 &middot; 3 - 1</div>
+        <div class="pm-actions">
+            <button class="mf-btn-primary" onclick="postMatchRematch()">Rematch</button>
+            <button class="mf-btn-secondary" onclick="postMatchRequeue()">Queue New Match</button>
+            <button class="mf-btn-secondary" onclick="postMatchReturn()">Back to Hub</button>
+        </div>
+    </div>
+
     <dv-footer></dv-footer>
 
     <script type="module">
@@ -508,6 +796,10 @@
                 await loadActiveMatch();
                 await loadRecentMatches();
                 subscribeToMatches();
+                // Run once on load — picks up an in-flight match the user
+                // landed on, or surfaces a freshly-completed result they
+                // haven't seen yet.
+                checkMatchTransitions();
 
                 // Check for prefill from web-app
                 const params = new URLSearchParams(window.location.search);
@@ -542,12 +834,29 @@
         async function loadUserProfile() {
             try {
                 // Fetch from both tables for redundancy and specific ranked data
-                const { data: profile } = await sb.from('dartvoice_profiles').select('display_name, avatar_url').eq('id', currentUser.id).maybeSingle();
+                const { data: profile } = await sb.from('dartvoice_profiles').select('display_name, avatar_url, dartcounter_username').eq('id', currentUser.id).maybeSingle();
                 const { data: rankedData } = await sb.from('ranked_profiles').select('*').eq('id', currentUser.id).maybeSingle();
                 
                 const displayName = rankedData?.display_name || profile?.display_name || 'Dart Player';
                 document.getElementById('player-name').textContent = displayName;
                 document.getElementById('edit-display-name').value = displayName;
+                const dcInput = document.getElementById('edit-dc-username');
+                if (dcInput) dcInput.value = profile?.dartcounter_username || '';
+                // Stash for the cinematic overlay + lobby launch flow.
+                window._dvDcUsername = profile?.dartcounter_username || '';
+
+                // Render avatar (image if uploaded, else initial)
+                try {
+                    const avatarEl = document.getElementById('player-avatar');
+                    if (avatarEl) {
+                        const initial = (displayName || '?').charAt(0).toUpperCase();
+                        if (profile?.avatar_url) {
+                            avatarEl.innerHTML = `<img src="${profile.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span>${initial}</span>'">`;
+                        } else {
+                            avatarEl.innerHTML = `<span id="player-avatar-initial">${initial}</span>`;
+                        }
+                    }
+                } catch(_){}
 
                 if (rankedData) {
                     const wins = rankedData.wins || 0;
@@ -721,6 +1030,223 @@
             } catch (e) { console.error("Error loading active match", e); }
         }
 
+        // ── Match transitions: cinematic VS reveal + post-match results ────
+        // Tracks the most recent match we've rendered an overlay for so we
+        // only animate ONCE per state change rather than every time the
+        // realtime subscription fires.
+        let _mfLastSeen = { id: null, status: null, shownVs: false, shownResult: false };
+
+        function _tierName(t) {
+            const m = { bronze:'Bronze', silver:'Silver', gold:'Gold', platinum:'Platinum', diamond:'Diamond', apex:'Apex', unranked:'Unranked' };
+            return m[(t||'').toLowerCase()] || (t || 'Unranked');
+        }
+        const _tierOrder = ['unranked','bronze','silver','gold','platinum','diamond','apex'];
+
+        async function checkMatchTransitions() {
+            if (!currentUser) return;
+            try {
+                // Fetch the latest match in ANY status so we can detect
+                // completion (which loadActiveMatch filters out).
+                const { data: m } = await sb.from('ranked_matches')
+                    .select('*')
+                    .or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (!m) return;
+
+                const isNewMatch = _mfLastSeen.id !== m.id;
+                const justEnteredLobby = (m.status === 'lobby' || m.status === 'pending') && !_mfLastSeen.shownVs;
+                const justCompleted    = m.status === 'completed' && _mfLastSeen.id === m.id && _mfLastSeen.status !== 'completed' && !_mfLastSeen.shownResult;
+                // Also surface the post-match overlay if the page was loaded
+                // straight onto a fresh "completed" match the user hasn't yet
+                // seen the result for.
+                const completedFresh = m.status === 'completed' && isNewMatch && !sessionStorage.getItem('dv_pm_seen_' + m.id);
+
+                if (isNewMatch && (m.status === 'lobby' || m.status === 'pending')) {
+                    _mfLastSeen = { id: m.id, status: m.status, shownVs: false, shownResult: false };
+                }
+                if (isNewMatch && m.status === 'completed') {
+                    _mfLastSeen = { id: m.id, status: m.status, shownVs: true, shownResult: false };
+                }
+
+                if (justEnteredLobby) {
+                    _mfLastSeen.shownVs = true;
+                    _mfLastSeen.status = m.status;
+                    showMatchFoundOverlay(m).catch(e => console.warn('mf overlay', e));
+                } else if (justCompleted || completedFresh) {
+                    _mfLastSeen.shownResult = true;
+                    _mfLastSeen.status = 'completed';
+                    sessionStorage.setItem('dv_pm_seen_' + m.id, '1');
+                    showPostMatchOverlay(m).catch(e => console.warn('pm overlay', e));
+                } else {
+                    _mfLastSeen.status = m.status;
+                }
+            } catch (e) { /* non-critical */ }
+        }
+
+        async function showMatchFoundOverlay(match) {
+            try {
+                const isP1 = match.player1_id === currentUser.id;
+                const myId  = currentUser.id;
+                const oppId = isP1 ? match.player2_id : match.player1_id;
+
+                // Pull both players' ranked + dv profiles in parallel.
+                const [{ data: meRanked }, { data: oppRanked }, { data: meDv }, { data: oppDv }] = await Promise.all([
+                    sb.from('ranked_profiles').select('display_name, mmr, rank_tier, wins, losses').eq('id', myId).maybeSingle(),
+                    sb.from('ranked_profiles').select('display_name, mmr, rank_tier, wins, losses').eq('id', oppId).maybeSingle(),
+                    sb.from('dartvoice_profiles').select('display_name, avatar_url, dartcounter_username').eq('id', myId).maybeSingle(),
+                    sb.from('dartvoice_profiles').select('display_name, avatar_url, dartcounter_username').eq('id', oppId).maybeSingle(),
+                ]);
+
+                const overlay = document.getElementById('match-found-overlay');
+                if (!overlay) return;
+
+                const setCard = (side, ranked, dv) => {
+                    const name = (ranked?.display_name) || (dv?.display_name) || 'Player';
+                    const initial = (name.charAt(0) || '?').toUpperCase();
+                    const avatar = document.getElementById(`mf-${side}-avatar`);
+                    if (avatar) {
+                        avatar.innerHTML = dv?.avatar_url
+                            ? `<img src="${escapeHtml(dv.avatar_url)}" alt="">`
+                            : `<span>${escapeHtml(initial)}</span>`;
+                    }
+                    document.getElementById(`mf-${side}-name`).textContent = name;
+                    const dcText  = document.getElementById(`mf-${side}-dc-text`);
+                    const dcWrap  = document.getElementById(`mf-${side}-dc`);
+                    if (dv?.dartcounter_username) {
+                        dcText.textContent = '@' + dv.dartcounter_username;
+                        dcWrap.classList.remove('mf-dc-missing');
+                    } else {
+                        dcText.textContent = side === 'me' ? 'Add your DC handle' : 'No DC handle set';
+                        dcWrap.classList.add('mf-dc-missing');
+                    }
+                    const tierEl = document.getElementById(`mf-${side}-tier`);
+                    const tier = (ranked?.rank_tier || 'unranked').toLowerCase();
+                    tierEl.textContent = _tierName(tier);
+                    tierEl.className = `lb-tier-pill tier-${tier}`;
+                    document.getElementById(`mf-${side}-mmr`).textContent = Math.round(ranked?.mmr || 1200);
+                };
+                setCard('me',  meRanked,  meDv);
+                setCard('opp', oppRanked, oppDv);
+
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
+
+                // Light, non-intrusive audio cue (synthetic, no asset needed).
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.type = 'sawtooth'; o.frequency.setValueAtTime(180, ctx.currentTime);
+                    o.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.45);
+                    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.07, ctx.currentTime + 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.7);
+                    o.start(); o.stop(ctx.currentTime + 0.75);
+                } catch(_) {}
+            } catch(e) { console.warn('showMatchFoundOverlay', e); }
+        }
+
+        async function showPostMatchOverlay(match) {
+            try {
+                const overlay = document.getElementById('postmatch-overlay');
+                if (!overlay) return;
+                const isP1 = match.player1_id === currentUser.id;
+                const won = match.winner_id === currentUser.id;
+                const myLegs  = isP1 ? match.player1_legs_won : match.player2_legs_won;
+                const oppLegs = isP1 ? match.player2_legs_won : match.player1_legs_won;
+                const before  = isP1 ? match.player1_mmr_before : match.player2_mmr_before;
+                const after   = isP1 ? match.player1_mmr_after  : match.player2_mmr_after;
+                const delta   = (isP1 ? match.player1_mmr_delta : match.player2_mmr_delta) ?? (after - before);
+
+                overlay.classList.remove('win', 'loss');
+                overlay.classList.add(won ? 'win' : 'loss');
+                document.getElementById('pm-banner').textContent = won ? 'VICTORY' : 'DEFEAT';
+
+                // Animate MMR counters from before→after.
+                const beforeEl = document.getElementById('pm-mmr-before');
+                const afterEl  = document.getElementById('pm-mmr-after');
+                const deltaEl  = document.getElementById('pm-mmr-delta');
+                beforeEl.textContent = Math.round(before || 1200);
+                afterEl.textContent  = Math.round(before || 1200);
+                deltaEl.textContent = (delta >= 0 ? '+' : '') + Math.round(delta || 0);
+                deltaEl.classList.toggle('positive', (delta || 0) >= 0);
+                deltaEl.classList.toggle('negative', (delta || 0) < 0);
+                document.getElementById('pm-summary').textContent = `${match.match_format || 'best_of_5'} · ${myLegs ?? 0} – ${oppLegs ?? 0}`;
+
+                // Tier-change line: compare before/after by recomputing tier
+                // from MMR thresholds (matches ranked-match-result function).
+                const tierFromMmr = (mmr) => mmr >= 3000 ? 'apex' : mmr >= 2500 ? 'diamond' : mmr >= 2000 ? 'platinum' : mmr >= 1500 ? 'gold' : mmr >= 1000 ? 'silver' : 'bronze';
+                const tierLine = document.getElementById('pm-tier-change');
+                if (typeof before === 'number' && typeof after === 'number') {
+                    const tBefore = tierFromMmr(before);
+                    const tAfter  = tierFromMmr(after);
+                    if (tBefore !== tAfter) {
+                        const goingUp = _tierOrder.indexOf(tAfter) > _tierOrder.indexOf(tBefore);
+                        tierLine.textContent = (goingUp ? 'Promoted to ' : 'Demoted to ') + _tierName(tAfter);
+                        tierLine.style.display = '';
+                    } else {
+                        tierLine.style.display = 'none';
+                    }
+                } else {
+                    tierLine.style.display = 'none';
+                }
+
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
+
+                // Animate the "after" number after a beat.
+                const start = before || 1200; const end = after || start;
+                const dur = 1200; const t0 = performance.now();
+                function step(t) {
+                    const p = Math.min(1, (t - t0) / dur);
+                    const eased = 1 - Math.pow(1 - p, 3);
+                    afterEl.textContent = Math.round(start + (end - start) * eased);
+                    if (p < 1) requestAnimationFrame(step);
+                }
+                setTimeout(() => requestAnimationFrame(step), 600);
+
+                // Stash opponent id for a potential rematch.
+                window._dvLastOpponentId = isP1 ? match.player2_id : match.player1_id;
+                window._dvLastMatchId = match.id;
+            } catch(e) { console.warn('showPostMatchOverlay', e); }
+        }
+
+        window.dismissMatchFound = () => {
+            const o = document.getElementById('match-found-overlay');
+            o.classList.remove('active'); o.setAttribute('aria-hidden', 'true');
+        };
+        window.launchMatchLobby = () => {
+            dismissMatchFound();
+            startRankedMatch();
+        };
+
+        window.postMatchReturn = () => {
+            const o = document.getElementById('postmatch-overlay');
+            o.classList.remove('active'); o.setAttribute('aria-hidden', 'true');
+        };
+        window.postMatchRequeue = async () => {
+            postMatchReturn();
+            // Auto-press the queue button.
+            const btn = document.getElementById('queue-btn');
+            if (btn && !isQueueing) btn.click();
+        };
+        window.postMatchRematch = async () => {
+            postMatchReturn();
+            const oppId = window._dvLastOpponentId;
+            // Best-effort: queue normally. A true "rematch" channel would
+            // require a server-side direct-invite RPC; we surface a clear
+            // toast so the user knows we're queueing, not direct-pairing.
+            if (oppId) {
+                try {
+                    if (window.dvToast) window.dvToast('Re-queued — looking for the same opponent first', 'info');
+                } catch(_){}
+            }
+            const btn = document.getElementById('queue-btn');
+            if (btn && !isQueueing) btn.click();
+        };
+
         function prefillStats(isP1) {
             try {
                 const statsRaw = sessionStorage.getItem('dv_latest_match_stats');
@@ -779,6 +1305,15 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_matches', filter: `player1_id=eq.${currentUser.id}` }, () => handleMatchUpdate())
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_matches', filter: `player2_id=eq.${currentUser.id}` }, () => handleMatchUpdate())
                 .subscribe();
+
+            // Realtime leaderboard — any MMR / tier / W-L change on any placed
+            // player triggers a refresh so positions stay live & truthful.
+            sb.channel('leaderboard_live')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_profiles' }, (payload) => {
+                    const updatedId = payload.new?.id || payload.old?.id;
+                    loadLeaderboard(updatedId);
+                })
+                .subscribe();
         }
 
         async function handleMatchUpdate() {
@@ -786,37 +1321,89 @@
             await loadRecentMatches();
             await loadUserProfile();
             await loadLeaderboard();
+            // Drive the cinematic overlays off realtime payloads.
+            checkMatchTransitions();
         }
 
-        async function loadLeaderboard() {
+        // Track last leaderboard render so we can spotlight the row that
+        // just changed when a realtime update arrives.
+        let _lbLastRows = [];
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        async function loadLeaderboard(flashId) {
             try {
-                const { data, error } = await sb.from('ranked_profiles').select('*').eq('is_placed', true).order('mmr', { ascending: false }).limit(50);
+                const { data, error } = await sb.from('ranked_profiles')
+                    .select('*')
+                    .eq('is_placed', true)
+                    .order('mmr', { ascending: false })
+                    .limit(50);
                 if (error) throw error;
                 const tbody = document.getElementById('leaderboard-body');
+                if (!tbody) return;
                 tbody.innerHTML = '';
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">No placed players yet.</td></tr>`;
+                    tbody.innerHTML = `<li class="p-8 text-center text-gray-500 text-sm">No placed players yet — be the first!</li>`;
+                    _lbLastRows = [];
                     return;
                 }
+
+                // Batch-fetch avatars from dartvoice_profiles (FK isn't set up so
+                // we do a separate IN-list query).
+                const ids = data.map(p => p.id);
+                let avatarMap = {};
+                try {
+                    const { data: profs } = await sb.from('dartvoice_profiles')
+                        .select('id, avatar_url')
+                        .in('id', ids);
+                    (profs || []).forEach(p => { if (p.avatar_url) avatarMap[p.id] = p.avatar_url; });
+                } catch(e){}
+
+                _lbLastRows = data.map(p => ({ id: p.id, mmr: p.mmr }));
+
                 data.forEach((p, idx) => {
                     const wins = p.wins || 0;
                     const losses = p.losses || 0;
-                    let rankHtml = `<span class="text-gray-400 font-mono">${idx + 1}</span>`;
-                    if (idx === 0) rankHtml = `<span class="text-[#ffd700] font-bold text-lg drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]">1</span>`;
-                    else if (idx === 1) rankHtml = `<span class="text-[#c0c0c0] font-bold text-lg drop-shadow-[0_0_8px_rgba(192,192,192,0.5)]">2</span>`;
-                    else if (idx === 2) rankHtml = `<span class="text-[#cd7f32] font-bold text-lg drop-shadow-[0_0_8px_rgba(205,127,50,0.5)]">3</span>`;
-
-                    const row = document.createElement('tr');
+                    const total = wins + losses;
+                    const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+                    const tier = (p.rank_tier || 'silver').toLowerCase();
                     const isMe = currentUser && p.id === currentUser.id;
-                    row.className = `border-b border-white/5 leaderboard-row ${isMe ? 'bg-brand/10' : ''}`;
-                    row.innerHTML = `
-                        <td class="p-4 text-center">${rankHtml}</td>
-                        <td class="p-4 font-semibold">${p.display_name || 'Anonymous'} ${isMe ? '<span class="text-xs text-brand ml-1 font-bold">(YOU)</span>' : ''}</td>
-                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold uppercase border tier-${(p.rank_tier||'silver').toLowerCase()}">${p.rank_tier}</span></td>
-                        <td class="p-4 text-right font-mono font-bold">${Math.round(p.mmr)}</td>
-                        <td class="p-4 text-right hidden sm:table-cell font-mono text-gray-400">${wins}W - ${losses}L</td>
+                    const flash = flashId && p.id === flashId;
+                    const name = p.display_name || 'Anonymous';
+                    const initial = name.charAt(0).toUpperCase();
+                    const avatarUrl = avatarMap[p.id];
+                    const avg = Number(p.avg_match_average || 0).toFixed(1);
+                    const pos = idx + 1;
+                    const posCls = idx < 3 ? `lb-pos lb-${pos}` : 'lb-pos';
+
+                    const li = document.createElement('li');
+                    li.className = `lb-pill leaderboard-row ${isMe ? 'lb-me' : ''} ${flash ? 'lb-flash' : ''}`;
+                    li.dataset.id = p.id;
+                    li.innerHTML = `
+                        <div class="${posCls}">${pos}</div>
+                        <div class="lb-player">
+                            <div class="lb-avatar">${avatarUrl
+                                ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='${initial}'">`
+                                : escapeHtml(initial)}</div>
+                            <div class="lb-meta">
+                                <div class="lb-name">${escapeHtml(name)}${isMe ? '<span class="lb-you-tag">YOU</span>' : ''}</div>
+                                <div class="lb-sub">
+                                    <span>Avg ${avg}</span>
+                                    <span class="lb-sub-dot"></span>
+                                    <span>${wins}W &ndash; ${losses}L</span>
+                                    ${total ? `<span class="lb-sub-dot"></span><span>${winPct}%</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="lb-tier-pill tier-${tier}">${escapeHtml(p.rank_tier || 'silver')}</span>
+                        <div class="lb-stats">
+                            <div class="lb-mmr">${Math.round(p.mmr)}</div>
+                            <div class="lb-avg">MMR</div>
+                        </div>
                     `;
-                    tbody.appendChild(row);
+                    tbody.appendChild(li);
                 });
             } catch (err) { console.error("Leaderboard error:", err); }
         }
@@ -961,15 +1548,19 @@
         window.saveProfile = async () => {
             const name = document.getElementById('edit-display-name').value.trim();
             if (!name) return;
+            // DartCounter username is optional but trimmed + length-capped.
+            const dcUserRaw = (document.getElementById('edit-dc-username')?.value || '').trim();
+            const dcUser = dcUserRaw.slice(0, 64) || null;
             const btn = document.getElementById('save-profile-btn');
             btn.disabled = true;
             btn.textContent = "Saving...";
             try {
-                await sb.from('dartvoice_profiles').update({ display_name: name }).eq('id', currentUser.id);
+                await sb.from('dartvoice_profiles').update({ display_name: name, dartcounter_username: dcUser }).eq('id', currentUser.id);
                 await sb.from('ranked_profiles').update({ display_name: name }).eq('id', currentUser.id);
+                window._dvDcUsername = dcUser || '';
                 await loadUserProfile();
                 closeModals();
-            } catch (err) { alert("Save failed"); }
+            } catch (err) { console.error('saveProfile', err); alert("Save failed"); }
             finally { btn.disabled = false; btn.textContent = "Save Changes"; }
         };
 

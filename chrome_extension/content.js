@@ -1669,6 +1669,75 @@
         }
       }
 
+      // --- AUTO-ADD A DARTCOUNTER FRIEND ---
+      // Parent posts { type:'DV_ADD_DC_FRIEND', username:'<dc handle>' }.
+      // We navigate the iframe to /friends, type the username into the
+      // search/add-by-username input, and click the "Add" / submit button.
+      // Best-effort heuristics — DartCounter's UI may shift, so we try a
+      // generous selector list and abort gracefully on miss.
+      if (event.data.type === "DV_ADD_DC_FRIEND" && isIframe) {
+        const usernameRaw = String(event.data.username || '').trim();
+        const replyOrigin = event.origin;
+        const replySource = event.source;
+        const reply = (ok, msg) => {
+          try { replySource && replySource.postMessage({ type: 'DV_ADD_DC_FRIEND_ACK', ok, msg }, replyOrigin); } catch(_){}
+        };
+        if (!usernameRaw) { reply(false, 'no_username'); return; }
+        logTrace(`DV_ADD_DC_FRIEND → @${usernameRaw}`);
+
+        // Navigate to /friends if not already there.
+        try {
+          if (!/\/friends/.test(location.pathname)) {
+            history.pushState({}, '', '/friends');
+            window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
+          }
+        } catch(_){}
+
+        // Poll for the input field, then type + submit.
+        const deadline = Date.now() + 5000;
+        const tryFill = () => {
+          // Heuristic: any visible text/search input on the friends page.
+          const inputs = Array.from(document.querySelectorAll(
+            'input[type="text"], input[type="search"], input:not([type]),' +
+            ' input[placeholder*="username" i], input[placeholder*="friend" i],' +
+            ' input[placeholder*="name" i], input[aria-label*="username" i],' +
+            ' input[aria-label*="friend" i]'
+          )).filter(el => el.offsetParent !== null);
+          const input = inputs[0];
+          if (!input) {
+            if (Date.now() < deadline) return setTimeout(tryFill, 200);
+            reply(false, 'no_input_found');
+            return;
+          }
+          // Set value via the native setter so Angular sees the change.
+          try {
+            const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            setter.call(input, usernameRaw);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            input.focus();
+          } catch (e) { logTrace('add-friend: input fill failed: ' + e.message); }
+
+          // Submit: press Enter, then look for an Add button.
+          setTimeout(() => {
+            try {
+              input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+              input.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+              input.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+            } catch(_){}
+            // Try to click an explicit "Add" button if present.
+            const btns = Array.from(document.querySelectorAll('button, ion-button, [role="button"]'));
+            const addBtn = btns.find(b => {
+              const t = ((b.getAttribute('aria-label')||'') + ' ' + (b.textContent||'')).toLowerCase();
+              return /\b(add|invite|send request|add friend)\b/.test(t) && b.offsetParent !== null;
+            });
+            if (addBtn) { try { addBtn.click(); } catch(_){} }
+            reply(true, addBtn ? 'submitted' : 'enter_only');
+          }, 220);
+        };
+        setTimeout(tryFill, 250);
+      }
+
       // Simple action relay (e.g. open camera setup). Best-effort — finds a matching
       // clickable element by href/testid. Does NOT reload the iframe either way.
       if (event.data.type === "DV_ACTION" && isIframe) {

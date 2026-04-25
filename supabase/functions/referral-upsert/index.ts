@@ -52,9 +52,11 @@ Deno.serve(async (req: Request) => {
   if (userErr || !userData?.user) return json({ ok: false, error: "unauthenticated" }, 401);
   const user = userData.user;
 
-  let body: { code?: string } = {};
+  let body: { code?: string; referral_code?: string } = {};
   try { body = await req.json(); } catch { /* empty body ok, fall through */ }
-  const code = (body.code || "").trim();
+  // Accept both `code` (canonical) and `referral_code` (sent by the
+  // dashboard client) so the contract is forgiving in either direction.
+  const code = ((body.code || body.referral_code) || "").trim();
   if (!code) return json({ ok: false, error: "missing_code" }, 400);
 
   // Service-role client for the referrer lookup + insert (bypasses RLS).

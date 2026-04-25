@@ -1893,15 +1893,19 @@
                         'apikey': SUPABASE_KEY
                     },
                     body: JSON.stringify({
+                        // Send both `code` (what the edge function expects)
+                        // and `referral_code` (legacy field) for safety.
+                        code: refCode,
                         referral_code: refCode,
                         referred_user_id: userId,
                         referred_email: email
                     })
                 });
                 const body = await resp.json().catch(() => ({}));
-                const ok = resp.ok;
-                console.info('[referral/upsert]', { ok, status: resp.status, ...body });
-                return { ok, action: body.action || (ok ? 'created' : 'error'), msg: body.error };
+                const ok = resp.ok && body.ok !== false;
+                const action = body.action || (body.dupe ? 'duplicate' : (ok ? 'created' : 'error'));
+                console.info('[referral/upsert]', { ok, status: resp.status, action, ...body });
+                return { ok, action, msg: body.error };
             } catch (e) {
                 console.warn('[referral/upsert] fetch error', e?.message || e);
                 return { ok: false, action: 'error', msg: e?.message };
