@@ -2479,7 +2479,9 @@
                 if (_isAmbassador) document.body.classList.add('dv-is-ambassador');
                 if (_isCreator)    document.body.classList.add('dv-is-creator');
                 if (_isAdmin)      document.body.classList.add('dv-is-admin');
-                console.log('[DV] roles', { admin: _isAdmin, creator: _isCreator, ambassador: _isAmbassador });
+                // Single gate for overlays: any of ambassador, creator, or admin.
+                if (_isAmbassador || _isCreator || _isAdmin) document.body.classList.add('dv-can-overlay');
+                console.log('[DV] roles', { admin: _isAdmin, creator: _isCreator, ambassador: _isAmbassador, canOverlay: document.body.classList.contains('dv-can-overlay') });
             } catch(_) {}
 
             _userSub = sub;
@@ -6225,11 +6227,11 @@ window.openScorerUrl = function(url){
     <script>try { window.sb = sb; } catch(_){}</script>
     <script src="/dv-presence.js" defer></script>
 
-    <!-- ═══ CREATOR STREAMING OVERLAYS (ambassador-partner only) ═══ -->
+    <!-- ═══ STREAMING OVERLAYS (ambassadors + admins) ═══ -->
     <style>
-        body:not(.dv-is-ambassador) #dv-overlays-launcher,
-        body:not(.dv-is-ambassador) #dv-overlays-panel,
-        body:not(.dv-is-ambassador) .dv-stream-overlay { display: none !important; }
+        body:not(.dv-can-overlay) #dv-overlays-launcher,
+        body:not(.dv-can-overlay) #dv-overlays-panel,
+        body:not(.dv-can-overlay) .dv-stream-overlay { display: none !important; }
 
         #dv-overlays-launcher {
             position: fixed; right: 16px; bottom: 70px; z-index: 100000;
@@ -6437,7 +6439,7 @@ window.openScorerUrl = function(url){
         }
     </style>
 
-    <button id="dv-overlays-launcher" aria-label="Creator overlays" onclick="dvToggleOverlaysPanel()">
+    <button id="dv-overlays-launcher" aria-label="Streaming overlays" onclick="dvToggleOverlaysPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         Stream Overlays
     </button>
