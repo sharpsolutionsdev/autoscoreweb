@@ -166,11 +166,17 @@
                 class="absolute inset-0 w-full h-full pointer-events-none"
                 style="z-index:0; opacity:1;"></canvas>
 
-        <!-- High-speed soundwave video bg -->
-        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none"
-            style="mix-blend-mode: screen; filter: sepia(1) saturate(5) hue-rotate(330deg) brightness(0.9);">
-            <source src="assets/media/soundwaves-highspeed.mp4" type="video/mp4">
+        <!-- Cinematic mic background — replaces the old soundwave loop. Poster
+             fallback shows immediately, video fades in once it's ready. -->
+        <video autoplay muted loop playsinline preload="metadata"
+            poster="assets/media/mic-mesh-red.jpeg"
+            class="absolute inset-0 w-full h-full object-cover opacity-[0.18] pointer-events-none"
+            style="mix-blend-mode: screen; filter: saturate(1.15) brightness(0.85) contrast(1.05);">
+            <source src="assets/media/mic-focus.mp4" type="video/mp4">
         </video>
+        <!-- Soft right-side vignette so the device cluster reads cleanly over the mic -->
+        <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+            style="background: radial-gradient(ellipse 70% 60% at 78% 50%, rgba(8,8,10,0.55), transparent 70%);"></div>
 
         <!-- Floating blur accent orbs (from prototype flourishes) -->
         <div class="float-orb" style="width:380px; height:380px; top:-80px; left:-120px;"></div>
@@ -2245,10 +2251,15 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         // Place near right edge — actual screen-x is recalculated on resize so it
         // tracks the viewport rather than the world.
         function placeBoard() {
-            // Project right edge ~ 92 % across the visible plane at z=0.
+            // Bring the dartboard further into frame — was 0.42 (mostly
+            // off-screen on common laptop widths). Lower factor keeps it
+            // weighted right while showing a clear portion of the rings +
+            // bullseye. On narrow screens we ease toward centre so it's
+            // never clipped behind the device cluster.
             const aspect = canvas.clientWidth / Math.max(canvas.clientHeight, 1);
             const visW = 2 * Math.tan((camera.fov * Math.PI / 180) / 2) * camera.position.z * aspect;
-            dartboard.position.set(visW * 0.42, 0, -1.5);
+            const xFactor = aspect < 1.1 ? 0.18 : (aspect < 1.5 ? 0.24 : 0.30);
+            dartboard.position.set(visW * xFactor, 0, -1.5);
         }
         placeBoard();
         window.addEventListener('resize', placeBoard);
@@ -2537,20 +2548,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         let strikeT = -1;
         function triggerStrike() { strikeT = 0; }
 
-        // Mouse parallax — tiny camera offset that makes the hero feel alive
-        // without distracting. Disabled on touch devices.
+        // Mouse parallax — disabled. The earlier offsets (even halved) caused
+        // the dartboard's strike pulse + emblem halos to visibly "flash" as
+        // the camera shifted each frame on mousemove. Holding the camera
+        // steady gives the hero a much calmer, premium feel.
         let targetCx = 0, targetCy = 0;
-        if (!('ontouchstart' in window)) {
-            window.addEventListener('mousemove', (e) => {
-                const r = canvas.getBoundingClientRect();
-                if (!r.width) return;
-                // Gentler parallax — was 0.6/0.4 which made the dartboard
-                // appear to "flicker" as additive halos crossed each other on
-                // every mouse move. Halve the offset for a calmer hero.
-                targetCx = ((e.clientX - r.left) / r.width  - 0.5) * 0.25;
-                targetCy = ((e.clientY - r.top)  / r.height - 0.5) * 0.18;
-            }, { passive: true });
-        }
 
         let running = true;
         document.addEventListener('visibilitychange', () => { running = !document.hidden; });
