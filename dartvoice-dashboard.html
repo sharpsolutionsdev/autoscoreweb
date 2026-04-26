@@ -829,8 +829,11 @@
                     <div class="dv-hero-bg"></div>
                     <div class="dv-hero-grid"></div>
                     <div class="relative" style="z-index:1">
-                        <p id="dash-greeting" class="text-xs font-semibold uppercase tracking-widest mb-2"
-                            style="color:var(--brand,#cc0b20);text-shadow:0 0 14px rgba(var(--brand-rgb,204,11,32),.4);">Dashboard</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <p id="dash-greeting" class="text-xs font-semibold uppercase tracking-widest"
+                                style="color:var(--brand,#cc0b20);text-shadow:0 0 14px rgba(var(--brand-rgb,204,11,32),.4);">Dashboard</p>
+                            <span id="dash-status-pill" class="hidden inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide"></span>
+                        </div>
                         <h1 id="dash-title" class="display"
                             style="font-size:clamp(2.4rem,5.2vw,3.8rem);line-height:1;color:#F0F0F5;margin-bottom:6px;">
                             USER DASHBOARD</h1>
@@ -1648,7 +1651,7 @@
                         <p class="text-[10px] font-bold uppercase tracking-widest mb-3" style="color:#4A4A5A;">Find players</p>
                         <div class="flex items-center gap-2 rounded-xl bg-white/[0.03] border border-white/10 px-3 py-2 focus-within:border-brand/50 transition">
                             <svg class="w-4 h-4 text-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/></svg>
-                            <input id="friends-search-input" type="text" placeholder="Search by DartVoice username (min 2 chars)" autocomplete="off" spellcheck="false" class="flex-1 bg-transparent border-0 outline-none text-sm text-chalk placeholder-muted">
+                            <input id="friends-search-input" type="text" placeholder="Search by name or @handle (min 2 chars)" autocomplete="off" spellcheck="false" class="flex-1 bg-transparent border-0 outline-none text-sm text-chalk placeholder-muted">
                         </div>
                         <div id="friends-search-results" class="mt-3 space-y-2"></div>
                     </div>
@@ -2351,6 +2354,19 @@
                 const el = $('profile-badge-' + b);
                 if (el) el.classList.toggle('hidden', b !== which);
             });
+            // Mirror into the dashboard hero pill so the user's plan status is
+            // visible at the top of every tab — not just inside the Profile card.
+            const hero = $('dash-status-pill');
+            if (!hero) return;
+            const map = {
+                active:  { text: 'PRO MEMBER',    cls: 'bg-success/10 text-success border border-success/20', dot: 'bg-success' },
+                trial:   { text: 'PRO TRIAL',     cls: 'bg-brand/10 text-brand border border-brand/25',       dot: 'bg-brand pulse-dot' },
+                pastdue: { text: 'PAST DUE',      cls: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20', dot: 'bg-yellow-400' },
+                none:    { text: 'NOT SUBSCRIBED', cls: 'bg-white/5 text-muted-2 border border-white/10',     dot: 'bg-muted-2' }
+            };
+            const m = map[which] || map.none;
+            hero.className = 'inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide ' + m.cls;
+            hero.innerHTML = `<span class="w-1 h-1 rounded-full ${m.dot} inline-block"></span>${m.text}`;
         }
 
         // ISO 3166-1 alpha-2 country list (display name -> 2-letter code).
@@ -3055,11 +3071,15 @@
             out.innerHTML = `<p class="text-xs text-muted px-2 py-2">Searching…</p>`;
             _friendsSearchTimer = setTimeout(async () => {
                 try {
+                    // Substring match across BOTH dv_username and display_name so users
+                    // can be found even if they haven't set a public handle yet, and
+                    // "rs" matches anyone containing those letters anywhere.
+                    const like = `%${q.replace(/[%_]/g, m => '\\' + m)}%`;
                     const { data: profs } = await sb.from('dartvoice_profiles')
                         .select('id, display_name, dv_username, avatar_url')
-                        .ilike('dv_username', `${q}%`)
+                        .or(`dv_username.ilike.${like},display_name.ilike.${like}`)
                         .neq('id', _ambUserId || '00000000-0000-0000-0000-000000000000')
-                        .limit(10);
+                        .limit(15);
                     if (!profs || !profs.length) { out.innerHTML = `<p class="text-xs text-muted px-2 py-2">No players found.</p>`; return; }
                     // Look up existing friend rows for these candidates (so we can show right state).
                     const ids = profs.map(p => p.id);
