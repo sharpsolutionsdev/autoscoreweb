@@ -22,6 +22,12 @@ class DvNav extends HTMLElement {
               Web App
               <span class="flex h-2 w-2 relative -top-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span></span>
             </a>
+            <a href="/ranked" class="nav-link text-sm font-bold transition px-3 py-2 flex items-center gap-1.5 relative group" style="color:#f0f0f5;" title="Ranked Hub · MMR ladder, friends & stats">
+              <span class="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition" style="background:linear-gradient(135deg, rgba(204,11,32,0.18), transparent 70%);"></span>
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--brand,#CC0B20);"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h4l1 4a4 4 0 008 0l1-4h4M5 4v3a4 4 0 004 4h6a4 4 0 004-4V4M9 22h6M12 15v7"/></svg>
+              <span class="relative">Ranked Hub</span>
+              <span class="relative text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:var(--brand,#CC0B20); border:1px solid rgba(204,11,32,0.4);">PRO</span>
+            </a>
             <div class="relative" id="nav-lb-wrap">
               <button type="button" id="nav-lb-btn"
                 class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5"
@@ -54,9 +60,6 @@ class DvNav extends HTMLElement {
               <div id="nav-more-menu"
                 class="absolute right-0 top-full mt-1 min-w-[180px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
                 <a href="/how-it-works" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">How It Works</a>
-                <a href="/ranked" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
-                  <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ranked
-                </a>
                 <a href="/#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
                 <a href="/guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
                 <a href="/referral" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
@@ -93,8 +96,10 @@ class DvNav extends HTMLElement {
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded">
               Web App
             </a>
-            <a href="/ranked" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ranked
+            <a href="/ranked" class="text-sm font-bold text-chalk transition px-2 py-2.5 rounded-lg flex items-center gap-2" style="background:linear-gradient(90deg, rgba(204,11,32,0.18), rgba(204,11,32,0.04)); border:1px solid rgba(204,11,32,0.35);">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--brand,#CC0B20);"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h4l1 4a4 4 0 008 0l1-4h4M5 4v3a4 4 0 004 4h6a4 4 0 004-4V4M9 22h6M12 15v7"/></svg>
+              Ranked Hub
+              <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.2); color:var(--brand,#CC0B20); border:1px solid rgba(204,11,32,0.4);">PRO</span>
             </a>
             <div class="px-2 pt-2 pb-1 flex items-center justify-between">
               <p class="text-[10px] font-bold tracking-widest text-brand uppercase">Top Ranked</p>

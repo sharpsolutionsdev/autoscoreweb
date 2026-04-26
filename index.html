@@ -902,6 +902,28 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     <section id="ranked-mode" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530">
         <div class="float-orb dim" style="width:380px; height:380px; top:-120px; left:-120px;"></div>
         <div class="max-w-6xl mx-auto px-5 relative">
+            <!-- Premium callout banner — "INCLUDED IN PRO" -->
+            <div class="reveal mb-12 rounded-2xl relative overflow-hidden"
+                 style="background:linear-gradient(135deg, rgba(204,11,32,0.12) 0%, rgba(204,11,32,0.04) 50%, rgba(20,20,26,0.6) 100%); border:1px solid rgba(204,11,32,0.3); box-shadow:0 8px 40px rgba(204,11,32,0.15);">
+                <div aria-hidden="true" style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 100% 50%, rgba(204,11,32,0.18), transparent 70%);pointer-events:none;"></div>
+                <div class="relative grid md:grid-cols-[auto,1fr,auto] items-center gap-5 p-6 sm:p-7">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(204,11,32,0.2);border:1px solid rgba(204,11,32,0.4);">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--brand);"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h4l1 4a4 4 0 008 0l1-4h4M5 4v3a4 4 0 004 4h6a4 4 0 004-4V4M9 22h6M12 15v7"/></svg>
+                        </div>
+                        <span class="text-[9px] font-black tracking-[0.25em] uppercase px-2 py-1 rounded" style="background:rgba(204,11,32,0.2);color:var(--brand);border:1px solid rgba(204,11,32,0.4);">Pro Feature</span>
+                    </div>
+                    <div>
+                        <p class="display text-2xl sm:text-3xl text-chalk leading-tight mb-1">RANKED MODE — INCLUDED IN PRO</p>
+                        <p class="text-muted text-sm leading-relaxed">Voice-control + a global skill-based ladder, friends, MMR stats and seasonal rewards. One subscription, both flagship features.</p>
+                    </div>
+                    <a href="/ranked" class="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold text-white whitespace-nowrap" style="background:var(--brand);box-shadow:0 4px 18px rgba(204,11,32,0.4);">
+                        Open Ranked Hub
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </a>
+                </div>
+            </div>
+
             <div class="text-center mb-14 reveal">
                 <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Ranked Mode · Live Now</p>
                 <h2 class="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-chalk mb-5">PROVE IT ON THE OCHE</h2>
@@ -2194,8 +2216,13 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             nctx.font = 'bold 30px ui-sans-serif, system-ui, sans-serif';
             nctx.textAlign = 'center';
             nctx.textBaseline = 'middle';
+            // Real dartboards run 20,1,18,4,13,6,10,15,2,17 clockwise from the
+            // top — that means each successive number sits one wedge to the
+            // RIGHT in screen space. Canvas ctx.rotate(+) is clockwise on
+            // screen, so we rotate by `+i * 2π/20` (was `-i`) to put 11 on the
+            // left, 6 on the right, etc.
             for (let i = 0; i < SEG; i++) {
-                const ang = -i * (Math.PI * 2 / SEG);
+                const ang = i * (Math.PI * 2 / SEG);
                 nctx.save();
                 nctx.rotate(ang);
                 nctx.fillText(String(NUMBERS[i]), 0, -228);
@@ -2302,12 +2329,25 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             tex.anisotropy = 4;
             const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
             const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), mat);
-            // Halo: additive plane behind the plate, brand-tinted.
+            // Halo: additive plane behind the plate, brand-tinted, with a
+            // radial-gradient texture so the glow fades to a *circle* instead
+            // of leaving a hard square outline behind each emblem.
+            const haloC = document.createElement('canvas');
+            haloC.width = haloC.height = 256;
+            const hctx = haloC.getContext('2d');
+            const hg = hctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+            hg.addColorStop(0,   'rgba(255,255,255,1)');
+            hg.addColorStop(0.4, 'rgba(255,255,255,0.55)');
+            hg.addColorStop(1,   'rgba(255,255,255,0)');
+            hctx.fillStyle = hg;
+            hctx.fillRect(0, 0, 256, 256);
+            const haloTex = new THREE.CanvasTexture(haloC);
             const halo = new THREE.Mesh(
-                new THREE.PlaneGeometry(1.25, 1.25),
+                new THREE.PlaneGeometry(1.6, 1.6),
                 new THREE.MeshBasicMaterial({
+                    map: haloTex,
                     color: opts.glow || BRAND,
-                    transparent: true, opacity: 0.32,
+                    transparent: true, opacity: 0.55,
                     blending: THREE.AdditiveBlending, depthWrite: false
                 })
             );
@@ -2504,8 +2544,11 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             window.addEventListener('mousemove', (e) => {
                 const r = canvas.getBoundingClientRect();
                 if (!r.width) return;
-                targetCx = ((e.clientX - r.left) / r.width  - 0.5) * 0.6;
-                targetCy = ((e.clientY - r.top)  / r.height - 0.5) * 0.4;
+                // Gentler parallax — was 0.6/0.4 which made the dartboard
+                // appear to "flicker" as additive halos crossed each other on
+                // every mouse move. Halve the offset for a calmer hero.
+                targetCx = ((e.clientX - r.left) / r.width  - 0.5) * 0.25;
+                targetCy = ((e.clientY - r.top)  / r.height - 0.5) * 0.18;
             }, { passive: true });
         }
 

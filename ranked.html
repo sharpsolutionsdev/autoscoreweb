@@ -41,10 +41,91 @@
         /* ── Background & Effects ── */
         .page-bg {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at 50% 0%, rgba(204,11,32,0.1) 0%, transparent 50%),
-                        linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
-            z-index: -1; pointer-events: none;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(204,11,32,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 35% at 85% 30%, rgba(204,11,32,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 35% at 15% 70%, rgba(120,80,255,0.05) 0%, transparent 70%),
+                linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
+            z-index: -2; pointer-events: none;
         }
+        /* Subtle animated dot grid */
+        .page-bg::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000, transparent 80%);
+            opacity: 0.55;
+        }
+        /* Slow-rotating conic glow ring */
+        .page-bg::after {
+            content: ''; position: absolute; left: 50%; top: -30%;
+            width: 1200px; height: 1200px; transform: translateX(-50%);
+            background: conic-gradient(from 0deg, rgba(204,11,32,0) 0deg, rgba(204,11,32,0.18) 60deg, rgba(204,11,32,0) 120deg, rgba(204,11,32,0) 240deg, rgba(204,11,32,0.12) 300deg, rgba(204,11,32,0) 360deg);
+            filter: blur(60px);
+            animation: conicSpin 60s linear infinite;
+            opacity: 0.7;
+        }
+        @keyframes conicSpin { to { transform: translateX(-50%) rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .page-bg::after { animation: none; }
+        }
+
+        /* Hero badge */
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 0.9rem; border-radius: 999px;
+            background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.35);
+            font-size: 0.7rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase;
+            color: #ff5066;
+        }
+        .hero-badge .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
+            box-shadow: 0 0 0 0 rgba(204,11,32,0.7); animation: heroPulse 2s infinite; }
+        @keyframes heroPulse {
+            0% { box-shadow: 0 0 0 0 rgba(204,11,32,0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(204,11,32,0); }
+            100% { box-shadow: 0 0 0 0 rgba(204,11,32,0); }
+        }
+
+        /* Section heading */
+        .section-heading { display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; }
+        .section-heading .bar { width: 3px; height: 22px; background: var(--brand); border-radius: 2px; box-shadow: 0 0 10px rgba(204,11,32,0.6); }
+        .section-heading h2 { font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.04em; font-size:1.5rem; font-weight:700; }
+
+        /* Tier ladder card with icon */
+        .tier-card {
+            display:flex; align-items:center; gap:0.85rem;
+            padding: 0.85rem 1rem; border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.2s ease;
+        }
+        .tier-card:hover { transform: translateX(4px); border-color: rgba(255,255,255,0.12); }
+        .tier-card .icon-wrap {
+            width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+            flex-shrink:0;
+        }
+        .tier-card .icon-wrap svg { width:20px; height:20px; }
+
+        /* Friend pill / stat tile */
+        .friend-row { display:flex; align-items:center; gap:0.75rem; padding: 0.6rem 0.75rem; border-radius:10px; transition: background 0.2s; }
+        .friend-row:hover { background: rgba(255,255,255,0.03); }
+        .friend-row .avatar { width:36px; height:36px; border-radius:50%; background: linear-gradient(135deg, #1a1a20, #0f0f12); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-weight:700; color:#9aa; flex-shrink:0; overflow:hidden; }
+        .friend-row .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .friend-row .status-dot.online { background:#22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.6); }
+        .friend-row .status-dot.offline { background:#444; }
+
+        .stat-tile {
+            padding:1rem; border-radius:12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+            border:1px solid rgba(255,255,255,0.06);
+        }
+        .stat-tile .stat-value { font-family:'Barlow Condensed',sans-serif; font-size:1.85rem; font-weight:800; line-height:1; color:#fff; }
+        .stat-tile .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#888; margin-top:0.4rem; }
+        .stat-tile.brand .stat-value { color: var(--brand); }
+
+        /* Mini flag (uses flagcdn) */
+        .flag-mini { width: 20px; height: 14px; border-radius: 2px; object-fit: cover; box-shadow: 0 0 0 1px rgba(255,255,255,0.08); flex-shrink:0; vertical-align: middle; }
 
         /* ── Cards ── */
         .card-panel {
@@ -401,9 +482,30 @@
     <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
         
         <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4">Ranked <span class="text-[#CC0B20]">Series</span></h1>
-            <p class="text-lg text-gray-400 max-w-2xl mx-auto">Compete against the best. Climb the ladder. Become Apex.</p>
+        <div class="text-center mb-12 relative">
+            <div class="inline-flex flex-col items-center">
+                <span class="hero-badge mb-4"><span class="pulse-dot"></span>Live · Season 1 · Pro Members</span>
+                <h1 class="display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
+                    Ranked <span style="background:linear-gradient(135deg,#ff5066,#CC0B20 50%,#7a0815);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(204,11,32,0.35));">Hub</span>
+                </h1>
+                <p class="text-base md:text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                    Compete on the global ladder, add friends, track your stats. Powered by skill-based MMR — your rank reflects who you actually beat.
+                </p>
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
+                    <a href="#queue" class="btn-brand inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white" style="background:var(--brand);box-shadow:0 4px 18px rgba(204,11,32,0.4);">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        Find Match
+                    </a>
+                    <a href="#friends" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold border border-white/10 hover:border-white/30 transition" style="background:rgba(255,255,255,0.03);">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Friends
+                    </a>
+                    <a href="#my-stats" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold border border-white/10 hover:border-white/30 transition" style="background:rgba(255,255,255,0.03);">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                        My Stats
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -638,8 +740,118 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════
-             HOW RANKED WORKS — public explainer + rank ladder
+             FRIENDS + MY STATS — community + personal performance
              ═══════════════════════════════════════════════════════════════ -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+
+            <!-- Friends -->
+            <div id="friends" class="lg:col-span-2 card-panel p-6">
+                <div class="section-heading">
+                    <span class="bar"></span>
+                    <h2>Friends</h2>
+                    <span class="ml-2 text-[10px] font-bold tracking-widest px-2 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:var(--brand); border:1px solid rgba(204,11,32,0.3);">BETA</span>
+                </div>
+                <p class="text-sm text-gray-400 mb-4">Add players you've matched against. See who's online, challenge them, and watch them climb.</p>
+
+                <!-- Add friend -->
+                <form id="friend-add-form" class="flex gap-2 mb-5">
+                    <input id="friend-add-input" type="text" placeholder="Add by username or email…"
+                        class="flex-1 px-4 py-2.5 rounded-lg bg-black/30 border border-white/10 text-sm focus:border-brand focus:outline-none transition"
+                        style="caret-color:var(--brand);">
+                    <button type="submit" class="px-4 py-2.5 rounded-lg text-sm font-bold text-white" style="background:var(--brand);">
+                        Add
+                    </button>
+                </form>
+
+                <!-- Friend list -->
+                <div id="friends-list" class="space-y-1">
+                    <!-- Empty / loading state -->
+                    <div class="friend-row opacity-60">
+                        <div class="avatar">B</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold truncate">BullseyeBob <span class="text-[10px] font-bold ml-1" style="color:#cd7f32">BRONZE II</span></p>
+                            <p class="text-[11px] text-gray-500">MMR 712 · Last seen 2h ago</p>
+                        </div>
+                        <span class="status-dot offline" title="Offline"></span>
+                        <button class="text-[11px] px-2 py-1 rounded border border-white/10 hover:border-white/30 text-gray-300 transition">Challenge</button>
+                    </div>
+                    <div class="friend-row">
+                        <div class="avatar" style="color:#ffd700;">A</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold truncate">ArrowQueen <span class="text-[10px] font-bold ml-1" style="color:#ffd700">GOLD I</span></p>
+                            <p class="text-[11px] text-gray-500">MMR 1,524 · Online now</p>
+                        </div>
+                        <span class="status-dot online" title="Online"></span>
+                        <button class="text-[11px] px-2 py-1 rounded font-bold text-white transition" style="background:var(--brand);">Challenge</button>
+                    </div>
+                    <div class="friend-row opacity-60">
+                        <div class="avatar">+</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-400 italic">Sign in to load your friends list…</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending invites -->
+                <div class="mt-5 pt-4 border-t border-white/5">
+                    <p class="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">Pending Invites <span id="friends-pending-badge" class="ml-1 px-1.5 py-0.5 rounded text-[9px]" style="background:rgba(204,11,32,0.2);color:var(--brand);">0</span></p>
+                    <p class="text-xs text-gray-500 italic">No pending invites.</p>
+                </div>
+            </div>
+
+            <!-- My Stats -->
+            <div id="my-stats" class="card-panel p-6">
+                <div class="section-heading">
+                    <span class="bar"></span>
+                    <h2>My Stats</h2>
+                </div>
+                <p class="text-sm text-gray-400 mb-5">Sign in to see your live performance metrics across ranked play.</p>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="stat-tile brand">
+                        <div class="stat-value" id="mystats-mmr">—</div>
+                        <div class="stat-label">Current MMR</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value" id="mystats-winrate">—</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value" id="mystats-180s">—</div>
+                        <div class="stat-label">180s</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value" id="mystats-tonplus">—</div>
+                        <div class="stat-label">Ton+ Checkouts</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value" id="mystats-streak">—</div>
+                        <div class="stat-label">Current Streak</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-value" id="mystats-best">—</div>
+                        <div class="stat-label">Best Finish</div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-4 border-t border-white/5">
+                    <p class="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">MMR Trend · Last 30 days</p>
+                    <div class="h-16 rounded-lg flex items-end gap-1 px-1" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.04);">
+                        <!-- Placeholder spark bars -->
+                        <div class="flex-1 rounded-t" style="height:30%;background:rgba(204,11,32,0.4);"></div>
+                        <div class="flex-1 rounded-t" style="height:55%;background:rgba(204,11,32,0.5);"></div>
+                        <div class="flex-1 rounded-t" style="height:42%;background:rgba(204,11,32,0.45);"></div>
+                        <div class="flex-1 rounded-t" style="height:60%;background:rgba(204,11,32,0.55);"></div>
+                        <div class="flex-1 rounded-t" style="height:48%;background:rgba(204,11,32,0.5);"></div>
+                        <div class="flex-1 rounded-t" style="height:70%;background:rgba(204,11,32,0.65);"></div>
+                        <div class="flex-1 rounded-t" style="height:62%;background:rgba(204,11,32,0.6);"></div>
+                        <div class="flex-1 rounded-t" style="height:80%;background:rgba(204,11,32,0.75);"></div>
+                        <div class="flex-1 rounded-t" style="height:75%;background:rgba(204,11,32,0.7);"></div>
+                        <div class="flex-1 rounded-t" style="height:90%;background:rgba(204,11,32,0.85);"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
         <section id="how-ranked-works" class="mt-20">
             <div class="text-center mb-12">
                 <p class="text-xs font-bold tracking-widest uppercase mb-3" style="color:#CC0B20">A fairer ladder</p>
@@ -1024,6 +1236,17 @@
                     
                     document.getElementById('stat-rank').textContent = isPlacing ? "Placing" : currentRank;
                     document.getElementById('stat-rank').className = `font-bold uppercase tier-${currentRank}`;
+
+                    // Populate the new "My Stats" tiles in the Friends/Stats section
+                    try {
+                        const setT = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+                        setT('mystats-mmr',     isPlacing ? 'TBD' : Math.round(rankedData.mmr || 1200));
+                        setT('mystats-winrate', total ? winRate + '%' : '—');
+                        setT('mystats-180s',    rankedData.total_180s || 0);
+                        setT('mystats-tonplus', rankedData.total_ton_plus_checkouts || rankedData.ton_plus || 0);
+                        setT('mystats-streak',  rankedData.win_streak || 0);
+                        setT('mystats-best',    rankedData.best_finish || 0);
+                    } catch(_){}
 
                     // Fetch Global Rank
                     if (!isPlacing) {
@@ -1565,6 +1788,7 @@
                     const avatarUrl = avatarMap[p.id];
                     const cc = countryMap[p.id];
                     const flag = flagEmoji(cc);
+                    const flagImg = cc ? `<img src="https://flagcdn.com/20x15/${String(cc).toLowerCase()}.png" srcset="https://flagcdn.com/40x30/${String(cc).toLowerCase()}.png 2x" class="flag-mini" alt="${escapeHtml(cc)}" title="${escapeHtml(cc)}" loading="lazy" onerror="this.outerHTML='<span style=&quot;margin-right:6px;font-size:14px;line-height:1&quot;>${flag || ''}</span>'">` : '';
                     const avg = Number(p.avg_match_average || 0).toFixed(1);
                     const pos = idx + 1;
                     const posCls = idx < 3 ? `lb-pos lb-${pos}` : 'lb-pos';
@@ -1579,7 +1803,7 @@
                                 ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='${initial}'">`
                                 : escapeHtml(initial)}</div>
                             <div class="lb-meta">
-                                <div class="lb-name">${flag ? `<span title="${escapeHtml(cc)}" style="margin-right:6px;font-size:14px;line-height:1">${flag}</span>` : ''}${escapeHtml(name)}${isMe ? '<span class="lb-you-tag">YOU</span>' : ''}</div>
+                                <div class="lb-name">${flagImg ? `<span style="display:inline-flex;align-items:center;margin-right:6px;">${flagImg}</span>` : ''}${escapeHtml(name)}${isMe ? '<span class="lb-you-tag">YOU</span>' : ''}</div>
                                 <div class="lb-sub">
                                     <span>Avg ${avg}</span>
                                     <span class="lb-sub-dot"></span>
@@ -1771,6 +1995,15 @@
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModals(); });
 
         // Render the rank-ladder explainer cards (6 tiers × 3 divisions).
+        // Each tier gets its own SVG icon for a more premium feel.
+        const TIER_ICONS = {
+            bronze:    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>',
+            silver:    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 5.6L20 9l-4 4.2 1 6.8-5-3-5 3 1-6.8L4 9l5.6-1.4z"/></svg>',
+            gold:      '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2c0 3.31-2.06 6.13-4.96 7.27.46 1.31 1.36 2.41 2.54 3.13l-1 2.6H8.42l-1-2.6c1.18-.72 2.08-1.82 2.54-3.13C7.06 11.13 5 8.31 5 5V3z"/></svg>',
+            platinum:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 8l3 12h10l3-12-8-6zm0 3.2l5.5 4-2 8H8.5l-2-8 5.5-4z"/></svg>',
+            diamond:   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12l4 6-10 12L2 9l4-6zm1.5 2L5.2 8.5h13.6L16.5 5h-9zM4.4 10.5L11 18.7V10.5H4.4zm8.6 0v8.2l6.6-8.2H13z"/></svg>',
+            champion:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2L3 14h7l-1 8 11-13h-7l1-7z"/></svg>'
+        };
         function renderRankLadder() {
             const host = document.getElementById('rank-ladder');
             if (!host) return;
@@ -1778,9 +2011,13 @@
                 const next = DV_RANKS[i + 1];
                 const range = next ? `${t.min} – ${next.min - 1}` : `${t.min}+`;
                 const cap   = t.name.charAt(0).toUpperCase() + t.name.slice(1);
+                const icon  = TIER_ICONS[t.name] || '';
                 const card = document.createElement('div');
                 card.className = 'card-panel p-4 text-center';
                 card.innerHTML = `
+                    <div class="mx-auto mb-3 flex items-center justify-center" style="width:42px;height:42px;color:${t.color};filter:drop-shadow(0 0 8px ${t.color}66);">
+                        <span style="display:inline-flex;width:26px;height:26px;">${icon}</span>
+                    </div>
                     <div class="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-3 border tier-${t.name}">${cap}</div>
                     <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-2">MMR ${range}</p>
                     <div class="flex justify-center gap-1.5 text-[11px] text-gray-400 font-mono">
@@ -1792,6 +2029,30 @@
             });
         }
         renderRankLadder();
+
+        // ── Friends form (UI scaffolding — real backend wired in a follow-up) ──
+        try {
+            const fForm = document.getElementById('friend-add-form');
+            const fInput = document.getElementById('friend-add-input');
+            if (fForm) {
+                fForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const v = (fInput?.value || '').trim();
+                    if (!v) return;
+                    if (!currentUser) {
+                        window.location.href = '/login?next=/ranked%23friends';
+                        return;
+                    }
+                    // Optimistic toast — server-side friend graph is a follow-up.
+                    const t = document.createElement('div');
+                    t.textContent = `Friend request to "${v}" queued · backend coming soon`;
+                    t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(204,11,32,0.95);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+                    document.body.appendChild(t);
+                    setTimeout(() => t.remove(), 2600);
+                    fInput.value = '';
+                });
+            }
+        } catch(_){}
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
