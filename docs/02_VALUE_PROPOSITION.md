@@ -1,6 +1,6 @@
 # DartVoice — Value Proposition
 
-*Internal Staff Document — Confidential*
+*Internal Staff Document — Confidential. Last reviewed: April 2026.*
 
 ---
 
@@ -12,13 +12,9 @@
 
 ## The Problem: Manual Scoring Destroys the Flow
 
-The modern darts practice session is broken by a single, repetitive interruption.
+A player throws three darts. They walk to the board and pull them out. They walk back to their phone, tablet, or laptop. They tap in the score. They wait for the app to calculate. They check the remaining total. They step back to the oche. **This cycle repeats 20–60+ times per session.**
 
-A player throws three darts. They walk to the board and pull them out. They walk back to their phone, tablet, or laptop. They tap in their score. They wait for the app to calculate. They check the remaining total. They step back to the oche. **This cycle repeats 20–60+ times per session.**
-
-That break is cumulative. It kills muscle memory. It fragments concentration. It turns a focused training session into a start-stop obligation. Professional darts coaches consistently identify *scoring disruption* as one of the top factors reducing the quality of home practice.
-
-And yet, every scoring app on the market — no matter how polished — still requires **manual tap input**.
+That break is cumulative. It kills muscle memory. It fragments concentration. It turns a focused training session into a start-stop obligation. And yet, every scoring app on the market — no matter how polished — still requires **manual tap input**.
 
 ---
 
@@ -31,7 +27,7 @@ DartVoice intercepts the problem at its root. Instead of walking to a screen and
 - "Twenty-six."
 - "Bull."
 
-That's it. DartVoice hears it, parses it, calculates the remaining score, rotates to the next player if needed, and displays a checkout suggestion. The player **never leaves the throw line**.
+DartVoice hears it, parses it, calculates the remaining score, rotates to the next player if needed, and displays a checkout suggestion. The player **never leaves the throw line**.
 
 ---
 
@@ -58,12 +54,12 @@ DartVoice is **portable**. Practice at a mate's house? Works. Playing in a renta
 ### 3. 🔌 Software Agnostic — Works With What You Already Use
 DartVoice is not a replacement for your favourite scoring app. It's a **companion layer** that sits on top.
 
-Already use and love Target Dart Counter? Keep using it. DartVoice will inject your scores into it. Prefer Nakka's stats? No problem. Run DartVoice alongside it on your PC and it clicks the inputs for you.
+Already use Target Dart Counter? Keep using it. DartVoice will inject scores into it. Prefer Nakka's stats? Run DartVoice alongside it on your PC and it clicks the inputs for you.
 
-This is critical because darts players are **fiercely loyal** to their scoring platform. They've built months or years of statistics and averages. Asking them to switch everything to a proprietary DartVoice scoring system would be a non-starter. Instead, we integrate seamlessly.
+This matters because darts players are **fiercely loyal** to their scoring platform. They've built months or years of statistics. Asking them to migrate would be a non-starter. We integrate seamlessly instead.
 
 ### 4. 🧠 Speaks Your Language
-DartVoice doesn't force players to learn "commands." It understands natural darts language — the same phrases players already use every session:
+DartVoice doesn't force players to learn "commands." It understands natural darts language:
 
 | What You Say | What DartVoice Hears |
 |---|---|
@@ -76,25 +72,24 @@ DartVoice doesn't force players to learn "commands." It understands natural dart
 | "Double sixteen" | D16 → 32 |
 | "Two marks on nineteen" | Cricket: 2 × 19 |
 
-There is no learning curve. If you know how to call your darts, you already know how to use DartVoice.
+Zero learning curve. If you know how to call your darts, you already know how to use DartVoice.
 
 ### 5. 💰 Affordable Monthly Entry vs £500+ Hardware
-The market's current auto-scoring solutions are priced as luxury items:
 
 | Product | Cost | Requirements |
 |---|---|---|
-| **Target Omni** | ~£500+ upfront | Specific board, physical ring, camera, permanent install |
-| **Scolia** | ~£300+ | Camera system, mount, calibration |
-| **Gran Board** | ~£200+ | Proprietary electronic board |
+| Target Omni | ~£500+ upfront | Specific board, physical ring, camera, permanent install |
+| Scolia | ~£300+ | Camera system, mount, calibration |
+| Gran Board | ~£200+ | Proprietary electronic board |
 | **DartVoice** | **From £5/mo** | Any board, any phone |
 
-DartVoice is **100x cheaper to start** and requires zero commitment to specific hardware. Cancel anytime. No contracts. The 7-day free trial means a player can validate the product with zero financial risk before committing.
+DartVoice is **~100x cheaper to start** and requires zero commitment to specific hardware. Cancel anytime. No contracts. The 7-day free trial means a player can validate the product with zero financial risk before committing.
+
+The current launch promo (`PROMO_20`, 20% off, time-limited and being extended manually) drops the effective monthly to £5.59 from £6.99 — useful as a top-of-funnel hook, but it is not the long-term price.
 
 ---
 
 ## The Emotional Value
-
-Beyond the functional benefits, DartVoice delivers something harder to quantify but equally important:
 
 > **It makes you feel like a professional.**
 
@@ -109,8 +104,8 @@ When explaining DartVoice to anyone — a potential customer, a partner, a journ
 1. **No hardware** — use the phone you already own.
 2. **No learning curve** — just speak your darts language.
 3. **No platform lock-in** — works alongside Target Dart Counter and others.
-4. **Works offline** — voice recognition runs on-device, not in the cloud.
+4. **Works offline** — voice recognition runs on-device, not in the cloud (desktop + APK).
 5. **Affordable** — from £5/month vs £500+ hardware alternatives.
 6. **Always with you** — practice anywhere there's a dartboard.
 
-This is the value proposition. Memorise it, believe it, and communicate it consistently.
+Memorise it, believe it, and communicate it consistently.

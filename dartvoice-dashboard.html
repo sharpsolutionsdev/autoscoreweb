@@ -1626,6 +1626,17 @@
                                     <input id="input-dob" type="date" class="dv-input pro w-full" style="color-scheme: dark;">
                                 </div>
 
+                                <!-- Nationality -->
+                                <div>
+                                    <label class="block text-[10px] font-bold text-muted-2 uppercase tracking-widest mb-2">
+                                        Nationality
+                                        <span class="text-[9px] text-muted ml-1">(flag on leaderboard)</span>
+                                    </label>
+                                    <select id="input-country" class="dv-input pro w-full" style="color-scheme: dark;">
+                                        <option value="">— Select country —</option>
+                                    </select>
+                                </div>
+
                                 <button onclick="saveProfile()" id="btn-save-profile"
                                     class="btn-brand w-full py-3 rounded-2xl text-white font-semibold text-sm shadow-2xl">
                                     Save Profile
@@ -2307,7 +2318,7 @@
             // Fetch subscription + profile in parallel (include DOB)
             let [{ data: sub }, { data: profile }] = await Promise.all([
                 sb.from('dartvoice_subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
-                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number, date_of_birth, avatar_url, dv_username, dartcounter_username').eq('id', user.id).maybeSingle(),
+                sb.from('dartvoice_profiles').select('referral_code, paypal_email, display_name, phone_number, date_of_birth, avatar_url, dv_username, dartcounter_username, country_code').eq('id', user.id).maybeSingle(),
             ]);
 
             // Fallback: if no sub in DB, check Stripe directly via edge function
@@ -2360,7 +2371,7 @@
             if (!displayName) $('profile-nudge').classList.remove('hidden');
 
             // Populate profile tab (pass date_of_birth if available)
-            populateProfileTab(user.email, displayName, sub, profile?.phone_number, profile?.date_of_birth, profile?.avatar_url, profile?.dv_username, profile?.dartcounter_username);
+            populateProfileTab(user.email, displayName, sub, profile?.phone_number, profile?.date_of_birth, profile?.avatar_url, profile?.dv_username, profile?.dartcounter_username, profile?.country_code);
 
             renderSubscription(sub, user.id);
 
@@ -2388,7 +2399,50 @@
             });
         }
 
-        function populateProfileTab(email, displayName, sub, phoneNumber, dateOfBirth, avatarUrl, dvUsername, dcUsername) {
+        // ISO 3166-1 alpha-2 country list (display name -> 2-letter code).
+        // Top dart nations float to the top, then alphabetical.
+        const DV_COUNTRIES = [
+            ['GB','United Kingdom'],['NL','Netherlands'],['DE','Germany'],['BE','Belgium'],['IE','Ireland'],
+            ['US','United States'],['AU','Australia'],['CA','Canada'],['NZ','New Zealand'],['ZA','South Africa'],
+            ['__SEP__',''],
+            ['AF','Afghanistan'],['AL','Albania'],['DZ','Algeria'],['AR','Argentina'],['AM','Armenia'],['AT','Austria'],
+            ['AZ','Azerbaijan'],['BH','Bahrain'],['BD','Bangladesh'],['BY','Belarus'],['BO','Bolivia'],['BA','Bosnia and Herzegovina'],
+            ['BR','Brazil'],['BG','Bulgaria'],['KH','Cambodia'],['CM','Cameroon'],['CL','Chile'],['CN','China'],['CO','Colombia'],
+            ['CR','Costa Rica'],['HR','Croatia'],['CU','Cuba'],['CY','Cyprus'],['CZ','Czechia'],['DK','Denmark'],
+            ['DO','Dominican Republic'],['EC','Ecuador'],['EG','Egypt'],['EE','Estonia'],['ET','Ethiopia'],['FI','Finland'],
+            ['FR','France'],['GE','Georgia'],['GH','Ghana'],['GR','Greece'],['GT','Guatemala'],['HK','Hong Kong'],['HU','Hungary'],
+            ['IS','Iceland'],['IN','India'],['ID','Indonesia'],['IR','Iran'],['IQ','Iraq'],['IL','Israel'],['IT','Italy'],
+            ['JM','Jamaica'],['JP','Japan'],['JO','Jordan'],['KZ','Kazakhstan'],['KE','Kenya'],['KW','Kuwait'],['LV','Latvia'],
+            ['LB','Lebanon'],['LT','Lithuania'],['LU','Luxembourg'],['MY','Malaysia'],['MT','Malta'],['MX','Mexico'],['MD','Moldova'],
+            ['MC','Monaco'],['MN','Mongolia'],['ME','Montenegro'],['MA','Morocco'],['MM','Myanmar'],['NP','Nepal'],['NG','Nigeria'],
+            ['MK','North Macedonia'],['NO','Norway'],['OM','Oman'],['PK','Pakistan'],['PA','Panama'],['PY','Paraguay'],['PE','Peru'],
+            ['PH','Philippines'],['PL','Poland'],['PT','Portugal'],['QA','Qatar'],['RO','Romania'],['RU','Russia'],['SA','Saudi Arabia'],
+            ['RS','Serbia'],['SG','Singapore'],['SK','Slovakia'],['SI','Slovenia'],['KR','South Korea'],['ES','Spain'],['LK','Sri Lanka'],
+            ['SE','Sweden'],['CH','Switzerland'],['TW','Taiwan'],['TZ','Tanzania'],['TH','Thailand'],['TT','Trinidad and Tobago'],
+            ['TN','Tunisia'],['TR','Turkey'],['UG','Uganda'],['UA','Ukraine'],['AE','United Arab Emirates'],['UY','Uruguay'],
+            ['UZ','Uzbekistan'],['VE','Venezuela'],['VN','Vietnam'],['ZM','Zambia'],['ZW','Zimbabwe']
+        ];
+        function populateCountryOptions(sel) {
+            if (sel.dataset.populated) return;
+            const frag = document.createDocumentFragment();
+            DV_COUNTRIES.forEach(([code, name]) => {
+                if (code === '__SEP__') {
+                    const opt = document.createElement('option');
+                    opt.disabled = true;
+                    opt.textContent = '────────────';
+                    frag.appendChild(opt);
+                    return;
+                }
+                const opt = document.createElement('option');
+                opt.value = code;
+                opt.textContent = name;
+                frag.appendChild(opt);
+            });
+            sel.appendChild(frag);
+            sel.dataset.populated = '1';
+        }
+
+        function populateProfileTab(email, displayName, sub, phoneNumber, dateOfBirth, avatarUrl, dvUsername, dcUsername, countryCode) {
             $('profile-email-show').textContent = email;
             $('profile-email-footer').textContent = email;
             $('input-display-name').value = displayName;
@@ -2398,6 +2452,11 @@
             updateProfileHandleDisplay(dvUsername || '');
             const dobEl = $('input-dob');
             if (dobEl) dobEl.value = dateOfBirth || '';
+            const ctyEl = $('input-country');
+            if (ctyEl) {
+                if (!ctyEl.dataset.populated) populateCountryOptions(ctyEl);
+                ctyEl.value = (countryCode || '').toUpperCase();
+            }
             $('profile-display-name-show').textContent = displayName || email.split('@')[0];
             // Avatar: prefer server-provided avatar_url, then client-side stored avatar, then initials
             const el = $('profile-avatar');
@@ -2554,12 +2613,15 @@
             const dvUserRaw = ($('input-dv-username')?.value || '').trim();
             const dvUser    = dvUserRaw ? dvUserRaw.replace(/[^a-zA-Z0-9_]/g,'').toLowerCase() : null;
             const dcUser    = ($('input-dc-username')?.value || '').trim() || null;
+            const ctyRaw    = ($('input-country')?.value || '').trim().toUpperCase();
+            const country   = /^[A-Z]{2}$/.test(ctyRaw) ? ctyRaw : null;
             const updates = {
                 display_name: name || null,
                 phone_number: ($('input-phone')?.value || '').trim() || null,
                 date_of_birth: dobVal,
                 dv_username: dvUser,
-                dartcounter_username: dcUser
+                dartcounter_username: dcUser,
+                country_code: country
             };
             const { error } = await sb.from('dartvoice_profiles')
                 .update(updates)

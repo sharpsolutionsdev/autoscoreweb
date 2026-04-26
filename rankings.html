@@ -162,6 +162,23 @@
                 </p>
             </div>
 
+            <!-- Search -->
+            <div class="mb-4">
+                <div class="relative max-w-md">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path stroke-linecap="round" d="M20 20l-3.5-3.5"/>
+                    </svg>
+                    <input type="search" id="lb-search" placeholder="Search player by name…"
+                           autocomplete="off" spellcheck="false"
+                           class="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm text-chalk"
+                           style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); outline: none;">
+                    <button type="button" id="lb-search-clear"
+                            class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-muted hover:text-chalk hover:bg-white/5 transition flex items-center justify-center text-lg leading-none"
+                            aria-label="Clear search">×</button>
+                </div>
+            </div>
+
             <!-- Filters -->
             <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div class="flex flex-wrap gap-2" id="tier-filters">
@@ -237,14 +254,11 @@
     <!-- Supabase init -->
     <script>
         const SB_URL  = 'https://poyjykgqsvgimssbhsuz.supabase.co';
-        const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2JodXp1IiwicmVybGUiOiJhbm9uIiwiaWF0IjoxNzMxMjQ1MTAwLCJleHAiOjIwNDY4MjExMDB9.rg9SCwcv8GLyZ6Ajt6JWJTymWS8XjCe5qVL5TcKRrP0';
+        const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
     </script>
     <script>
-        // Use the same anon key your other pages use.
-        const sb = window.supabase.createClient(
-            'https://poyjykgqsvgimssbhsuz.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2JodXp1IiwicmVybGUiOiJhbm9uIiwiaWF0IjoxNzMxMjQ1MTAwLCJleHAiOjIwNDY4MjExMDB9.rg9SCwcv8GLyZ6Ajt6JWJTymWS8XjCe5qVL5TcKRrP0'
-        );
+        // Use the same anon key every other page uses.
+        const sb = window.supabase.createClient(SB_URL, SB_ANON);
         try { window.sb = sb; } catch(_){}
     </script>
 
@@ -291,6 +305,7 @@
 
         let _allRows = [];
         let _activeTier = 'all';
+        let _searchTerm = '';
 
         async function loadAll() {
             showSkeleton();
@@ -334,9 +349,14 @@
         }
 
         function render() {
-            const rows = _activeTier === 'all'
+            let rows = _activeTier === 'all'
                 ? _allRows
                 : _allRows.filter(r => r._rankInfo.name === _activeTier);
+
+            if (_searchTerm) {
+                const q = _searchTerm.toLowerCase();
+                rows = rows.filter(r => (r.display_name || '').toLowerCase().includes(q));
+            }
 
             countEl.textContent = String(rows.length);
             body.innerHTML = '';
@@ -381,6 +401,27 @@
             render();
         });
         document.getElementById('lb-refresh').addEventListener('click', loadAll);
+
+        // Search input wiring — debounced filter on display_name.
+        const searchInput = document.getElementById('lb-search');
+        const searchClear = document.getElementById('lb-search-clear');
+        let _searchTimer = null;
+        searchInput.addEventListener('input', () => {
+            const v = searchInput.value.trim();
+            searchClear.classList.toggle('hidden', !v);
+            clearTimeout(_searchTimer);
+            _searchTimer = setTimeout(() => {
+                _searchTerm = v;
+                render();
+            }, 120);
+        });
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            _searchTerm = '';
+            searchClear.classList.add('hidden');
+            render();
+            searchInput.focus();
+        });
 
         // Live refresh on any ranked_profiles change.
         try {

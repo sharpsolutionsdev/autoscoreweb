@@ -1,65 +1,166 @@
 # DartVoice
 
-**Project Description:** DartVoice is a voice-controlled auto-scoring system designed to automate manual dartboard scoring software (like Target Dart Counter, Nakka, etc.). The system translates spoken words (e.g., "Triple twenty", "Ton eighty", "Two marks on nineteen") into system-level inputs or DOM clicks. 
+Voice-controlled auto-scoring for darts. Players speak their score from the oche (`"one-forty"`, `"triple twenty"`, `"two marks on nineteen"`) and DartVoice subtracts, rotates, suggests checkouts, and pushes the input into whichever scoring app they already use.
 
-The software ecosystem comprises a static marketing website, custom transactional emails, a Windows desktop application, an Android native application, and a Chrome Extension.
+This monorepo contains the entire DartVoice ecosystem: marketing site, dashboard, web scorer, transactional emails, the Windows desktop app, the Android app, the Chrome extension, the Supabase backend, and the outreach/admin tooling.
 
----
-
-## 🏗 Core Architecture & Repositories
-
-### 1. Web Platform (Marketing & Portal)
-- **Stack:** HTML5, TailwindCSS (CDN), Vanilla JavaScript.
-- **Design System:** Deep dark mode (`bg-[#08080A]`), premium red accents (`#CC0B20`), heavy glassmorphism, floating micro-animations, and fluid responsive typography.
-- **Key Files:**
-  - `index.html`: The high-converting marketing landing page featuring 3D hover states, pseudo-software CSS mockups, and Stripe checkout funnels.
-  - `dartvoice-dashboard.html`: The authenticated portal where active subscribers download the respective clients.
-  - `guide.html`: A master documentation page detailing Software Installation, First Launch, X01 Calibration, Cricket Calibration, and Voice Commands.
-
-### 2. The Clients (The Auto-Scoring Software)
-- **Windows Desktop (`autoscore/dartvoice_v2.py`)**
-  - Python-based application that listens to an active microphone input and parses darts terminology.
-  - Uses GUI calibration (which the user sets up to tell it where to click/input).
-- **Android App (`autoscore/buildozer.spec`)**
-  - The Python logic packaged into an Android APK using Buildozer (likely Kivy/Flet framework) to act as a mobile microphone array and parser.
-- **Chrome Extension (`chrome_extension/content.js`)**
-  - Uses Manifest V3.
-  - Operates using the native browser `webkitSpeechRecognition` API.
-  - Specifically designed to parse voice and manipulate DOM elements on browser-based scorers (like DartCounter Chrome tabs) directly, bypassing the need for a desktop client. Features full mathematical parsing for X01 and Cricket.
-
-### 3. Authentication & Billing Layer
-- **Payments:** Handled entirely out-of-ecosystem by Stripe (`buy.stripe.com` links are embedded in `index.html` and `guide.html`).
-- **Authentication Strategy:** Passwordless OTP (One-Time Password). Users input the email they used to buy the subscription on Stripe into the Desktop/Android/Chrome clients. The backend sends an OTP.
-- **Email Templates (`emails/`)**:
-  - 7 deeply polished, branded HTML emails (Welcome, OTP Code, Payment Failed, Subscription Active, Referral Invite, Referral Payout, Cancelled). These were batched and generated via a python script (`script_email_update.py`) maintaining strict design continuity.
+> Live: <https://dartvoice.app> · Repo: private (GitHub Pro)
 
 ---
 
-## 🚀 Immediate Next Steps & Deployment Checklist
+## Architecture at a glance
 
-The UI/UX is functionally "Launch Ready." Focus should shift to deployment, backend integration, and store compliance.
+```
+┌──────────────────────┐   OTP / Stripe   ┌────────────────────────┐
+│  dartvoice.app       │ ───────────────▶│  Supabase              │
+│  (GitHub Pages)      │                  │  · Auth (email OTP)    │
+│  · index.html etc.   │                  │  · Postgres + RLS      │
+│  · web-app.html      │                  │  · Edge Functions      │
+│  · dashboard         │◀─────────────────│  · Realtime            │
+└──────────┬───────────┘                  └──────────┬─────────────┘
+           │                                          │
+           │ download                                 │ webhooks
+           ▼                                          ▼
+┌──────────────────────┐                  ┌────────────────────────┐
+│  Cloudflare R2       │                  │  Stripe                │
+│  · DartVoice.apk     │                  │  · Subscriptions       │
+│  · DartVoice_Setup   │                  │  · Coupons / promos    │
+│  releases.dartvoice. │                  └────────────────────────┘
+│  app                 │
+└──────────────────────┘
 
-### 1. Chrome Extension Submission ✅
-- ✅ Icons generated (16x16, 48x48, 128x128) and wired into `manifest.json`.
-- ✅ Extension successfully published to the [Chrome Web Store](https://chromewebstore.google.com/detail/dartvoice-launchpad/igldnjophdpofihidpbblchgfamncpgb).
-- ✅ Updated `dartvoice-dashboard.html` and `guide.html` with the official store link for direct, managed installation.
+Clients
+─ Windows desktop (autoscore/dartvoice_v2.py → DartVoice_Setup.exe)
+─ Android app    (autoscore/main.py + buildozer → DartVoice.apk)
+─ Chrome ext.    (chrome_extension/ → Web Store: DartVoice Launchpad)
+```
 
-### 2. Backend API Verification ⬜
-*Note: The frontend is currently static HTML. To make the dashboard and OTP logic functional:*
-- ⬜ Ensure the backend server securely validates Stripe Webhooks (e.g. `customer.subscription.created`) and updates the user database.
-- ⬜ Connect the static `login.html` and `dartvoice-dashboard.html` files to an actual routing framework (like Next.js) OR wire up Vanilla JS to consume backend JWT/Session tokens.
-- ✅ Lifecycle emails dispatched via Resend API through Supabase Edge Functions (`send-dartvoice-email`, `send-confirmation`). OTP emails sent via Supabase Auth SMTP → Resend. All sent from `@dartvoice.app` domain.
+### Hosting
 
-### 3. Windows & Android Builds ⬜
-- **Windows**: Package `dartvoice_v2.py` utilizing PyInstaller or Nuitka to compile a standalone executable (`DartVoice_Setup.exe`). Ensure the executable is code-signed with an EV certificate to prevent Windows Defender SmartScreen warnings.
-- **Android**: Run the `buildozer.spec` pipeline to generate the `.aab` (Android App Bundle). Prepare Play Store screenshots and submit for app review.
+| Layer | Where | Notes |
+|---|---|---|
+| Static site | **GitHub Pages**, custom domain `dartvoice.app` (see [CNAME](CNAME)) | Repo is **private** — works because of GitHub Pro. |
+| Release binaries | **Cloudflare R2** bucket `dartvoice-releases`, public hostname `releases.dartvoice.app` | Dashboard download buttons fetch from R2, not GitHub Releases. CI uploads on every successful build. |
+| Backend | **Supabase** project `poyjykgqsvgimssbhsuz` (DartVoice) | Auth, Postgres, Edge Functions, Realtime. |
+| Payments | **Stripe** (account `Ochevault`) | Subscriptions + coupons. |
+| Email | **Resend** via Supabase Edge Functions | All transactional mail from `@dartvoice.app`. |
 
-### 4. SEO & Analytics ✅ (Placeholder)
-- ✅ Google Analytics `gtag.js` snippet injected into ALL 8 public-facing pages.
-- ⬜ **ACTION REQUIRED:** Find-and-replace `G-XXXXXXXXXX` with your real Google Analytics Measurement ID across all HTML files. You can do this with a single command:
-  ```
-  # PowerShell (run from project root)
-  Get-ChildItem *.html | ForEach-Object { (Get-Content $_.FullName) -replace 'G-XXXXXXXXXX','G-YOUR_REAL_ID' | Set-Content $_.FullName }
-  ```
-1
+---
 
+## Top-level layout
+
+```
+index.html                  Marketing landing page (high-conversion funnel)
+how-it-works.html           Product walkthrough
+guide.html                  Setup + voice-command reference
+login.html                  Email OTP entry
+dartvoice-dashboard.html    Authenticated portal (downloads, account, ranked, referrals)
+web-app.html / web-app-mobile.html
+                            Browser-based scorer (used by the APK's WebView too)
+admin.html / admin.js       Internal CRM (gated by admin_users table)
+creator-portal.html         Public-facing creator landing pages
+ranked.html / rankings.html Ranked mode landing + leaderboards
+referral.html               Ambassador program
+
+components/                 dv-nav.js, dv-footer.js (web components)
+css/                        general/, components/, specific/
+emails/                     Branded HTML email templates (Resend)
+supabase/                   migrations/, functions/ (edge functions)
+chrome_extension/           MV3 extension source + Web Store assets
+autoscore/                  Windows + Android Python sources, build configs
+outreach-server/            Long-running Node worker (creator email outreach)
+billing_server/             Stripe-side helpers
+scripts/, tools/            Build, deploy, and QA helpers
+docs/                       All staff/business documentation (start here)
+```
+
+---
+
+## Documentation
+
+All product, business, and engineering docs live in [`docs/`](docs/). Start with [docs/INDEX.md](docs/INDEX.md).
+
+The most useful entry points:
+
+- [docs/00_STAFF_GUIDE.md](docs/00_STAFF_GUIDE.md) — onboarding for anyone new
+- [docs/01_GENERAL_OVERVIEW.md](docs/01_GENERAL_OVERVIEW.md) — what the product does
+- [docs/03_PAYMENT_AND_FUNNEL.md](docs/03_PAYMENT_AND_FUNNEL.md) — pricing, promos, billing
+- [docs/04_ADVERTISING_AND_MARKETING.md](docs/04_ADVERTISING_AND_MARKETING.md) — channels & messaging
+- [docs/08_GROWTH_AND_ROADMAP.md](docs/08_GROWTH_AND_ROADMAP.md) — current state, business plan, 12-month timeline
+- [docs/GOING-PRIVATE.md](docs/GOING-PRIVATE.md) — repo-private + R2 release pipeline (already executed)
+
+---
+
+## Development
+
+### Local preview
+
+The site is plain static HTML — no build step.
+
+```powershell
+# from repo root
+python -m http.server 8080
+# then open http://localhost:8080
+```
+
+### Deploy
+
+Push to the default branch. GitHub Pages publishes automatically. Custom domain is wired via [CNAME](CNAME).
+
+### Release binaries
+
+Triggered by the workflows in `.github/workflows/`:
+
+- `build-windows.yml` — packages `dartvoice_v2.py` into `DartVoice_Setup.exe`, uploads to R2.
+- `build-android.yml` — runs `buildozer` to produce `DartVoice.apk`, uploads to R2.
+- `build-extension.yml` — zips the Chrome extension and uploads to R2.
+- `seed-r2.yml` — one-shot helper used during the GitHub-Releases → R2 migration. See [docs/GOING-PRIVATE.md](docs/GOING-PRIVATE.md).
+
+All workflows require the `CLOUDFLARE_API_TOKEN` repo secret.
+
+### Backend
+
+```powershell
+# Supabase CLI (project ref: poyjykgqsvgimssbhsuz)
+supabase functions deploy <name>
+supabase db push
+```
+
+Edge functions live under [supabase/functions](supabase/functions). Migrations under [supabase/migrations](supabase/migrations).
+
+### Chrome extension
+
+```powershell
+cd chrome_extension
+# manual zip for Web Store upload
+Compress-Archive * ..\dartvoice-launchpad.zip -Force
+```
+
+Live listing: <https://chromewebstore.google.com/detail/dartvoice-launchpad/igldnjophdpofihidpbblchgfamncpgb>
+
+---
+
+## Status snapshot — April 2026
+
+| Area | State |
+|---|---|
+| Marketing site | ✅ Live on `dartvoice.app` |
+| Stripe billing + webhooks | ✅ Live (monthly, 6-month, 12-month tiers) |
+| Email lifecycle (Welcome, OTP, etc.) | ✅ Resend via Supabase |
+| Windows desktop (`DartVoice_Setup.exe`) | ✅ Shipped (R2-hosted) |
+| Android app (`DartVoice.apk`) | ✅ Shipped sideload (R2-hosted, gated by `apk-gate.html`) |
+| Chrome extension | ✅ Published to Web Store |
+| Repo private | ✅ Done (GH Pro) |
+| Release mirror on R2 | ✅ Done |
+| Creator outreach CRM (`admin.html`) | ✅ Live, internal-only |
+| Ambassador / referral program | ✅ Live (£5 per converted referral) |
+| Launch promo (`20% off`, `£6.99 → £5.59`) | 🟡 Active, temporary, currently being extended |
+| Ranked mode (MMR) | 🟡 Plan in [`ranked_mode_implementation_plan.md`](ranked_mode_implementation_plan.md), partial schema, UI not yet shipped |
+| Play Store submission (signed `.aab`) | ⬜ Pending |
+| Code-signed Windows installer (EV cert) | ⬜ Pending — currently SmartScreen-warns |
+
+---
+
+## License & ownership
+
+Proprietary. © DartVoice / Sharp Solutions.

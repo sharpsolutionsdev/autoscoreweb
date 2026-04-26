@@ -56,3 +56,7 @@ chrome_extension/__pycache__/
 
 # Node dependencies (do not commit node_modules)
 node_modules/
+
+# Debug network captures
+*.har
+

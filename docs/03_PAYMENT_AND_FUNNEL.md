@@ -1,12 +1,12 @@
 # DartVoice — Payment System & Customer Acquisition Funnel
 
-*Internal Staff Document — Confidential*
+*Internal Staff Document — Confidential. Last reviewed: April 2026.*
 
 ---
 
 ## Payment & Monetization Model
 
-DartVoice operates on a **Software-as-a-Service (SaaS) subscription model**. All payment processing, card handling, PCI compliance, and billing infrastructure is handled entirely by **Stripe** — the industry-standard payments platform.
+DartVoice operates on a **Software-as-a-Service (SaaS) subscription model**. All payment processing, card handling, PCI compliance, and billing infrastructure is handled entirely by **Stripe** (account: `Ochevault`, `acct_1TCX9k1fLbzv9c0H`).
 
 ### Pricing Tiers
 
@@ -18,15 +18,22 @@ DartVoice operates on a **Software-as-a-Service (SaaS) subscription model**. All
 
 **All plans include:**
 - 7-day free trial (cancel before day 7 to pay nothing)
-- Full voice-controlled scoring
-- All platforms (Windows, Android, Chrome Extension)
+- Full voice-controlled scoring on Windows, Android, and the Chrome extension
+- Web scorer (`web-app.html`) for browser-only flows
 - All game modes (501, 301, Cricket, Round the Board, 121, practice)
 - Live checkout suggestions
 - All future updates and new features
+- Ambassador / referral access (earn £5 per converted referral)
+
+### Active launch promo
+
+`PROMO_20` — **20% off any plan**. Brings monthly down to £5.59/mo, 6-month to £27.99, 12-month to £47.99. Currently runs for a few more days and is being **extended manually**, *not* set as a permanent price. It is a top-of-funnel lever and an ambassador-pitch tool, not a baseline.
+
+When the promo is extended, the welcome modal (`dv-welcome.js`) and any landing-page banners must be updated with the new countdown.
 
 ### Free Trial Structure
 
-Every subscription starts with a **7-day free trial**. Additionally, before the trial even begins, users get a **10-minute instant demo** — no account, no card. This lets them hear DartVoice process their voice and feel the product before any commitment.
+Every subscription starts with a **7-day free trial**. Before the trial begins, users get a **10-minute instant demo** in the web app and Chrome extension — no account, no card.
 
 **Trial flow:**
 1. 10-minute ungated demo (instant, no signup)
@@ -36,22 +43,17 @@ Every subscription starts with a **7-day free trial**. Additionally, before the 
 
 ### How Payment Processing Works
 
-1. **Checkout:** Stripe payment links are embedded directly on the DartVoice marketing website (`index.html`) and guide page. Users click "Start Free Trial" and are redirected to a `buy.stripe.com` hosted checkout page.
-2. **Card Capture:** Stripe securely captures the user's card details. DartVoice never sees, stores, or handles any payment card information. We are fully PCI-compliant by delegation.
-3. **Subscription Created:** Stripe fires a webhook event (`customer.subscription.created`) to our backend API, which provisions the user account.
-4. **Recurring Billing:** Stripe automatically handles recurring charges based on the selected billing cycle. No manual intervention needed.
-5. **Failed Payments:** Stripe's Smart Retries system automatically retries failed charges using ML-optimised timing. If the payment ultimately fails, a branded "Payment Failed" email is dispatched.
-6. **Cancellation:** Users cancel from their DartVoice dashboard. Stripe immediately flags the subscription as `cancel_at_period_end`, allowing the user to retain access until their current paid period expires.
+1. **Checkout:** Stripe payment links are embedded on the marketing site (`index.html`) and dashboard. Users click "Start Free Trial" and land on a `buy.stripe.com` hosted checkout.
+2. **Card Capture:** Stripe captures card details. DartVoice never sees, stores, or handles any payment card information.
+3. **Subscription Created:** Stripe fires `customer.subscription.created` to our `stripe-webhook` Supabase Edge Function, which provisions the user account.
+4. **Recurring Billing:** Stripe handles recurring charges automatically.
+5. **Failed Payments:** Stripe Smart Retries first, then a branded "Payment Failed" email via Resend.
+6. **Cancellation:** Users cancel from the DartVoice dashboard. Stripe flags the subscription as `cancel_at_period_end`; the user retains access until the paid period expires.
 
 ### Accepted Payment Methods
-- Visa
-- Mastercard
-- American Express
-- All standard Stripe-supported card networks
+- Visa, Mastercard, American Express, and all standard Stripe-supported networks.
 
-### Competitor Pricing Context
-
-For internal reference, our pricing is positioned dramatically below any competitor offering auto-scoring:
+### Competitor Pricing Context (internal only)
 
 | Competitor | Model | Cost |
 |---|---|---|
@@ -60,178 +62,127 @@ For internal reference, our pricing is positioned dramatically below any competi
 | Gran Board | Proprietary e-board | ~£200+ |
 | **DartVoice** | **Software subscription** | **From £5/month** |
 
-This is not a comparison we make aggressively on the website (we avoid naming competitors directly), but internally it's important context for positioning conversations.
+We never name competitors aggressively in marketing.
+
+---
+
+## Release Distribution
+
+Subscribers download the platform clients from the dashboard. Binaries are served from **Cloudflare R2** under the public hostname `releases.dartvoice.app` (CI uploads on every successful build):
+
+- `https://releases.dartvoice.app/DartVoice_Setup.exe`
+- `https://releases.dartvoice.app/DartVoice.apk`
+
+The APK is gated by `apk-gate.html` — only authenticated subscribers (or trial users) can pull it. The Chrome extension is installed from the Web Store.
 
 ---
 
 ## Customer Acquisition Funnel
 
-The DartVoice funnel is designed to be **short, low-friction, and high-trust**. The fewer steps between curiosity and first use, the higher our conversion rate.
-
-### Funnel Visualisation
+The DartVoice funnel is **short, low-friction, and high-trust**. Fewer steps between curiosity and first use = higher conversion.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    🌍 AWARENESS                             │
-│  Social media (TikTok/Reels/YouTube) · SEO · Word of mouth │
-│  Darts forums · Reddit r/darts · Facebook dart groups       │
-│  Ambassador referral links · App store discovery             │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    👀 CONSIDERATION                         │
-│  User lands on dartvoice.app (index.html)                   │
-│  Premium dark-mode landing page with:                       │
-│   • Animated device mockups (phone + laptop)                │
-│   • Feature cards with live visual demos                    │
-│   • Competitor pricing comparison (vs Target Omni)          │
-│   • Social proof, FAQ, and clear CTAs                       │
-│   • 10-minute free demo (no signup needed)                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   💳 CONVERSION                             │
-│  User clicks "Start Free Trial"                             │
-│  → Redirected to Stripe hosted checkout                     │
-│  → Enters email + card (trial is free for 7 days)           │
-│  → Subscription created, account provisioned                │
-│  → Branded "Welcome" email sent immediately                 │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   📥 ONBOARDING                             │
-│  User logs into DartVoice Dashboard                         │
-│  → Passwordless OTP (One-Time Password) via email           │
-│  → Downloads the correct client:                            │
-│     • Windows: DartVoice.exe installer                      │
-│     • Android: APK direct download                          │
-│     • Chrome: Extension via Chrome Web Store                │
-│  → Follows the Setup Guide (guide.html)                     │
-│  → Completes X01 and/or Cricket Calibration                 │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   🎯 ACTIVATION                             │
-│  First successful voice-scored game                         │
-│  This is the "magic moment" — the point where the user      │
-│  experiences the value proposition firsthand.                │
-│  If they reach this point, retention is very high.           │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   🔄 RETENTION & EXPANSION                  │
-│  User continues playing sessions with DartVoice             │
-│  → Session averages tracked over time                       │
-│  → Checkout suggestions improve their game                  │
-│  → Habit formed: DartVoice is part of every session         │
-│  → User upgrades to 6-month or 12-month plan                │
-│  → User joins Ambassador Program                            │
-│  → User refers mates via referral link                      │
-└─────────────────────────────────────────────────────────────┘
+🌍 AWARENESS         Social (TikTok / Reels / Shorts) · SEO · word of mouth
+                     Reddit r/darts · Facebook groups · ambassador links
+        │
+        ▼
+👀 CONSIDERATION    dartvoice.app — animated demos, feature cards,
+                    Omni vs DartVoice comparison, FAQ, 10-min free demo
+        │
+        ▼
+💳 CONVERSION       Stripe hosted checkout → 7-day trial begins → welcome email
+        │
+        ▼
+📥 ONBOARDING       Dashboard OTP login → download client → guide.html
+                    → calibration (highest drop-off risk)
+        │
+        ▼
+🎯 ACTIVATION       First voice-scored game = the magic moment
+        │
+        ▼
+🔄 RETENTION        Session averages, checkout suggestions, ambassador
+                    upsell, monthly → annual upgrade
 ```
 
 ### Funnel Stage Details
 
 #### Stage 1: Awareness
-**Goal:** Get the right eyes on DartVoice.
-
-**Channels:**
-- **Organic Social:** Short-form video clips on TikTok, Instagram Reels, and YouTube Shorts showing voice scoring in action. The visual of someone throwing darts and a score appearing automatically is inherently shareable.
-- **SEO:** Targeting high-intent long-tail keywords: "voice dart scorer", "auto dart scorer app", "hands-free darts", "Target Dart Counter voice control".
-- **Community:** Engagement in Reddit r/darts, Facebook dart groups, and dart league forums. Not spam — genuine participation with organic product mentions.
-    - **Ambassador / Referral:** Active subscribers share their unique referral link. Referred friends get a 7-day trial (same as the standard trial), creating a clear and consistent onboarding experience.
+- **Organic social:** Short-form video on TikTok, Reels, Shorts. The visual of someone throwing darts and a score appearing automatically is inherently shareable.
+- **SEO:** "voice dart scorer", "auto dart scorer app", "hands-free darts", "Target Dart Counter voice".
+- **Community:** Reddit r/darts, Facebook dart groups, dart league forums. Genuine engagement, never spam.
+- **Ambassador / Referral:** Active subscribers share their unique link. Referred friends get the standard 7-day trial. Ambassador earns £5 cash on conversion.
+- **Creator partnerships:** Managed via the in-house CRM (`admin.html`) — pipelines YouTube discovery → Hunter.io email lookup → templated outreach via the `outreach-server` worker.
 
 #### Stage 2: Consideration
-**Goal:** Build instant trust and demonstrate clear value.
-
-The `index.html` landing page is engineered as a **high-conversion sales funnel**:
-- **Hero section:** Animated phone + laptop mockup showing DartVoice in action. Immediate visual proof.
-- **Scrolling ticker:** "TARGET DART COUNTER COMPATIBLE · 501 · CRICKET · OFFLINE MODE · HANDS-FREE SCORING" — builds feature awareness passively.
-- **Feature cards:** 6 interactive cards with live visual demos (animated waveforms, score subtraction, offline status, etc.).
-- **Pro Capabilities (Deep Dive):** Bento grid showcasing advanced features — natural language parsing, dynamic checkouts, companion pop-up, game modes, match recording, custom themes.
-- **3-step "How It Works":** Sign Up → Download → Throw & Call. Under 2 minutes.
-- **Competitor comparison:** Side-by-side Target Omni (£500, hardware required) vs DartVoice (from £5/mo, uses your phone mic).
-- **3 pricing tiers:** Clearly differentiated with "Most Popular" and "Best Value" badges.
-- **FAQ:** Addressing top objections (offline capability, multi-device, trial terms).
+The `index.html` landing page is engineered as a high-conversion funnel:
+- **Hero:** Animated phone + laptop mockups
+- **Scrolling ticker:** Compatibility/feature awareness
+- **Feature cards:** 6 interactive cards with live visual demos
+- **Pro Capabilities bento grid:** Natural language parsing, dynamic checkouts, companion pop-up, modes, recording, themes
+- **3-step "How It Works"**
+- **Competitor comparison block:** Omni vs DartVoice
+- **3 pricing tiers:** with "Most Popular" / "Best Value" badges
+- **FAQ:** Offline, multi-device, trial terms
 
 #### Stage 3: Conversion
-**Goal:** Zero-friction checkout.
-
-- Single CTA across the page: **"Start Free Trial"**.
-- Links directly to Stripe's hosted checkout. No intermediary forms, no account creation step, no CAPTCHA.
-- The email used at Stripe checkout **becomes the user's DartVoice account**. One email = one identity across all platforms.
-- The user does not need to create a password. Authentication is strictly OTP-based.
+- Single CTA: **"Start Free Trial"** → Stripe hosted checkout.
+- The email used at checkout becomes the user's DartVoice identity. No password.
+- The launch promo (when active) is auto-applied via the URL param or a coupon code.
 
 #### Stage 4: Onboarding
-**Goal:** Get the user from purchase to first scored game as fast as possible.
+1. Welcome email arrives instantly (Resend → `send-dartvoice-email`)
+2. User opens `dartvoice-dashboard.html`
+3. Email → OTP → authenticated
+4. Downloads the correct client from R2 (or Chrome Web Store)
+5. Follows `guide.html` for calibration
+6. Throws their first voice-scored visit
 
-**Critical path:**
-1. User receives "Welcome" email with dashboard link
-2. User goes to `dartvoice-dashboard.html`
-3. Enters their email → receives OTP → authenticated
-4. Downloads the correct client for their platform
-5. Opens `guide.html` and follows the calibration walkthrough
-6. Completes calibration (X01 and/or Cricket)
-7. Throws their first voice-scored visit
-
-**Target time from purchase to first scored visit: under 5 minutes.**
-
-The calibration step is the **highest-risk drop-off point** in the funnel. If a user struggles with calibration, they may not return. This is why the guide page (`guide.html`) is exhaustively detailed with step-by-step visual instructions.
+**Target time from purchase to first scored visit: under 5 minutes.** Calibration is the highest-risk drop-off — `guide.html` is exhaustively detailed because of this.
 
 #### Stage 5: Activation & Retention
-**Goal:** Form a habit. Make DartVoice inseparable from the darts session.
-
-Once a player successfully completes their first session — typically 3–5 legs of 501 — the product value is self-evident. The key retention drivers are:
-- **Session averages:** Players become invested in tracking their improvement over time.
-- **Checkout suggestions:** Players start relying on DartVoice for finish routes they wouldn't have calculated themselves.
-- **Reduced session time:** Players finish the same number of legs in 20–30% less time.
-- **The "always ready" factor:** Because it's on their phone, they use it every single time they throw — not just when they're at their dedicated setup.
+Key retention drivers:
+- Session averages tracked over time
+- Checkout suggestions players come to rely on
+- Reduced session time (~20–30%)
+- The "always ready" factor — DartVoice is on the phone they already carry
 
 #### Stage 6: Expansion
-**Goal:** Upgrade plan, refer friends, become an ambassador.
-
-- Users on Monthly are prompted (gently, via email) to upgrade to 6-Month (save 17%) or 12-Month (save 28%).
-- The **Ambassador Program** offers £5 cash via PayPal for every referred friend who converts to a paying subscriber. No cap.
-    - Referred friends receive a 7-day free trial (same as the standard trial).
-- Ambassador dashboard tracks clicks, conversions, and pending payouts in real-time.
+- Email nudges from monthly → 6-month / 12-month
+- Ambassador program: £5 per converted referral, no cap, real-time dashboard
+- Referred friends get the standard 7-day trial (no deviation — keeps onboarding consistent)
 
 ---
 
 ## Authentication System
 
-DartVoice uses a **passwordless OTP (One-Time Password)** system:
+Passwordless **OTP**, end-to-end:
 
-1. User enters their email (the one used at Stripe checkout) into the client or dashboard.
-2. Backend verifies the email has an active Stripe subscription.
-3. If valid, a 6-digit OTP is sent to that email address.
-4. User enters the OTP into the client.
-5. Session is authenticated. The user can now use the software.
+1. User enters their email (the one used at Stripe checkout).
+2. Backend (Supabase Auth → Resend) verifies the email has an active subscription.
+3. If valid, a 6-digit OTP is sent.
+4. User enters the OTP into the client (web, desktop, APK, or extension).
+5. Session is authenticated.
 
-**Why passwordless?**
-- Eliminates forgotten password support tickets (a massive cost for SaaS).
-- No password database to secure (reduces breach risk to near-zero).
-- Feels modern and premium — similar to how Slack, Notion, and WhatsApp Web handle auth.
-- Reduces friction at onboarding — the user already has their email open from the purchase confirmation.
+**Why passwordless:**
+- Zero forgotten-password support tickets.
+- No password database to secure.
+- Feels modern (Slack, Notion, WhatsApp Web).
+- Lowest possible onboarding friction — the user already has their email open from the purchase confirmation.
 
 ---
 
 ## Email Lifecycle
 
-7 custom-designed, fully branded HTML email templates handle the complete customer lifecycle:
+7 custom-designed branded HTML templates handle the full lifecycle, sent through Resend via Supabase Edge Functions:
 
 | Email | Trigger | Purpose |
 |---|---|---|
-| **Welcome** | Subscription created | Greet, set expectations, link to dashboard |
-| **OTP Code** | Login requested | Deliver the 6-digit authentication code |
-| **Payment Failed** | Stripe charge fails | Alert user, provide payment update link |
-| **Subscription Active** | Trial converts or renewal | Confirm active status |
-| **Referral Invite** | User shares referral | Invite email to the referred friend |
-| **Referral Payout** | Referral converts | Notify ambassador of cash earned |
-| **Cancelled** | Subscription cancelled | Confirm, leave door open for return |
+| Welcome | Subscription created | Greet, set expectations, link to dashboard |
+| OTP Code | Login requested | Deliver the 6-digit auth code |
+| Payment Failed | Stripe charge fails | Alert user, payment-update link |
+| Subscription Active | Trial converts or renewal | Confirm |
+| Referral Invite | Ambassador shares | Invite the referred friend |
+| Referral Payout | Referral converts | Notify ambassador of cash earned |
+| Cancelled | Subscription cancelled | Confirm, leave the door open |
 
-All emails maintain strict visual continuity with the DartVoice brand: dark backgrounds, red accents, premium typography.
+Templates: [`emails/`](../emails/). All sent from `@dartvoice.app`.

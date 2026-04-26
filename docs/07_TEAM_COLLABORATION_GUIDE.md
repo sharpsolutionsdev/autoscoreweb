@@ -1,35 +1,121 @@
 # Team Collaboration & Development Workflow
 
-As the DartVoice project grows from a solo-founder prototype to a collaborative engineering effort, standardizing how you develop, use AI, and work alongside new programmers is critical to prevent code conflicts and maintain momentum.
+*Internal Staff Document — Confidential. Last reviewed: April 2026.*
 
-## 1. Best Ways to Continue Development (Tools & AI)
-This project was conceptualized alongside advanced AI. To maintain that speed, you should leverage modern AI-assisted engineering tools:
+DartVoice is moving from a solo-founder prototype to a small collaborative engineering effort. Standardising how we develop, use AI, and split responsibilities is critical to keep momentum without code conflicts.
 
-- **AI-Native IDEs:** Tools like **Cursor**, **Gemini Code Assist**, or **GitHub Copilot** are essential. They allow you to point an AI at your entire workspace so it understands the relationship between your `dartvoice_v2.py` and your `.json` configs simultaneously.
-- **The Core AI Workflow:** Never ask an AI to "build a feature" blindly. Always provide the AI with your static HTML prototype (e.g., `web-app.html`) and explicitly tell it to translate the UI into Python/JavaScript using the rules laid out in `05_UI_ENGINEERING_GUIDE.md`.
-- **Modular Prompts:** Continue building single, isolated features at a time. If you want to add a feature, prototype the visual design in Frontend HTML first, then have the AI translate it.
+---
 
-## 2. Setting Up Collaborative Environments
-When a new programmer joins the team, they need to be able to pull down the code and run it immediately without breaking your setup.
+## 1. Repo & hosting facts (read first)
 
-- **Version Control (GitHub):** 
-  - Never push code directly to the `main` branch. 
-  - The new programmer should create "Feature Branches" (e.g., `git checkout -b feature/stripe-webhooks`). 
-  - You (as the founder) review via "Pull Requests" (PRs) before merging it into the live codebase.
-- **Python Virtual Environments:** Python dependencies can get messy. Both of you must use a virtual environment (`venv`). Require the new programmer to run `pip install -r requirements.txt` to ensure they have the exact same versions of `customtkinter`, `vosk`, and `kivy`.
-- **Environment Variables:** Never commit Stripe Live Keys or API credentials. Use a `.env` file that is ignored by Git, and share API keys securely via a password manager.
+- **Repository:** private (GitHub Pro). The marketing site at `dartvoice.app` is **public** because GH Pro keeps Pages enabled on private repos.
+- **Default branch:** the branch you deploy from. Pushes auto-deploy to GitHub Pages.
+- **Custom domain:** [`CNAME`](../CNAME) → `dartvoice.app`.
+- **Release binaries** live in **Cloudflare R2**, not in the repo and not in GitHub Releases. CI uploads on every successful build (see [`docs/GOING-PRIVATE.md`](./GOING-PRIVATE.md)).
+- **Backend** is **Supabase** (project ref `poyjykgqsvgimssbhsuz`). Migrations and edge functions live under [`supabase/`](../supabase/).
+- **Payments** are **Stripe** (account `Ochevault`).
 
-## 3. Splitting Roles (How to Co-Work)
-If you are collaborating with a systems programmer, you must draw a strict line splitting your domains of responsibility so you aren't overwriting each other's code.
+If you're new to the repo, read [00_STAFF_GUIDE.md](./00_STAFF_GUIDE.md) before touching code.
 
-### Role 1: Founder & Front-End Architect (You)
-- **UI/UX Prototypes:** You own the visual flow. You design new pages, dashboards, and app layouts using Tailwind/HTML.
-- **AI Prompting:** You use AI to translate your HTML mockups into the frontend GUIs (CustomTkinter/Kivy).
-- **Product Vision:** You define the features, write the marketing copy, and structure the pricing funnel.
+---
 
-### Role 2: Backend & Systems Engineer (The Programmer)
-- **Data Architecture:** They handle the database (Supabase), user tables, and secure OTP generation.
-- **Stripe & Webhooks:** They write the server logic that confirms payments and updates a user's subscription status.
-- **Core Algorithms:** They refine complex systems like the PyAutoGUI coordinate math, the Vosk threaded listeners, or potential anti-cheat algorithms. 
+## 2. AI-assisted development (the default)
 
-By splitting these roles, you can continuously push HTML updates to the website and tweak the colors of the Desktop App, while the Programmer works strictly on the backend APIs and data flow under the hood.
+DartVoice was built alongside AI from day one. Continue that.
+
+- **AI-native IDEs:** Cursor, GitHub Copilot Agent / Chat, Gemini Code Assist, Claude Code. They can see the whole workspace and reason across `dartvoice_v2.py`, `web-app.html`, and `supabase/functions/*` simultaneously.
+- **The core workflow:** never ask an AI to "build a feature" blindly. Provide a static HTML prototype (e.g., a section of `web-app.html` or a screenshot from `prototypes/`) and ask the AI to translate the UI into Python/JavaScript using the conventions in [05_UI_ENGINEERING_GUIDE.md](./05_UI_ENGINEERING_GUIDE.md).
+- **Modular prompts:** one feature at a time. Prototype the visual design in HTML/Tailwind first, then have the AI translate.
+- **Repo memory:** when the agent learns a pattern, capture it in `/memories/repo/` so it survives across sessions.
+
+---
+
+## 3. Git hygiene
+
+- **Never push directly to the default branch.** Even solo, use feature branches (`git checkout -b feat/ranked-queue`).
+- **Pull requests** for review, even self-review. PRs make the change history readable later.
+- **Conventional-ish commits** preferred: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`. Don't be religious about it — readability is the goal.
+- **Don't `--force` push** shared branches. If you need to rewrite history, do it on a feature branch only.
+- **Don't `--no-verify`** to skip pre-commit hooks. Fix the lint, don't dodge it.
+
+---
+
+## 4. Environments & secrets
+
+| Place | What lives there |
+|---|---|
+| `.env.local` (gitignored) | Local Stripe test keys, Supabase service role for scripts |
+| GitHub Actions secrets | `CLOUDFLARE_API_TOKEN`, `SUPABASE_SERVICE_ROLE`, `STRIPE_LIVE_SECRET_KEY`, `RESEND_API_KEY` |
+| Supabase project settings | Production env vars used by edge functions |
+| Stripe Dashboard | Live mode + test mode toggle. Webhooks point to the `stripe-webhook` edge function |
+
+**Never** commit a key. Rotate immediately if one slips. Share keys via a password manager (1Password, Bitwarden) — never DM/Slack/email.
+
+---
+
+## 5. Python / Node environments
+
+### Python (autoscore / scripts)
+```powershell
+cd autoscore
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements_windows.txt
+```
+
+For the Android build, follow [`autoscore/SETUP.md`](../autoscore/SETUP.md).
+
+### Node (outreach worker, tools)
+```powershell
+cd outreach-server
+npm install
+npm run dev    # local
+pm2 restart outreach   # on the prod box
+```
+
+`tools/` and `scripts/` are mostly stand-alone scripts; check the file's header comment before running.
+
+---
+
+## 6. Role split (founder + collaborator)
+
+When a backend collaborator joins, draw the line **strictly** to avoid stomping on each other.
+
+### Founder & front-end architect
+- Visual flow, marketing site, dashboard, web scorer, in-app UX
+- Tailwind/HTML prototypes; AI translation into the desktop/Android GUIs
+- Product vision, copy, pricing positioning, marketing campaigns
+- Owner of [`docs/`](.)
+
+### Backend & systems engineer
+- Supabase schema, migrations, RLS, edge functions
+- Stripe webhooks, OTP bridge, subscription state machine
+- Outreach worker (`outreach-server/`)
+- Core algorithms: PyAutoGUI calibration math, Vosk threading, anti-cheat heuristics
+- CI/CD workflows (`.github/workflows/`) and the R2 release pipeline
+
+### Shared
+- `chrome_extension/` (UX is founder, MV3 plumbing is engineer)
+- Anything in `supabase/migrations/` requires both eyes before merging
+
+---
+
+## 7. Adding a new feature — the playbook
+
+1. **Prototype visually** — sketch the UI as a Tailwind block in a scratch HTML file or in `prototypes/`.
+2. **Write the migration first** if data is involved. Number it sequentially in [`supabase/migrations/`](../supabase/migrations/).
+3. **Edge function next** if there's server logic. Test with `supabase functions serve`.
+4. **Wire the UI** into `web-app.html` / `dartvoice-dashboard.html` / etc. Reuse the components in [`components/`](../components/).
+5. **Run the relevant smoke test** in [`tools/`](../tools/) (e.g., `tools/test-checkout.js`).
+6. **Update docs** — at minimum [01_GENERAL_OVERVIEW.md](./01_GENERAL_OVERVIEW.md) (feature list) and [TODO.md](../TODO.md). If pricing/funnel changes, update [03_PAYMENT_AND_FUNNEL.md](./03_PAYMENT_AND_FUNNEL.md).
+7. **PR + merge**. CI will deploy the static site and (if applicable) push the binary to R2.
+
+---
+
+## 8. House rules
+
+- Static HTML + Tailwind CDN + vanilla JS for the public site. No build step, no framework lock-in.
+- Backend logic goes in **Supabase Edge Functions** unless there is a hard reason (the long-running outreach worker is one such reason).
+- All UI work follows [05_UI_ENGINEERING_GUIDE.md](./05_UI_ENGINEERING_GUIDE.md).
+- Brand voice is confident and technical. We never trash competitors.
+- If a doc goes stale, fix it in the same PR as the code change. The docs folder is part of the product.

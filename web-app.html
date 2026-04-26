@@ -2560,13 +2560,16 @@
             if (adminRow && adminRow.user_id) _isAdmin = true;
             const _isCreator = !!(creatorRow && creatorRow.id);
             _isAmbassador = !!profile?.ambassador_partner || _isCreator || _isAdmin;
+            // Stream overlays are a customer-facing feature — expose to any
+            // paid/trialing subscriber as well as ambassadors / creators / admins.
+            const _isPaying = !!(sub && ['active', 'trialing'].includes(sub.status));
             try {
                 if (_isAmbassador) document.body.classList.add('dv-is-ambassador');
                 if (_isCreator)    document.body.classList.add('dv-is-creator');
                 if (_isAdmin)      document.body.classList.add('dv-is-admin');
-                // Single gate for overlays: any of ambassador, creator, or admin.
-                if (_isAmbassador || _isCreator || _isAdmin) document.body.classList.add('dv-can-overlay');
-                console.log('[DV] roles', { admin: _isAdmin, creator: _isCreator, ambassador: _isAmbassador, canOverlay: document.body.classList.contains('dv-can-overlay') });
+                // Single gate for overlays: any of ambassador, creator, admin, or paying user.
+                if (_isAmbassador || _isCreator || _isAdmin || _isPaying) document.body.classList.add('dv-can-overlay');
+                console.log('[DV] roles', { admin: _isAdmin, creator: _isCreator, ambassador: _isAmbassador, paying: _isPaying, canOverlay: document.body.classList.contains('dv-can-overlay') });
             } catch(_) {}
 
             _userSub = sub;
