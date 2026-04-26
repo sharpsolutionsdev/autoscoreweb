@@ -60,3 +60,18 @@ node_modules/
 # Debug network captures
 *.har
 
+# ── Build / IDE scratch (never commit) ──
+build/
+build/tmp/
+.gradle/
+.tmp/
+.project
+
+# ── Build artifact zips (publish via R2 / GitHub Releases) ──
+chrome_extension*.zip
+launchpad*.zip
+
+# ── Stray Chrome DevTools recordings ──
+edit*.json
+Recording*.js
+

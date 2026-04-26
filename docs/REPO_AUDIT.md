@@ -1,6 +1,6 @@
 # Repository Audit & Cleanup Plan
 
-*Internal Staff Document. Generated: April 2026.*
+*Internal Staff Document. Generated: April 2026. **§1 executed April 2026** — see commit history.*
 
 A walk-through of every folder/file at the repo root, flagging what is unused, what is orphaned, what is shipped-but-undocumented, and what needs structural cleanup. Use this as the source for the cleanup PR mentioned in [TODO.md](../TODO.md).
 
