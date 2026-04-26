@@ -35,15 +35,18 @@ $tok = [CredX]::Read('Supabase CLI:supabase')
 if (-not $tok) { Write-Host "no token in credential manager"; exit 1 }
 Write-Host "token: $($tok.Substring(0,10))... len=$($tok.Length)"
 
-$sqlText = [string](Get-Content -Raw $Sql)
-# Manually escape for JSON to avoid PS5.1 ConvertTo-Json quirks with multiline.
-$esc = $sqlText -replace '\\','\\' -replace '"','\"' -replace "`r",'' -replace "`n",'\n' -replace "`t",'\t'
-$payload = '{"query":"' + $esc + '"}'
-$h = @{ Authorization = "Bearer $tok"; 'Content-Type' = 'application/json' }
-Write-Host "payload len $($payload.Length)"
+$sqlText = [string](Get-Content -Raw $Sql -Encoding UTF8)
+# Use .NET's JSON serializer to encode the SQL safely.
+Add-Type -AssemblyName System.Web.Extensions
+$ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer
+$ser.MaxJsonLength = [int]::MaxValue
+$payload = $ser.Serialize(@{ query = $sqlText })
+$bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+$h = @{ Authorization = "Bearer $tok"; 'Content-Type' = 'application/json; charset=utf-8' }
+Write-Host "payload len $($payload.Length) bytes $($bodyBytes.Length)"
 
 try {
-  $r = Invoke-RestMethod -Uri "https://api.supabase.com/v1/projects/poyjykgqsvgimssbhsuz/database/query" -Method Post -Headers $h -Body $payload -TimeoutSec 60
+  $r = Invoke-RestMethod -Uri "https://api.supabase.com/v1/projects/poyjykgqsvgimssbhsuz/database/query" -Method Post -Headers $h -Body $bodyBytes -TimeoutSec 60
   Write-Host "OK"
   $r | ConvertTo-Json -Depth 6
 } catch {
