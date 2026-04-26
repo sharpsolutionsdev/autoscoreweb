@@ -1948,8 +1948,10 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         const canvas = document.getElementById('dv-three-darts');
         if (!canvas) return;
         if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        // Skip on very low-power / mobile to save battery.
-        if (window.innerWidth < 700) return;
+        const isMobile = window.innerWidth < 700;
+        // Mobile gets a leaner scene rather than being skipped entirely.
+        const COUNT = isMobile ? 2 : 4;
+        const DPR_CAP = isMobile ? 1.25 : 2;
         let THREE;
         try {
             THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
@@ -1959,7 +1961,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / Math.max(canvas.clientHeight,1), 0.1, 100);
         camera.position.set(0, 0, 14);
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPR_CAP));
         const resize = () => {
             const w = canvas.clientWidth, h = canvas.clientHeight;
             renderer.setSize(w, h, false);
@@ -2167,8 +2169,8 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         scene.add(dartboard);
 
         const darts = [];
-        const COUNT = 3;
-        for (let i = 0; i < COUNT; i++) {
+        const COUNT_LOOP = COUNT;
+        for (let i = 0; i < COUNT_LOOP; i++) {
             const d = makeDart();
             // Slower base spin + per-axis twist for a tumbling-in-flight feel.
             d.userData.spin   = 0.0018 + Math.random() * 0.0035;
@@ -2183,8 +2185,40 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             d.scale.setScalar(d.userData.scale);
             d.position.set(-14 + i * 8, d.userData.baseY, d.userData.baseZ);
             d.rotation.z = (Math.random() - 0.5) * 0.35;
+            // Per-dart trailing brand-tinted point light — gives a subtle bloom
+            // glow as the dart sweeps across the hero.
+            const trail = new THREE.PointLight(BRAND, 0.55, 6);
+            trail.position.set(-0.4, 0, 0); // sit just behind the flight
+            d.add(trail);
+            d.userData.trail = trail;
             scene.add(d);
             darts.push(d);
+        }
+
+        // Strike pulse — a brief expanding ring on the dartboard each time a
+        // dart wraps past the right edge (i.e. "lands"). Pre-allocated to avoid
+        // GC churn during animation.
+        const strikeGeo = new THREE.RingGeometry(0.05, 0.07, 48);
+        const strikeMat = new THREE.MeshBasicMaterial({
+            color: BRAND, transparent: true, opacity: 0, side: THREE.DoubleSide
+        });
+        const strikePulse = new THREE.Mesh(strikeGeo, strikeMat);
+        strikePulse.position.copy(dartboard.position);
+        strikePulse.position.z += 0.02;
+        scene.add(strikePulse);
+        let strikeT = -1;
+        function triggerStrike() { strikeT = 0; }
+
+        // Mouse parallax — tiny camera offset that makes the hero feel alive
+        // without distracting. Disabled on touch devices.
+        let targetCx = 0, targetCy = 0;
+        if (!('ontouchstart' in window)) {
+            window.addEventListener('mousemove', (e) => {
+                const r = canvas.getBoundingClientRect();
+                if (!r.width) return;
+                targetCx = ((e.clientX - r.left) / r.width  - 0.5) * 0.6;
+                targetCy = ((e.clientY - r.top)  / r.height - 0.5) * 0.4;
+            }, { passive: true });
         }
 
         let running = true;
@@ -2196,10 +2230,13 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                 if (next === BRAND) return;
                 BRAND = next;
                 rim.color.setHex(BRAND);
-                const dark = brandDark(BRAND);
-                darts.forEach(d => (d.userData.themed || []).forEach((m, idx) => {
-                    m.color.setHex(idx === 2 ? dark : BRAND);
-                }));
+                strikeMat.color.setHex(BRAND);
+                darts.forEach(d => {
+                    if (d.userData.trail) d.userData.trail.color.setHex(BRAND);
+                    (d.userData.themed || []).forEach((m, idx) => {
+                        m.color.setHex(idx === 2 ? brandDark(BRAND) : BRAND);
+                    });
+                });
                 (dartboard.userData.themed || []).forEach(m => m.color.setHex(BRAND));
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
         } catch(_){}
@@ -2216,8 +2253,25 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                 d.rotation.x += d.userData.spin;
                 d.rotation.y += d.userData.twistY;
                 d.rotation.z += d.userData.twistZ;
-                if (d.position.x > 14) d.position.x = -14;
+                if (d.position.x > 14) {
+                    d.position.x = -14;
+                    triggerStrike();
+                }
             }
+            // Strike pulse: ramp scale + fade opacity over ~0.6s.
+            if (strikeT >= 0) {
+                strikeT += 0.018;
+                if (strikeT > 1) { strikeT = -1; strikeMat.opacity = 0; }
+                else {
+                    const e = strikeT;
+                    strikePulse.scale.setScalar(1 + e * 14);
+                    strikeMat.opacity = (1 - e) * 0.55;
+                }
+            }
+            // Camera parallax — ease toward target.
+            camera.position.x += (targetCx - camera.position.x) * 0.04;
+            camera.position.y += (-targetCy - camera.position.y) * 0.04;
+            camera.lookAt(0, 0, 0);
             // Slow board rotation for life.
             dartboard.rotation.z -= 0.0015;
             renderer.render(scene, camera);

@@ -204,52 +204,8 @@
 </head>
 <body class="antialiased noise grid-bg-soft hero-glow min-h-screen">
 
-    <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <nav class="fixed top-0 w-full z-50 bg-dark/80 backdrop-blur-xl border-b border-wire/60">
-        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-
-            <a href="/" class="flex items-center gap-2.5 group">
-                <img src="/logo-transparent.png" alt="DartVoice" class="w-8 h-8 shrink-0" style="object-fit:contain;">
-                <span class="display text-lg tracking-wide group-hover:text-brand transition-colors">DARTVOICE</span>
-            </a>
-
-            <div class="hidden sm:flex items-center gap-1">
-                <a href="/"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Home</a>
-                <a href="/#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
-                <a href="guide"    class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
-                <a href="referral" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block pulse-dot"></span>Ambassador
-                </a>
-                <a href="contact" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Contact</a>
-            </div>
-
-            <div class="hidden sm:flex items-center gap-3">
-                <div data-dv-currency-mount></div>
-                <a href="login?intent=subscribe" class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white">Start Free Trial</a>
-            </div>
-
-            <button onclick="document.getElementById('mob-nav').classList.toggle('open')"
-                    class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-wire/40 transition">
-                <svg class="w-5 h-5 text-chalk" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
-        </div>
-        <div id="mob-nav" class="mobile-menu sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
-            <div class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-1">
-                <a href="/"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Home</a>
-                <a href="/#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
-                <a href="guide"    class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
-                <a href="referral" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
-                </a>
-                <a href="contact" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Contact</a>
-                <div class="border-t border-wire/50 mt-1 pt-3">
-                    <a href="login?intent=subscribe" class="btn-brand block px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Start Free Trial</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <!-- ━━━ NAV (shared <dv-nav> web component) ━━━━━━━━━━━━━━━━━ -->
+    <dv-nav></dv-nav>
 
     <!-- ━━━ MAIN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <main class="pt-16 min-h-screen flex items-center justify-center px-5 py-16">
