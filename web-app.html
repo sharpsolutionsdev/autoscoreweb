@@ -1976,16 +1976,12 @@
 
                 <!-- Stream overlays entry (ambassadors / creators / admins only) -->
                 <div id="dv-tab-ranked-overlays" class="hud-card p-3 mb-3 shadow-lg hidden" style="border:1px solid rgba(var(--brand-rgb),.25);">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <p class="text-[9px] font-bold tracking-[0.3em] uppercase text-brand">Ambassador</p>
-                            <p class="text-[11px] font-bold text-white">Stream Overlays</p>
-                            <p class="text-[9px] text-gray-500">Drop branded overlays onto your scene.</p>
-                        </div>
-                        <button type="button" onclick="if(typeof dvToggleOverlaysPanel==='function')dvToggleOverlaysPanel(event);"
-                            class="text-[10px] font-bold text-white bg-brand rounded px-3 py-2 hover:brightness-110 tracking-widest uppercase"
-                            style="box-shadow:0 0 14px rgba(var(--brand-rgb),.45);">Open</button>
+                    <div class="mb-2">
+                        <p class="text-[9px] font-bold tracking-[0.3em] uppercase text-brand">Ambassador</p>
+                        <p class="text-[11px] font-bold text-white">Stream Overlays</p>
+                        <p class="text-[9px] text-gray-500">Toggle on, then drag or resize anywhere on screen.</p>
                     </div>
+                    <div id="dv-overlay-toggles"></div>
                 </div>
             </div> <!-- CLOSE TAB RANKED -->
 
@@ -6409,50 +6405,10 @@ window.openScorerUrl = function(url){
 
     <!-- ═══ STREAMING OVERLAYS (ambassadors + admins) ═══ -->
     <style>
-        body:not(.dv-can-overlay) #dv-overlays-launcher,
-        body:not(.dv-can-overlay) #dv-overlays-panel,
         body:not(.dv-can-overlay) .dv-stream-overlay { display: none !important; }
-        /* Force-show launcher when role is granted (defends against any stray rule). */
-        body.dv-can-overlay #dv-overlays-launcher { display: inline-flex !important; }
+        /* Stream Overlays toggle list now lives inline inside the Ranked tab card.
+           No floating launcher, no separate panel. */
 
-        #dv-overlays-launcher {
-            position: fixed; right: 16px; bottom: 90px; z-index: 100000;
-            background: linear-gradient(135deg, rgba(var(--brand-rgb),0.95), rgba(var(--brand-rgb),0.7));
-            color: #fff; border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 999px; padding: 10px 16px; font-weight: 700;
-            font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
-            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 24px rgba(var(--brand-rgb),0.55);
-            display: flex; align-items: center; gap: 8px;
-            animation: dvLauncherPulse 2.6s ease-in-out infinite;
-        }
-        @keyframes dvLauncherPulse {
-            0%,100% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 24px rgba(var(--brand-rgb),0.55); }
-            50%     { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 38px rgba(var(--brand-rgb),0.85); }
-        }
-        @media (max-width: 768px) {
-            #dv-overlays-launcher { bottom: 110px; }
-            #dv-overlays-panel    { bottom: 162px; }
-        }
-        #dv-overlays-launcher:hover { filter: brightness(1.1); }
-        #dv-overlays-launcher svg { width: 14px; height: 14px; }
-
-        #dv-overlays-panel {
-            /* Anchored to the LEFT side so it pops up next to the in-app
-               "Stream Overlays → OPEN" trigger that lives in the left dashboard
-               panel (split-screen with the DartCounter iframe on the right). */
-            position: fixed; left: 16px; bottom: 122px; z-index: 100001;
-            width: 320px; max-height: 70vh;
-            background: rgba(17,17,20,0.98); backdrop-filter: blur(20px) saturate(1.4);
-            border: 1px solid rgba(var(--brand-rgb),0.35); border-radius: 14px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(var(--brand-rgb),0.15), 0 0 40px rgba(var(--brand-rgb),0.25);
-            padding: 16px; overflow-y: auto;
-            opacity: 0; transform: translateY(10px) scale(.98); pointer-events: none;
-            transition: all 220ms cubic-bezier(.3,.9,.3,1);
-            display: block; /* defend against utility classes that flip display */
-        }
-        #dv-overlays-panel.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-        #dv-overlays-panel h4 { color: #fff; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; }
-        #dv-overlays-panel p.help { font-size: 11px; color: #888; margin-bottom: 14px; line-height: 1.5; }
         .dv-overlay-row {
             display: flex; align-items: center; justify-content: space-between;
             padding: 8px 10px; border: 1px solid rgba(255,255,255,0.06);
@@ -6469,7 +6425,7 @@ window.openScorerUrl = function(url){
         .dv-overlay-row button.on { background: var(--brand); color: #fff; }
 
         .dv-stream-overlay {
-            position: fixed; z-index: 99995;
+            position: fixed; z-index: 2147483000; /* sit above iframes, sticky bars, modals */
             cursor: grab; user-select: none;
             transition: box-shadow 160ms ease;
         }
@@ -6649,10 +6605,7 @@ window.openScorerUrl = function(url){
         }
     </style>
 
-    <button id="dv-overlays-launcher" aria-label="Streaming overlays" onclick="dvToggleOverlaysPanel(event)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-        Stream Overlays
-    </button>
+    <!-- (launcher removed: overlay toggles now live inline in the Ranked tab) -->
 
     <!-- Hidden SVG + template markup, cloned into draggable overlays -->
     <template id="dv-ovl-tpl-brand">
@@ -6696,11 +6649,7 @@ window.openScorerUrl = function(url){
         <span class="handle-edit" contenteditable="true" spellcheck="false">@yourhandle</span>
     </template>
 
-    <div id="dv-overlays-panel" role="dialog" aria-label="Streaming overlays">
-        <h4>Stream Overlays</h4>
-        <p class="help">Toggle on, then drag anywhere on screen. Use OBS/Streamlabs browser-source or capture this window.</p>
-        <div id="dv-overlay-toggles"></div>
-    </div>
+    <!-- (overlays panel removed: toggle host #dv-overlay-toggles is now inline in the Ranked tab) -->
 
     <script>
     (function(){
@@ -6875,41 +6824,15 @@ window.openScorerUrl = function(url){
             });
         }
 
-        window.dvToggleOverlaysPanel = function(ev){
-            const panel = document.getElementById('dv-overlays-panel');
-            if (!panel) { console.warn('[DV] overlays panel missing'); return; }
-            // Stop the click from bubbling to the document outside-click handler
-            // below, which would otherwise immediately close the panel we just opened
-            // when the trigger isn't physically inside #dv-overlays-launcher / #dv-overlays-panel
-            // (e.g. the in-app Ranked-tab "OPEN" button).
-            try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(_) {}
-            try {
-                const host = document.getElementById('dv-overlay-toggles');
-                if (host && !host.firstChild) buildToggles();
-            } catch(_) {}
-            const wasOpen = panel.classList.contains('open');
-            panel.classList.toggle('open');
-            console.log('[DV] overlays panel', wasOpen ? 'closed' : 'opened');
-        };
+        // No-op kept for backwards compatibility with any cached HTML/extensions
+        // that still reference the old launcher.
+        window.dvToggleOverlaysPanel = function(){};
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function(){ buildToggles(); renderOverlays(); });
         } else {
             buildToggles(); renderOverlays();
         }
-
-        document.addEventListener('click', function(e){
-            const panel = document.getElementById('dv-overlays-panel');
-            const launcher = document.getElementById('dv-overlays-launcher');
-            if (!panel || !panel.classList.contains('open')) return;
-            if (panel.contains(e.target) || (launcher && launcher.contains(e.target))) return;
-            // Any element wired up to toggle the panel (e.g. the Ranked-tab OPEN button)
-            // must NOT count as an "outside" click — otherwise it closes the panel
-            // on the very same click that opened it.
-            if (e.target.closest && e.target.closest('[onclick*="dvToggleOverlaysPanel"]')) return;
-            console.log('[DV] overlays panel closed (outside click)');
-            panel.classList.remove('open');
-        });
     })();
     </script>
 
