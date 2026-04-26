@@ -34,10 +34,13 @@ function relativeToBuiltCss(filePath) {
 }
 
 const CDN_RE = /\s*<script\s+src=(["'])https:\/\/cdn\.tailwindcss\.com\1\s*><\/script>/i;
-// Greedy across the inline config block following the CDN tag (or anywhere).
-// Matches both pretty-printed and minified forms.
-// Allow optional trailing `;` (and any whitespace) after the closing `}`.
-const INLINE_CFG_RE = /\s*<script>\s*tailwind\.config\s*=\s*\{[\s\S]*?\}\s*;?\s*<\/script>/gi;
+// SAFE: only matches when the script tag contains ONLY the tailwind.config
+// assignment (no co-mingled app code). The non-< body class prevents the
+// match from leaking across `</script>` into other script blocks. If the
+// inline config is mixed with other code, leave the script alone — operators
+// must clean it up by hand. (Legacy unsafe form ate ~3.8k lines of
+// dartvoice-dashboard.html on first pass.)
+const INLINE_CFG_RE = /\s*<script>\s*tailwind\.config\s*=\s*\{(?:[^<]|<(?!\/script>))*?\}\s*;?\s*<\/script>/gi;
 
 let changedCount = 0;
 const files = listHtmlFiles(ROOT);
