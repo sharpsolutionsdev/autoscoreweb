@@ -1982,7 +1982,7 @@
                             <p class="text-[11px] font-bold text-white">Stream Overlays</p>
                             <p class="text-[9px] text-gray-500">Drop branded overlays onto your scene.</p>
                         </div>
-                        <button type="button" onclick="if(typeof dvToggleOverlaysPanel==='function')dvToggleOverlaysPanel();"
+                        <button type="button" onclick="if(typeof dvToggleOverlaysPanel==='function')dvToggleOverlaysPanel(event);"
                             class="text-[10px] font-bold text-white bg-brand rounded px-3 py-2 hover:brightness-110 tracking-widest uppercase"
                             style="box-shadow:0 0 14px rgba(var(--brand-rgb),.45);">Open</button>
                     </div>
@@ -6649,7 +6649,7 @@ window.openScorerUrl = function(url){
         }
     </style>
 
-    <button id="dv-overlays-launcher" aria-label="Streaming overlays" onclick="dvToggleOverlaysPanel()">
+    <button id="dv-overlays-launcher" aria-label="Streaming overlays" onclick="dvToggleOverlaysPanel(event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         Stream Overlays
     </button>
@@ -6875,11 +6875,14 @@ window.openScorerUrl = function(url){
             });
         }
 
-        window.dvToggleOverlaysPanel = function(){
+        window.dvToggleOverlaysPanel = function(ev){
             const panel = document.getElementById('dv-overlays-panel');
             if (!panel) { console.warn('[DV] overlays panel missing'); return; }
-            // Make sure rows are populated even if buildToggles() hasn't run yet
-            // (e.g. on first click before DOMContentLoaded handler fires).
+            // Stop the click from bubbling to the document outside-click handler
+            // below, which would otherwise immediately close the panel we just opened
+            // when the trigger isn't physically inside #dv-overlays-launcher / #dv-overlays-panel
+            // (e.g. the in-app Ranked-tab "OPEN" button).
+            try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(_) {}
             try {
                 const host = document.getElementById('dv-overlay-toggles');
                 if (host && !host.firstChild) buildToggles();
@@ -6900,6 +6903,11 @@ window.openScorerUrl = function(url){
             const launcher = document.getElementById('dv-overlays-launcher');
             if (!panel || !panel.classList.contains('open')) return;
             if (panel.contains(e.target) || (launcher && launcher.contains(e.target))) return;
+            // Any element wired up to toggle the panel (e.g. the Ranked-tab OPEN button)
+            // must NOT count as an "outside" click — otherwise it closes the panel
+            // on the very same click that opened it.
+            if (e.target.closest && e.target.closest('[onclick*="dvToggleOverlaysPanel"]')) return;
+            console.log('[DV] overlays panel closed (outside click)');
             panel.classList.remove('open');
         });
     })();
