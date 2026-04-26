@@ -1747,6 +1747,7 @@
                         <button id="app-ctrl-lobby" type="button" class="app-ctrl-btn" title="Global Lobby" onclick="openScorerUrl('https://app.dartcounter.net/online-games/global-lobby')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M3 6h18M3 18h18"/></svg>Lobby</button>
                         <button id="app-ctrl-camera" type="button" class="app-ctrl-btn" title="Open camera setup" onclick="openScorerAction('camera')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M23 7l-7 4 7 4V7zM1 7h11v10H1V7z"/></svg>Camera</button>
                         <button id="app-ctrl-break" type="button" class="app-ctrl-btn" title="Start a break" onclick="openScorerAction('break')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6l5-3-5-3z"/><circle cx="12" cy="12" r="10"/></svg>Break</button>
+                        <button id="app-ctrl-edit" type="button" class="app-ctrl-btn" title="Edit last score (say 'edit')" onclick="openScorerAction('edit')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
                     </div>
                 </div>
 
@@ -4672,6 +4673,17 @@
                         log('🛑 Break command detected — triggering break...', false);
                         if (typeof dvToast === 'function') dvToast('Starting break...', 'info');
                         if (typeof openScorerAction === 'function') openScorerAction('break');
+                        continue;
+                    }
+
+                    // --- EDIT VOICE COMMAND ---
+                    // "edit" / "edit score" / "edit last" — opens the EDIT SCORE
+                    // dialog on dartcounter and auto-expands the most recent turn so
+                    // the next spoken number lands in the highlighted input.
+                    if (/^(?:edit|fix|change)(?:\s+(?:my|last|that|the|score))*\s*$/.test(raw) || /\bedit\s+(?:my\s+)?(?:last\s+)?score\b/.test(raw) || /\bedit\s+last\b/.test(raw)) {
+                        log('✏️ Edit command detected — opening edit dialog...', false);
+                        if (typeof dvToast === 'function') dvToast('Opening edit — say the corrected score', 'info');
+                        if (typeof openScorerAction === 'function') openScorerAction('edit');
                         continue;
                     }
 

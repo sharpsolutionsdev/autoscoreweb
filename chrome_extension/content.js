@@ -1895,6 +1895,80 @@
               logTrace('DV_ACTION break: more menu button not found');
             }
           }
+
+          // --- EDIT LAST SCORE ---
+          // Clicks the pencil "edit" button, then expands the LAST turn in the
+          // resulting "EDIT SCORE" modal (most recent score = bottom of the list).
+          // The total-score input then receives focus, ready for the next spoken score.
+          if (action === 'edit') {
+            logTrace('DV_ACTION edit: Starting edit-score sequence...');
+
+            const findEditBtn = () => {
+              // Primary: dartcounter's <dc-icon icon="edit"> wrapped in a <button>.
+              const icons = document.querySelectorAll('dc-icon[icon="edit"]');
+              for (const ic of icons) {
+                if (!ic.offsetParent) continue;
+                const btn = ic.closest('button, [role="button"], ion-button, a');
+                if (btn) return btn;
+              }
+              // Fallback: anything with edit-ish label/icon.
+              const cands = document.querySelectorAll('button, ion-button, [role="button"]');
+              for (const c of cands) {
+                if (!c.offsetParent) continue;
+                const label = ((c.getAttribute('aria-label') || '') + ' ' + (c.title || '') + ' ' + (c.textContent || '')).toLowerCase().trim();
+                if (/^edit$|\bedit\s*score\b|\bedit\s*last\b/.test(label)) return c;
+                if (c.querySelector('use[href*="#edit"], use[xlink\\:href*="#edit"], ion-icon[name*="create" i], ion-icon[name*="edit" i]')) return c;
+              }
+              return null;
+            };
+
+            const fireClick = (el) => {
+              try { el.click(); } catch(_){}
+              try {
+                el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+                el.dispatchEvent(new PointerEvent('pointerup',   { bubbles: true, cancelable: true }));
+                el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+              } catch(_){}
+            };
+
+            // Click the LAST accordion in the edit modal (most recent turn).
+            // After it expands, focus the input field so subsequent typing lands there.
+            const expandLastTurn = () => {
+              const accordions = Array.from(document.querySelectorAll('app-accordion')).filter(a => a.offsetParent);
+              if (!accordions.length) return false;
+              const last = accordions[accordions.length - 1];
+              const header = last.querySelector('[accordion-header], .cursor-pointer, button, [role="button"]') || last.firstElementChild || last;
+              fireClick(header);
+              logTrace('DV_ACTION edit: expanded last turn (#' + accordions.length + ')');
+              setTimeout(() => {
+                const input = last.querySelector('input[type="number"], input[type="text"], input') ||
+                              document.querySelector('app-fullscreen-dialog input, [role="dialog"] input');
+                if (input) {
+                  try { input.focus(); input.select && input.select(); } catch(_){}
+                  logTrace('DV_ACTION edit: focused input ' + (input.id || input.name || 'unnamed'));
+                }
+              }, 250);
+              return true;
+            };
+
+            const editBtn = findEditBtn();
+            if (editBtn) {
+              fireClick(editBtn);
+              logTrace('DV_ACTION edit: clicked edit button');
+              // Wait for the modal accordions to render (Angular animation ~150-300ms).
+              let editDone = false;
+              const emo = new MutationObserver(() => {
+                if (editDone) return;
+                if (expandLastTurn()) { editDone = true; emo.disconnect(); }
+              });
+              emo.observe(document.body || document.documentElement, { childList: true, subtree: true });
+              // Initial poll fallback in case the modal was already mounted.
+              setTimeout(() => { if (!editDone && expandLastTurn()) { editDone = true; emo.disconnect(); } }, 350);
+              setTimeout(() => { if (!editDone) { emo.disconnect(); logTrace('DV_ACTION edit: accordion observer timed out (4s)'); } }, 4000);
+            } else {
+              logTrace('DV_ACTION edit: edit button not found');
+            }
+          }
         } catch (e) { logTrace('DV_ACTION failed: ' + e.message); }
       }
     }
