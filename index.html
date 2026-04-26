@@ -164,7 +164,7 @@
         <!-- Three.js floating darts (purely decorative, behind everything) -->
         <canvas id="dv-three-darts"
                 class="absolute inset-0 w-full h-full pointer-events-none"
-                style="z-index:0; opacity:0.55; mix-blend-mode:screen;"></canvas>
+                style="z-index:0; opacity:1;"></canvas>
 
         <!-- High-speed soundwave video bg -->
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-[0.08] pointer-events-none"
@@ -2254,6 +2254,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         // ── Floating logo emblems built from a small canvas glyph drawn onto
         //    a rounded brand-tinted plate. Each plate gets an additive glow
         //    halo behind it for a premium 3D feel.
+        const _texLoader = new THREE.TextureLoader();
         function makeEmblem(drawGlyph, opts={}) {
             const SIZE = 256;
             const c = document.createElement('canvas');
@@ -2278,11 +2279,25 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             ctx.lineWidth = 4;
             ctx.strokeStyle = opts.border || 'rgba(255,255,255,0.10)';
             ctx.stroke();
-            // Glyph in the centre
-            ctx.save();
-            ctx.translate(SIZE/2, SIZE/2);
-            drawGlyph(ctx, SIZE);
-            ctx.restore();
+            // Glyph (or image) in the centre.
+            if (opts.image) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    // Draw centred, contain-fit at ~70% of plate.
+                    const target = SIZE * 0.70;
+                    const scale = Math.min(target / img.width, target / img.height);
+                    const w = img.width * scale, h = img.height * scale;
+                    ctx.drawImage(img, (SIZE - w) / 2, (SIZE - h) / 2, w, h);
+                    if (mat.map) mat.map.needsUpdate = true;
+                };
+                img.src = opts.image;
+            } else if (drawGlyph) {
+                ctx.save();
+                ctx.translate(SIZE/2, SIZE/2);
+                drawGlyph(ctx, SIZE);
+                ctx.restore();
+            }
             const tex = new THREE.CanvasTexture(c);
             tex.anisotropy = 4;
             const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
@@ -2414,18 +2429,18 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         scene.add(orbit);
         const emblems = [];
         const emblemDefs = [
-            { draw: drawDV,      glow: BRAND,    bg: 'rgba(20,8,10,0.94)' },
+            { image: 'logo-transparent.png', glow: BRAND,    bg: 'rgba(20,8,10,0.94)' },
             { draw: drawMic,     glow: BRAND },
             { draw: drawWindows, glow: 0x4dabf7 },
             { draw: drawAndroid, glow: 0x3ddc84 },
             { draw: drawChrome,  glow: 0x4285f4 },
             { draw: drawApple,   glow: 0xcccccc },
-            { draw: drawDC,      glow: 0xa78bfa }
+            { image: 'dc-logo.png', glow: 0xa78bfa, bg: 'rgba(20,12,30,0.94)' }
         ];
         const isMobileScene = isMobile;
         const emblemList = isMobileScene ? emblemDefs.slice(0, 4) : emblemDefs;
         emblemList.forEach((def, i) => {
-            const e = makeEmblem(def.draw, { glow: def.glow, bg: def.bg });
+            const e = makeEmblem(def.draw, { glow: def.glow, bg: def.bg, image: def.image });
             e.userData.angle = (i / emblemList.length) * Math.PI * 2;
             e.userData.speed = 0.00045 + (i % 3) * 0.0001;
             e.userData.bob   = (i % 2 === 0) ? 0.18 : -0.14;
