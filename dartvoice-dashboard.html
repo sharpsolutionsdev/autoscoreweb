@@ -1057,8 +1057,9 @@
 
                     </div>
 
-                    <!-- Right column -->
-                    <div class="space-y-5">
+                    <!-- Right column (on mobile this stacks first so the
+                         Downloads card sits above Subscription / Quick Start) -->
+                    <div class="space-y-5 order-first lg:order-none">
 
                         <!-- Downloads Card -->
                         <div id="card-downloads" class="hidden card-panel fade-up-2">
@@ -2317,8 +2318,14 @@
             // Show profile-setup nudge if no display name set
             if (!displayName) $('profile-nudge').classList.remove('hidden');
 
-            // Populate profile tab (pass date_of_birth if available)
-            populateProfileTab(user.email, displayName, sub, profile?.phone_number, profile?.date_of_birth, profile?.avatar_url, profile?.dv_username, profile?.dartcounter_username, profile?.country_code);
+            // Populate profile tab (pass date_of_birth if available).
+            // Wrap in try/catch so a single profile-field bug never blocks the
+            // subscription/downloads render below.
+            try {
+                populateProfileTab(user.email, displayName, sub, profile?.phone_number, profile?.date_of_birth, profile?.avatar_url, profile?.dv_username, profile?.dartcounter_username, profile?.country_code);
+            } catch (e) {
+                console.warn('[dashboard] populateProfileTab failed (non-fatal):', e);
+            }
 
             renderSubscription(sub, user.id);
 
@@ -2390,10 +2397,14 @@
         }
 
         function populateProfileTab(email, displayName, sub, phoneNumber, dateOfBirth, avatarUrl, dvUsername, dcUsername, countryCode) {
-            $('profile-email-show').textContent = email;
-            $('profile-email-footer').textContent = email;
-            $('input-display-name').value = displayName;
-            $('input-phone').value = phoneNumber || '';
+            // Defensive: every Profile-tab field is optional. Don't let a single
+            // missing element abort dashboard load (which leaves the Downloads
+            // card locked because renderSubscription never runs).
+            const setText = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+            const setVal  = (id, v) => { const el = $(id); if (el) el.value = v; };
+            setText('profile-email-show', email);
+            setVal('input-display-name', displayName);
+            setVal('input-phone', phoneNumber || '');
             const dvuEl = $('input-dv-username'); if (dvuEl) dvuEl.value = dvUsername || '';
             const dcuEl = $('input-dc-username'); if (dcuEl) dcuEl.value = dcUsername || '';
             updateProfileHandleDisplay(dvUsername || '');
