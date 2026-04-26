@@ -751,7 +751,7 @@
                     <h2>Friends</h2>
                     <span class="ml-2 text-[10px] font-bold tracking-widest px-2 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:var(--brand); border:1px solid rgba(204,11,32,0.3);">BETA</span>
                 </div>
-                <p class="text-sm text-gray-400 mb-4">Add players you've matched against. See who's online, challenge them, and watch them climb.</p>
+                <p class="text-sm text-gray-400 mb-4">Add players you've matched against to track their MMR and watch them climb the ladder. <span class="text-gray-500 italic">Live challenges coming soon.</span></p>
 
                 <!-- Add friend -->
                 <form id="friend-add-form" class="flex gap-2 mb-5">
@@ -765,25 +765,7 @@
 
                 <!-- Friend list -->
                 <div id="friends-list" class="space-y-1">
-                    <!-- Empty / loading state -->
-                    <div class="friend-row opacity-60">
-                        <div class="avatar">B</div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold truncate">BullseyeBob <span class="text-[10px] font-bold ml-1" style="color:#cd7f32">BRONZE II</span></p>
-                            <p class="text-[11px] text-gray-500">MMR 712 · Last seen 2h ago</p>
-                        </div>
-                        <span class="status-dot offline" title="Offline"></span>
-                        <button class="text-[11px] px-2 py-1 rounded border border-white/10 hover:border-white/30 text-gray-300 transition">Challenge</button>
-                    </div>
-                    <div class="friend-row">
-                        <div class="avatar" style="color:#ffd700;">A</div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold truncate">ArrowQueen <span class="text-[10px] font-bold ml-1" style="color:#ffd700">GOLD I</span></p>
-                            <p class="text-[11px] text-gray-500">MMR 1,524 · Online now</p>
-                        </div>
-                        <span class="status-dot online" title="Online"></span>
-                        <button class="text-[11px] px-2 py-1 rounded font-bold text-white transition" style="background:var(--brand);">Challenge</button>
-                    </div>
+                    <!-- Empty state — populated by ranked.js once a session is detected. -->
                     <div class="friend-row opacity-60">
                         <div class="avatar">+</div>
                         <div class="flex-1 min-w-0">

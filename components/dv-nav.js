@@ -9,28 +9,26 @@ class DvNav extends HTMLElement {
   render() {
     this.innerHTML = `
       <nav class="fixed top-0 w-full z-50 bg-dark/85 backdrop-blur-xl border-b border-wire/60">
-        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-          <a href="/" class="flex items-center gap-2.5 group">
+        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-3">
+          <a href="/" class="flex items-center gap-2.5 group shrink-0">
             <img src="/logo-transparent.png" alt="DartVoice" class="w-8 h-8 shrink-0" style="object-fit:contain;">
             <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
           </a>
-          <div class="hidden sm:flex items-center gap-1">
-            <a href="/#features" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
-            <a href="/#pricing" class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
-            <a href="/web-app" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-3 py-2 flex items-center gap-1.5">
+          <div class="hidden lg:flex items-center gap-0.5">
+            <a href="/web-app" class="nav-link text-sm text-brand font-bold hover:text-brand-light transition px-2.5 py-2 flex items-center gap-1.5">
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded" style="image-rendering:auto;">
               Web App
               <span class="flex h-2 w-2 relative -top-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span></span>
             </a>
-            <a href="/ranked" class="nav-link text-sm font-bold transition px-3 py-2 flex items-center gap-1.5 relative group" style="color:#f0f0f5;" title="Ranked Hub · MMR ladder, friends & stats">
+            <a href="/ranked" class="nav-link text-sm font-bold transition px-2.5 py-2 flex items-center gap-1.5 relative group" style="color:#f0f0f5;" title="Ranked Hub · MMR ladder, friends & stats">
               <span class="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition" style="background:linear-gradient(135deg, rgba(204,11,32,0.18), transparent 70%);"></span>
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--brand,#CC0B20);"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h4l1 4a4 4 0 008 0l1-4h4M5 4v3a4 4 0 004 4h6a4 4 0 004-4V4M9 22h6M12 15v7"/></svg>
-              <span class="relative">Ranked Hub</span>
+              <span class="relative">Ranked</span>
               <span class="relative text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:var(--brand,#CC0B20); border:1px solid rgba(204,11,32,0.4);">PRO</span>
             </a>
             <div class="relative" id="nav-lb-wrap">
               <button type="button" id="nav-lb-btn"
-                class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5"
+                class="nav-link text-sm text-muted hover:text-chalk transition px-2.5 py-2 flex items-center gap-1.5"
                 aria-haspopup="true" aria-expanded="false" aria-controls="nav-lb-menu" title="Order of Merit · Live Rankings">
                 <svg class="w-3.5 h-3.5 text-brand" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2c0 3.31-2.06 6.13-4.96 7.27.46 1.31 1.36 2.41 2.54 3.13l-1 2.6H8.42l-1-2.6c1.18-.72 2.08-1.82 2.54-3.13C7.06 11.13 5 8.31 5 5V3zm2 2v0c0 2.36 1.5 4.36 3.6 5.13L11 11h2l.4-.87C15.5 9.36 17 7.36 17 5H7zM6 20h12v2H6v-2z"/></svg>
                 Rankings
@@ -52,13 +50,15 @@ class DvNav extends HTMLElement {
             </div>
             <div class="relative group" id="nav-more">
               <button type="button" id="nav-more-btn"
-                class="nav-link text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1"
+                class="nav-link text-sm text-muted hover:text-chalk transition px-2.5 py-2 flex items-center gap-1"
                 aria-haspopup="true" aria-expanded="false">
                 More
                 <svg class="w-3 h-3 transition-transform group-hover:rotate-180" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <div id="nav-more-menu"
-                class="absolute right-0 top-full mt-1 min-w-[180px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
+                class="absolute right-0 top-full mt-1 min-w-[200px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
+                <a href="/#features" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Features</a>
+                <a href="/#pricing" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Pricing</a>
                 <a href="/how-it-works" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">How It Works</a>
                 <a href="/#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
                 <a href="/guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
@@ -69,23 +69,18 @@ class DvNav extends HTMLElement {
               </div>
             </div>
           </div>
-          <div id="dv-nav-auth-desktop" class="hidden sm:flex items-center gap-3 ml-2">
+          <div id="dv-nav-auth-desktop" class="hidden sm:flex items-center gap-2 ml-auto">
             <div data-dv-currency-mount></div>
-            <div class="w-px h-4 bg-wire/50"></div>
-            <a href="https://instagram.com/dartvoiceapp" target="_blank" rel="noopener" class="text-muted hover:text-brand transition" title="Follow @dartvoiceapp on Instagram" aria-label="Instagram">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.97.24 2.43.403a4.08 4.08 0 011.47.96c.458.457.779.91.96 1.47.163.46.349 1.26.403 2.43.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.054 1.17-.24 1.97-.403 2.43a4.08 4.08 0 01-.96 1.47 4.08 4.08 0 01-1.47.96c-.46.163-1.26.349-2.43.403-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.054-1.97-.24-2.43-.403a4.08 4.08 0 01-1.47-.96 4.08 4.08 0 01-.96-1.47c-.163-.46-.349-1.26-.403-2.43C2.175 15.747 2.163 15.367 2.163 12s.012-3.584.07-4.85c.054-1.17.24-1.97.403-2.43a4.08 4.08 0 01.96-1.47 4.08 4.08 0 011.47-.96c.46-.163 1.26-.349 2.43-.403C8.416 2.175 8.796 2.163 12 2.163zM12 0C8.741 0 8.333.014 7.053.072 5.775.13 4.903.333 4.14.63a5.88 5.88 0 00-2.126 1.384A5.88 5.88 0 00.63 4.14C.333 4.903.13 5.775.072 7.053.014 8.333 0 8.741 0 12s.014 3.667.072 4.947c.058 1.278.261 2.15.558 2.913a5.88 5.88 0 001.384 2.126A5.88 5.88 0 004.14 23.37c.763.297 1.635.5 2.913.558C8.333 23.986 8.741 24 12 24s3.667-.014 4.947-.072c1.278-.058 2.15-.261 2.913-.558a6.14 6.14 0 002.126-1.384 5.88 5.88 0 001.384-2.126c.297-.763.5-1.635.558-2.913.058-1.28.072-1.688.072-4.947s-.014-3.667-.072-4.947c-.058-1.278-.261-2.15-.558-2.913a5.88 5.88 0 00-1.384-2.126A5.88 5.88 0 0019.86.63c-.763-.297-1.635-.5-2.913-.558C15.667.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z"/></svg>
-            </a>
-            <div class="w-px h-4 bg-wire/50"></div>
-            <a href="/login" class="btn-outline px-5 py-2.5 sm:px-4 sm:py-2 rounded-lg text-sm font-semibold min-h-[44px] sm:min-h-0 text-chalk">Sign In</a>
-            <a href="/login?intent=subscribe" class="btn-brand px-5 py-2.5 sm:px-4 sm:py-2 rounded-lg text-sm font-semibold min-h-[44px] sm:min-h-0 text-white">Start Free Trial</a>
+            <a href="/login" class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold text-chalk">Sign In</a>
+            <a href="/login?intent=subscribe" class="btn-brand px-4 py-2 rounded-lg text-sm font-semibold text-white whitespace-nowrap">Start Free Trial</a>
           </div>
-          <button id="mob-btn-nav" class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/5 transition" aria-label="Open navigation menu">
+          <button id="mob-btn-nav" class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/5 transition" aria-label="Open navigation menu">
             <svg class="w-5 h-5 text-chalk" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
         </div>
-        <div id="mob-nav" style="max-height:0;overflow:hidden;transition:max-height .35s ease" class="sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
+        <div id="mob-nav" style="max-height:0;overflow:hidden;transition:max-height .35s ease" class="lg:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
           <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
             <a href="/#features" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Features</a>
             <a href="/how-it-works" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">How It Works</a>
@@ -252,20 +247,71 @@ class DvNav extends HTMLElement {
         const desktop = this.querySelector('#dv-nav-auth-desktop');
         const mobile = this.querySelector('#dv-nav-auth-mobile');
         const safeEmail = this.escapeHtml(email);
+        const initial = (email || '?').trim().charAt(0).toUpperCase() || '?';
+        // Short label for the pill — "name" portion of the email, capped.
+        const namePart = (email || '').split('@')[0] || 'Account';
+        const shortName = this.escapeHtml(namePart.length > 14 ? namePart.slice(0, 13) + '…' : namePart);
 
         if (desktop) {
           desktop.innerHTML = `
             <div data-dv-currency-mount></div>
-            <a href="/dartvoice-dashboard" class="text-sm text-muted hover:text-chalk transition px-3 py-2">My Dashboard</a>
             <div class="w-px h-4 bg-wire/50"></div>
-            <span class="text-xs text-muted truncate max-w-[160px]">${safeEmail}</span>
-            <button type="button" data-dv-signout class="text-xs text-muted hover:text-chalk transition px-3 py-1.5 rounded-lg hover:bg-wire/30">Sign Out</button>
+            <div class="relative" id="dv-profile-wrap">
+              <button type="button" id="dv-profile-btn"
+                class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-wire/60 hover:border-brand/60 bg-wire/20 hover:bg-wire/30 transition"
+                aria-haspopup="true" aria-expanded="false" title="${safeEmail}">
+                <span class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-black text-white shrink-0"
+                      style="background:linear-gradient(135deg, var(--brand,#CC0B20), #7a0613);">${this.escapeHtml(initial)}</span>
+                <span class="text-xs font-semibold text-chalk hidden md:inline">${shortName}</span>
+                <svg class="w-3 h-3 text-muted transition-transform" id="dv-profile-chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div id="dv-profile-menu"
+                class="absolute right-0 top-full mt-2 min-w-[240px] rounded-xl border border-wire/60 bg-dark/95 backdrop-blur-xl shadow-2xl py-2 opacity-0 invisible translate-y-1 transition-all duration-150 z-50">
+                <div class="px-4 pt-2 pb-3 border-b border-wire/40">
+                  <p class="text-[10px] font-bold tracking-widest text-brand uppercase">Signed in</p>
+                  <p class="text-xs text-chalk truncate mt-0.5">${safeEmail}</p>
+                </div>
+                <a href="/dartvoice-dashboard" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">My Dashboard</a>
+                <a href="/ranked" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Ranked Hub</a>
+                <a href="/web-app" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Web App</a>
+                <a href="/referral" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Ambassador</a>
+                <div class="my-1 border-t border-wire/30"></div>
+                <button type="button" data-dv-signout class="w-full text-left px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Sign Out</button>
+              </div>
+            </div>
           `;
+          // Wire profile dropdown
+          const wrap = desktop.querySelector('#dv-profile-wrap');
+          const btn  = desktop.querySelector('#dv-profile-btn');
+          const menu = desktop.querySelector('#dv-profile-menu');
+          const chev = desktop.querySelector('#dv-profile-chev');
+          const setOpen = (open) => {
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            menu.classList.toggle('opacity-0', !open);
+            menu.classList.toggle('invisible', !open);
+            menu.classList.toggle('translate-y-1', !open);
+            menu.classList.toggle('opacity-100', open);
+            menu.classList.toggle('visible', open);
+            menu.classList.toggle('translate-y-0', open);
+            chev?.classList.toggle('rotate-180', open);
+          };
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setOpen(btn.getAttribute('aria-expanded') !== 'true');
+          });
+          document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) setOpen(false); });
+          document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
         }
 
         if (mobile) {
           mobile.innerHTML = `
-            <p class="text-xs text-muted truncate px-2 mb-2 col-span-2">${safeEmail}</p>
+            <div class="col-span-2 flex items-center gap-3 px-2 py-2 rounded-lg" style="background:rgba(204,11,32,0.08);border:1px solid rgba(204,11,32,0.25);">
+              <span class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black text-white shrink-0" style="background:linear-gradient(135deg, var(--brand,#CC0B20), #7a0613);">${this.escapeHtml(initial)}</span>
+              <div class="min-w-0">
+                <p class="text-[10px] font-bold tracking-widest text-brand uppercase">Signed in</p>
+                <p class="text-xs text-chalk truncate">${safeEmail}</p>
+              </div>
+            </div>
             <a href="/dartvoice-dashboard" class="bg-brand rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-white hover:bg-red-600 transition">My Dashboard</a>
             <button type="button" data-dv-signout class="border border-wire rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-chalk hover:bg-white/5 transition">Sign Out</button>
           `;
