@@ -6437,16 +6437,20 @@ window.openScorerUrl = function(url){
         #dv-overlays-launcher svg { width: 14px; height: 14px; }
 
         #dv-overlays-panel {
-            position: fixed; right: 16px; bottom: 122px; z-index: 100001;
+            /* Anchored to the LEFT side so it pops up next to the in-app
+               "Stream Overlays → OPEN" trigger that lives in the left dashboard
+               panel (split-screen with the DartCounter iframe on the right). */
+            position: fixed; left: 16px; bottom: 122px; z-index: 100001;
             width: 320px; max-height: 70vh;
-            background: rgba(17,17,20,0.96); backdrop-filter: blur(20px) saturate(1.4);
-            border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            background: rgba(17,17,20,0.98); backdrop-filter: blur(20px) saturate(1.4);
+            border: 1px solid rgba(var(--brand-rgb),0.35); border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(var(--brand-rgb),0.15), 0 0 40px rgba(var(--brand-rgb),0.25);
             padding: 16px; overflow-y: auto;
-            opacity: 0; transform: translateY(10px); pointer-events: none;
+            opacity: 0; transform: translateY(10px) scale(.98); pointer-events: none;
             transition: all 220ms cubic-bezier(.3,.9,.3,1);
+            display: block; /* defend against utility classes that flip display */
         }
-        #dv-overlays-panel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        #dv-overlays-panel.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
         #dv-overlays-panel h4 { color: #fff; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; }
         #dv-overlays-panel p.help { font-size: 11px; color: #888; margin-bottom: 14px; line-height: 1.5; }
         .dv-overlay-row {
@@ -6873,8 +6877,16 @@ window.openScorerUrl = function(url){
 
         window.dvToggleOverlaysPanel = function(){
             const panel = document.getElementById('dv-overlays-panel');
-            if (!panel) return;
+            if (!panel) { console.warn('[DV] overlays panel missing'); return; }
+            // Make sure rows are populated even if buildToggles() hasn't run yet
+            // (e.g. on first click before DOMContentLoaded handler fires).
+            try {
+                const host = document.getElementById('dv-overlay-toggles');
+                if (host && !host.firstChild) buildToggles();
+            } catch(_) {}
+            const wasOpen = panel.classList.contains('open');
             panel.classList.toggle('open');
+            console.log('[DV] overlays panel', wasOpen ? 'closed' : 'opened');
         };
 
         if (document.readyState === 'loading') {
