@@ -51,6 +51,15 @@
                 __avatarInput.addEventListener('change', async function () {
                     const f = this.files && this.files[0];
                     if (!f) return;
+                    // Resolve user from live session (module-scoped vars aren't on window).
+                    let liveUserId = null, liveEmail = null;
+                    try {
+                        if (typeof sb !== 'undefined') {
+                            const { data } = await sb.auth.getSession();
+                            liveUserId = data?.session?.user?.id || null;
+                            liveEmail  = data?.session?.user?.email || null;
+                        }
+                    } catch(_){}
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         const dataUrl = e.target.result;
@@ -64,31 +73,39 @@
                             el.textContent = '';
                         }
                         try {
-                            if (window._profileEmail) localStorage.setItem('dv-avatar-' + encodeURIComponent(window._profileEmail), dataUrl);
-                            else if (window._ambUserId) localStorage.setItem('dv-avatar-' + window._ambUserId, dataUrl);
+                            if (liveEmail)       localStorage.setItem('dv-avatar-' + encodeURIComponent(liveEmail), dataUrl);
+                            else if (liveUserId) localStorage.setItem('dv-avatar-' + liveUserId, dataUrl);
                         } catch (err) {
                             console.warn('avatar localStorage failed', err);
                         }
 
-                        // Best-effort: upload to Supabase storage 'avatars' and save avatar_url on profile
+                        // Upload to Supabase storage 'avatars' and save avatar_url on profile.
                         try {
-                            if (typeof sb !== 'undefined' && window._ambUserId) {
-                                const path = `avatars/${window._ambUserId}.png`;
-                                const res = await fetch(dataUrl);
-                                const blob = await res.blob();
-                                const up = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
+                            if (typeof sb !== 'undefined' && liveUserId) {
+                                const ext = (f.type && f.type.split('/')[1]) || 'png';
+                                const path = `${liveUserId}/avatar.${ext}`;
+                                const up = await sb.storage.from('avatars').upload(path, f, { upsert: true, contentType: f.type || 'image/png' });
                                 if (!up.error) {
                                     const { data: publicData } = sb.storage.from('avatars').getPublicUrl(path);
-                                    const publicUrl = publicData?.publicUrl || null;
+                                    const publicUrl = publicData?.publicUrl ? `${publicData.publicUrl}?v=${Date.now()}` : null;
                                     if (publicUrl) {
-                                        try {
-                                            await sb.from('dartvoice_profiles').update({ avatar_url: publicUrl }).eq('id', window._ambUserId);
-                                            // On success prefer server URL for future loads
+                                        const { error: updErr } = await sb.from('dartvoice_profiles').update({ avatar_url: publicUrl }).eq('id', liveUserId);
+                                        if (!updErr) {
                                             window._pendingAvatarData = null;
                                             window._currentAvatarData = publicUrl;
-                                            try { if (window._profileEmail) localStorage.setItem('dv-avatar-' + encodeURIComponent(window._profileEmail), publicUrl); else if (window._ambUserId) localStorage.setItem('dv-avatar-' + window._ambUserId, publicUrl); } catch(e){}
-                                        } catch(e){ console.warn('avatar profile update failed', e); }
+                                            try {
+                                                if (liveEmail)  localStorage.setItem('dv-avatar-' + encodeURIComponent(liveEmail), publicUrl);
+                                                else            localStorage.setItem('dv-avatar-' + liveUserId, publicUrl);
+                                            } catch(_){}
+                                            // Show success toast.
+                                            const msg = document.getElementById('profile-save-msg');
+                                            if (msg) { msg.textContent = '\u2713 Photo updated.'; msg.className = 'text-xs text-center text-green-400'; msg.classList.remove('hidden'); setTimeout(()=>msg.classList.add('hidden'), 2500); }
+                                        } else {
+                                            console.warn('avatar profile update failed', updErr);
+                                        }
                                     }
+                                } else {
+                                    console.warn('avatar upload failed', up.error);
                                 }
                             }
                         } catch (err) {
@@ -1471,7 +1488,7 @@
 
             <!-- ── TAB: Profile ─────────────────────────────────── -->
             <div id="tab-profile" class="hidden">
-                <div class="w-full max-w-2xl mx-auto grid md:grid-cols-5 gap-5">
+                <div class="w-full max-w-5xl mx-auto grid md:grid-cols-5 gap-5">
 
                     <!-- LEFT: Identity & avatar (md:col-span-2) -->
                     <div class="md:col-span-2 pro-profile-card fade-up-2">
@@ -1622,7 +1639,7 @@
                 </div>
 
                     <!-- Your Access card (shown for active/trialing) -->
-                    <div id="profile-access-card" class="hidden card-panel fade-up-3">
+                    <div id="profile-access-card" class="hidden card-panel fade-up-3 w-full max-w-5xl mx-auto mt-5">
                         <div class="p-6">
                             <div class="flex items-center gap-2 mb-4">
                                 <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#22c55e;">Your Access</p>
@@ -1662,7 +1679,6 @@
                         </div>
                     </div>
 
-                </div>
             </div><!-- /tab-profile -->
 
             <!-- ── TAB: Friends ──────────────────────────────────── -->
