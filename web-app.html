@@ -962,6 +962,40 @@
             box-shadow: 0 0 0 3px rgba(var(--brand-rgb), .25);
         }
 
+        /* Live caption subtitle — replaces the small "Idle" label while user
+           is speaking. Larger, mixed-case, brand-glow with a typing dot. */
+        #status-text.live-caption {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .01em;
+            text-transform: none;
+            color: #fff;
+            text-shadow: 0 0 14px rgba(var(--brand-rgb), .55);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            position: relative;
+            padding-right: 14px;
+            max-width: 60ch;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: middle;
+            animation: liveCaptionIn .25s ease-out;
+        }
+        #status-text.live-caption::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 50%;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgb(var(--brand-rgb));
+            box-shadow: 0 0 8px rgba(var(--brand-rgb), .9);
+            transform: translateY(-50%);
+            animation: liveCaptionDot 1s ease-in-out infinite;
+        }
+        @keyframes liveCaptionIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+        @keyframes liveCaptionDot { 0%,100% { opacity: .35; transform: translateY(-50%) scale(.85); } 50% { opacity: 1; transform: translateY(-50%) scale(1.15); } }
+
         /* Live mini-waveform shown next to "Live Transcript" header.
            Bars idle small/dim; reactive to mic level via CSS var --lvl. */
         .dv-tx-wave { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; margin-left: 4px; }
@@ -4567,6 +4601,7 @@
                 btn.style.boxShadow = '';
                 statusIndicator.className = "status-dot listening";
                 statusText.textContent = "Awaiting Score...";
+                statusText.classList.remove('live-caption');
                 statusText.className = "text-sm font-semibold text-white";
                 waveVisualizer.classList.add('active');
                 startEqualizer();
@@ -4580,12 +4615,19 @@
                     // Show interim (partial) results live so user sees mic is working
                     if (!event.results[i].isFinal) {
                         const interim = event.results[i][0].transcript.trim();
-                        statusText.textContent = interim ? `"${interim}"…` : 'Awaiting Score...';
+                        if (interim) {
+                            statusText.textContent = `"${interim}"`;
+                            statusText.classList.add('live-caption');
+                        } else {
+                            statusText.textContent = 'Awaiting Score...';
+                            statusText.classList.remove('live-caption');
+                        }
                         continue;
                     }
 
                     // Reset status after processing final result
                     statusText.textContent = 'Awaiting Score...';
+                    statusText.classList.remove('live-caption');
                     const finalAlt = event.results[i][0] || {};
                     const raw = String(finalAlt.transcript || '').trim().toLowerCase();
                     const confidence = Number(finalAlt.confidence || 0);
@@ -4804,6 +4846,7 @@
         function stopListeningStyle() {
             statusIndicator.className = "status-dot";
             statusText.textContent = "Microphone Idle";
+            statusText.classList.remove('live-caption');
             statusText.className = "text-[11px] font-semibold text-gray-400 uppercase";
             { const lbl = btn.querySelector('.btn-listen-label'); if (lbl) lbl.textContent = 'START LISTENING'; else btn.textContent = 'START LISTENING'; }
             btn.classList.remove('is-listening');
