@@ -147,59 +147,7 @@
 <body class="antialiased noise">
 
     <!-- NAV -->
-    <nav class="fixed top-0 w-full z-50 bg-dark/85 backdrop-blur-xl border-b border-wire/60">
-        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2.5 group">
-                <img src="/logo-transparent.png" alt="DartVoice" class="w-8 h-8 shrink-0" style="object-fit:contain;">
-                <span class="display text-lg group-hover:text-brand transition-colors">DARTVOICE</span>
-            </a>
-            <div class="hidden sm:flex items-center gap-1">
-                <a href="/#features"     class="text-sm text-muted hover:text-chalk transition px-3 py-2">Features</a>
-                <a href="/#pricing"      class="text-sm text-muted hover:text-chalk transition px-3 py-2">Pricing</a>
-                <a href="guide"               class="text-sm text-muted hover:text-chalk transition px-3 py-2">Guide</a>
-                <a href="referral"            class="text-sm text-muted hover:text-chalk transition px-3 py-2 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-brand inline-block"></span>Ambassador
-                </a>
-                <a href="contact"             class="text-sm text-muted hover:text-chalk transition px-3 py-2">Contact</a>
-            </div>
-            <div id="nav-auth-desktop" class="hidden sm:flex items-center gap-3">
-                <div data-dv-currency-mount></div>
-                <a href="login" class="text-sm font-semibold text-muted hover:text-chalk transition">Sign In</a>
-                <a href="login?intent=subscribe" class="bg-brand hover:bg-red-600 transition px-5 py-2.5 sm:px-4 sm:py-2 rounded-lg text-sm font-semibold min-h-[44px] sm:min-h-0 text-white">Start Free Trial</a>
-            </div>
-            <button id="mob-btn-nav"
-                    class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/5 transition">
-                <svg class="w-5 h-5 text-chalk" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
-        </div>
-        <div id="mob-nav"
-             style="max-height:0;overflow:hidden;transition:max-height .35s ease"
-             class="sm:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
-            <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
-                <a href="/#features"  class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Features</a>
-                <a href="/#pricing"   class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Pricing</a>
-                <a href="guide"            class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Setup Guide</a>
-                <a href="referral"         class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
-                </a>
-                <a href="contact"          class="text-sm text-muted hover:text-chalk transition px-2 py-2.5">Contact</a>
-                <div id="nav-auth-mobile" class="border-t border-wire/50 mt-1 pt-3">
-                    <div class="grid grid-cols-2 gap-2">
-                        <a href="login" class="border border-wire rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-chalk hover:bg-white/5 transition">Sign In</a>
-                        <a href="login?intent=subscribe" class="bg-brand rounded-lg px-3 py-2.5 text-sm font-semibold text-center text-white hover:bg-red-600 transition">Free Trial</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-        document.getElementById('mob-btn-nav').addEventListener('click', function() {
-            var m = document.getElementById('mob-nav');
-            m.style.maxHeight = m.style.maxHeight === '0px' || !m.style.maxHeight ? '320px' : '0px';
-        });
-        </script>
-    </nav>
+    <dv-nav></dv-nav>
 
     <!-- ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <header class="pt-28 pb-14 border-b border-wire/60"

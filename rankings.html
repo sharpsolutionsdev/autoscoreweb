@@ -134,20 +134,8 @@
 <body>
     <div class="page-bg"></div>
 
-    <!-- Top nav: dv-nav auto-injected on dv-nav element OR by leaderboard-pill IIFE on plain <nav>. -->
-    <nav class="fixed top-0 inset-x-0 z-40 backdrop-blur-md" style="background: rgba(11,11,14,0.7); border-bottom: 1px solid rgba(255,255,255,0.06);">
-        <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2.5 font-black tracking-tight">
-                <img src="assets/dartvoice-logo-v2.svg" alt="DartVoice" class="h-7 w-7">
-                <span class="display text-xl">DartVoice</span>
-            </a>
-            <div class="hidden sm:flex items-center gap-3" id="nav-auth-desktop">
-                <a href="ranked.html" class="text-xs font-bold tracking-widest uppercase text-muted hover:text-chalk transition">Ranked</a>
-                <a href="how-it-works" class="text-xs font-bold tracking-widest uppercase text-muted hover:text-chalk transition">How It Works</a>
-                <a href="login.html" class="text-xs font-bold tracking-widest uppercase text-muted hover:text-chalk transition">Sign in</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Top nav -->
+    <dv-nav></dv-nav>
 
     <main class="pt-24 sm:pt-28 pb-20">
         <div class="max-w-6xl mx-auto px-5">
