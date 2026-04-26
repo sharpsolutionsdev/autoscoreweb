@@ -12,6 +12,11 @@
         window.postMessage({ type: 'DV_EXT_PRESENT', version: v }, location.origin);
     } catch (_) {}
 
+    // Ask the service worker to poke the Chrome Web Store for any pending
+    // extension update (throttled inside background.js). Helps users stuck
+    // on stale builds when they reopen the web app.
+    try { chrome.runtime.sendMessage({ type: 'DV_REQUEST_UPDATE_CHECK' }, function(){ void chrome.runtime.lastError; }); } catch (_) {}
+
     // Re-announce when the page asks (handles SPA-style late listeners).
     window.addEventListener('message', function (ev) {
         if (ev.source !== window) return;

@@ -41,6 +41,37 @@ try {
     });
 } catch (e) { /* service worker may re-init; listener survives */ }
 
+// ── Force a Chrome Web Store update check on startup (throttled) ────────────
+// Helps users stuck on older versions: Chrome normally checks every ~5h, but
+// if the browser is rarely closed or the schedule slips, we can prompt it.
+async function maybeRequestUpdateCheck() {
+    try {
+        const KEY = 'dv_last_update_check_at';
+        const data = await chrome.storage.local.get([KEY]);
+        const last = Number(data[KEY] || 0);
+        const SIX_H = 6 * 60 * 60 * 1000;
+        if (Date.now() - last < SIX_H) return;
+        await chrome.storage.local.set({ [KEY]: Date.now() });
+        if (chrome.runtime.requestUpdateCheck) {
+            chrome.runtime.requestUpdateCheck(function (status, details) {
+                // status: 'throttled' | 'no_update' | 'update_available'
+                // If 'update_available', Chrome will install on next idle and
+                // we'll get an onUpdateAvailable event.
+            });
+        }
+    } catch (_) {}
+}
+try { maybeRequestUpdateCheck(); } catch (_) {}
+try {
+    chrome.runtime.onStartup && chrome.runtime.onStartup.addListener(maybeRequestUpdateCheck);
+} catch (_) {}
+try {
+    chrome.runtime.onUpdateAvailable && chrome.runtime.onUpdateAvailable.addListener(function () {
+        // Apply pending update immediately so user picks it up next reload.
+        try { chrome.runtime.reload(); } catch (_) {}
+    });
+} catch (_) {}
+
 var SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
 var DEMO_LIMIT_MS = 10 * 60 * 1000;
@@ -131,6 +162,13 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         return true;
     }
 
+    // Web app asked us to poll the Chrome Web Store for an extension update.
+    if (msg.type === 'DV_REQUEST_UPDATE_CHECK') {
+        try { maybeRequestUpdateCheck(); } catch (_) {}
+        sendResponse({ ok: true });
+        return false;
+    }
+
     // Get full state
     if (msg.type === 'DV_GET_STATE') {
         chrome.storage.local.get(['dv_user_email', 'dv_sub_status', 'dv_demo_used_ms', 'dv_mic_device_id']).then(function (data) {
@@ -158,7 +196,6 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (msg.type === 'DV_SET_MIC') {
         chrome.storage.local.set({ dv_mic_device_id: msg.deviceId }).then(function () { sendResponse({ ok: true }); });
         return true;
-    }
 
     // Update demo timer
     if (msg.type === 'DV_UPDATE_DEMO_TIME') {
