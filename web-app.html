@@ -890,6 +890,78 @@
         .mic-select:focus { border-color: rgba(var(--brand-rgb),.55); box-shadow: 0 0 0 3px rgba(var(--brand-rgb),.12); }
         .mic-select option { background: #0c0c10; color: #d4d4d8; }
 
+        /* ─── Global glass styling for selects, inputs, and toggles ───
+           Mirrors the .qa-icon-btn / .mic-select aesthetic so every form
+           control feels consistent across the app shell. */
+        .app-container select,
+        .app-container input[type="text"],
+        .app-container input[type="number"],
+        .app-container input[type="search"],
+        .app-container input[type="email"],
+        .app-container input[type="password"],
+        .app-container input[type="tel"],
+        .app-container input[type="url"],
+        .app-container textarea {
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background: rgba(255,255,255,0.04);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #d4d4d8;
+            font-size: 11px; font-weight: 600; letter-spacing: .02em;
+            padding: 9px 12px;
+            outline: none;
+            transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+        .app-container select { padding-right: 30px; cursor: pointer; color-scheme: dark; }
+        .app-container select:not(.mic-select) {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .app-container select:hover,
+        .app-container input[type="text"]:hover,
+        .app-container input[type="number"]:hover,
+        .app-container input[type="search"]:hover,
+        .app-container textarea:hover {
+            background-color: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.14);
+        }
+        .app-container select:focus,
+        .app-container input:focus,
+        .app-container textarea:focus {
+            border-color: rgba(var(--brand-rgb),.55);
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb),.12);
+        }
+        .app-container select option,
+        .app-container select optgroup {
+            background: #0c0c10;
+            color: #d4d4d8;
+            font-weight: 600;
+        }
+
+        /* Toggle pills — restyle the existing Tailwind-style track/knob
+           to use a glassy off-state and a softly glowing brand on-state. */
+        .app-container input[type="checkbox"].peer + div {
+            background: rgba(255,255,255,0.06) !important;
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+        .app-container input[type="checkbox"].peer:hover + div {
+            border-color: rgba(255,255,255,0.16);
+        }
+        .app-container input[type="checkbox"].peer:checked + div {
+            background: rgba(var(--brand-rgb), .85) !important;
+            border-color: rgba(var(--brand-rgb), 1);
+            box-shadow: 0 0 12px rgba(var(--brand-rgb), .45);
+        }
+        .app-container input[type="checkbox"].peer:focus-visible + div {
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb), .25);
+        }
+
         /* Live mini-waveform shown next to "Live Transcript" header.
            Bars idle small/dim; reactive to mic level via CSS var --lvl. */
         .dv-tx-wave { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; margin-left: 4px; }
