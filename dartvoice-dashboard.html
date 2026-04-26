@@ -713,6 +713,10 @@
             font-size: 13px;
             line-height: 1.5;
         }
+        /* Decorative gradient border on profile card MUST NOT swallow clicks
+           on inputs/buttons inside it. Mask only changes paint, not hit-testing. */
+        .pro-profile-card::before { pointer-events: none !important; }
+        .pro-profile-card > * { position: relative; z-index: 2; }
     </style>
     <link rel="stylesheet" href="css/components/modern-dashboard.css">
 </head>
