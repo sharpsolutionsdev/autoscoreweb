@@ -75,3 +75,7 @@ launchpad*.zip
 edit*.json
 Recording*.js
 
+# ── Supabase CLI local state ──
+supabase/.temp/
+supabase/supabase/
+

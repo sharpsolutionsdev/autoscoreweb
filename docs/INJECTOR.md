@@ -63,8 +63,8 @@ If you want, I can also:
 - Create a small Chrome extension manifest + content script package in the repo for easy install.
 
 Chrome extension (optional)
-- A ready-to-use extension package is available at `extension/manifest.json` and `extension/dartcounter-inject.js`.
-- To use: load the `extension/` folder as an unpacked extension in Chrome/Edge. The content script runs in frames on `app.dartcounter.net` and will install the same injector as the console script.
+- The shipping extension lives in `chrome_extension/` (see [chrome_extension/README.md](../chrome_extension/README.md)). It includes the same injector plus a popup, auth bridge, and packaging.
+- To use unpacked: load the `chrome_extension/` folder as an unpacked extension in Chrome/Edge. The content script runs in frames on `app.dartcounter.net` and installs the same injector as the console script.
 
 Notes on safety
 - The extension only runs on the DartCounter host(s) listed in the manifest and is intended for trusted developer use. Do not install in shared browsers without understanding permissions.
