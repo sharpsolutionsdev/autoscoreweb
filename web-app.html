@@ -3154,8 +3154,8 @@
             if (!overlay) return;
             // Compact bottom-right toast over the scorer iframe (or fallback to
             // bottom-right of the viewport when no anchor target exists).
-            const TOAST_W = 240;     // px
-            const TOAST_H = 240;     // px
+            const TOAST_W = 260;     // px
+            const TOAST_H = 280;     // px
             const PAD     = 16;      // gap from anchor edge
             try {
                 let rect = null;
@@ -3477,9 +3477,24 @@
             } catch(_){}
         }
 
+        // Failsafe: ensure gameShotLock can never get stuck `true` even if a
+        // background-throttled setTimeout drops the reset. This timer is
+        // (re)scheduled every time we trigger and is the source of truth.
+        let _dvGameShotFailsafe = null;
+        function _scheduleGameShotHide(ms) {
+            if (_dvGameShotFailsafe) clearTimeout(_dvGameShotFailsafe);
+            _dvGameShotFailsafe = setTimeout(() => {
+                _dvGameShotFailsafe = null;
+                try { resetLiveCheckout(); } catch(_){ gameShotLock = false; }
+            }, ms);
+        }
+
         function triggerGameShot(checkoutRoute) {
             gameShotLock = true;
-            // Show the full-screen game shot overlay above the iframe
+            // Cancel any pending hide so a back-to-back checkout doesn't
+            // immediately fade the new card.
+            if (_dvGameShotFailsafe) { clearTimeout(_dvGameShotFailsafe); _dvGameShotFailsafe = null; }
+            // Show the bottom-right toast overlay above the iframe
             let overlay = document.getElementById('dv-game-shot-overlay');
             if (!overlay) {
                 overlay = document.createElement('div');
@@ -3491,25 +3506,97 @@
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
             try { const tgt = _getGameShotTarget(); _anchorOverlayToElement(overlay, tgt); } catch(e){}
-            // animate overlay in (use a small scale & fade for depth)
+
+            // ── Card frame (matches ambassador / referral popup aesthetic) ──
+            // Built fresh each trigger so the route label stays in sync.
+            let card = overlay.querySelector('.dv-checkout-card');
+            if (card) card.remove();
+            card = document.createElement('div');
+            card.className = 'dv-checkout-card';
+            card.style.cssText = [
+                'position:relative',
+                'width:100%','height:100%',
+                'display:flex','flex-direction:column','align-items:stretch',
+                'padding:10px 12px 8px',
+                'border-radius:16px',
+                'background:linear-gradient(180deg, rgba(20,20,26,0.94) 0%, rgba(8,8,12,0.96) 100%)',
+                'border:1px solid rgba(var(--brand-rgb),0.35)',
+                'box-shadow:0 18px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(var(--brand-rgb),0.08), 0 0 32px rgba(var(--brand-rgb),0.18)',
+                'backdrop-filter:blur(8px)','-webkit-backdrop-filter:blur(8px)',
+                'overflow:hidden'
+            ].join(';');
+
+            // Header pill — "✓ CHECKOUT · 96"
+            const total = (checkoutRoute || []).reduce((s, seg) => {
+                const m = String(seg).match(/^([SDT]?)(\d+|BULL)$/i);
+                if (!m) return s;
+                const mult = m[1].toUpperCase() === 'T' ? 3 : (m[1].toUpperCase() === 'D' ? 2 : 1);
+                const v = m[2].toUpperCase() === 'BULL' ? 50 : parseInt(m[2], 10);
+                return s + (isNaN(v) ? 0 : mult * v);
+            }, 0);
+            const head = document.createElement('div');
+            head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;';
+            head.innerHTML =
+                '<div style="display:flex;align-items:center;gap:6px;">' +
+                  '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:var(--brand);color:#fff;font-weight:900;font-size:11px;line-height:1;">✓</span>' +
+                  '<span style="font:900 11px/1 \'Plus Jakarta Sans\',sans-serif;letter-spacing:0.18em;color:rgba(var(--brand-rgb),1);text-transform:uppercase;">Checkout</span>' +
+                '</div>' +
+                '<span style="font:900 14px/1 \'Plus Jakarta Sans\',sans-serif;color:#fff;letter-spacing:0.04em;">' + (total || '') + '</span>';
+            card.appendChild(head);
+
+            // Route label — e.g. "T20 → T17 → D16"
+            if (checkoutRoute && checkoutRoute.length) {
+                const route = document.createElement('div');
+                route.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:4px;font:800 10px/1 \'Plus Jakarta Sans\',sans-serif;color:rgba(255,255,255,0.78);letter-spacing:0.06em;margin-bottom:2px;';
+                checkoutRoute.forEach((seg, i) => {
+                    if (i > 0) {
+                        const arr = document.createElement('span');
+                        arr.textContent = '›'; arr.style.cssText = 'color:rgba(255,255,255,0.32);font-weight:600;';
+                        route.appendChild(arr);
+                    }
+                    const chip = document.createElement('span');
+                    chip.textContent = seg;
+                    const isFinish = i === checkoutRoute.length - 1;
+                    chip.style.cssText = 'padding:2px 6px;border-radius:6px;background:' +
+                        (isFinish ? 'rgba(var(--brand-rgb),0.85);color:#fff;' : 'rgba(255,255,255,0.06);color:rgba(255,255,255,0.85);') +
+                        'border:1px solid ' + (isFinish ? 'rgba(var(--brand-rgb),0.9)' : 'rgba(255,255,255,0.08)') + ';';
+                    route.appendChild(chip);
+                });
+                card.appendChild(route);
+            }
+
+            // Canvas mount area — playDartboardAnimation looks for #dartboard-canvas
+            // inside the overlay, so reattaching the card before it runs is enough.
+            const stage = document.createElement('div');
+            stage.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;min-height:0;';
+            card.appendChild(stage);
+            overlay.appendChild(card);
+
+            // Slide-in animation (matches the referral/ambassador popup feel)
             try {
                 overlay.style.display = 'flex';
                 overlay.style.opacity = '0';
-                overlay.style.transform = 'translateZ(0) scale(0.98)';
-                requestAnimationFrame(() => { overlay.style.opacity = '1'; overlay.style.transform = 'translateZ(0) scale(1)'; });
+                overlay.style.transform = 'translateZ(0) translateX(28px) scale(0.96)';
+                requestAnimationFrame(() => {
+                    overlay.style.opacity = '1';
+                    overlay.style.transform = 'translateZ(0) translateX(0) scale(1)';
+                });
             } catch(_){}
-            // Play dartboard animation if we have a checkout route
+
+            // Play dartboard animation if we have a checkout route. Move the
+            // canvas into the stage area so the route label sits above it.
             if (checkoutRoute && checkoutRoute.length) {
                 playDartboardAnimation(checkoutRoute);
+                try {
+                    const c = overlay.querySelector('#dartboard-canvas');
+                    if (c && c.parentElement === overlay) stage.appendChild(c);
+                } catch(_){}
             }
-            // NOTE: We intentionally do NOT show DartVoice's own
-            // "darts at double?" prompt here — DartCounter raises its own
-            // native dialog after a checkout, and the extension forwards it
-            // via DV_CHECKOUT_PROMPT which is handled by `dvCheckoutPrompt`.
-            // Showing two stacked prompts confused users, so the DV-side one
-            // is suppressed. The function is still available for direct
-            // invocation if needed for stats capture.
-            setTimeout(() => resetLiveCheckout(), 9500);
+
+            // Auto-hide after the animation finishes (~2.2s) plus a brief
+            // celebration window. Failsafe survives tab throttling.
+            const totalMs = 250 + Math.max(1, (checkoutRoute || []).length - 1) * 520 + 900;
+            _scheduleGameShotHide(totalMs + 1400);
         }
 
         // Darts-at-double stats capture. Shown only for user-driven game shots.
@@ -3582,6 +3669,8 @@
                     overlay.classList.remove('flex');
                     const canvas = overlay.querySelector('#dartboard-canvas');
                     if (canvas) canvas.remove();
+                    const card = overlay.querySelector('.dv-checkout-card');
+                    if (card) card.remove();
                     try { overlay.style.transform = ''; overlay.style.opacity = ''; } catch(_){}
                 }, 280);
             }
