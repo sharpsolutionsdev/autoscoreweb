@@ -7023,6 +7023,85 @@ window.openScorerUrl = function(url){
             <button id="rl-btn-ready" class="rl-btn rl-btn-secondary">I'm Ready &rarr;</button>
         </div>
     </div>
+
+    <!-- In-app result submission modal (replaces redirect to ranked.html) -->
+    <style>
+        #ranked-submit-modal {
+            position: fixed; inset: 0; z-index: 99999; display: none;
+            align-items: center; justify-content: center;
+            background: rgba(2,2,4,.78); backdrop-filter: blur(8px);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        #ranked-submit-modal.active { display: flex; animation: rsmFade .25s ease; }
+        @keyframes rsmFade { from { opacity: 0; } to { opacity: 1; } }
+        .rsm-card {
+            width: min(520px, 92vw); max-height: 90vh; overflow-y: auto;
+            background: linear-gradient(180deg, #131317, #0a0a0d);
+            border: 1px solid rgba(var(--brand-rgb), .45);
+            border-radius: 18px; padding: 26px 28px;
+            box-shadow: 0 20px 70px rgba(0,0,0,.7), 0 0 50px rgba(var(--brand-rgb),.25);
+            color: #fff; position: relative;
+            animation: rsmPop .35s cubic-bezier(.2,1.4,.4,1);
+        }
+        @keyframes rsmPop { from { transform: scale(.92) translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+        .rsm-eyebrow { font-size: 10px; font-weight: 900; letter-spacing: .3em; text-transform: uppercase; color: rgb(var(--brand-rgb)); margin-bottom: 6px; }
+        .rsm-title { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; font-size: 30px; line-height: 1; margin-bottom: 4px; text-transform: uppercase; }
+        .rsm-sub { font-size: 12px; color: #a4a4ad; margin-bottom: 18px; }
+        .rsm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .rsm-field label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c4c4cd; margin-bottom: 4px; }
+        .rsm-field input {
+            width: 100%; background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.1); border-radius: 8px;
+            padding: 10px 12px; color: #fff; font-size: 14px; font-weight: 700;
+            font-variant-numeric: tabular-nums; outline: none;
+            transition: border-color .15s, background .15s;
+        }
+        .rsm-field input:focus { border-color: rgb(var(--brand-rgb)); background: rgba(var(--brand-rgb),.06); }
+        .rsm-section-title { font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: rgb(var(--brand-rgb)); margin: 16px 0 8px; }
+        .rsm-actions { display: flex; gap: 10px; margin-top: 22px; }
+        .rsm-btn {
+            flex: 1; padding: 12px 14px; border-radius: 10px; cursor: pointer;
+            font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+            border: 1px solid transparent; transition: all .15s;
+        }
+        .rsm-btn-primary { background: rgb(var(--brand-rgb)); color: #fff; box-shadow: 0 0 22px rgba(var(--brand-rgb),.5); }
+        .rsm-btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+        .rsm-btn-primary:disabled { opacity: .55; cursor: wait; }
+        .rsm-btn-secondary { background: rgba(255,255,255,.04); color: #fff; border-color: rgba(255,255,255,.12); }
+        .rsm-btn-secondary:hover { background: rgba(255,255,255,.1); }
+        .rsm-error { color: #ff7b7b; font-size: 11px; margin-top: 10px; min-height: 14px; }
+        .rsm-prefill-note { font-size: 10px; color: #6b7280; font-style: italic; margin-top: 8px; }
+    </style>
+    <div id="ranked-submit-modal" role="dialog" aria-modal="true" aria-labelledby="rsm-title">
+        <div class="rsm-card">
+            <div class="rsm-eyebrow">★ Match Result</div>
+            <h2 id="rsm-title" class="rsm-title">Submit Your Result</h2>
+            <p class="rsm-sub">vs <span id="rsm-opp-name">Opponent</span> · Best of 5 · 501 D-out</p>
+            <p class="rsm-prefill-note" id="rsm-prefill-note">Auto-filled from your live game.</p>
+
+            <div class="rsm-section-title">Score</div>
+            <div class="rsm-grid">
+                <div class="rsm-field"><label for="rsm-my-legs">Your legs</label><input id="rsm-my-legs" type="number" min="0" max="5" inputmode="numeric"></div>
+                <div class="rsm-field"><label for="rsm-opp-legs">Opponent legs</label><input id="rsm-opp-legs" type="number" min="0" max="5" inputmode="numeric"></div>
+            </div>
+
+            <div class="rsm-section-title">Your stats</div>
+            <div class="rsm-grid">
+                <div class="rsm-field"><label for="rsm-avg">3-dart avg</label><input id="rsm-avg" type="number" min="0" max="170" step="0.01" inputmode="decimal"></div>
+                <div class="rsm-field"><label for="rsm-co">Checkout %</label><input id="rsm-co" type="number" min="0" max="100" step="0.1" inputmode="decimal"></div>
+                <div class="rsm-field"><label for="rsm-hf">High finish</label><input id="rsm-hf" type="number" min="0" max="170" inputmode="numeric"></div>
+                <div class="rsm-field"><label for="rsm-180">180s</label><input id="rsm-180" type="number" min="0" inputmode="numeric"></div>
+                <div class="rsm-field"><label for="rsm-140">140+</label><input id="rsm-140" type="number" min="0" inputmode="numeric"></div>
+                <div class="rsm-field"><label for="rsm-100">100+</label><input id="rsm-100" type="number" min="0" inputmode="numeric"></div>
+            </div>
+
+            <div class="rsm-error" id="rsm-error"></div>
+            <div class="rsm-actions">
+                <button type="button" class="rsm-btn rsm-btn-secondary" id="rsm-cancel">Cancel</button>
+                <button type="button" class="rsm-btn rsm-btn-primary" id="rsm-submit">Submit Result</button>
+            </div>
+        </div>
+    </div>
     <script>
     (function(){
         // Internal ranked-match state that any caller (URL param or queue widget) can activate.
@@ -7180,14 +7259,124 @@ window.openScorerUrl = function(url){
 
         document.getElementById('rl-btn-ready')?.addEventListener('click', dismissLobby);
 
-        // Finish button → submit page with prefill.
+        // ── In-app result submission modal ──
+        // Reads live stats from sessionStorage.dv_latest_match_stats (populated
+        // by the DV_GAME_STATE listener in the main app loop) so the user
+        // never has to leave the web-app to submit a ranked result.
+        function openSubmitModal({ auto = false } = {}) {
+            if (!activeMatchId) return;
+            const modal = document.getElementById('ranked-submit-modal');
+            if (!modal) return;
+
+            // Determine which side is "me" using the lobby DC handles, then
+            // fall back to side-1 if we can't tell.
+            let myStats = null, oppStats = null, myLegs = 0, oppLegs = 0;
+            try {
+                const raw = sessionStorage.getItem('dv_latest_match_stats');
+                if (raw) {
+                    const s = JSON.parse(raw);
+                    const lobby = window._dvLobby || {};
+                    const me = norm(lobby.myDc);
+                    const p1 = norm(s.p1Name);
+                    const p2 = norm(s.p2Name);
+                    const meIsP1 = me && p1 === me ? true : (me && p2 === me ? false : true);
+                    if (meIsP1) {
+                        myStats = s.p1 || null; oppStats = s.p2 || null;
+                        myLegs = s.p1Legs || 0; oppLegs = s.p2Legs || 0;
+                    } else {
+                        myStats = s.p2 || null; oppStats = s.p1 || null;
+                        myLegs = s.p2Legs || 0; oppLegs = s.p1Legs || 0;
+                    }
+                }
+            } catch(_){}
+
+            const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = (v ?? '') === '' ? '' : v; };
+            setVal('rsm-my-legs',  myLegs);
+            setVal('rsm-opp-legs', oppLegs);
+            // Stats — accept several common shapes from the iframe.
+            const avg = myStats?.average ?? myStats?.avg ?? myStats?.threeDartAvg ?? '';
+            const co  = myStats?.checkout_pct ?? myStats?.checkoutPct ?? myStats?.checkout ?? '';
+            const hf  = myStats?.high_finish ?? myStats?.highFinish ?? myStats?.bestCheckout ?? '';
+            const t180 = myStats?.tons_180 ?? myStats?.t180 ?? myStats?.oneEighties ?? 0;
+            const t140 = myStats?.tons_140_plus ?? myStats?.t140 ?? myStats?.tons140 ?? 0;
+            const t100 = myStats?.tons_100_plus ?? myStats?.t100 ?? myStats?.tons100 ?? 0;
+            setVal('rsm-avg', avg === '' ? '' : Number(avg).toFixed(2));
+            setVal('rsm-co',  co  === '' ? '' : Number(co).toFixed(1));
+            setVal('rsm-hf',  hf);
+            setVal('rsm-180', t180);
+            setVal('rsm-140', t140);
+            setVal('rsm-100', t100);
+
+            const opp = document.getElementById('rsm-opp-name');
+            if (opp) opp.textContent = activeOpponentName || 'Opponent';
+            const note = document.getElementById('rsm-prefill-note');
+            if (note) note.textContent = auto
+                ? 'Match complete — review your stats and submit.'
+                : 'Auto-filled from your live game. Edit any field before submitting.';
+            const err = document.getElementById('rsm-error');
+            if (err) err.textContent = '';
+
+            modal.classList.add('active');
+        }
+        function closeSubmitModal() {
+            document.getElementById('ranked-submit-modal')?.classList.remove('active');
+        }
+
+        document.getElementById('rsm-cancel')?.addEventListener('click', closeSubmitModal);
+        document.getElementById('ranked-submit-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'ranked-submit-modal') closeSubmitModal();
+        });
+
+        document.getElementById('rsm-submit')?.addEventListener('click', async () => {
+            if (!activeMatchId) return;
+            const btn = document.getElementById('rsm-submit');
+            const errEl = document.getElementById('rsm-error');
+            const num = (id, asFloat = false) => {
+                const v = document.getElementById(id)?.value;
+                if (v === '' || v == null) return 0;
+                const n = asFloat ? parseFloat(v) : parseInt(v, 10);
+                return Number.isFinite(n) ? n : 0;
+            };
+            const myLegs  = num('rsm-my-legs');
+            const oppLegs = num('rsm-opp-legs');
+            if (myLegs < 0 || oppLegs < 0 || (myLegs === 0 && oppLegs === 0)) {
+                errEl.textContent = 'Enter the leg score before submitting.';
+                return;
+            }
+            btn.disabled = true; const orig = btn.textContent; btn.textContent = 'Submitting…';
+            try {
+                const { error } = await window.sb.functions.invoke('ranked-match-result', {
+                    body: {
+                        action: 'submit_result',
+                        match_id: activeMatchId,
+                        my_legs_won: myLegs,
+                        opponent_legs_won: oppLegs,
+                        stats: {
+                            average: num('rsm-avg', true),
+                            checkout_pct: num('rsm-co', true),
+                            high_finish: num('rsm-hf'),
+                            tons_180: num('rsm-180'),
+                            tons_140_plus: num('rsm-140'),
+                            tons_100_plus: num('rsm-100')
+                        }
+                    }
+                });
+                if (error) throw error;
+                try { sessionStorage.removeItem('dv_latest_match_stats'); } catch(_){}
+                if (window.dvToast) window.dvToast('Ranked result submitted — MMR updated', 'success');
+                closeSubmitModal();
+                deactivate();
+            } catch (e) {
+                console.error('[Ranked] submit failed', e);
+                errEl.textContent = e?.message || 'Submission failed. Try again.';
+                btn.disabled = false; btn.textContent = orig;
+            }
+        });
+
+        // Finish button → open in-app submit modal (no navigation).
         document.getElementById('btn-finish-ranked')?.addEventListener('click', () => {
             if (!activeMatchId) return;
-            const redirectUrl = new URL('ranked.html', window.location.origin);
-            redirectUrl.searchParams.set('prefill', 'true');
-            redirectUrl.searchParams.set('matchId', activeMatchId);
-            if (activeOpponentName) redirectUrl.searchParams.set('opponent', activeOpponentName);
-            window.location.href = redirectUrl.toString();
+            openSubmitModal({ auto: false });
         });
 
         // ── Live ranked-match detection ──────────────────────────────────
@@ -7223,14 +7412,9 @@ window.openScorerUrl = function(url){
             const p2L = s.p2Legs || 0;
             if (!_rankedFinished && _rankedStarted && (p1L >= REQUIRED_LEGS || p2L >= REQUIRED_LEGS)) {
                 _rankedFinished = true;
-                if (window.dvToast) window.dvToast('Match complete — opening result submission…', 'info');
-                setTimeout(() => {
-                    const redirectUrl = new URL('ranked.html', window.location.origin);
-                    redirectUrl.searchParams.set('prefill', 'true');
-                    redirectUrl.searchParams.set('matchId', activeMatchId);
-                    if (lobby.oppName) redirectUrl.searchParams.set('opponent', lobby.oppName);
-                    window.location.href = redirectUrl.toString();
-                }, 2500);
+                if (window.dvToast) window.dvToast('Match complete — confirm your result', 'info');
+                // Open the in-app submit modal (no navigation away from the web app).
+                setTimeout(() => openSubmitModal({ auto: true }), 1200);
             }
         });
 
