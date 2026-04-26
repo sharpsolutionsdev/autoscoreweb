@@ -1509,17 +1509,27 @@
 
         async function loadLeaderboard(flashId) {
             try {
-                const { data, error } = await sb.from('ranked_profiles')
+                // Match rankings.html parity: prefer placed players, but fall back
+                // to the full set so the panel never reads as empty during early
+                // pre-placement weeks.
+                let { data, error } = await sb.from('ranked_profiles')
                     .select('*')
                     .eq('is_placed', true)
                     .order('mmr', { ascending: false })
                     .limit(50);
                 if (error) throw error;
+                if (!data || data.length === 0) {
+                    const fb = await sb.from('ranked_profiles')
+                        .select('*')
+                        .order('mmr', { ascending: false })
+                        .limit(50);
+                    data = fb.data || [];
+                }
                 const tbody = document.getElementById('leaderboard-body');
                 if (!tbody) return;
                 tbody.innerHTML = '';
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = `<li class="p-8 text-center text-gray-500 text-sm">No placed players yet — be the first!</li>`;
+                    tbody.innerHTML = `<li class="p-8 text-center text-gray-500 text-sm">No ranked players yet — be the first!</li>`;
                     _lbLastRows = [];
                     return;
                 }
