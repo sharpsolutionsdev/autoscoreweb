@@ -1731,8 +1731,30 @@
             <div id="tab-admin" class="hidden">
                 <div class="space-y-5">
 
+                    <!-- Quick-link to the dedicated Activity Log page -->
+                    <a href="admin-activity"
+                       class="block rounded-2xl p-5 relative overflow-hidden group"
+                       style="background:linear-gradient(135deg, rgba(204,11,32,0.18) 0%, rgba(204,11,32,0.06) 50%, rgba(20,20,26,0.6) 100%); border:1px solid rgba(204,11,32,0.35); box-shadow:0 6px 28px rgba(204,11,32,0.18); text-decoration:none;">
+                        <div aria-hidden="true" style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 100% 50%, rgba(204,11,32,0.18), transparent 70%);pointer-events:none;"></div>
+                        <div class="relative flex flex-wrap items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(204,11,32,0.22);border:1px solid rgba(204,11,32,0.4);">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--brand);"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h16M19 9l3 3-3 3"/></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] font-bold tracking-[0.25em] uppercase mb-0.5" style="color:var(--brand);">Admin · Live Notifications</p>
+                                <p class="display text-2xl text-chalk leading-tight">ACTIVITY LOG</p>
+                                <p class="text-xs text-muted mt-1">Every sign-up, demo start, trial activation and subscription change in one feed — with live "online now" sessions.</p>
+                            </div>
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap" style="background:var(--brand);color:#fff;box-shadow:0 4px 14px rgba(204,11,32,0.4);">
+                                Open
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
+                        </div>
+                    </a>
+
                     <!-- Glass section nav -->
                     <nav class="admin-secnav" aria-label="Admin sections">
+                        <a href="admin-activity" style="color:var(--brand);border-color:rgba(204,11,32,0.4);background:rgba(204,11,32,0.10);">Activity Log ↗</a>
                         <a href="#admin-sec-overview">Overview</a>
                         <a href="#admin-sec-live">Live Now</a>
                         <a href="#admin-sec-charts">Charts</a>

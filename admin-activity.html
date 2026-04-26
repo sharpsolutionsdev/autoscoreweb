@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Activity Log · Admin | DartVoice</title>
+<meta name="theme-color" content="#CC0B20">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+','+g+','+b);var L=function(c){return Math.min(255,c+Math.round((255-c)*.12))};var lr=L(r),lg=L(g),lb=L(b);s.setProperty('--brand-light','#'+[lr,lg,lb].map(function(c){return c.toString(16).padStart(2,'0')}).join(''))}()</script>
+<link rel="stylesheet" href="css/tailwind.built.css">
+<link rel="stylesheet" href="css/general/base.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5;min-height:100vh}
+    .display{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;letter-spacing:-.02em;text-transform:uppercase}
+    .panel{background:linear-gradient(160deg,#111114,#0D0D10);border:1px solid rgba(255,255,255,.06);border-radius:16px}
+    .stat{background:linear-gradient(160deg,#111114,#0D0D10);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px}
+    .btn-brand{background:var(--brand);color:#fff;padding:10px 18px;border-radius:10px;font-weight:600;font-size:13px;border:0;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+    .btn-brand:hover{background:var(--brand-light);box-shadow:0 0 20px rgba(var(--brand-rgb),.3)}
+    .btn-ghost{background:transparent;color:#F0F0F5;padding:9px 14px;border-radius:10px;font-weight:500;font-size:13px;border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
+    .btn-ghost:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.16)}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border:1px solid transparent}
+    .pill-signup   {background:rgba(56,189,248,.10);color:#7dd3fc;border-color:rgba(56,189,248,.25)}
+    .pill-trial    {background:rgba(245,158,11,.10);color:#fbbf24;border-color:rgba(245,158,11,.25)}
+    .pill-active   {background:rgba(34,197,94,.10);color:#4ade80;border-color:rgba(34,197,94,.25)}
+    .pill-pastdue  {background:rgba(245,158,11,.10);color:#fbbf24;border-color:rgba(245,158,11,.30)}
+    .pill-cancel   {background:rgba(255,255,255,.04);color:#9CA3AF;border-color:rgba(255,255,255,.10)}
+    .pill-referral {background:rgba(var(--brand-rgb),.10);color:var(--brand);border-color:rgba(var(--brand-rgb),.25)}
+    .pill-online   {background:rgba(34,197,94,.10);color:#4ade80;border-color:rgba(34,197,94,.30)}
+    .row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
+    .row:last-child{border-bottom:0}
+    .row:hover{background:rgba(255,255,255,.02)}
+    .dot{width:10px;height:10px;border-radius:999px;flex-shrink:0}
+    .dot-online{background:#22c55e;box-shadow:0 0 8px #22c55e;animation:dvDot 1.4s ease-in-out infinite}
+    @keyframes dvDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
+    .filter-btn{padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);color:#9CA3AF;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+    .filter-btn:hover{color:#F0F0F5;border-color:rgba(255,255,255,.16)}
+    .filter-btn.active{color:#fff;background:rgba(var(--brand-rgb),.15);border-color:rgba(var(--brand-rgb),.4)}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#18181C;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 18px;font-size:13px;z-index:200;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+    .hide{display:none!important}
+    .spin{animation:dvSpin 1s linear infinite}
+    @keyframes dvSpin{to{transform:rotate(360deg)}}
+    .live-pulse{position:relative}
+    .live-pulse::after{content:'';position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px #22c55e;animation:dvDot 1.4s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- ─── GATE: while we verify admin role ───────────────────────── -->
+<div id="gate" class="min-h-screen flex items-center justify-center">
+    <div class="flex flex-col items-center gap-4">
+        <div class="w-10 h-10 border-2 border-white/10 border-t-brand rounded-full animate-spin" style="border-top-color:var(--brand)"></div>
+        <p class="text-sm" style="color:#9CA3AF">Verifying admin access…</p>
+    </div>
+</div>
+
+<!-- ─── APP ─────────────────────────────────────────────────────── -->
+<div id="app" class="hide">
+
+<header class="sticky top-0 z-40 backdrop-blur-xl border-b" style="background:rgba(8,8,10,.85);border-color:rgba(255,255,255,.06)">
+    <div class="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <svg viewBox="0 0 36 36" class="w-7 h-7 shrink-0" fill="none" aria-hidden="true">
+                <rect width="36" height="36" rx="9" fill="#CC0B20"/>
+                <circle cx="18" cy="18" r="11" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+                <circle cx="18" cy="18" r="6.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                <circle cx="18" cy="18" r="3" fill="white"/>
+            </svg>
+            <span class="display text-base">DARTVOICE</span>
+            <span class="text-xs font-semibold uppercase tracking-wider" style="color:#9CA3AF">Activity Log</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a class="btn-ghost" href="dartvoice-dashboard">Dashboard</a>
+            <a class="btn-ghost" href="admin">CRM</a>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-5 py-7 space-y-6">
+
+    <!-- Title row -->
+    <section class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <h1 class="display text-4xl md:text-5xl">ACTIVITY LOG</h1>
+            <p class="text-sm mt-2" style="color:#9CA3AF">
+                Live feed of every sign-up, demo start, trial activation and subscription change. Refreshes on page load and on demand.
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span id="last-refreshed" class="text-xs" style="color:#6B7280">—</span>
+            <button id="btn-refresh" class="btn-brand">
+                <svg id="ico-refresh" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg>
+                <span>Refresh</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- KPI strip -->
+    <section class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="stat live-pulse">
+            <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#6B7280">Online Now</p>
+            <p id="kpi-online" class="display text-3xl mt-1" style="color:#4ade80">—</p>
+        </div>
+        <div class="stat">
+            <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#6B7280">New (Today)</p>
+            <p id="kpi-today" class="display text-3xl mt-1">—</p>
+        </div>
+        <div class="stat">
+            <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#6B7280">New (Month)</p>
+            <p id="kpi-month" class="display text-3xl mt-1">—</p>
+        </div>
+        <div class="stat">
+            <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#6B7280">Trialing</p>
+            <p id="kpi-trial" class="display text-3xl mt-1" style="color:#fbbf24">—</p>
+        </div>
+        <div class="stat">
+            <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#6B7280">Active Subs</p>
+            <p id="kpi-active" class="display text-3xl mt-1" style="color:#4ade80">—</p>
+        </div>
+    </section>
+
+    <!-- LIVE NOW -->
+    <section class="panel">
+        <div class="flex items-center justify-between p-4 border-b" style="border-color:rgba(255,255,255,.05)">
+            <div class="flex items-center gap-3">
+                <span class="dot dot-online"></span>
+                <h2 class="display text-xl">LIVE RIGHT NOW</h2>
+                <span id="live-count-pill" class="pill pill-online">0</span>
+            </div>
+            <span class="text-[10px] uppercase tracking-widest" style="color:#6B7280">Updated in real-time</span>
+        </div>
+        <div id="live-list">
+            <p class="text-sm py-6 text-center" style="color:#6B7280">Listening for live sessions…</p>
+        </div>
+    </section>
+
+    <!-- FEED -->
+    <section class="panel">
+        <div class="p-4 border-b flex flex-wrap items-center justify-between gap-3" style="border-color:rgba(255,255,255,.05)">
+            <h2 class="display text-xl">EVENT FEED</h2>
+            <div class="flex flex-wrap gap-1.5" id="filter-row">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="signup">Sign-ups</button>
+                <button class="filter-btn" data-filter="trial">Trial Starts</button>
+                <button class="filter-btn" data-filter="active">New Subs</button>
+                <button class="filter-btn" data-filter="pastdue">Past Due</button>
+                <button class="filter-btn" data-filter="cancel">Cancellations</button>
+                <button class="filter-btn" data-filter="referral">Referrals</button>
+            </div>
+        </div>
+        <div id="feed">
+            <p class="text-sm py-10 text-center" style="color:#6B7280">Loading…</p>
+        </div>
+    </section>
+
+</main>
+
+<div id="toast" class="toast hide"></div>
+
+</div><!-- /app -->
+
+<script>
+'use strict';
+
+const SUPABASE_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+window.sb = sb;
+
+// Same hard-coded admin emails the dashboard uses, plus admin_users table check.
+const ADMIN_EMAILS = ['admin@dartvoice.app','support@dartvoice.app','reuben@dartvoice.app','callum@dartvoice.app','reubensharp18@gmail.com','sharpsolutionsdev@gmail.com'];
+
+const $  = (id) => document.getElementById(id);
+const HTML = 'inner' + 'HTML';
+function setHTML(el, h){ if (el) el[HTML] = h; }
+function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+let _events = [];          // unified, sorted desc by ts
+let _activeFilter = 'all';
+let _liveMembers = [];     // from presence channel
+
+function toast(msg){
+    const t = $('toast'); if (!t) return;
+    t.textContent = msg; t.classList.remove('hide');
+    clearTimeout(window.__dvToastT);
+    window.__dvToastT = setTimeout(() => t.classList.add('hide'), 2400);
+}
+
+// ── AUTH GATE ───────────────────────────────────────────────────
+(async function gate(){
+    try {
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) { location.replace('/login?redirect=/admin-activity'); return; }
+        let isAdmin = ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+        if (!isAdmin) {
+            try {
+                const { data: row } = await sb.from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle();
+                if (row && row.user_id) isAdmin = true;
+            } catch(_){}
+        }
+        if (!isAdmin) {
+            toast('Not an admin — redirecting…');
+            setTimeout(() => location.replace('/dartvoice-dashboard'), 900);
+            return;
+        }
+        $('gate').classList.add('hide');
+        $('app').classList.remove('hide');
+        attachUI();
+        startPresence();
+        await refreshAll();
+    } catch (e) {
+        console.error(e);
+        toast('Auth failed: ' + (e?.message || e));
+    }
+})();
+
+// ── UI bindings ─────────────────────────────────────────────────
+function attachUI(){
+    $('btn-refresh').addEventListener('click', () => refreshAll(true));
+    document.querySelectorAll('[data-filter]').forEach(b => {
+        b.addEventListener('click', () => {
+            _activeFilter = b.dataset.filter;
+            document.querySelectorAll('[data-filter]').forEach(x => x.classList.toggle('active', x === b));
+            renderFeed();
+        });
+    });
+}
+
+// ── Presence (live now) ─────────────────────────────────────────
+let _presenceCh = null;
+function startPresence(){
+    try {
+        if (_presenceCh) sb.removeChannel(_presenceCh);
+        _presenceCh = sb.channel('dv-site-presence', { config: { presence: { key: 'admin-' + Date.now().toString(36) } } });
+        _presenceCh.on('presence', { event: 'sync' }, () => {
+            const state = _presenceCh.presenceState();
+            const arr = [];
+            Object.keys(state).forEach(k => (state[k] || []).forEach(m => arr.push(m)));
+            _liveMembers = arr;
+            renderLive();
+        });
+        _presenceCh.subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+                // Track silently so the channel stays open; admins are not counted as users.
+                try { _presenceCh.track({ session_id: 'admin', user_id: null, page: '/admin-activity', joined_at: Date.now(), is_admin: true }); } catch(_){}
+            }
+        });
+    } catch(e){ console.warn('presence failed', e); }
+}
+
+function renderLive(){
+    const visible = _liveMembers.filter(m => !m.is_admin);
+    $('kpi-online').textContent = visible.length;
+    $('live-count-pill').textContent = visible.length + (visible.length === 1 ? ' session' : ' sessions');
+
+    const host = $('live-list');
+    if (!visible.length){
+        host.innerHTML = '<p class="text-sm py-6 text-center" style="color:#6B7280">No live sessions right now.</p>';
+        return;
+    }
+    // Look up emails for any signed-in user_ids using cached _allUsers
+    const byId = {};
+    (_allUsers || []).forEach(u => { byId[u.user_id] = u; });
+
+    host.innerHTML = visible.map(m => {
+        const u = m.user_id ? byId[m.user_id] : null;
+        const who = u ? escHtml(u.email) : '<span style="color:#6B7280">Anonymous visitor</span>';
+        const status = u ? (u.status || 'free') : 'guest';
+        const page = escHtml(m.page || '/');
+        const since = m.joined_at ? timeAgo(m.joined_at) : 'just now';
+        return `<div class="row">
+            <span class="dot dot-online"></span>
+            <div class="min-w-0">
+                <p class="text-sm font-medium truncate">${who}</p>
+                <p class="text-[11px] mt-0.5" style="color:#6B7280">on <span style="color:#9CA3AF">${page}</span> · ${since}</p>
+            </div>
+            <span class="pill pill-${status === 'active' ? 'active' : status === 'trialing' ? 'trial' : status === 'past_due' ? 'pastdue' : status === 'canceled' ? 'cancel' : 'online'}">${escHtml(status)}</span>
+        </div>`;
+    }).join('');
+}
+
+// ── Data fetch + transform ──────────────────────────────────────
+let _allUsers = [];
+
+async function refreshAll(showFeedback){
+    if (showFeedback) {
+        $('ico-refresh').classList.add('spin');
+    }
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { toast('Session lost — please sign in.'); return; }
+
+        const resp = await fetch(SUPABASE_URL + '/functions/v1/admin-stats', {
+            headers: {
+                'Authorization': 'Bearer ' + session.access_token,
+                'apikey': SUPABASE_KEY,
+            }
+        });
+        if (!resp.ok) {
+            const txt = await resp.text();
+            throw new Error('admin-stats failed: ' + txt.slice(0, 200));
+        }
+        const d = await resp.json();
+
+        // KPIs
+        _allUsers = Array.isArray(d.allUsers) ? d.allUsers : [];
+        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+        const todayCount = _allUsers.filter(u => u.created_at && new Date(u.created_at) >= todayStart).length;
+        $('kpi-today').textContent  = todayCount;
+        $('kpi-month').textContent  = (d.newThisMonth || []).length;
+        $('kpi-trial').textContent  = (d.byStatus && d.byStatus.trialing) || 0;
+        $('kpi-active').textContent = (d.byStatus && d.byStatus.active)   || 0;
+
+        // Build unified events list ────────────────────────────────
+        const events = [];
+
+        // Sign-ups (all users we know about)
+        _allUsers.forEach(u => {
+            if (!u.created_at) return;
+            events.push({
+                kind: 'signup',
+                ts: new Date(u.created_at).getTime(),
+                email: u.email || '—',
+                user_id: u.user_id || null,
+                meta: u.ambassador_partner ? 'Ambassador' : '',
+            });
+        });
+
+        // Subscription changes — type derived from status. Updated_at is when
+        // the row last changed, which is the closest thing we have to "trial
+        // started" / "subscription activated" / "cancelled" timestamps.
+        (d.subscribers || []).forEach(s => {
+            if (!s.updated_at) return;
+            const ts = new Date(s.updated_at).getTime();
+            const base = { ts, email: s.email || '—', user_id: s.user_id || null };
+            if (s.status === 'trialing')       events.push({ ...base, kind: 'trial',   meta: s.current_period_end ? 'Ends ' + fmtDate(s.current_period_end) : '' });
+            else if (s.status === 'active')    events.push({ ...base, kind: 'active',  meta: s.current_period_end ? 'Renews ' + fmtDate(s.current_period_end) : '' });
+            else if (s.status === 'past_due')  events.push({ ...base, kind: 'pastdue', meta: 'Payment failed' });
+            else if (s.status === 'canceled')  events.push({ ...base, kind: 'cancel',  meta: 'Subscription cancelled' });
+        });
+
+        // Referrals
+        (d.referralsList || []).forEach(r => {
+            if (!r.created_at) return;
+            events.push({
+                kind: 'referral',
+                ts: new Date(r.created_at).getTime(),
+                email: r.referred_email || '—',
+                meta: 'Status: ' + (r.status || '—') + (r.referrer_email ? ' · by ' + r.referrer_email : ''),
+            });
+        });
+
+        events.sort((a,b) => b.ts - a.ts);
+        _events = events;
+
+        renderFeed();
+        renderLive(); // re-render so emails resolve for live sessions
+
+        $('last-refreshed').textContent = 'Updated ' + new Date().toLocaleTimeString();
+        if (showFeedback) toast('Refreshed');
+    } catch (e) {
+        console.error(e);
+        toast('Refresh failed: ' + (e?.message || e));
+    } finally {
+        $('ico-refresh').classList.remove('spin');
+    }
+}
+
+// ── Renderers ───────────────────────────────────────────────────
+const KIND_META = {
+    signup:   { pill: 'pill-signup',   label: 'Sign-up',          icon: '👋' },
+    trial:    { pill: 'pill-trial',    label: 'Trial Started',    icon: '🆓' },
+    active:   { pill: 'pill-active',   label: 'Subscription',     icon: '✓'  },
+    pastdue:  { pill: 'pill-pastdue',  label: 'Past Due',          icon: '⚠'  },
+    cancel:   { pill: 'pill-cancel',   label: 'Cancelled',         icon: '✕'  },
+    referral: { pill: 'pill-referral', label: 'Referral',          icon: '↗'  },
+};
+
+function renderFeed(){
+    const host = $('feed');
+    const list = _activeFilter === 'all' ? _events : _events.filter(e => e.kind === _activeFilter);
+    if (!list.length) {
+        host.innerHTML = '<p class="text-sm py-10 text-center" style="color:#6B7280">No events match this filter.</p>';
+        return;
+    }
+    // Cap at 500 to keep the DOM happy.
+    const rows = list.slice(0, 500).map(e => {
+        const km = KIND_META[e.kind] || { pill: 'pill-cancel', label: e.kind, icon: '·' };
+        return `<div class="row" data-kind="${escHtml(e.kind)}">
+            <span class="text-base" aria-hidden="true" style="font-family:'Plus Jakarta Sans',sans-serif">${km.icon}</span>
+            <div class="min-w-0">
+                <p class="text-sm font-medium truncate">${escHtml(e.email)}</p>
+                <p class="text-[11px] mt-0.5" style="color:#6B7280">
+                    <span class="pill ${km.pill}">${km.label}</span>
+                    ${e.meta ? '<span style="margin-left:8px;color:#9CA3AF">' + escHtml(e.meta) + '</span>' : ''}
+                </p>
+            </div>
+            <span class="text-[11px] whitespace-nowrap" style="color:#6B7280">${timeAgo(e.ts)}</span>
+        </div>`;
+    }).join('');
+    host.innerHTML = rows + (list.length > 500 ? '<p class="text-[11px] py-3 text-center" style="color:#6B7280">Showing latest 500 of ' + list.length + ' events.</p>' : '');
+}
+
+// ── Helpers ─────────────────────────────────────────────────────
+function fmtDate(d){
+    try { return new Date(d).toLocaleDateString('en-GB',{ day:'numeric', month:'short', year:'2-digit' }); } catch { return '—'; }
+}
+function timeAgo(ts){
+    const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (s < 60)      return s + 's ago';
+    if (s < 3600)    return Math.floor(s/60) + 'm ago';
+    if (s < 86400)   return Math.floor(s/3600) + 'h ago';
+    if (s < 604800)  return Math.floor(s/86400) + 'd ago';
+    return fmtDate(ts);
+}
+
+// Re-render relative timestamps every 30s so the feed feels live.
+setInterval(() => { if (_events.length) renderFeed(); renderLive(); }, 30000);
+</script>
+
+</body>
+</html>
