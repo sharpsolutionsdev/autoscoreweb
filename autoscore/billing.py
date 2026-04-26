@@ -215,10 +215,14 @@ def sign_out():
     _save(d)
 
 def get_account() -> dict | None:
-    """Returns {'user_id', 'email'} if logged in, else None."""
+    """Returns {'user_id', 'email', 'access_token'} if logged in, else None."""
     d = _load()
     if d.get('sb_user_id') and d.get('sb_email'):
-        return {'user_id': d['sb_user_id'], 'email': d['sb_email']}
+        return {
+            'user_id':      d['sb_user_id'],
+            'email':        d['sb_email'],
+            'access_token': d.get('sb_access_token', ''),
+        }
     return None
 
 def refresh_session() -> bool:
@@ -342,13 +346,24 @@ def check_subscription_async(callback):
     threading.Thread(target=_do, daemon=True).start()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Checkout URL
-# ─────────────────────────────────────────────────────────────────────────────
+# Checkout URL  (passes the user's Supabase JWT — server verifies it and
+# derives the user_id from the token, never trusting the query string.)
+# ────────────────────────────────────────────────────────────────────────────────
 def get_checkout_url() -> str:
+    from urllib.parse import urlencode
     d = _load()
-    uid        = d.get('sb_user_id', '')
     install_id = get_install_id()
-    return f'{BILLING_SERVER}/checkout?user_id={uid}&install_id={install_id}'
+    token      = d.get('sb_access_token', '')
+    qs = urlencode({'install_id': install_id, 'access_token': token})
+    return f'{BILLING_SERVER}/checkout?{qs}'
+
+
+def get_portal_url() -> str:
+    """Stripe billing portal redirect, authenticated via the user's JWT."""
+    from urllib.parse import urlencode
+    d = _load()
+    token = d.get('sb_access_token', '')
+    return f'{BILLING_SERVER}/portal?' + urlencode({'access_token': token})
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Convenience summary

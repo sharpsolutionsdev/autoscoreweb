@@ -1657,7 +1657,7 @@ class DartVoiceApp(ctk.CTk):
                     text_color=FG2, height=42, corner_radius=10,
                     command=lambda: webbrowser.open(
                         f"{os.environ.get('DV_BILLING_URL','https://billing.dartvoice.app')}"
-                        f"/portal?user_id={account['user_id']}"
+                        f"/portal?access_token={account.get('access_token','')}"
                     ),
                 ).pack(fill='x', pady=(0, 8))
 

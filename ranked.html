@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -1203,15 +1203,32 @@
                 window._dvDcUsername = profile?.dartcounter_username || '';
                 window._dvCountry    = profile?.country_code || '';
 
-                // Render avatar (image if uploaded, else initial)
+                // Render avatar (image if uploaded, else initial). All user-controlled
+                // values escaped + img created via DOM API to avoid HTML-injection.
                 try {
                     const avatarEl = document.getElementById('player-avatar');
                     if (avatarEl) {
                         const initial = (displayName || '?').charAt(0).toUpperCase();
-                        if (profile?.avatar_url) {
-                            avatarEl.innerHTML = `<img src="${profile.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span>${initial}</span>'">`;
+                        avatarEl.textContent = '';
+                        const url = profile?.avatar_url;
+                        if (url && /^https?:\/\//i.test(url)) {
+                            const img = document.createElement('img');
+                            img.alt = '';
+                            img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                            img.src = url;
+                            img.addEventListener('error', () => {
+                                avatarEl.textContent = '';
+                                const span = document.createElement('span');
+                                span.id = 'player-avatar-initial';
+                                span.textContent = initial;
+                                avatarEl.appendChild(span);
+                            });
+                            avatarEl.appendChild(img);
                         } else {
-                            avatarEl.innerHTML = `<span id="player-avatar-initial">${initial}</span>`;
+                            const span = document.createElement('span');
+                            span.id = 'player-avatar-initial';
+                            span.textContent = initial;
+                            avatarEl.appendChild(span);
                         }
                     }
                 } catch(_){}
@@ -1818,7 +1835,8 @@
                     const avatarUrl = avatarMap[p.id];
                     const cc = countryMap[p.id];
                     const flag = flagEmoji(cc);
-                    const flagImg = cc ? `<img src="https://flagcdn.com/20x15/${String(cc).toLowerCase()}.png" srcset="https://flagcdn.com/40x30/${String(cc).toLowerCase()}.png 2x" class="flag-mini" alt="${escapeHtml(cc)}" title="${escapeHtml(cc)}" loading="lazy" onerror="this.outerHTML='<span style=&quot;margin-right:6px;font-size:14px;line-height:1&quot;>${flag || ''}</span>'">` : '';
+                    const ccLow = String(cc || '').toLowerCase().replace(/[^a-z]/g,'').slice(0,2);
+                    const flagImg = ccLow ? `<img src="https://flagcdn.com/20x15/${ccLow}.png" srcset="https://flagcdn.com/40x30/${ccLow}.png 2x" class="flag-mini" alt="${escapeHtml(cc)}" title="${escapeHtml(cc)}" loading="lazy" data-fallback="${escapeHtml(flag || '')}" onerror="this.outerHTML='<span style=&quot;margin-right:6px;font-size:14px;line-height:1&quot;>'+(this.dataset.fallback||'')+'</span>'">` : '';
                     const avg = Number(p.avg_match_average || 0).toFixed(1);
                     const pos = idx + 1;
                     const posCls = idx < 3 ? `lb-pos lb-${pos}` : 'lb-pos';
@@ -1829,8 +1847,8 @@
                     li.innerHTML = `
                         <div class="${posCls}">${pos}</div>
                         <div class="lb-player">
-                            <div class="lb-avatar">${avatarUrl
-                                ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='${initial}'">`
+                            <div class="lb-avatar" data-initial="${escapeHtml(initial)}">${avatarUrl && /^https?:\/\//i.test(avatarUrl)
+                                ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createTextNode(this.parentElement.dataset.initial||'')))">`
                                 : escapeHtml(initial)}</div>
                             <div class="lb-meta">
                                 <div class="lb-name">${flagImg ? `<span style="display:inline-flex;align-items:center;margin-right:6px;">${flagImg}</span>` : ''}${escapeHtml(name)}${isMe ? '<span class="lb-you-tag">YOU</span>' : ''}</div>

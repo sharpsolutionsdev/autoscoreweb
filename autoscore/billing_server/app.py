@@ -131,6 +131,42 @@ def _get_sub_row(user_id: str) -> dict | None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Auth helpers
+# ─────────────────────────────────────────────────────────────────────────────
+def _user_id_from_request():
+    """
+    Verify the caller's Supabase access token and return their auth.users UUID.
+    Accepts the JWT either from the `Authorization: Bearer <jwt>` header or a
+    `?access_token=<jwt>` query string (last-resort for redirect flows that
+    can't set headers, e.g. /portal opened in a top-level window). Aborts 401
+    on any failure. NEVER trust `?user_id=` from the query string — it is
+    callable by anyone who knows a victim's Supabase UUID.
+    """
+    token = ''
+    auth_hdr = request.headers.get('Authorization', '')
+    if auth_hdr.lower().startswith('bearer '):
+        token = auth_hdr.split(None, 1)[1].strip()
+    if not token:
+        token = (request.args.get('access_token') or '').strip()
+    if not token or len(token) > 4096:
+        abort(401, 'Missing access token')
+    try:
+        # supabase-py's auth.get_user(jwt) verifies signature against the
+        # project JWKS and returns the user record.
+        result = _sb.auth.get_user(token)
+        user = getattr(result, 'user', None) or (result.get('user') if isinstance(result, dict) else None)
+        uid = getattr(user, 'id', None) if user else None
+        if not uid and isinstance(user, dict):
+            uid = user.get('id')
+        if not uid:
+            abort(401, 'Invalid token')
+        return uid
+    except Exception as e:
+        app.logger.warning('JWT verification failed: %s', e)
+        abort(401, 'Invalid token')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Routes
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route('/health')
@@ -182,15 +218,15 @@ def health():
 @app.route('/checkout')
 def checkout():
     """
-    GET /checkout?user_id=<uuid>&install_id=<uuid>
-    Creates a Stripe Checkout session and redirects.
-    user_id is the Supabase auth.users UUID.
+    GET /checkout?install_id=<uuid>&access_token=<jwt>
+    OR  GET /checkout?install_id=<uuid>  with Authorization: Bearer <jwt>
+    Creates a Stripe Checkout session and redirects. The Supabase user_id is
+    derived from the verified JWT — NEVER from the query string.
     """
-    user_id    = request.args.get('user_id', '').strip()
+    user_id    = _user_id_from_request()
     install_id = request.args.get('install_id', '').strip()
-
-    if not user_id or len(user_id) > 64:
-        abort(400, 'Missing user_id')
+    if len(install_id) > 64:
+        abort(400, 'install_id too long')
 
     # Fetch or create Stripe customer linked to this user
     existing = (
@@ -277,12 +313,11 @@ def checkout():
 @app.route('/portal')
 def portal():
     """
-    GET /portal?user_id=<uuid>
+    GET /portal  (Authorization: Bearer <jwt>  OR  ?access_token=<jwt>)
     Opens the Stripe Customer Portal so users can manage / cancel their subscription.
+    The user_id is derived from the verified JWT — never from the query string.
     """
-    user_id = request.args.get('user_id', '').strip()
-    if not user_id:
-        abort(400)
+    user_id = _user_id_from_request()
 
     resp = (
         _sb.table('dartvoice_subscriptions')
@@ -305,7 +340,65 @@ def portal():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/webhook', methods=['GET', 'POST'])
+# ────────────────────────────────────────────────────────────────────────────────
+# Competitions / raffles  — one-time Stripe Checkout per ticket purchase.
+# Tickets are NOT reserved here; the webhook calls reserve_competition_tickets
+# only after Stripe confirms the payment, so abandoned sessions never burn
+# inventory.
+# ────────────────────────────────────────────────────────────────────────────────
+@app.route('/competition-checkout', methods=['POST'])
+def competition_checkout():
+    user_id = _user_id_from_request()
+    body = request.get_json(silent=True) or {}
+    slug = (body.get('slug') or '').strip()
+    try:
+        qty = int(body.get('qty') or 0)
+    except (TypeError, ValueError):
+        qty = 0
+    if not slug or len(slug) > 80 or qty <= 0 or qty > 200:
+        abort(400, 'Bad slug or qty')
+
+    comp = (
+        _sb.table('competitions')
+        .select('id,slug,title,status,ticket_price_pence,total_tickets,sold_tickets,max_per_user,stripe_price_id')
+        .eq('slug', slug)
+        .limit(1)
+        .execute()
+    )
+    if not comp.data:
+        abort(404, 'Competition not found')
+    c = comp.data[0]
+    if c.get('status') != 'active':
+        abort(409, 'Competition not active')
+    if (c.get('sold_tickets') or 0) + qty > (c.get('total_tickets') or 0):
+        abort(409, 'Not enough tickets remaining')
+    if qty > (c.get('max_per_user') or 75):
+        abort(400, 'Exceeds max_per_user')
+    price_id = c.get('stripe_price_id')
+    if not price_id:
+        abort(500, 'Competition not wired to Stripe')
+
+    base = os.environ.get('PUBLIC_SITE_URL', 'https://dartvoice.app').rstrip('/')
+    try:
+        session = stripe.checkout.Session.create(
+            mode='payment',
+            payment_method_types=['card'],
+            line_items=[{'price': price_id, 'quantity': qty}],
+            client_reference_id=user_id,
+            metadata={
+                'kind':           'competition',
+                'competition_id': c['id'],
+                'slug':           c['slug'],
+                'qty':            str(qty),
+                'supabase_user_id': user_id,
+            },
+            success_url=f'{base}/competitions.html?slug={c["slug"]}&paid=1',
+            cancel_url=f'{base}/competitions.html?slug={c["slug"]}&cancelled=1',
+        )
+        return jsonify({'url': session.url}), 200
+    except stripe.StripeError as e:
+        app.logger.error('Competition checkout failed: %s', e)
+        return jsonify({'error': str(e)}), 500
 def webhook():
     if request.method == 'GET':
         return jsonify({
@@ -335,8 +428,44 @@ def webhook():
     obj = (evt.get('data') or {}).get('object', {})
 
     # ── Checkout completed ────────────────────────────────────────────────────
-    if etype == 'checkout.session.completed':
-        user_id    = obj.get('client_reference_id')
+    if etype == 'checkout.session.completed':        meta = obj.get('metadata') or {}
+
+        # ── Branch: competition ticket purchase ─────────────────────────
+        if meta.get('kind') == 'competition' and meta.get('competition_id'):
+            cid = meta.get('competition_id')
+            uid = meta.get('supabase_user_id') or obj.get('client_reference_id')
+            try:
+                qty = int(meta.get('qty') or 0)
+            except (TypeError, ValueError):
+                qty = 0
+            session_id = obj.get('id')
+            amount     = obj.get('amount_total') or 0
+            if cid and uid and qty > 0:
+                # Idempotency: if we've already booked this session, skip.
+                already = (
+                    _sb.table('competition_tickets')
+                    .select('id').eq('stripe_session_id', session_id).limit(1).execute()
+                )
+                if not already.data:
+                    try:
+                        rpc = _sb.rpc('reserve_competition_tickets',
+                                      {'p_competition_id': cid, 'p_qty': qty}).execute()
+                        numbers = rpc.data or []
+                        _sb.table('competition_tickets').insert({
+                            'competition_id':    cid,
+                            'user_id':           uid,
+                            'qty':               qty,
+                            'ticket_numbers':    numbers,
+                            'amount_paid_pence': amount,
+                            'stripe_session_id': session_id,
+                            'payment_status':    'paid',
+                            'paid_at':           time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                        }).execute()
+                    except Exception as e:
+                        app.logger.error('Competition ticket reserve failed: %s', e)
+            return jsonify({'received': True}), 200
+
+        # ── Branch: subscription checkout (existing flow) ────────────────        user_id    = obj.get('client_reference_id')
         cust_id    = obj.get('customer')
         sub_id     = obj.get('subscription')
         email      = (obj.get('customer_details') or {}).get('email', '')

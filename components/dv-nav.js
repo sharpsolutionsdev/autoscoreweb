@@ -60,6 +60,10 @@ class DvNav extends HTMLElement {
                 <a href="/#features" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Features</a>
                 <a href="/#pricing" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Pricing</a>
                 <a href="/how-it-works" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">How It Works</a>
+                <a href="/competitions" class="flex items-center gap-1.5 px-4 py-2 text-sm text-chalk hover:text-brand hover:bg-wire/30 transition">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block animate-pulse"></span>Competitions
+                  <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.4);">NEW</span>
+                </a>
                 <a href="/#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
                 <a href="/guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
                 <a href="/referral" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
@@ -87,6 +91,11 @@ class DvNav extends HTMLElement {
             <a href="/#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
             <a href="/#brand-ambassador" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Brand Ambassador</a>
             <a href="/guide" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
+            <a href="/competitions" class="text-sm font-bold text-chalk transition px-2 py-2.5 rounded-lg flex items-center gap-2" style="background:linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.04)); border:1px solid rgba(245,158,11,0.35);">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+              Competitions
+              <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(245,158,11,0.2); color:#f59e0b; border:1px solid rgba(245,158,11,0.4);">NEW</span>
+            </a>
             <a href="/web-app" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded">
               Web App

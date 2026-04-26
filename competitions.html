@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.google-analytics.com; img-src 'self' data: https:; frame-src https://js.stripe.com">
+
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var hx=h.replace('#','');var r=parseInt(hx.slice(0,2),16),g=parseInt(hx.slice(2,4),16),b=parseInt(hx.slice(4,6),16);var d=document.documentElement.style;d.setProperty('--brand',h);d.setProperty('--brand-r',r);d.setProperty('--brand-g',g);d.setProperty('--brand-b',b);d.setProperty('--brand-rgb',r+','+g+','+b);}();</script>
+
+    <title>Competitions | Win Premium Darts Gear · DartVoice</title>
+    <meta name="description" content="Win premium darts gear and cash prizes from £0.99 a ticket. Live draws every week — Phil Taylor, Luke Littler, MvG signature darts, Winmau Blade boards and £500+ cash.">
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DARTVOICE_PROD"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-DARTVOICE_PROD');
+    </script>
+
+    <link rel="stylesheet" href="css/tailwind.built.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/general/base.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="components/dv-nav.js" defer></script>
+    <script src="components/dv-footer.js" defer></script>
+    <script src="theme.js" defer></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0b0e; color: #f0f0f5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+        :root { --brand: #CC0B20; --brand-rgb: 204, 11, 32; }
+
+        .page-bg {
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(var(--brand-rgb),0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 85% 30%, rgba(245,158,11,0.10) 0%, transparent 70%),
+                linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
+            z-index: -1; pointer-events: none;
+        }
+
+        .comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+
+        .comp-card {
+            background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+            position: relative;
+        }
+        .comp-card:hover { transform: translateY(-3px); border-color: rgba(var(--brand-rgb),0.4); box-shadow: 0 10px 40px rgba(var(--brand-rgb),0.18); }
+
+        .comp-card .image {
+            aspect-ratio: 4 / 3;
+            background: #0a0a0d center/cover no-repeat;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            position: relative;
+        }
+        .comp-card .badge {
+            position: absolute; top: 10px; left: 10px;
+            font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+            padding: 4px 8px; border-radius: 6px;
+            background: rgba(var(--brand-rgb),0.95); color: #fff;
+            box-shadow: 0 4px 12px rgba(var(--brand-rgb),0.4);
+        }
+        .comp-card .badge.gold { background: rgba(245,158,11,0.95); }
+
+        .comp-card .countdown {
+            position: absolute; bottom: 10px; right: 10px;
+            font-size: 11px; font-weight: 700;
+            padding: 4px 8px; border-radius: 6px;
+            background: rgba(0,0,0,0.7); color: #fff;
+            backdrop-filter: blur(4px);
+        }
+
+        .progress { height: 6px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+        .progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), #f59e0b); transition: width .4s ease; }
+
+        .ticket-btn {
+            display: block; width: 100%; padding: 12px; border-radius: 10px;
+            background: var(--brand); color: #fff;
+            font-weight: 700; font-size: 14px; text-align: center;
+            transition: all .15s ease;
+        }
+        .ticket-btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(var(--brand-rgb),0.35); }
+        .ticket-btn.sold-out { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); cursor: not-allowed; }
+        .ticket-btn.sold-out:hover { transform: none; box-shadow: none; }
+
+        .winners-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+        .winner-pill {
+            flex: 0 0 auto;
+            background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 999px; padding: 6px 14px;
+            font-size: 12px; color: #4ade80; white-space: nowrap;
+        }
+
+        .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04)); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+    <div class="page-bg"></div>
+
+    <dv-nav></dv-nav>
+
+    <main class="max-w-6xl mx-auto px-5 pt-28">
+        <!-- Hero -->
+        <section class="text-center mb-12">
+            <span class="inline-block text-[10px] font-black tracking-[0.2em] px-3 py-1 rounded-full" style="background:rgba(245,158,11,0.12); color:#f59e0b; border:1px solid rgba(245,158,11,0.4);">NEW · WIN PREMIUM DARTS GEAR</span>
+            <h1 class="display text-5xl sm:text-6xl mt-4 leading-none">DartVoice<br><span style="color:var(--brand);">Competitions</span></h1>
+            <p class="text-muted text-base mt-4 max-w-xl mx-auto">Premium signature darts, championship boards and tax-free cash — from <strong class="text-chalk">£0.99</strong> a ticket. Live draws every week, fully transparent random selection.</p>
+
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-6 text-xs text-muted">
+                <span class="px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">⚖️ UK Gambling Act compliant</span>
+                <span class="px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">📬 Free postal entry route</span>
+                <span class="px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">🎲 Verifiable random draws</span>
+            </div>
+        </section>
+
+        <!-- Recent winners strip -->
+        <section class="mb-10" id="winners-section" hidden>
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <p class="text-[11px] font-bold tracking-[0.18em] uppercase text-emerald-400">Recent winners</p>
+            </div>
+            <div id="winners-strip" class="winners-strip"></div>
+        </section>
+
+        <!-- Active competitions grid -->
+        <section>
+            <div class="flex items-end justify-between mb-5">
+                <div>
+                    <h2 class="display text-2xl">Live draws</h2>
+                    <p class="text-xs text-muted mt-1">Hand-picked premium darts gear · capped tickets · guaranteed draw</p>
+                </div>
+                <a href="#how-it-works" class="text-xs text-muted hover:text-chalk transition">How it works →</a>
+            </div>
+
+            <div id="comp-grid" class="comp-grid">
+                <!-- Skeleton loaders -->
+                <div class="comp-card"><div class="skeleton" style="height:240px;border-radius:0;"></div><div class="p-5 space-y-3"><div class="skeleton" style="height:18px;width:80%;"></div><div class="skeleton" style="height:14px;width:60%;"></div><div class="skeleton" style="height:6px;width:100%;"></div><div class="skeleton" style="height:42px;width:100%;"></div></div></div>
+                <div class="comp-card"><div class="skeleton" style="height:240px;border-radius:0;"></div><div class="p-5 space-y-3"><div class="skeleton" style="height:18px;width:80%;"></div><div class="skeleton" style="height:14px;width:60%;"></div><div class="skeleton" style="height:6px;width:100%;"></div><div class="skeleton" style="height:42px;width:100%;"></div></div></div>
+                <div class="comp-card"><div class="skeleton" style="height:240px;border-radius:0;"></div><div class="p-5 space-y-3"><div class="skeleton" style="height:18px;width:80%;"></div><div class="skeleton" style="height:14px;width:60%;"></div><div class="skeleton" style="height:6px;width:100%;"></div><div class="skeleton" style="height:42px;width:100%;"></div></div></div>
+            </div>
+
+            <div id="comp-empty" class="hidden text-center py-16">
+                <p class="display text-3xl text-muted">No live draws right now</p>
+                <p class="text-sm text-muted mt-2">New competitions go live every week — check back soon, or <a href="/login?intent=subscribe" class="text-brand hover:underline">join Pro</a> to get notified first.</p>
+            </div>
+        </section>
+
+        <!-- How it works -->
+        <section id="how-it-works" class="mt-20 grid md:grid-cols-3 gap-6">
+            <div class="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+                <div class="display text-3xl text-brand mb-2">1</div>
+                <h3 class="font-bold text-chalk mb-1">Pick a draw</h3>
+                <p class="text-xs text-muted leading-relaxed">Choose your prize — Phil Taylor Gen 7, Luke Littler signatures, Winmau Blade boards or straight cash.</p>
+            </div>
+            <div class="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+                <div class="display text-3xl text-brand mb-2">2</div>
+                <h3 class="font-bold text-chalk mb-1">Buy tickets</h3>
+                <p class="text-xs text-muted leading-relaxed">Pay by card via Stripe. You'll get a ticket number and an answer to a skill-based question (UK law requirement).</p>
+            </div>
+            <div class="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+                <div class="display text-3xl text-brand mb-2">3</div>
+                <h3 class="font-bold text-chalk mb-1">Live draw</h3>
+                <p class="text-xs text-muted leading-relaxed">Once tickets sell out (or the timer hits zero) we draw live on YouTube using a verifiable random number generator.</p>
+            </div>
+        </section>
+
+        <!-- Legal -->
+        <section class="mt-12 p-6 rounded-2xl border border-white/[0.04] bg-white/[0.015]">
+            <p class="text-[11px] text-muted leading-relaxed">
+                DartVoice Competitions are skill-based prize draws operated under the
+                <a href="https://www.gamblingcommission.gov.uk/guidance/lotteries-and-free-prize-draws-running-a-promotion-which-is-not-a-lottery" target="_blank" rel="noopener" class="text-chalk hover:underline">UK Gambling Act 2005</a>
+                "free-prize draw" exemption. A correct answer to the skill question is required to enter. A free entry route is available — see
+                <a href="/competitions/terms" class="text-chalk hover:underline">terms &amp; conditions</a>. 18+ only. Please play responsibly · <a href="https://www.begambleaware.org/" target="_blank" rel="noopener" class="text-chalk hover:underline">BeGambleAware.org</a>.
+            </p>
+        </section>
+    </main>
+
+    <dv-footer></dv-footer>
+
+    <script>
+    (function () {
+        const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SB_KEY = document.querySelector('meta[name="supabase-key"]')?.content || '';
+        const grid = document.getElementById('comp-grid');
+        const empty = document.getElementById('comp-empty');
+
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        const gbp = (pence) => '£' + (Number(pence || 0) / 100).toFixed(2).replace(/\.00$/, '');
+
+        function timeLeft(iso) {
+            const ms = new Date(iso).getTime() - Date.now();
+            if (ms <= 0) return 'Drawing now';
+            const d = Math.floor(ms / 86400000);
+            const h = Math.floor(ms / 3600000) % 24;
+            const m = Math.floor(ms / 60000) % 60;
+            if (d > 0) return d + 'd ' + h + 'h';
+            if (h > 0) return h + 'h ' + m + 'm';
+            return m + 'm';
+        }
+
+        function buildCard(c) {
+            const card = document.createElement('article');
+            card.className = 'comp-card';
+
+            const sold = Math.min(c.sold_tickets || 0, c.total_tickets);
+            const pct = Math.round((sold / c.total_tickets) * 100);
+            const remaining = c.total_tickets - sold;
+            const isSoldOut = c.status === 'sold_out' || remaining <= 0;
+            const drawingSoon = !isSoldOut && new Date(c.draw_at).getTime() - Date.now() < 86400000;
+
+            const img = document.createElement('div');
+            img.className = 'image';
+            if (c.prize_image_url && /^https?:\/\//.test(c.prize_image_url)) {
+                img.style.backgroundImage = `url("${c.prize_image_url.replace(/"/g, '%22')}")`;
+            } else {
+                img.style.background = `linear-gradient(135deg, ${esc(c.hero_color || '#CC0B20')}33, #0a0a0d)`;
+            }
+
+            const badge = document.createElement('span');
+            badge.className = 'badge' + (drawingSoon ? ' gold' : '');
+            badge.textContent = drawingSoon ? 'DRAWING SOON' : (gbp(c.ticket_price_pence) + ' / TICKET');
+            img.appendChild(badge);
+
+            const cd = document.createElement('span');
+            cd.className = 'countdown';
+            cd.textContent = '⏱ ' + timeLeft(c.draw_at);
+            img.appendChild(cd);
+            card.appendChild(img);
+
+            const body = document.createElement('div');
+            body.className = 'p-5 space-y-3';
+            body.innerHTML = `
+                <div>
+                    <h3 class="font-bold text-chalk text-base leading-tight">${esc(c.title)}</h3>
+                    ${c.subtitle ? `<p class="text-xs text-muted mt-1">${esc(c.subtitle)}</p>` : ''}
+                </div>
+                <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-muted">${sold.toLocaleString()} / ${c.total_tickets.toLocaleString()} tickets</span>
+                    <span class="font-bold" style="color:var(--brand);">${pct}%</span>
+                </div>
+                <div class="progress"><span style="width:${pct}%"></span></div>
+                <div class="flex items-center justify-between text-[10px] text-muted">
+                    <span>Prize value <span class="text-chalk font-semibold">${gbp(c.prize_value_pence)}</span></span>
+                    <span>Draw <span class="text-chalk">${new Date(c.draw_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span></span>
+                </div>
+            `;
+
+            const btn = document.createElement('a');
+            btn.className = 'ticket-btn' + (isSoldOut ? ' sold-out' : '');
+            btn.textContent = isSoldOut ? 'SOLD OUT' : 'Enter Now →';
+            if (!isSoldOut) {
+                btn.href = '/competitions/' + encodeURIComponent(c.slug);
+                btn.dataset.slug = c.slug;
+            } else {
+                btn.href = '#';
+                btn.addEventListener('click', e => e.preventDefault());
+            }
+            body.appendChild(btn);
+
+            card.appendChild(body);
+            return card;
+        }
+
+        async function load() {
+            try {
+                const url = `${SB_URL}/rest/v1/competitions?select=id,slug,title,subtitle,prize_image_url,prize_value_pence,ticket_price_pence,total_tickets,sold_tickets,draw_at,status,hero_color&status=in.(active,sold_out)&order=draw_at.asc`;
+                const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+                const rows = r.ok ? await r.json() : [];
+                grid.innerHTML = '';
+                if (!rows.length) {
+                    grid.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                rows.forEach(c => grid.appendChild(buildCard(c)));
+            } catch (e) {
+                console.error('Failed to load competitions', e);
+                grid.innerHTML = '<p class="text-sm text-muted col-span-full text-center py-8">Couldn\u2019t load competitions. Try refreshing.</p>';
+            }
+        }
+
+        async function loadWinners() {
+            try {
+                const url = `${SB_URL}/rest/v1/competition_winners?select=display_name,prize_label,drawn_at&order=drawn_at.desc&limit=10`;
+                const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+                const rows = r.ok ? await r.json() : [];
+                if (!rows.length) return;
+                const strip = document.getElementById('winners-strip');
+                rows.forEach(w => {
+                    const pill = document.createElement('span');
+                    pill.className = 'winner-pill';
+                    pill.textContent = `🏆 ${(w.display_name || 'A winner')} won ${w.prize_label}`;
+                    strip.appendChild(pill);
+                });
+                document.getElementById('winners-section').hidden = false;
+            } catch (_) { /* silent */ }
+        }
+
+        load();
+        loadWinners();
+    })();
+    </script>
+</body>
+</html>

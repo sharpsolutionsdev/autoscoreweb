@@ -57,7 +57,11 @@ chrome_extension/__pycache__/
 # Node dependencies (do not commit node_modules)
 node_modules/
 
-# Debug network captures
+# Debug network captures (NEVER commit — leak session JWTs, cookies, PII)
+*.har
+**/Recording*.js
+*.devtools.recording
+rankednetworklogs.har
 *.har
 
 # ── Build / IDE scratch (never commit) ──

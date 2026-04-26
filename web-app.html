@@ -892,6 +892,10 @@
         /* Custom mic dropdown — replaces the native OS popup so the open
            list matches the closed select's glass styling. */
         .mic-select-wrap.dv-cdd-open .mic-select { border-color: rgba(var(--brand-rgb),.55); box-shadow: 0 0 0 3px rgba(var(--brand-rgb),.12); }
+        /* Raise the entire stacking context while the dropdown is open so
+           the popup can never end up sandwiched under the START LISTENING
+           button or any other positioned sibling. */
+        .mic-select-wrap.dv-cdd-open { z-index: 9999 !important; }
         .dv-cdd-pop {
             position: absolute; left: 0; right: 0; top: calc(100% + 6px);
             background: rgba(12,12,16,0.96);
@@ -899,7 +903,7 @@
             border: 1px solid rgba(255,255,255,0.10);
             border-radius: 10px;
             box-shadow: 0 18px 40px rgba(0,0,0,0.55);
-            z-index: 50;
+            z-index: 9999;
             max-height: 240px; overflow-y: auto;
             padding: 4px;
             display: none;
@@ -2412,7 +2416,7 @@
         .dv-bz-stage canvas, .dv-bz-stage video{display:block;width:100%;height:100%;object-fit:cover;}
         .dv-bz-stage .dv-bz-overlay{position:absolute;inset:0;pointer-events:none;}
         .dv-bz-stage.dv-bz-calmode .dv-bz-overlay{pointer-events:auto;cursor:crosshair;}
-        .dv-bz-hint{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(204,11,32,0.92);color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-align:center;letter-spacing:.04em;}
+        .dv-bz-hint{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(204,11,32,0.92);color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-align:center;letter-spacing:.04em;pointer-events:none;}
         .dv-bz-zones-label{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7a7a85;margin-top:2px;}
         .dv-bz-zones{display:flex;flex-wrap:wrap;gap:4px;}
         .dv-bz-zones button{background:#16161b;border:1px solid #252530;color:#bbb;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;}
@@ -2614,6 +2618,10 @@
                     video.srcObject = stream;
                     await video.play();
                     sizeOverlay();
+                    // Re-size whenever the source resolves (some virtual cams
+                    // report 0×0 until the first frame).
+                    video.addEventListener('loadedmetadata', sizeOverlay, { once: false });
+                    video.addEventListener('resize', sizeOverlay);
                     startBtn.textContent = 'Stop';
                     calBtn.disabled = false;
                     setStatus(state.calib ? 'Live. Calibration loaded — pick zoom targets below.' : 'Live. Press Calibrate then click 4 outer-wire points.');
@@ -2634,13 +2642,17 @@
             }
 
             function sizeOverlay(){
-                const w = video.videoWidth || stage.clientWidth;
-                const h = video.videoHeight || stage.clientHeight;
-                overlay.width = w; overlay.height = h;
+                const w = video.videoWidth || stage.clientWidth || 640;
+                const h = video.videoHeight || stage.clientHeight || 480;
+                if (overlay.width !== w)  overlay.width  = w;
+                if (overlay.height !== h) overlay.height = h;
             }
 
             calBtn.onclick = () => {
                 if (!stream) return;
+                // Defensive: ensure the canvas has a non-zero bitmap before we
+                // start mapping clicks into it.
+                if (!overlay.width || !overlay.height) sizeOverlay();
                 calMode = true; calPoints = [];
                 stage.classList.add('dv-bz-calmode');
                 hint.style.display = 'block';
