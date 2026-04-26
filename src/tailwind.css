@@ -1,0 +1,6 @@
+/* DartVoice — Tailwind entry point.
+   Build: npx tailwindcss -i ./src/tailwind.css -o ./css/tailwind.built.css --minify
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
