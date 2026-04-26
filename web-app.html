@@ -1931,9 +1931,24 @@
                         ★ Find Ranked Match
                     </button>
                     <div class="mt-3 grid grid-cols-2 gap-2">
-                        <a href="ranked.html" class="text-center text-[10px] font-bold text-gray-300 bg-[#0c0c10] border border-[#1f1f28] rounded py-2 hover:bg-[#141418] tracking-widest uppercase">Leaderboard</a>
-                        <a href="ranked.html#history" class="text-center text-[10px] font-bold text-gray-300 bg-[#0c0c10] border border-[#1f1f28] rounded py-2 hover:bg-[#141418] tracking-widest uppercase">My History</a>
+                        <button type="button" data-rt-toggle="lb" class="text-center text-[10px] font-bold text-gray-300 bg-[#0c0c10] border border-[#1f1f28] rounded py-2 hover:bg-[#141418] tracking-widest uppercase">Top 10</button>
+                        <button type="button" data-rt-toggle="hist" class="text-center text-[10px] font-bold text-gray-300 bg-[#0c0c10] border border-[#1f1f28] rounded py-2 hover:bg-[#141418] tracking-widest uppercase">My History</button>
                     </div>
+                </div>
+
+                <!-- Mini leaderboard (top 10) -->
+                <div id="dv-tab-ranked-lb" class="hud-card p-3 mb-3 shadow-lg hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-[10px] font-bold tracking-[0.25em] uppercase text-brand">Top 10</p>
+                        <a href="ranked.html" class="text-[9px] text-gray-500 hover:text-gray-300 tracking-widest uppercase">Open full →</a>
+                    </div>
+                    <ol id="dv-tab-ranked-lb-list" class="space-y-1 text-[11px]"></ol>
+                </div>
+
+                <!-- Recent matches -->
+                <div id="dv-tab-ranked-hist" class="hud-card p-3 mb-3 shadow-lg hidden">
+                    <p class="text-[10px] font-bold tracking-[0.25em] uppercase text-brand mb-2">My Recent Matches</p>
+                    <ul id="dv-tab-ranked-hist-list" class="space-y-1 text-[11px]"></ul>
                 </div>
 
                 <!-- State: searching -->
@@ -7113,6 +7128,77 @@ window.openScorerUrl = function(url){
                 if (wlEl)   wlEl.textContent   = `${data.wins ?? 0} W \u00b7 ${data.losses ?? 0} L`;
             } catch(_){}
         }
+
+        // Mini leaderboard (top 10) — parity with rankings.html: prefer placed, fall back to all.
+        async function loadMiniLeaderboard() {
+            const list = document.getElementById('dv-tab-ranked-lb-list');
+            if (!list || !window.sb) return;
+            try {
+                let { data } = await window.sb.from('ranked_profiles')
+                    .select('id, display_name, mmr, rank_tier, wins, losses, is_placed')
+                    .eq('is_placed', true)
+                    .order('mmr', { ascending: false }).limit(10);
+                if (!data || data.length === 0) {
+                    const fb = await window.sb.from('ranked_profiles')
+                        .select('id, display_name, mmr, rank_tier, wins, losses, is_placed')
+                        .order('mmr', { ascending: false }).limit(10);
+                    data = fb.data || [];
+                }
+                if (!data.length) { list.innerHTML = '<li class="text-gray-500 text-[10px]">No ranked players yet.</li>'; return; }
+                list.innerHTML = data.map((p, i) => {
+                    const isMe = currentUser && p.id === currentUser.id;
+                    const name = (p.display_name || 'Anonymous').replace(/[<>&]/g, '');
+                    return `<li class="flex items-center gap-2 ${isMe ? 'text-brand font-bold' : 'text-gray-200'}">
+                        <span class="w-5 text-right text-gray-500 tabular-nums">${i+1}</span>
+                        <span class="flex-1 truncate">${name}${isMe ? ' <span class=\"text-[8px] text-brand\">YOU</span>' : ''}</span>
+                        <span class="text-gray-400 tabular-nums">${Math.round(p.mmr || 0)}</span>
+                    </li>`;
+                }).join('');
+            } catch (e) { console.warn('mini lb fail', e); }
+        }
+
+        // Recent matches (mine, last 5).
+        async function loadMiniHistory() {
+            const list = document.getElementById('dv-tab-ranked-hist-list');
+            if (!list || !window.sb || !currentUser) return;
+            try {
+                const { data } = await window.sb.from('ranked_matches')
+                    .select('id, player1_id, player2_id, winner_id, player1_legs_won, player2_legs_won, player1_mmr_delta, player2_mmr_delta, completed_at')
+                    .or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`)
+                    .eq('status', 'completed')
+                    .order('completed_at', { ascending: false }).limit(5);
+                if (!data || !data.length) { list.innerHTML = '<li class="text-gray-500 text-[10px]">No completed matches yet.</li>'; return; }
+                list.innerHTML = data.map(m => {
+                    const isP1 = m.player1_id === currentUser.id;
+                    const my = isP1 ? m.player1_legs_won : m.player2_legs_won;
+                    const op = isP1 ? m.player2_legs_won : m.player1_legs_won;
+                    const won = m.winner_id === currentUser.id;
+                    const d = isP1 ? m.player1_mmr_delta : m.player2_mmr_delta;
+                    const sign = (d ?? 0) >= 0 ? '+' : '';
+                    return `<li class="flex items-center justify-between gap-2">
+                        <span class="text-[10px] font-bold ${won ? 'text-green-400' : 'text-red-400'} w-9">${won ? 'WIN' : 'LOSS'}</span>
+                        <span class="flex-1 text-gray-300 tabular-nums">${my} - ${op}</span>
+                        <span class="text-[10px] tabular-nums ${(d ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}">${sign}${d ?? 0}</span>
+                    </li>`;
+                }).join('');
+            } catch(e) { console.warn('mini hist fail', e); }
+        }
+
+        // Toggle handlers for the two collapsible panels.
+        document.querySelectorAll('[data-rt-toggle]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const which = btn.dataset.rtToggle;
+                if (which === 'lb') {
+                    const el = document.getElementById('dv-tab-ranked-lb');
+                    el.classList.toggle('hidden');
+                    if (!el.classList.contains('hidden')) loadMiniLeaderboard();
+                } else if (which === 'hist') {
+                    const el = document.getElementById('dv-tab-ranked-hist');
+                    el.classList.toggle('hidden');
+                    if (!el.classList.contains('hidden')) loadMiniHistory();
+                }
+            });
+        });
         // Re-load when user activates the Ranked tab (cheap; keeps it fresh post-match).
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-target="tab-ranked"]');
