@@ -1416,7 +1416,7 @@
                             <input id="trigger-word-input-dash" type="text" maxlength="24" placeholder="score"
                                 class="flex-1 min-w-0 bg-[#08080A] border border-[#252530] text-[11px] text-white px-2 py-1 rounded outline-none focus:border-brand/50 transition-colors placeholder:text-gray-600">
                             <label class="relative inline-flex items-center cursor-pointer shrink-0" title="Enable trigger word">
-                                <input type="checkbox" id="toggle-wake-word-dash" class="sr-only peer" checked title="Enable trigger word" aria-label="Enable trigger word">
+                                <input type="checkbox" id="toggle-wake-word-dash" class="sr-only peer" title="Enable trigger word" aria-label="Enable trigger word">
                                 <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                             </label>
                         </div>
@@ -1424,7 +1424,7 @@
                             <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Checkout dialog auto-reply</span>
                             <div class="flex items-center gap-3">
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="toggle-checkout-dialog-dash" class="sr-only peer" checked title="Auto-reply checkout dialog" aria-label="Auto-reply checkout dialog">
+                                    <input type="checkbox" id="toggle-checkout-dialog-dash" class="sr-only peer" title="Auto-reply checkout dialog" aria-label="Auto-reply checkout dialog">
                                     <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                                 </label>
                                 <label class="relative inline-flex items-center cursor-pointer" title="Show brief checkout tip when opponent submits">
@@ -1760,7 +1760,7 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-gray-300 font-medium">Trigger Word <span class="opacity-50 text-[10px]">prefix scores</span></span>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="toggle-wake-word" class="sr-only peer" checked>
+                                    <input type="checkbox" id="toggle-wake-word" class="sr-only peer">
                                     <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                                 </label>
                             </div>
@@ -1773,7 +1773,7 @@
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-gray-300 font-medium">Checkout Dialog <span class="opacity-50 text-[10px]">say "1/2/3"</span></span>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="toggle-checkout-dialog" class="sr-only peer" checked>
+                                <input type="checkbox" id="toggle-checkout-dialog" class="sr-only peer">
                                 <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
                             </label>
                         </div>
@@ -4563,10 +4563,14 @@
                 // After injecting a score, poll the iframe once after a short delay
                 try { setTimeout(() => { try { window.requestRemainingScore(); } catch(e){} }, 600); } catch(e){}
                 if (typeof window.dvPlayChime === 'function' && scoreString !== '__CANCEL__') window.dvPlayChime();
-                // Arm checkout dialog watcher when this could be a checkout score
+                // Arm checkout dialog watcher only when REMAINING-after-throw is a real checkout (2..170).
+                // Previously this gated on the thrown score, which mis-armed the dialog mid-leg and
+                // auto-injected "3" after a user had already submitted during the scoring phase.
                 if (scoreString !== '__CANCEL__' && window.dvCheckoutPrompt && AppConfig.checkoutDialogEnabled) {
                     const n = parseInt(scoreString, 10);
-                    if (!isNaN(n) && n >= AppConfig.checkoutDialogScoreMin && n <= AppConfig.checkoutDialogScoreMax) {
+                    const preRem = (typeof currentCheckoutScore === 'number') ? currentCheckoutScore : null;
+                    const postRem = (preRem != null && !isNaN(n)) ? (preRem - n) : null;
+                    if (!isNaN(n) && postRem != null && postRem >= 2 && postRem <= AppConfig.checkoutDialogScoreMax) {
                         try { window.dvCheckoutPrompt.arm(n); } catch(e){}
                     }
                 }
@@ -4587,11 +4591,11 @@
         // --- APP CONFIGURATION STATE ---
         const AppConfig = {
             inputMode: 'total', // 'total' or 'per-dart'
-            wakeWordEnabled: true,
+            wakeWordEnabled: false,
             triggerWord: 'score',
             cancelWordEnabled: true,
             liveCheckoutEnabled: true,
-            checkoutDialogEnabled: true,
+            checkoutDialogEnabled: false,
             checkoutDialogTimeoutMs: 6000,
             checkoutDialogScoreMin: 41,
             checkoutDialogScoreMax: 170,
@@ -5940,10 +5944,11 @@ window.openScorerUrl = function(url){
             if(themePresetsBtn) themePresetsBtn.addEventListener('click', ()=>{ const btn = document.getElementById('dv-tp-btn'); if(btn) btn.click(); else { const panel = document.getElementById('dv-tp-panel'); if(panel) panel.classList.toggle('open'); } });
 
             // ── Checkout dialog state machine ──
-            // After a checkout-able score (41-170) is sent:
-            //  Step 1: wait up to 5s for "1"/"2"/"3" → forwarded to iframe (darts to checkout)
-            //  Step 2: wait up to 5s for "1"/"2"/"3" → forwarded (darts at double)
-            //  On timeout for either step: auto-submit "3"
+            // After a real checkout (remaining 2..170) is reached:
+            //  Step 1: wait up to 6s for "1"/"2"/"3" → forwarded to iframe (darts to checkout)
+            //  Step 2: wait up to 6s for "1"/"2"/"3" → forwarded (darts at double)
+            //  On timeout for either step: silently dismiss (NEVER auto-submit a number — that
+            //  injected ghost darts when the user had already submitted via UI/voice).
             const promptInd = $('checkout-prompt-indicator');
             const promptLbl = $('checkout-prompt-label');
             const promptTimer = $('checkout-prompt-timer');
@@ -5977,8 +5982,8 @@ window.openScorerUrl = function(url){
                     const remain = Math.max(0, this.deadline - Date.now());
                     if (promptTimer) promptTimer.textContent = (remain/1000).toFixed(1) + 's';
                     if (remain <= 0) {
-                        if (typeof log === 'function') log(`Checkout dialog timed out — auto-submitting 3`, false);
-                        this._submit(3, true);
+                        if (typeof log === 'function') log(`Checkout dialog timed out — dismissed (no auto-submit)`, false);
+                        this._end();
                     }
                 },
                 _submit(n, auto){
@@ -6371,7 +6376,7 @@ window.openScorerUrl = function(url){
         .dv-overlay-row button.on { background: var(--brand); color: #fff; }
 
         .dv-stream-overlay {
-            position: fixed; z-index: 9000;
+            position: fixed; z-index: 99995;
             cursor: grab; user-select: none;
             transition: box-shadow 160ms ease;
         }
