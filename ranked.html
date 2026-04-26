@@ -27,6 +27,9 @@
     <script src="components/dv-nav.js"></script>
     <script src="components/dv-footer.js"></script>
 
+    <!-- Theme: pre-paint FOUC guard so --brand vars are set before CSS runs -->
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+', '+g+', '+b);var L=function(c){return Math.min(255,c+Math.round((255-c)*.12))};var lr=L(r),lg=L(g),lb=L(b);s.setProperty('--brand-light','#'+[lr,lg,lb].map(function(c){return c.toString(16).padStart(2,'0')}).join(''))}()</script>
+
     <style>
         /* ── Core Typography ── */
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0b0e; color: #f0f0f5; }
@@ -42,54 +45,96 @@
         .page-bg {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background:
-                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(204,11,32,0.18) 0%, transparent 60%),
-                radial-gradient(ellipse 40% 35% at 85% 30%, rgba(204,11,32,0.08) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 35% at 15% 70%, rgba(120,80,255,0.05) 0%, transparent 70%),
+                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(var(--brand-rgb),0.22) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 35% at 85% 30%, rgba(var(--brand-rgb),0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 15% 75%, rgba(var(--brand-rgb),0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 30% 25% at 50% 100%, rgba(var(--brand-rgb),0.10) 0%, transparent 70%),
                 linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
             z-index: -2; pointer-events: none;
+            overflow: hidden;
         }
-        /* Subtle animated dot grid */
+        /* Animated dot grid (brand-tinted dual layer) */
         .page-bg::before {
             content: ''; position: absolute; inset: 0;
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 28px 28px;
-            mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000, transparent 80%);
-            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000, transparent 80%);
-            opacity: 0.55;
+            background-image:
+                radial-gradient(rgba(var(--brand-rgb),0.12) 1px, transparent 1px),
+                radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 56px 56px, 28px 28px;
+            background-position: 0 0, 14px 14px;
+            mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000, transparent 85%);
+            -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000, transparent 85%);
+            opacity: 0.65;
+            animation: bgDriftDots 60s linear infinite;
         }
+        @keyframes bgDriftDots { from { background-position: 0 0, 14px 14px; } to { background-position: 56px 56px, 70px 70px; } }
         /* Slow-rotating conic glow ring */
         .page-bg::after {
             content: ''; position: absolute; left: 50%; top: -30%;
             width: 1200px; height: 1200px; transform: translateX(-50%);
-            background: conic-gradient(from 0deg, rgba(204,11,32,0) 0deg, rgba(204,11,32,0.18) 60deg, rgba(204,11,32,0) 120deg, rgba(204,11,32,0) 240deg, rgba(204,11,32,0.12) 300deg, rgba(204,11,32,0) 360deg);
+            background: conic-gradient(from 0deg, rgba(var(--brand-rgb),0) 0deg, rgba(var(--brand-rgb),0.22) 60deg, rgba(var(--brand-rgb),0) 120deg, rgba(var(--brand-rgb),0) 240deg, rgba(var(--brand-rgb),0.16) 300deg, rgba(var(--brand-rgb),0) 360deg);
             filter: blur(60px);
             animation: conicSpin 60s linear infinite;
-            opacity: 0.7;
+            opacity: 0.85;
         }
         @keyframes conicSpin { to { transform: translateX(-50%) rotate(360deg); } }
+
+        /* Ambient floating orbs */
+        .page-bg-orbs { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+        .page-bg-orbs span {
+            position: absolute; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(var(--brand-rgb),0.55), rgba(var(--brand-rgb),0) 70%);
+            filter: blur(40px); opacity: 0.28;
+            animation: orbFloat 22s ease-in-out infinite;
+        }
+        .page-bg-orbs span:nth-child(1) { width: 320px; height: 320px; top: 8%; left: 5%; animation-delay: 0s; }
+        .page-bg-orbs span:nth-child(2) { width: 220px; height: 220px; top: 55%; right: 6%; animation-delay: -8s; opacity: .22; }
+        .page-bg-orbs span:nth-child(3) { width: 280px; height: 280px; bottom: 4%; left: 18%; animation-delay: -14s; opacity: .18; }
+        .page-bg-orbs span:nth-child(4) { width: 180px; height: 180px; top: 30%; left: 60%; animation-delay: -4s; opacity: .14; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50%      { transform: translate(40px, -30px) scale(1.08); }
+        }
+        /* Diagonal scan rays */
+        .page-bg-rays {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background: repeating-linear-gradient(115deg,
+                transparent 0 80px,
+                rgba(255,255,255,0.018) 80px 81px,
+                transparent 81px 160px,
+                rgba(var(--brand-rgb),0.05) 160px 162px);
+            mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+            opacity: 0.7;
+        }
+        /* Film-grain noise overlay */
+        .page-bg-noise {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+            opacity: 0.04; mix-blend-mode: overlay;
+        }
         @media (prefers-reduced-motion: reduce) {
-            .page-bg::after { animation: none; }
+            .page-bg::after, .page-bg::before, .page-bg-orbs span { animation: none; }
         }
 
         /* Hero badge */
         .hero-badge {
             display: inline-flex; align-items: center; gap: 0.5rem;
             padding: 0.4rem 0.9rem; border-radius: 999px;
-            background: rgba(204,11,32,0.12); border: 1px solid rgba(204,11,32,0.35);
+            background: rgba(var(--brand-rgb),0.12); border: 1px solid rgba(var(--brand-rgb),0.35);
             font-size: 0.7rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase;
             color: #ff5066;
         }
         .hero-badge .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
-            box-shadow: 0 0 0 0 rgba(204,11,32,0.7); animation: heroPulse 2s infinite; }
+            box-shadow: 0 0 0 0 rgba(var(--brand-rgb),0.7); animation: heroPulse 2s infinite; }
         @keyframes heroPulse {
-            0% { box-shadow: 0 0 0 0 rgba(204,11,32,0.7); }
-            70% { box-shadow: 0 0 0 8px rgba(204,11,32,0); }
-            100% { box-shadow: 0 0 0 0 rgba(204,11,32,0); }
+            0% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb),0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(var(--brand-rgb),0); }
+            100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb),0); }
         }
 
         /* Section heading */
         .section-heading { display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; }
-        .section-heading .bar { width: 3px; height: 22px; background: var(--brand); border-radius: 2px; box-shadow: 0 0 10px rgba(204,11,32,0.6); }
+        .section-heading .bar { width: 3px; height: 22px; background: var(--brand); border-radius: 2px; box-shadow: 0 0 10px rgba(var(--brand-rgb),0.6); }
         .section-heading h2 { font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.04em; font-size:1.5rem; font-weight:700; }
 
         /* Tier ladder card with icon */
@@ -138,7 +183,7 @@
         }
         .card-panel::before {
             content: ''; position: absolute; inset: 0; border-radius: 16px; padding: 1px;
-            background: linear-gradient(140deg, rgba(204,11,32,0.35), transparent 35%, transparent 65%, rgba(204,11,32,0.18));
+            background: linear-gradient(140deg, rgba(var(--brand-rgb),0.35), transparent 35%, transparent 65%, rgba(var(--brand-rgb),0.18));
             -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude;
             pointer-events: none; opacity: 0.6; transition: opacity 0.3s ease;
@@ -154,14 +199,14 @@
         .tier-diamond { color: #b9f2ff; border-color: rgba(185, 242, 255, 0.4); background: rgba(185, 242, 255, 0.1); box-shadow: 0 0 20px rgba(185, 242, 255, 0.3), 0 0 40px rgba(185, 242, 255, 0.1); }
         .tier-apex,
         .tier-champion { 
-            color: #CC0B20; border-color: rgba(204, 11, 32, 0.6); background: rgba(204, 11, 32, 0.2); 
-            box-shadow: 0 0 25px rgba(204, 11, 32, 0.5), 0 0 50px rgba(204, 11, 32, 0.2); 
+            color: #CC0B20; border-color: rgba(var(--brand-rgb), 0.6); background: rgba(var(--brand-rgb), 0.2); 
+            box-shadow: 0 0 25px rgba(var(--brand-rgb), 0.5), 0 0 50px rgba(var(--brand-rgb), 0.2); 
             font-weight: 800;
             animation: apexGlow 3s infinite alternate;
         }
         @keyframes apexGlow {
-            from { box-shadow: 0 0 15px rgba(204, 11, 32, 0.4); }
-            to { box-shadow: 0 0 35px rgba(204, 11, 32, 0.7), 0 0 60px rgba(204, 11, 32, 0.3); }
+            from { box-shadow: 0 0 15px rgba(var(--brand-rgb), 0.4); }
+            to { box-shadow: 0 0 35px rgba(var(--brand-rgb), 0.7), 0 0 60px rgba(var(--brand-rgb), 0.3); }
         }
 
         .leaderboard-row { transition: background-color 0.2s ease; }
@@ -243,7 +288,7 @@
         }
         
         .pulse-finding { animation: pulseBg 2s infinite; }
-        @keyframes pulseBg { 0% { background-color: rgba(204,11,32,0.1); } 50% { background-color: rgba(204,11,32,0.25); } 100% { background-color: rgba(204,11,32,0.1); } }
+        @keyframes pulseBg { 0% { background-color: rgba(var(--brand-rgb),0.1); } 50% { background-color: rgba(var(--brand-rgb),0.25); } 100% { background-color: rgba(var(--brand-rgb),0.1); } }
 
         /* ── Modals ── */
         .modal-overlay {
@@ -285,7 +330,7 @@
         /* ── Promotion Overlay ── */
         #promotion-overlay {
             position: fixed; inset: 0; z-index: 1000;
-            background: radial-gradient(circle at center, rgba(204, 11, 32, 0.2) 0%, rgba(0,0,0,0.95) 100%);
+            background: radial-gradient(circle at center, rgba(var(--brand-rgb), 0.2) 0%, rgba(0,0,0,0.95) 100%);
             display: flex; flex-direction: column; items: center; justify-content: center;
             opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
         }
@@ -302,9 +347,9 @@
             animation: pulse-brand 2s infinite;
         }
         @keyframes pulse-brand {
-            0% { box-shadow: 0 0 0 0 rgba(204, 11, 32, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(204, 11, 32, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(204, 11, 32, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(var(--brand-rgb), 0); }
+            100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0); }
         }
 
         /* ── Match-Found Cinematic VS Overlay ── */
@@ -318,7 +363,7 @@
         #match-found-overlay.active { opacity: 1; pointer-events: auto; }
         #match-found-overlay::before {
             content:''; position:absolute; inset:-10%;
-            background: repeating-linear-gradient(110deg, transparent 0 38px, rgba(204,11,32,.05) 38px 39px);
+            background: repeating-linear-gradient(110deg, transparent 0 38px, rgba(var(--brand-rgb),.05) 38px 39px);
             animation: vsScan 8s linear infinite;
         }
         @keyframes vsScan { from { transform: translateX(0); } to { transform: translateX(80px); } }
@@ -334,7 +379,7 @@
             position: relative; z-index: 2;
             font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic;
             font-size: clamp(48px, 9vw, 96px); color: #fff;
-            text-shadow: 0 6px 50px rgba(204,11,32,0.45);
+            text-shadow: 0 6px 50px rgba(var(--brand-rgb),0.45);
             letter-spacing: -0.02em;
             opacity: 0;
         }
@@ -351,8 +396,8 @@
             width: 100%; max-width: 1100px;
         }
         .mf-card {
-            background: linear-gradient(160deg, rgba(204,11,32,0.12), rgba(20,20,24,0.85));
-            border: 1px solid rgba(204,11,32,0.3);
+            background: linear-gradient(160deg, rgba(var(--brand-rgb),0.12), rgba(20,20,24,0.85));
+            border: 1px solid rgba(var(--brand-rgb),0.3);
             border-radius: 22px;
             padding: clamp(16px, 3vw, 28px);
             text-align: center;
@@ -370,11 +415,11 @@
         .mf-avatar {
             width: clamp(72px, 11vw, 132px); height: clamp(72px, 11vw, 132px);
             border-radius: 999px; margin: 0 auto 14px;
-            border: 3px solid rgba(204,11,32,0.55);
+            border: 3px solid rgba(var(--brand-rgb),0.55);
             background: linear-gradient(135deg, #1a1a22, #0d0d12);
             display: flex; align-items: center; justify-content: center;
             font-size: clamp(24px, 4vw, 40px); font-weight: 900; color: #fff;
-            overflow: hidden; box-shadow: 0 0 30px rgba(204,11,32,0.4);
+            overflow: hidden; box-shadow: 0 0 30px rgba(var(--brand-rgb),0.4);
         }
         .mf-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .mf-name {
@@ -408,7 +453,7 @@
             font-weight: 900; font-style: italic;
             font-size: clamp(48px, 8vw, 88px);
             color: var(--brand);
-            text-shadow: 0 0 30px rgba(204,11,32,0.7), 0 0 60px rgba(204,11,32,0.35);
+            text-shadow: 0 0 30px rgba(var(--brand-rgb),0.7), 0 0 60px rgba(var(--brand-rgb),0.35);
             transform: scale(0); opacity: 0;
         }
         #match-found-overlay.active .mf-vs-badge { animation: mfVsPop 0.7s cubic-bezier(.2,1.6,.4,1) 0.55s forwards; }
@@ -421,10 +466,10 @@
             background: var(--brand); color: #fff;
             font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; font-size: 13px;
             padding: 14px 28px; border-radius: 12px; border: none; cursor: pointer;
-            box-shadow: 0 0 30px rgba(204,11,32,.45);
+            box-shadow: 0 0 30px rgba(var(--brand-rgb),.45);
             transition: transform .2s, box-shadow .2s;
         }
-        .mf-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(204,11,32,.7); }
+        .mf-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(var(--brand-rgb),.7); }
         .mf-btn-secondary {
             background: rgba(255,255,255,0.04); color: #fff;
             font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-size: 12px;
@@ -444,7 +489,7 @@
         }
         #postmatch-overlay.active { opacity: 1; pointer-events: auto; }
         #postmatch-overlay.win { background: radial-gradient(ellipse at center, rgba(34,197,94,.18) 0%, rgba(0,0,0,.97) 70%); }
-        #postmatch-overlay.loss { background: radial-gradient(ellipse at center, rgba(204,11,32,.18) 0%, rgba(0,0,0,.97) 70%); }
+        #postmatch-overlay.loss { background: radial-gradient(ellipse at center, rgba(var(--brand-rgb),.18) 0%, rgba(0,0,0,.97) 70%); }
         .pm-banner {
             font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic;
             font-size: clamp(56px, 11vw, 130px); letter-spacing: -.02em;
@@ -477,6 +522,9 @@
 </head>
 <body class="antialiased min-h-screen flex flex-col pt-16">
     <div class="page-bg"></div>
+    <div class="page-bg-rays" aria-hidden="true"></div>
+    <div class="page-bg-orbs" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <div class="page-bg-noise" aria-hidden="true"></div>
     <dv-nav></dv-nav>
 
     <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
@@ -486,13 +534,13 @@
             <div class="inline-flex flex-col items-center">
                 <span class="hero-badge mb-4"><span class="pulse-dot"></span>Live · Season 1 · Pro Members</span>
                 <h1 class="display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
-                    Ranked <span style="background:linear-gradient(135deg,#ff5066,#CC0B20 50%,#7a0815);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(204,11,32,0.35));">Hub</span>
+                    Ranked <span style="background:linear-gradient(135deg,#ff5066,#CC0B20 50%,#7a0815);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(var(--brand-rgb),0.35));">Hub</span>
                 </h1>
                 <p class="text-base md:text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
                     Compete on the global ladder, add friends, track your stats. Powered by skill-based MMR — your rank reflects who you actually beat.
                 </p>
                 <div class="mt-6 flex flex-wrap justify-center gap-3">
-                    <a href="#queue" class="btn-brand inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white" style="background:var(--brand);box-shadow:0 4px 18px rgba(204,11,32,0.4);">
+                    <a href="#queue" class="btn-brand inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white" style="background:var(--brand);box-shadow:0 4px 18px rgba(var(--brand-rgb),0.4);">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                         Find Match
                     </a>
@@ -749,7 +797,7 @@
                 <div class="section-heading">
                     <span class="bar"></span>
                     <h2>Friends</h2>
-                    <span class="ml-2 text-[10px] font-bold tracking-widest px-2 py-0.5 rounded" style="background:rgba(204,11,32,0.15); color:var(--brand); border:1px solid rgba(204,11,32,0.3);">BETA</span>
+                    <span class="ml-2 text-[10px] font-bold tracking-widest px-2 py-0.5 rounded" style="background:rgba(var(--brand-rgb),0.15); color:var(--brand); border:1px solid rgba(var(--brand-rgb),0.3);">BETA</span>
                 </div>
                 <p class="text-sm text-gray-400 mb-4">Add players you've matched against to track their MMR and watch them climb the ladder. <span class="text-gray-500 italic">Live challenges coming soon.</span></p>
 
@@ -776,7 +824,7 @@
 
                 <!-- Pending invites -->
                 <div class="mt-5 pt-4 border-t border-white/5">
-                    <p class="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">Pending Invites <span id="friends-pending-badge" class="ml-1 px-1.5 py-0.5 rounded text-[9px]" style="background:rgba(204,11,32,0.2);color:var(--brand);">0</span></p>
+                    <p class="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">Pending Invites <span id="friends-pending-badge" class="ml-1 px-1.5 py-0.5 rounded text-[9px]" style="background:rgba(var(--brand-rgb),0.2);color:var(--brand);">0</span></p>
                     <p class="text-xs text-gray-500 italic">No pending invites.</p>
                 </div>
             </div>
@@ -820,16 +868,16 @@
                     <p class="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">MMR Trend · Last 30 days</p>
                     <div class="h-16 rounded-lg flex items-end gap-1 px-1" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.04);">
                         <!-- Placeholder spark bars -->
-                        <div class="flex-1 rounded-t" style="height:30%;background:rgba(204,11,32,0.4);"></div>
-                        <div class="flex-1 rounded-t" style="height:55%;background:rgba(204,11,32,0.5);"></div>
-                        <div class="flex-1 rounded-t" style="height:42%;background:rgba(204,11,32,0.45);"></div>
-                        <div class="flex-1 rounded-t" style="height:60%;background:rgba(204,11,32,0.55);"></div>
-                        <div class="flex-1 rounded-t" style="height:48%;background:rgba(204,11,32,0.5);"></div>
-                        <div class="flex-1 rounded-t" style="height:70%;background:rgba(204,11,32,0.65);"></div>
-                        <div class="flex-1 rounded-t" style="height:62%;background:rgba(204,11,32,0.6);"></div>
-                        <div class="flex-1 rounded-t" style="height:80%;background:rgba(204,11,32,0.75);"></div>
-                        <div class="flex-1 rounded-t" style="height:75%;background:rgba(204,11,32,0.7);"></div>
-                        <div class="flex-1 rounded-t" style="height:90%;background:rgba(204,11,32,0.85);"></div>
+                        <div class="flex-1 rounded-t" style="height:30%;background:rgba(var(--brand-rgb),0.4);"></div>
+                        <div class="flex-1 rounded-t" style="height:55%;background:rgba(var(--brand-rgb),0.5);"></div>
+                        <div class="flex-1 rounded-t" style="height:42%;background:rgba(var(--brand-rgb),0.45);"></div>
+                        <div class="flex-1 rounded-t" style="height:60%;background:rgba(var(--brand-rgb),0.55);"></div>
+                        <div class="flex-1 rounded-t" style="height:48%;background:rgba(var(--brand-rgb),0.5);"></div>
+                        <div class="flex-1 rounded-t" style="height:70%;background:rgba(var(--brand-rgb),0.65);"></div>
+                        <div class="flex-1 rounded-t" style="height:62%;background:rgba(var(--brand-rgb),0.6);"></div>
+                        <div class="flex-1 rounded-t" style="height:80%;background:rgba(var(--brand-rgb),0.75);"></div>
+                        <div class="flex-1 rounded-t" style="height:75%;background:rgba(var(--brand-rgb),0.7);"></div>
+                        <div class="flex-1 rounded-t" style="height:90%;background:rgba(var(--brand-rgb),0.85);"></div>
                     </div>
                 </div>
             </div>
@@ -854,7 +902,7 @@
             <!-- Three-column "why this is fairer" -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
                 <div class="card-panel p-6">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:rgba(204,11,32,0.12);color:#CC0B20;">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:rgba(var(--brand-rgb),0.12);color:#CC0B20;">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <h3 class="display text-2xl mb-2">Wins matter more than averages</h3>
@@ -1019,7 +1067,7 @@
         <div class="promo-content relative z-10">
             <p class="text-brand font-black tracking-[0.4em] uppercase mb-2 animate-bounce">Promotion</p>
             <h2 class="display text-7xl font-black italic text-white mb-6 drop-shadow-2xl">RANK UP!</h2>
-            <div id="promo-badge" class="inline-block px-12 py-4 rounded-full text-4xl font-black tracking-widest uppercase mb-8 border-4 shadow-[0_0_50px_rgba(204,11,32,0.5)]">
+            <div id="promo-badge" class="inline-block px-12 py-4 rounded-full text-4xl font-black tracking-widest uppercase mb-8 border-4 shadow-[0_0_50px_rgba(var(--brand-rgb),0.5)]">
                 GOLD
             </div>
             <p class="text-gray-400 text-lg">You have ascended to a new competitive tier.</p>
@@ -1967,7 +2015,7 @@
             const overlay = document.getElementById('promotion-overlay');
             const badge = document.getElementById('promo-badge');
             badge.textContent = tier;
-            badge.className = `inline-block px-12 py-4 rounded-full text-4xl font-black tracking-widest uppercase mb-8 border-4 shadow-[0_0_50px_rgba(204,11,32,0.5)] tier-${tier.toLowerCase()}`;
+            badge.className = `inline-block px-12 py-4 rounded-full text-4xl font-black tracking-widest uppercase mb-8 border-4 shadow-[0_0_50px_rgba(var(--brand-rgb),0.5)] tier-${tier.toLowerCase()}`;
             overlay.classList.add('active');
             
             // Confetti effect (simulated with emojis or similar if library not present, but let's stick to CSS/HTML)
@@ -2028,7 +2076,7 @@
                     // Optimistic toast — server-side friend graph is a follow-up.
                     const t = document.createElement('div');
                     t.textContent = `Friend request to "${v}" queued · backend coming soon`;
-                    t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(204,11,32,0.95);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+                    t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(var(--brand-rgb),0.95);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
                     document.body.appendChild(t);
                     setTimeout(() => t.remove(), 2600);
                     fInput.value = '';
@@ -2038,5 +2086,6 @@
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
+    <script src="theme.js"></script>
 </body>
 </html>
