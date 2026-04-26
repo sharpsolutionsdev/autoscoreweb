@@ -1,0 +1,8 @@
+{
+    "min_version": "2.2.0",
+    "latest_version": "2.2.0",
+    "store_url": "https://chrome.google.com/webstore/detail/dartvoice",
+    "changelog_url": "https://dartvoice.app/extension-changelog.html",
+    "force_reload_below": "2.0.0",
+    "_notes": "Bump min_version to enforce a hard upgrade banner. Bump latest_version to surface a soft 'new version available' nudge. force_reload_below: any version older than this gets the hard banner."
+}

@@ -253,6 +253,166 @@ const payload = new Uint8Array(await req.arrayBuffer());
         session.customer_email ||
         null;
 
+      // ── Branch A: competition ticket purchase ─────────────────────────
+      // Triggered by Stripe Payment Links configured with
+      //   metadata.kind = 'competition'
+      //   metadata.competition_id = <UUID>   (or metadata.slug = <slug>)
+      // The buyer's Supabase user_id is passed via client_reference_id.
+      // Quantity comes from the Payment Link's adjustable_quantity field.
+      const sessionMeta = (session.metadata || {}) as Record<string, string>;
+      const isCompetition =
+        sessionMeta.kind === "competition" ||
+        !!sessionMeta.competition_id ||
+        !!sessionMeta.slug;
+
+      if (isCompetition) {
+        try {
+          // Skill-question gate — only enforced when the Payment Link /
+          // Checkout Session was created with metadata.skill_required='1'.
+          // (Static Payment Links can't carry dynamic per-buyer metadata,
+          // so for now the skill check stays client-side. Server-created
+          // sessions can flip skill_required=1 to enforce on the webhook.)
+          if (
+            sessionMeta.skill_required === "1" &&
+            sessionMeta.skill_pass !== "1"
+          ) {
+            console.warn(
+              "competition: skill_required but skill_pass missing — refusing",
+              session.id
+            );
+            return ok({
+              received: true,
+              handled: "competition.skill_failed",
+              session: session.id,
+            });
+          }
+
+          // Resolve competition by id or slug.
+          let compId: string | null = sessionMeta.competition_id || null;
+          let compRow: any = null;
+          if (compId) {
+            const { data } = await sbAdmin
+              .from("competitions")
+              .select("id,slug,status,total_tickets,sold_tickets")
+              .eq("id", compId)
+              .maybeSingle();
+            compRow = data;
+          } else if (sessionMeta.slug) {
+            const { data } = await sbAdmin
+              .from("competitions")
+              .select("id,slug,status,total_tickets,sold_tickets")
+              .eq("slug", sessionMeta.slug)
+              .maybeSingle();
+            compRow = data;
+            if (data) compId = (data as any).id;
+          }
+          if (!compRow || !compId) {
+            console.warn("competition: not found", sessionMeta);
+            return ok({ received: true, warning: "competition_not_found" });
+          }
+
+          // Idempotency — if we've already booked tickets for this Stripe
+          // session, just acknowledge and bail.
+          const { data: existing } = await sbAdmin
+            .from("competition_tickets")
+            .select("id")
+            .eq("stripe_session_id", session.id)
+            .maybeSingle();
+          if (existing) {
+            return ok({
+              received: true,
+              handled: "competition.duplicate",
+              session: session.id,
+            });
+          }
+
+          // Quantity — use the line-item qty Stripe sent us. Falls back
+          // to metadata.qty (set when checkout was created server-side)
+          // and finally 1.
+          let qty = 0;
+          try {
+            const li = await stripe.checkout.sessions.listLineItems(
+              session.id,
+              { limit: 10 }
+            );
+            qty = (li.data || []).reduce(
+              (n: number, l: any) => n + (l.quantity || 0),
+              0
+            );
+          } catch (e) {
+            console.warn("line items lookup failed:", (e as any).message);
+          }
+          if (!qty) qty = parseInt(sessionMeta.qty || "1", 10) || 1;
+
+          // Resolve buyer.
+          if (!email) email = await customerEmail(custId);
+          const buyerUserId = await resolveUserId({
+            maybeUserId: clientRef,
+            maybeCustomerId: custId,
+            maybeEmail: email,
+          });
+          if (!buyerUserId) {
+            console.warn(
+              "competition: cannot resolve buyer user_id",
+              session.id,
+              email
+            );
+            return ok({
+              received: true,
+              warning: "competition_user_unresolved",
+            });
+          }
+
+          // Atomic ticket reservation — race-safe RPC defined in
+          // migrations/023_competitions.sql.
+          const { data: rpcData, error: rpcErr } = await sbAdmin.rpc(
+            "reserve_competition_tickets",
+            { p_competition_id: compId, p_qty: qty }
+          );
+          if (rpcErr) {
+            console.error("reserve_competition_tickets failed:", rpcErr);
+            return ok({
+              received: true,
+              warning: "reserve_failed",
+              detail: rpcErr.message,
+            });
+          }
+          const ticketNumbers: number[] = rpcData || [];
+
+          const { error: insErr } = await sbAdmin
+            .from("competition_tickets")
+            .insert({
+              competition_id: compId,
+              user_id: buyerUserId,
+              qty,
+              ticket_numbers: ticketNumbers,
+              amount_paid_pence: session.amount_total || 0,
+              stripe_session_id: session.id,
+              payment_status: "paid",
+              paid_at: new Date().toISOString(),
+            });
+          if (insErr) console.error("competition_tickets insert:", insErr);
+
+          return ok({
+            received: true,
+            handled: "competition.ticket_issued",
+            qty,
+            ticket_numbers: ticketNumbers,
+          });
+        } catch (err) {
+          console.error(
+            "competition handler error:",
+            (err as any).message || err
+          );
+          return ok({
+            received: true,
+            warning: "competition_handler_error",
+            detail: String(err),
+          });
+        }
+      }
+
+      // ── Branch B: subscription checkout (existing flow) ───────────────
       if (!subId) {
         // one-off payment, not a subscription — ignore
         return ok({ received: true, ignored: "no_subscription_on_session" });

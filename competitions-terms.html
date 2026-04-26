@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitions · Terms &amp; Conditions · DartVoice</title>
+    <meta name="description" content="Official Terms and Conditions for DartVoice prize competitions including the free postal entry route, draw process, and eligibility.">
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var hx=h.replace('#','');var r=parseInt(hx.slice(0,2),16),g=parseInt(hx.slice(2,4),16),b=parseInt(hx.slice(4,6),16);var d=document.documentElement.style;d.setProperty('--brand',h);d.setProperty('--brand-r',r);d.setProperty('--brand-g',g);d.setProperty('--brand-b',b);d.setProperty('--brand-rgb',r+','+g+','+b);}();</script>
+    <link rel="stylesheet" href="css/tailwind.built.css">
+    <link rel="stylesheet" href="css/general/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="components/dv-nav.js" defer></script>
+    <script src="components/dv-footer.js" defer></script>
+    <script src="theme.js" defer></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background:#08080A; color:#f0f0f5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .02em; font-weight: 900; font-style: italic; }
+        .page-bg { position:fixed; inset:0; z-index:-1; pointer-events:none;
+            background:
+                radial-gradient(ellipse 70% 40% at 50% 0%, rgba(var(--brand-rgb),0.12) 0%, transparent 60%),
+                linear-gradient(180deg, #08080A 0%, #050508 100%);
+        }
+        .doc h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; text-transform: uppercase; font-size: 1.5rem; color:#f0f0f5; margin: 2.25rem 0 0.75rem; letter-spacing: .02em; }
+        .doc h3 { font-weight: 700; color:#f0f0f5; margin: 1.5rem 0 0.5rem; font-size: 1rem; }
+        .doc p, .doc li { color:#a4a4ad; line-height: 1.7; font-size: 0.95rem; }
+        .doc ul, .doc ol { padding-left: 1.25rem; margin: 0.5rem 0 1rem; }
+        .doc li { margin-bottom: 0.4rem; }
+        .doc strong { color:#f0f0f5; }
+        .doc a { color: var(--brand); text-decoration: underline; }
+        .panel { background:linear-gradient(180deg,#131317,#0f0f12); border:1px solid rgba(255,255,255,.06); border-radius:18px; }
+    </style>
+</head>
+<body class="antialiased min-h-screen">
+    <div class="page-bg"></div>
+    <dv-nav></dv-nav>
+
+    <main class="max-w-3xl mx-auto px-5 pt-24 pb-16">
+        <a href="/competitions" class="inline-flex items-center gap-2 text-xs text-muted hover:text-chalk transition mb-6">← Back to all competitions</a>
+
+        <header class="mb-8">
+            <p class="text-[10px] font-bold tracking-[0.3em] uppercase mb-2" style="color:var(--brand);">Legal</p>
+            <h1 class="display text-4xl sm:text-5xl mb-2">Competitions Terms &amp; Conditions</h1>
+            <p class="text-muted text-sm">Last updated: April 2026</p>
+        </header>
+
+        <div class="panel p-6 sm:p-8 doc">
+            <p>These Terms govern entry into all prize competitions (“<strong>Competitions</strong>”) operated by DartVoice (“<strong>we</strong>”, “<strong>us</strong>”, “<strong>our</strong>”) on dartvoice.app. By entering, you agree to these Terms in full. Each Competition may also have specific terms shown on its listing page; where they conflict, the listing page wins.</p>
+
+            <h2>1. The Promoter</h2>
+            <p>DartVoice, contactable at <a href="mailto:support@dartvoice.app">support@dartvoice.app</a>. We operate Competitions in the United Kingdom.</p>
+
+            <h2>2. Skill-based prize competition (not a lottery)</h2>
+            <p>Each Competition is a <strong>skill-based prize competition</strong> under sections 14 and 339 of the Gambling Act 2005. To be eligible to win, every entrant must correctly answer a skill question relating to the sport of darts. Entries with an incorrect answer are not eligible for the draw and any payment for those entries is non-refundable but does not enter you into the draw.</p>
+
+            <h2>3. Free postal entry route</h2>
+            <p>You can enter any Competition for <strong>free</strong> by post. To do so, send a postcard or sealed envelope containing a piece of paper with all of the following clearly written:</p>
+            <ul>
+                <li>Your full name</li>
+                <li>Your full UK postal address</li>
+                <li>Your daytime contact telephone number</li>
+                <li>Your email address</li>
+                <li>The exact name (slug) of the Competition you wish to enter</li>
+                <li>Your answer to the published skill question</li>
+            </ul>
+            <p>Send to:</p>
+            <p><strong>DartVoice Free Entry<br>PO Box — to be confirmed<br>United Kingdom</strong></p>
+            <p>One free entry per envelope. Entries received after the closing time shown on the Competition listing will be carried over to the next eligible Competition or destroyed at our discretion. We are not responsible for postal delays. The free entry route gives the same chance of winning as a paid entry.</p>
+
+            <h2>4. Eligibility</h2>
+            <ul>
+                <li>Open to UK residents aged 18 or over.</li>
+                <li>Employees of DartVoice and their immediate families are not eligible.</li>
+                <li>By entering you confirm the information you provide is accurate.</li>
+            </ul>
+
+            <h2>5. Entry, payment, ticket numbers</h2>
+            <ul>
+                <li>Paid entries are processed via Stripe. The price per ticket and the maximum number of tickets per Competition are shown on the listing page.</li>
+                <li>Each valid entry is issued one or more sequentially-numbered tickets after payment is confirmed.</li>
+                <li>You will receive an email confirmation containing your ticket number(s). If you do not receive it within 24 hours, contact <a href="mailto:support@dartvoice.app">support@dartvoice.app</a>.</li>
+                <li>If a Competition does not sell out, the draw still goes ahead at the published closing time.</li>
+            </ul>
+
+            <h2>6. The draw</h2>
+            <ul>
+                <li>The draw takes place at the closing date/time shown on the Competition listing.</li>
+                <li>The winning ticket is selected at random using a verifiable random function. The audit log is retained for 90 days.</li>
+                <li>The winner is contacted by email within 7 days of the draw and announced on dartvoice.app.</li>
+                <li>If the winner cannot be contacted, or does not claim the prize within 30 days, we reserve the right to redraw.</li>
+            </ul>
+
+            <h2>7. The prize</h2>
+            <ul>
+                <li>The prize for each Competition is shown on the listing page. Images are illustrative.</li>
+                <li>Prizes are non-transferable and there is no cash alternative unless we say so in writing.</li>
+                <li>Delivery is to a UK address only and at our cost via tracked post.</li>
+                <li>If a stated prize becomes unavailable we may substitute a prize of equal or greater value.</li>
+            </ul>
+
+            <h2>8. Refunds, cancellations</h2>
+            <p>Once an entry is processed and a ticket number issued it is non-refundable except where required by law. If we cancel a Competition before the draw, all paid entrants will receive a full refund within 14 days.</p>
+
+            <h2>9. Responsible play</h2>
+            <p>Please play responsibly. Set yourself a budget and never spend more than you can afford. Free help is available from <a href="https://www.begambleaware.org/" target="_blank" rel="noopener">BeGambleAware.org</a> or by calling the National Gambling Helpline on 0808 8020 133.</p>
+
+            <h2>10. Personal data</h2>
+            <p>We process your personal data in accordance with our <a href="/privacy">Privacy Policy</a>. We will only contact you about Competitions you have entered, the result of the draw, and (where you have opted in) DartVoice product updates.</p>
+
+            <h2>11. Liability</h2>
+            <p>Nothing in these Terms limits or excludes our liability for fraud or for death or personal injury caused by our negligence. To the maximum extent permitted by law, our liability is limited to the entry fee paid for the Competition concerned.</p>
+
+            <h2>12. Changes</h2>
+            <p>We may update these Terms by posting a revised version here. The version in force at the time of your entry governs that entry.</p>
+
+            <h2>13. Governing law</h2>
+            <p>These Terms are governed by the laws of England and Wales. Disputes are subject to the exclusive jurisdiction of the courts of England and Wales.</p>
+
+            <h2>14. Contact</h2>
+            <p>Questions? Email <a href="mailto:support@dartvoice.app">support@dartvoice.app</a>.</p>
+        </div>
+
+        <p class="text-center text-[11px] text-muted-2 mt-8">DartVoice operates Competitions as a skill-based prize competition under the Gambling Act 2005. 18+ only. Please play responsibly.</p>
+    </main>
+
+    <dv-footer></dv-footer>
+</body>
+</html>

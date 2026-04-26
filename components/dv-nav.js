@@ -4,6 +4,113 @@ class DvNav extends HTMLElement {
     this.bindMenu();
     this.bindLeaderboard();
     this.initAuth();
+    this.markActive();
+    DvNav.installScrollTrail();
+    DvNav.installScrollReveal();
+  }
+
+  /**
+   * Highlight the nav link that matches the current page so users always
+   * know where they are. Adds an underline + brand colour and aria-current.
+   */
+  markActive() {
+    const path = (location.pathname || '/').replace(/\/+$/, '') || '/';
+    const here = path.toLowerCase();
+    const links = this.querySelectorAll('a[href]');
+    links.forEach((a) => {
+      const href = (a.getAttribute('href') || '').split('#')[0].split('?')[0];
+      if (!href || href.startsWith('http') || href.startsWith('mailto:')) return;
+      const target = href.replace(/\/+$/, '').replace(/\.html$/, '').toLowerCase() || '/';
+      const match =
+        target === here ||
+        target === here + '.html' ||
+        target === here.replace(/\.html$/, '') ||
+        (target !== '/' && (here.endsWith(target) || here === target.replace(/^\//, '')));
+      if (match) {
+        a.setAttribute('aria-current', 'page');
+        a.classList.add('dv-nav-active');
+        a.style.color = 'var(--brand)';
+      }
+    });
+    // Inject a tiny stylesheet for the active marker (idempotent).
+    if (!document.getElementById('dv-nav-active-style')) {
+      const s = document.createElement('style');
+      s.id = 'dv-nav-active-style';
+      s.textContent = `
+        .dv-nav-active { position: relative; }
+        .dv-nav-active::after {
+          content:''; position:absolute; left:10px; right:10px; bottom:-2px;
+          height:2px; background:var(--brand); border-radius:2px;
+          box-shadow:0 0 8px rgba(var(--brand-rgb),.55);
+        }`;
+      document.head.appendChild(s);
+    }
+  }
+
+  /**
+   * Dart-trail scroll indicator — a thin red bar with a glowing tip
+   * fixed to the right edge of the viewport that fills as the user
+   * scrolls. Uses a CSS variable updated on scroll.
+   */
+  static installScrollTrail() {
+    if (document.querySelector('.dv-scroll-trail')) return;
+    const reduce =
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    const el = document.createElement('div');
+    el.className = 'dv-scroll-trail';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const h = document.documentElement;
+        const max = (h.scrollHeight - h.clientHeight) || 1;
+        const pct = Math.min(100, Math.max(0, (h.scrollTop || window.scrollY) / max * 100));
+        el.style.setProperty('--dv-scroll', pct.toFixed(2) + '%');
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    onScroll();
+  }
+
+  /**
+   * Scroll-reveal for any element with class `.reveal`. Uses a single
+   * IntersectionObserver and unobserves after first reveal.
+   */
+  static installScrollReveal() {
+    if (DvNav._revealInstalled) return;
+    DvNav._revealInstalled = true;
+    const reduce =
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reveal = (el) => el.classList.add('in-view');
+    const items = () => document.querySelectorAll('.reveal:not(.in-view)');
+    if (reduce || !('IntersectionObserver' in window)) {
+      items().forEach(reveal);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            reveal(e.target);
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }
+    );
+    const observe = () => items().forEach((el) => io.observe(el));
+    observe();
+    // Re-observe if pages inject more `.reveal` nodes later.
+    const mo = new MutationObserver(observe);
+    mo.observe(document.body, { childList: true, subtree: true });
   }
 
   render() {

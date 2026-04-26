@@ -4,6 +4,7 @@ autoscore/dist/
 autoscore/installer_output/
 autoscore/__pycache__/
 build_artifacts/
+dist/
 *.resolved
 
 # ── Dev / IDE ──

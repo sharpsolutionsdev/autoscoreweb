@@ -20,8 +20,8 @@
 
   /* Text */
   --color-chalk: #f0f0f5; /* primary text */
-  --color-muted: #6e6e82; /* secondary / subdued text */
-  --color-faint: #4a4a5a; /* placeholder, labels, disabled text */
+  --color-muted: #8a8a9c; /* secondary / subdued text — WCAG AA on #08080A */
+  --color-faint: #6b6b80; /* placeholder, labels, disabled text */
 
   /* Alphas — convenience tokens derived from the palette */
   --alpha-white-4: rgba(255, 255, 255, 0.04);
@@ -655,4 +655,121 @@ textarea.form-input {
 }
 .paywall-animate {
   animation: paywallDrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* =============================================================================
+   N. ACCESSIBILITY — keyboard focus + reduced motion
+   ============================================================================= */
+
+/* Restore a visible focus ring for keyboard users on every interactive element
+   that has been styled with `outline:none` elsewhere. Does NOT fire for mouse
+   clicks thanks to :focus-visible. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Honour OS-level “reduce motion”. We don’t kill animations entirely —
+   that breaks state-bearing transitions — but we cap them so vestibular /
+   epilepsy users don’t get strobed. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.05s !important;
+    scroll-behavior: auto !important;
+  }
+  video[autoplay] {
+    /* Pause autoplay loops; keep first frame as a poster. */
+    animation: none !important;
+  }
+}
+
+/* =============================================================================
+   O. SCROLL REVEAL — elements with .reveal fade-up as they enter the viewport.
+   Wired up in components/dv-nav.js so every page gets it for free.
+   ============================================================================= */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =============================================================================
+   P. DART-TRAIL SCROLL INDICATOR
+   A thin red bar fixed to the right of the viewport that grows as the user
+   scrolls down the page — looks like a dart being thrown down the side of
+   the site. Pure CSS animation off a CSS custom property updated in JS.
+   ============================================================================= */
+
+.dv-scroll-trail {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 3px;
+  height: 100vh;
+  z-index: 60;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(var(--brand-rgb), 0.05) 8%,
+    rgba(var(--brand-rgb), 0.05) 92%,
+    transparent 100%
+  );
+}
+.dv-scroll-trail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--dv-scroll, 0%);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--brand-rgb), 0.55) 0%,
+    var(--brand) 60%,
+    var(--brand) 100%
+  );
+  box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.55),
+    0 0 24px rgba(var(--brand-rgb), 0.25);
+  transition: height 0.08s linear;
+}
+/* Dart-tip indicator that rides the bottom edge of the fill */
+.dv-scroll-trail::after {
+  content: "";
+  position: absolute;
+  left: -4.5px;
+  top: var(--dv-scroll, 0%);
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 16px rgba(var(--brand-rgb), 0.85),
+    0 0 32px rgba(var(--brand-rgb), 0.4);
+  transform: rotate(0deg);
+  transition: top 0.08s linear;
+}
+@media (max-width: 640px), (prefers-reduced-motion: reduce) {
+  .dv-scroll-trail {
+    display: none;
+  }
 }

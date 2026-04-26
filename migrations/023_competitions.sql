@@ -47,7 +47,9 @@ CREATE INDEX IF NOT EXISTS idx_competitions_status   ON public.competitions (sta
 CREATE INDEX IF NOT EXISTS idx_competitions_draw_at  ON public.competitions (draw_at);
 
 CREATE OR REPLACE FUNCTION public.competitions_set_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER LANGUAGE plpgsql
+SET search_path = public, pg_temp
+AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
 
 DROP TRIGGER IF EXISTS competitions_updated_at ON public.competitions;
@@ -144,7 +146,9 @@ CREATE OR REPLACE FUNCTION public.reserve_competition_tickets(
     p_qty            INTEGER
 )
 RETURNS INTEGER[]
-LANGUAGE plpgsql SECURITY DEFINER AS $$
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
 DECLARE
     v_total      INTEGER;
     v_sold       INTEGER;

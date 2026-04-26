@@ -8951,11 +8951,57 @@ window.openScorerUrl = function(url){
             const p2L = s.p2Legs || 0;
             if (!_rankedFinished && _rankedStarted && (p1L >= REQUIRED_LEGS || p2L >= REQUIRED_LEGS)) {
                 _rankedFinished = true;
-                if (window.dvToast) window.dvToast('Match complete — confirm your result', 'info');
-                // Open the in-app submit modal (no navigation away from the web app).
-                setTimeout(() => openSubmitModal({ auto: true }), 1200);
+                if (window.dvToast) window.dvToast('Match complete — submitting result…', 'success');
+                // Fully automatic submit — no modal, no user interaction.
+                // Pull the latest stats snapshot and side-resolve via DC handles.
+                setTimeout(() => autoSubmitResult(s), 800);
             }
         });
+
+        async function autoSubmitResult(state) {
+            if (!activeMatchId) return;
+            try {
+                const lobby = window._dvLobby || {};
+                const me = norm(lobby.myDc);
+                const p1 = norm(state?.p1Name);
+                const meIsP1 = me ? (p1 === me) : true;
+                const myLegs  = meIsP1 ? (state.p1Legs || 0) : (state.p2Legs || 0);
+                const oppLegs = meIsP1 ? (state.p2Legs || 0) : (state.p1Legs || 0);
+                const myStats = (meIsP1 ? state.p1 : state.p2) || {};
+                const num = (v, asFloat = false) => {
+                    if (v === '' || v == null) return 0;
+                    const n = asFloat ? parseFloat(v) : parseInt(v, 10);
+                    return Number.isFinite(n) ? n : 0;
+                };
+                const payload = {
+                    action: 'submit_result',
+                    match_id: activeMatchId,
+                    my_legs_won: myLegs,
+                    opponent_legs_won: oppLegs,
+                    stats: {
+                        average:       num(myStats.average ?? myStats.avg ?? myStats.threeDartAvg, true),
+                        checkout_pct:  num(myStats.checkout_pct ?? myStats.checkoutPct ?? myStats.checkoutPercent, true),
+                        high_finish:   num(myStats.high_finish ?? myStats.highFinish ?? myStats.bestLeg ?? myStats.bestCheckout),
+                        tons_180:      num(myStats.tons_180 ?? myStats.t180 ?? myStats.count180 ?? myStats.oneEighties),
+                        tons_140_plus: num(myStats.tons_140_plus ?? myStats.t140 ?? myStats.count140),
+                        tons_100_plus: num(myStats.tons_100_plus ?? myStats.t100 ?? myStats.count100),
+                    }
+                };
+                if (myLegs === 0 && oppLegs === 0) throw new Error('No leg data');
+                const { data, error } = await window.sb.functions.invoke('ranked-match-result', { body: payload });
+                if (error) throw error;
+                try { sessionStorage.removeItem('dv_latest_match_stats'); } catch(_){}
+                if (window.dvToast) {
+                    if (data?.status === 'completed')        window.dvToast('Result submitted — MMR updated', 'success');
+                    else if (data?.status === 'awaiting_opponent') window.dvToast('Result submitted — waiting for opponent', 'info');
+                    else if (data?.status === 'disputed')    window.dvToast('Result disputed — admins notified', 'warn');
+                }
+            } catch (e) {
+                console.warn('[RankedMode] auto-submit failed, falling back to modal', e);
+                _rankedFinished = false; // let user retry via modal
+                openSubmitModal({ auto: true });
+            }
+        }
 
         // Auto-activate from URL params on load.
         const params = new URLSearchParams(window.location.search);
@@ -8969,6 +9015,112 @@ window.openScorerUrl = function(url){
                 } else if (++tries > 60) clearInterval(ready);
             }, 100);
         }
+    })();
+    </script>
+
+    <!-- Extension-update banner: prompts users running an outdated build to update -->
+    <style>
+        #dv-ext-update-banner {
+            position: fixed; left: 50%; top: 12px; transform: translateX(-50%);
+            z-index: 100000; display: none; max-width: 92vw;
+            background: linear-gradient(180deg, #131317, #0a0a0d);
+            border: 1px solid rgba(var(--brand-rgb), .55);
+            border-radius: 14px; padding: 12px 18px;
+            box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 30px rgba(var(--brand-rgb),.25);
+            color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
+            align-items: center; gap: 14px;
+        }
+        #dv-ext-update-banner.show { display: flex; animation: dvExtFade .3s ease; }
+        #dv-ext-update-banner.hard { border-color: #ef4444; box-shadow: 0 10px 40px rgba(0,0,0,.7), 0 0 36px rgba(239,68,68,.4); }
+        @keyframes dvExtFade { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translateX(-50%); } }
+        #dv-ext-update-banner .copy { font-size: 13px; font-weight: 600; line-height: 1.35; }
+        #dv-ext-update-banner .copy b { color: rgb(var(--brand-rgb)); }
+        #dv-ext-update-banner .actions { display: flex; gap: 8px; flex-shrink: 0; }
+        #dv-ext-update-banner .btn {
+            padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .08em; cursor: pointer; border: 1px solid transparent;
+            text-decoration: none; display: inline-flex; align-items: center; transition: all .15s;
+        }
+        #dv-ext-update-banner .btn-primary { background: rgb(var(--brand-rgb)); color: #fff; }
+        #dv-ext-update-banner .btn-primary:hover { filter: brightness(1.1); }
+        #dv-ext-update-banner .btn-ghost { background: rgba(255,255,255,.05); color: #fff; border-color: rgba(255,255,255,.1); }
+        #dv-ext-update-banner .btn-ghost:hover { background: rgba(255,255,255,.1); }
+    </style>
+    <div id="dv-ext-update-banner" role="status" aria-live="polite">
+        <div class="copy" id="dv-ext-banner-copy">DartVoice extension update available.</div>
+        <div class="actions">
+            <a href="chrome://extensions/" class="btn btn-primary" id="dv-ext-update-btn" target="_blank" rel="noopener">Update now</a>
+            <button class="btn btn-ghost" id="dv-ext-banner-dismiss" type="button">Later</button>
+        </div>
+    </div>
+    <script>
+    (function(){
+        // Compare semver-ish "a.b.c" strings. Returns -1 / 0 / 1.
+        function cmpVer(a, b) {
+            const pa = String(a||'0').split('.').map(n => parseInt(n,10) || 0);
+            const pb = String(b||'0').split('.').map(n => parseInt(n,10) || 0);
+            for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+                const x = pa[i] || 0, y = pb[i] || 0;
+                if (x < y) return -1;
+                if (x > y) return 1;
+            }
+            return 0;
+        }
+
+        const banner = document.getElementById('dv-ext-update-banner');
+        const copyEl = document.getElementById('dv-ext-banner-copy');
+        const btnUpd = document.getElementById('dv-ext-update-btn');
+        const btnDis = document.getElementById('dv-ext-banner-dismiss');
+        const DISMISS_KEY = 'dv_ext_update_dismissed_for';
+
+        let extVersion = null;
+        let serverInfo = null;
+
+        function maybeShow() {
+            if (!extVersion || !serverInfo) return;
+            const min    = serverInfo.min_version;
+            const latest = serverInfo.latest_version || min;
+            const hardBelow = serverInfo.force_reload_below || min;
+            const isHard = cmpVer(extVersion, hardBelow) < 0;
+            const isSoft = !isHard && cmpVer(extVersion, latest) < 0;
+            if (!isHard && !isSoft) return;
+
+            // Soft banner can be dismissed per-version. Hard banner cannot.
+            if (isSoft) {
+                const dismissed = localStorage.getItem(DISMISS_KEY);
+                if (dismissed === latest) return;
+            }
+
+            banner.classList.toggle('hard', isHard);
+            copyEl.innerHTML = isHard
+                ? `Your DartVoice extension (<b>${extVersion}</b>) is too old to work correctly. Update to <b>${latest}</b> to keep playing.`
+                : `New DartVoice extension available — you have <b>${extVersion}</b>, latest is <b>${latest}</b>.`;
+            if (serverInfo.store_url) btnUpd.setAttribute('href', serverInfo.store_url);
+            if (isHard) btnDis.style.display = 'none';
+            banner.classList.add('show');
+        }
+
+        btnDis?.addEventListener('click', () => {
+            banner.classList.remove('show');
+            if (serverInfo?.latest_version) localStorage.setItem(DISMISS_KEY, serverInfo.latest_version);
+        });
+
+        // Listen for the auth-bridge announcement.
+        window.addEventListener('message', (ev) => {
+            if (ev.source !== window) return;
+            const d = ev.data;
+            if (!d || d.type !== 'DV_EXT_PRESENT' || !d.version) return;
+            extVersion = d.version;
+            maybeShow();
+        });
+        // Re-ping in case auth-bridge attached after our listener.
+        setTimeout(() => { try { window.postMessage({ type: 'DV_EXT_PING' }, location.origin); } catch(_){} }, 1500);
+
+        // Pull min/latest from a static JSON we publish at the site root.
+        fetch('/extension-min-version.json', { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : null)
+            .then(j => { if (j) { serverInfo = j; maybeShow(); } })
+            .catch(() => {});
     })();
     </script>
 

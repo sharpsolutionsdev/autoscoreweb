@@ -181,7 +181,7 @@
                 DartVoice Competitions are skill-based prize draws operated under the
                 <a href="https://www.gamblingcommission.gov.uk/guidance/lotteries-and-free-prize-draws-running-a-promotion-which-is-not-a-lottery" target="_blank" rel="noopener" class="text-chalk hover:underline">UK Gambling Act 2005</a>
                 "free-prize draw" exemption. A correct answer to the skill question is required to enter. A free entry route is available — see
-                <a href="/competitions/terms" class="text-chalk hover:underline">terms &amp; conditions</a>. 18+ only. Please play responsibly · <a href="https://www.begambleaware.org/" target="_blank" rel="noopener" class="text-chalk hover:underline">BeGambleAware.org</a>.
+                <a href="/competitions-terms" class="text-chalk hover:underline">terms &amp; conditions</a>. 18+ only. Please play responsibly · <a href="https://www.begambleaware.org/" target="_blank" rel="noopener" class="text-chalk hover:underline">BeGambleAware.org</a>.
             </p>
         </section>
     </main>
@@ -260,7 +260,7 @@
             btn.className = 'ticket-btn' + (isSoldOut ? ' sold-out' : '');
             btn.textContent = isSoldOut ? 'SOLD OUT' : 'Enter Now →';
             if (!isSoldOut) {
-                btn.href = '/competitions/' + encodeURIComponent(c.slug);
+                btn.href = '/competition.html?slug=' + encodeURIComponent(c.slug);
                 btn.dataset.slug = c.slug;
             } else {
                 btn.href = '#';

@@ -1,13 +1,42 @@
 // background.js — DartVoice extension service worker
 
-// First-install onboarding: open the welcome page on our site
+// First-install / update onboarding.
+//
+//  Install: if the user already has a DartVoice tab open (web-app, login,
+//           dashboard, etc), focus it and reload it so the freshly-installed
+//           content scripts take effect immediately. If not, open /welcome.
+//  Update:  silently mark the version so the web app can show "what's new".
+//           Also reload any open scorer tabs so the new content.js takes
+//           effect without the user needing to refresh.
 try {
-    chrome.runtime.onInstalled.addListener(function (details) {
+    chrome.runtime.onInstalled.addListener(async function (details) {
         if (details && details.reason === 'install') {
+            try {
+                const dvTabs = await chrome.tabs.query({ url: ['*://dartvoice.app/*', '*://*.dartvoice.app/*'] });
+                if (dvTabs && dvTabs.length) {
+                    // Prefer a web-app tab; fall back to the most recently active.
+                    const preferred = dvTabs.find(t => /\/web-app/.test(t.url || '')) || dvTabs[0];
+                    try { await chrome.windows.update(preferred.windowId, { focused: true }); } catch (_) {}
+                    try { await chrome.tabs.update(preferred.id, { active: true }); } catch (_) {}
+                    // Reload so the auth-bridge content script attaches.
+                    try { await chrome.tabs.reload(preferred.id); } catch (_) {}
+                    return;
+                }
+            } catch (_) { /* fall through to fresh tab */ }
             chrome.tabs.create({ url: 'https://dartvoice.app/welcome?src=ext_install' });
         } else if (details && details.reason === 'update') {
-            // Optional: flag that an update happened so the web app can show a "what's new" toast
-            chrome.storage.local.set({ dv_last_update_at: Date.now(), dv_last_version: chrome.runtime.getManifest().version });
+            const v = chrome.runtime.getManifest().version;
+            chrome.storage.local.set({ dv_last_update_at: Date.now(), dv_last_version: v });
+            // Hot-reload any scorer / dartvoice tabs so new content scripts attach.
+            try {
+                const tabs = await chrome.tabs.query({ url: [
+                    '*://*.dartcounter.net/*', '*://nakka.com/*',
+                    '*://dartvoice.app/*', '*://*.dartvoice.app/*',
+                ] });
+                for (const t of tabs) {
+                    try { chrome.tabs.reload(t.id); } catch (_) {}
+                }
+            } catch (_) {}
         }
     });
 } catch (e) { /* service worker may re-init; listener survives */ }

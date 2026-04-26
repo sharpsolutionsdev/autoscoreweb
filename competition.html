@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com; img-src 'self' data: https:; frame-src https://js.stripe.com">
+    <title>Enter Competition · DartVoice</title>
+    <meta name="description" content="Enter to win premium darts gear. UK prize competition with skill-based entry from £0.99.">
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var hx=h.replace('#','');var r=parseInt(hx.slice(0,2),16),g=parseInt(hx.slice(2,4),16),b=parseInt(hx.slice(4,6),16);var d=document.documentElement.style;d.setProperty('--brand',h);d.setProperty('--brand-r',r);d.setProperty('--brand-g',g);d.setProperty('--brand-b',b);d.setProperty('--brand-rgb',r+','+g+','+b);}();</script>
+    <link rel="stylesheet" href="css/tailwind.built.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/general/base.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="components/dv-nav.js" defer></script>
+    <script src="components/dv-footer.js" defer></script>
+    <script src="theme.js" defer></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background:#0b0b0e; color:#f0f0f5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .02em; }
+        :root { --brand:#CC0B20; --brand-rgb:204,11,32; }
+        .page-bg { position:fixed; inset:0; z-index:-1; pointer-events:none;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(var(--brand-rgb),0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 85% 30%, rgba(245,158,11,0.10) 0%, transparent 70%),
+                linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
+        }
+        .panel { background:linear-gradient(180deg,#131317,#0f0f12); border:1px solid rgba(255,255,255,.06); border-radius:18px; }
+        .prize-img { aspect-ratio: 4/3; background:#0a0a0d center/cover no-repeat; border-radius:16px; border:1px solid rgba(255,255,255,.05); }
+        .progress { height:8px; background:rgba(255,255,255,.06); border-radius:999px; overflow:hidden; }
+        .progress > span { display:block; height:100%; background:linear-gradient(90deg,var(--brand),#f59e0b); transition:width .4s ease; }
+        .qty-btn { width:38px; height:38px; border-radius:10px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); font-weight:800; color:#fff; cursor:pointer; transition:all .15s; }
+        .qty-btn:hover:not(:disabled) { background:rgba(var(--brand-rgb),.12); border-color:rgba(var(--brand-rgb),.4); }
+        .qty-btn:disabled { opacity:.4; cursor:not-allowed; }
+        .qty-input { width:80px; text-align:center; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:9px; font-weight:800; font-size:18px; color:#fff; font-variant-numeric:tabular-nums; }
+        .quick-pick { padding:8px 14px; font-size:12px; font-weight:700; border-radius:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); cursor:pointer; transition:all .15s; }
+        .quick-pick:hover { background:rgba(var(--brand-rgb),.15); border-color:rgba(var(--brand-rgb),.5); }
+        .quick-pick.active { background:rgba(var(--brand-rgb),.25); border-color:rgba(var(--brand-rgb),.7); color:#fff; }
+        .skill-opt { padding:14px; border-radius:10px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); cursor:pointer; transition:all .15s; font-weight:600; }
+        .skill-opt:hover { background:rgba(255,255,255,.06); }
+        .skill-opt.selected { background:rgba(var(--brand-rgb),.15); border-color:var(--brand); }
+        .buy-btn { width:100%; padding:16px; border-radius:12px; background:var(--brand); color:#fff; font-weight:900; font-size:16px; text-transform:uppercase; letter-spacing:.08em; transition:all .15s; box-shadow:0 6px 24px rgba(var(--brand-rgb),.35); }
+        .buy-btn:hover:not(:disabled) { transform:translateY(-1px); filter:brightness(1.08); box-shadow:0 10px 32px rgba(var(--brand-rgb),.5); }
+        .buy-btn:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
+        .countdown-box { display:flex; gap:8px; }
+        .countdown-box .unit { flex:1; padding:10px 6px; background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.05); border-radius:10px; text-align:center; }
+        .countdown-box .unit b { display:block; font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:900; line-height:1; color:#fff; font-variant-numeric:tabular-nums; }
+        .countdown-box .unit span { font-size:9px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:#a4a4ad; }
+        .stat-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:13px; }
+        .stat-row:last-child { border-bottom:none; }
+        .stat-row .label { color:#a4a4ad; }
+        .stat-row .value { color:#fff; font-weight:700; }
+        .legal { font-size:11px; color:#7a7a83; line-height:1.5; }
+        .legal a { color:#c4c4cd; text-decoration:underline; }
+    </style>
+</head>
+<body>
+    <div class="page-bg"></div>
+    <dv-nav></dv-nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 md:py-12">
+        <a href="/competitions.html" class="inline-flex items-center gap-2 text-xs text-muted hover:text-chalk transition-colors mb-6">
+            ← Back to all competitions
+        </a>
+
+        <div id="loading" class="text-center py-24 text-muted">Loading competition…</div>
+        <div id="not-found" class="hidden text-center py-24">
+            <p class="text-2xl font-bold text-chalk mb-3">Competition not found</p>
+            <p class="text-sm text-muted mb-6">It may have ended or been removed.</p>
+            <a href="/competitions.html" class="inline-block px-6 py-3 rounded-lg bg-brand text-white font-bold">See all competitions →</a>
+        </div>
+
+        <div id="content" class="hidden grid md:grid-cols-2 gap-8">
+            <!-- LEFT: Prize image + description -->
+            <section>
+                <div class="prize-img mb-4" id="prize-img"></div>
+                <h1 class="display text-3xl md:text-4xl font-black mb-1" id="title">—</h1>
+                <p class="text-sm text-muted mb-4" id="subtitle"></p>
+                <div class="panel p-5 mb-4">
+                    <h3 class="display text-sm font-bold mb-3" style="color:var(--brand);">Draw closes in</h3>
+                    <div class="countdown-box" id="countdown">
+                        <div class="unit"><b id="cd-d">—</b><span>Days</span></div>
+                        <div class="unit"><b id="cd-h">—</b><span>Hours</span></div>
+                        <div class="unit"><b id="cd-m">—</b><span>Mins</span></div>
+                        <div class="unit"><b id="cd-s">—</b><span>Secs</span></div>
+                    </div>
+                </div>
+                <div class="panel p-5">
+                    <h3 class="display text-sm font-bold mb-2" style="color:var(--brand);">About this prize</h3>
+                    <p class="text-sm text-chalk leading-relaxed whitespace-pre-line" id="description">—</p>
+                </div>
+            </section>
+
+            <!-- RIGHT: Buy panel -->
+            <section>
+                <div class="panel p-6 sticky top-6">
+                    <div class="mb-4">
+                        <p class="text-[10px] font-bold tracking-widest uppercase" style="color:var(--brand);">★ Enter the draw</p>
+                        <h2 class="display text-2xl font-black">Buy your tickets</h2>
+                    </div>
+
+                    <div class="space-y-1 mb-5">
+                        <div class="stat-row"><span class="label">Prize value</span><span class="value" id="prize-value">—</span></div>
+                        <div class="stat-row"><span class="label">Ticket price</span><span class="value" id="ticket-price">—</span></div>
+                        <div class="stat-row"><span class="label">Tickets sold</span><span class="value" id="tickets-sold">—</span></div>
+                    </div>
+                    <div class="progress mb-1"><span id="progress-bar" style="width:0%"></span></div>
+                    <p class="text-[10px] text-muted text-right mb-5" id="progress-pct">—</p>
+
+                    <!-- Skill-question gate (legal exemption requires it) -->
+                    <div class="mb-5">
+                        <h4 class="text-[11px] font-bold tracking-widest uppercase text-muted mb-2">Skill question</h4>
+                        <p class="text-sm text-chalk mb-3" id="skill-q">In darts, what's the highest possible checkout?</p>
+                        <div class="grid grid-cols-3 gap-2" id="skill-options">
+                            <div class="skill-opt" data-correct="false">160</div>
+                            <div class="skill-opt" data-correct="true">170</div>
+                            <div class="skill-opt" data-correct="false">180</div>
+                        </div>
+                        <p class="text-[10px] text-muted mt-2" id="skill-feedback"></p>
+                    </div>
+
+                    <!-- Qty -->
+                    <h4 class="text-[11px] font-bold tracking-widest uppercase text-muted mb-2">How many tickets?</h4>
+                    <div class="flex items-center justify-center gap-3 mb-3">
+                        <button class="qty-btn" id="qty-down">−</button>
+                        <input class="qty-input" id="qty" type="number" min="1" max="75" value="1" inputmode="numeric">
+                        <button class="qty-btn" id="qty-up">+</button>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-2 mb-5">
+                        <button class="quick-pick" data-q="1">1</button>
+                        <button class="quick-pick" data-q="5">5</button>
+                        <button class="quick-pick" data-q="10">10</button>
+                        <button class="quick-pick" data-q="25">25</button>
+                        <button class="quick-pick" data-q="50">50</button>
+                    </div>
+
+                    <div class="flex justify-between items-baseline mb-4">
+                        <span class="text-sm text-muted">Total</span>
+                        <span class="display text-3xl font-black" id="total">£0.00</span>
+                    </div>
+
+                    <button class="buy-btn" id="buy-btn" disabled>Answer the skill question</button>
+                    <p class="text-[10px] text-muted text-center mt-3" id="signin-hint"></p>
+
+                    <p class="legal mt-5">
+                        18+ only. UK prize competition. By entering you accept our
+                        <a href="/competitions-terms">terms</a> and
+                        <a href="/privacy.html">privacy policy</a>.
+                        Free postal entry route available — see terms.
+                        <a href="https://www.begambleaware.org/" target="_blank" rel="noopener">BeGambleAware.org</a>.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <dv-footer></dv-footer>
+
+    <script>
+    (function(){
+        const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        const params = new URLSearchParams(location.search);
+        const slug = (params.get('slug') || '').trim();
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const gbp = p => '£' + (Number(p || 0) / 100).toFixed(2);
+
+        if (!slug) { showNotFound(); return; }
+
+        // Light "you just paid" toast hook (success_url returns to /competitions.html?paid=1).
+        if (params.get('paid') === '1') {
+            // Defer to competitions.html for the global feedback; never reached on fresh load.
+        }
+
+        let comp = null;
+        let answeredCorrectly = false;
+
+        async function load() {
+            try {
+                const r = await fetch(`${SB_URL}/rest/v1/competitions?select=*&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+                    { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+                const rows = r.ok ? await r.json() : [];
+                if (!rows.length) return showNotFound();
+                comp = rows[0];
+                if (!['active','sold_out','drawing','drawn'].includes(comp.status)) return showNotFound();
+                render();
+            } catch (e) { console.error(e); showNotFound(); }
+        }
+
+        function showNotFound() {
+            $('loading').classList.add('hidden');
+            $('not-found').classList.remove('hidden');
+        }
+
+        function render() {
+            $('loading').classList.add('hidden');
+            $('content').classList.remove('hidden');
+            document.title = `${comp.title} · DartVoice Competitions`;
+
+            $('title').textContent = comp.title;
+            $('subtitle').textContent = comp.subtitle || '';
+            $('description').textContent = comp.description || comp.subtitle || '';
+            if (comp.prize_image_url) $('prize-img').style.backgroundImage = `url('${comp.prize_image_url}')`;
+            $('prize-value').textContent = gbp(comp.prize_value_pence);
+            $('ticket-price').textContent = gbp(comp.ticket_price_pence);
+
+            const sold = comp.sold_tickets || 0;
+            const total = comp.total_tickets || 0;
+            $('tickets-sold').textContent = `${sold.toLocaleString()} / ${total.toLocaleString()}`;
+            const pct = total ? Math.min(100, Math.round((sold / total) * 100)) : 0;
+            $('progress-bar').style.width = pct + '%';
+            $('progress-pct').textContent = pct + '% sold';
+
+            const max = Math.min(comp.max_per_user || 75, Math.max(1, total - sold));
+            $('qty').max = max;
+
+            // Brand colour overrides per-competition.
+            if (comp.hero_color) {
+                document.documentElement.style.setProperty('--brand', comp.hero_color);
+                const hx = comp.hero_color.replace('#','');
+                const r=parseInt(hx.slice(0,2),16),g=parseInt(hx.slice(2,4),16),b=parseInt(hx.slice(4,6),16);
+                document.documentElement.style.setProperty('--brand-rgb', `${r},${g},${b}`);
+            }
+
+            startCountdown();
+            updateTotal();
+
+            if (comp.status !== 'active') {
+                const btn = $('buy-btn');
+                btn.disabled = true;
+                btn.textContent = comp.status === 'sold_out' ? 'Sold out' : 'Draw closed';
+            }
+        }
+
+        function startCountdown() {
+            const target = new Date(comp.draw_at).getTime();
+            function tick() {
+                const ms = target - Date.now();
+                if (ms <= 0) {
+                    $('cd-d').textContent = $('cd-h').textContent = $('cd-m').textContent = $('cd-s').textContent = '0';
+                    return;
+                }
+                const d = Math.floor(ms / 86400000);
+                const h = Math.floor((ms % 86400000) / 3600000);
+                const m = Math.floor((ms % 3600000) / 60000);
+                const s = Math.floor((ms % 60000) / 1000);
+                $('cd-d').textContent = String(d);
+                $('cd-h').textContent = String(h).padStart(2, '0');
+                $('cd-m').textContent = String(m).padStart(2, '0');
+                $('cd-s').textContent = String(s).padStart(2, '0');
+            }
+            tick(); setInterval(tick, 1000);
+        }
+
+        function getQty() {
+            const v = parseInt($('qty').value, 10) || 1;
+            const max = parseInt($('qty').max, 10) || 75;
+            return Math.max(1, Math.min(max, v));
+        }
+        function updateTotal() {
+            const q = getQty();
+            $('qty').value = q;
+            const total = q * (comp?.ticket_price_pence || 0);
+            $('total').textContent = gbp(total);
+            updateBuyState();
+        }
+
+        function updateBuyState() {
+            const btn = $('buy-btn');
+            if (comp?.status !== 'active') return;
+            if (!answeredCorrectly) {
+                btn.disabled = true;
+                btn.textContent = 'Answer the skill question';
+            } else {
+                btn.disabled = false;
+                btn.textContent = `Buy ${getQty()} ticket${getQty() === 1 ? '' : 's'}`;
+            }
+        }
+
+        // Qty controls
+        $('qty-down').addEventListener('click', () => { $('qty').value = Math.max(1, getQty() - 1); updateTotal(); });
+        $('qty-up').addEventListener('click', () => { $('qty').value = getQty() + 1; updateTotal(); });
+        $('qty').addEventListener('input', updateTotal);
+        document.querySelectorAll('.quick-pick').forEach(b => {
+            b.addEventListener('click', () => {
+                document.querySelectorAll('.quick-pick').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+                $('qty').value = b.dataset.q;
+                updateTotal();
+            });
+        });
+
+        // Skill question
+        document.querySelectorAll('#skill-options .skill-opt').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const correct = opt.dataset.correct === 'true';
+                document.querySelectorAll('#skill-options .skill-opt').forEach(x => x.classList.remove('selected'));
+                opt.classList.add('selected');
+                answeredCorrectly = correct;
+                $('skill-feedback').textContent = correct
+                    ? '✓ Correct — entry is unlocked.'
+                    : '✗ Not quite. Have another look.';
+                $('skill-feedback').style.color = correct ? '#22c55e' : '#ef4444';
+                updateBuyState();
+            });
+        });
+
+        // Buy — redirect to Stripe Payment Link (qty chosen on Stripe page).
+        $('buy-btn').addEventListener('click', async () => {
+            const btn = $('buy-btn');
+            const orig = btn.textContent;
+            btn.disabled = true; btn.textContent = 'Redirecting…';
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session) {
+                    location.href = '/login.html?next=' + encodeURIComponent(location.pathname + location.search);
+                    return;
+                }
+                if (!comp.payment_link_url) {
+                    throw new Error('Checkout not configured for this competition yet.');
+                }
+                const sep = comp.payment_link_url.includes('?') ? '&' : '?';
+                location.href = comp.payment_link_url
+                    + sep + 'client_reference_id=' + encodeURIComponent(session.user.id)
+                    + '&prefilled_email=' + encodeURIComponent(session.user.email || '');
+            } catch (e) {
+                console.error(e);
+                alert('Could not start checkout: ' + (e.message || e));
+                btn.disabled = false; btn.textContent = orig;
+            }
+        });
+
+        // Show signin hint if not authed.
+        sb.auth.getSession().then(({ data: { session } }) => {
+            if (!session) $('signin-hint').textContent = 'You\u2019ll be asked to sign in before payment.';
+        });
+
+        load();
+    })();
+    </script>
+</body>
+</html>
