@@ -889,6 +889,36 @@
         .mic-select:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); }
         .mic-select:focus { border-color: rgba(var(--brand-rgb),.55); box-shadow: 0 0 0 3px rgba(var(--brand-rgb),.12); }
         .mic-select option { background: #0c0c10; color: #d4d4d8; }
+        /* Custom mic dropdown — replaces the native OS popup so the open
+           list matches the closed select's glass styling. */
+        .mic-select-wrap.dv-cdd-open .mic-select { border-color: rgba(var(--brand-rgb),.55); box-shadow: 0 0 0 3px rgba(var(--brand-rgb),.12); }
+        .dv-cdd-pop {
+            position: absolute; left: 0; right: 0; top: calc(100% + 6px);
+            background: rgba(12,12,16,0.96);
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 10px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+            z-index: 50;
+            max-height: 240px; overflow-y: auto;
+            padding: 4px;
+            display: none;
+        }
+        .mic-select-wrap.dv-cdd-open .dv-cdd-pop { display: block; }
+        .dv-cdd-pop .dv-cdd-opt {
+            display: block; width: 100%; text-align: left;
+            background: transparent; border: 0;
+            color: #d4d4d8;
+            font-size: 11px; font-weight: 600; letter-spacing: .02em;
+            padding: 8px 10px; border-radius: 7px;
+            cursor: pointer; line-height: 1.35;
+        }
+        .dv-cdd-pop .dv-cdd-opt:hover { background: rgba(255,255,255,0.06); color:#fff; }
+        .dv-cdd-pop .dv-cdd-opt.on { background: rgba(var(--brand-rgb),0.18); color:#fff; border:1px solid rgba(var(--brand-rgb),0.35); }
+        .dv-cdd-pop .dv-cdd-opt[disabled] { opacity:.5; cursor:default; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#888; }
+        .dv-cdd-pop .dv-cdd-opt[disabled]:hover { background: transparent; color:#888; }
+        .dv-cdd-pop::-webkit-scrollbar { width:6px; }
+        .dv-cdd-pop::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius:3px; }
 
         /* ─── Global glass styling for selects, inputs, and toggles ───
            Mirrors the .qa-icon-btn / .mic-select aesthetic so every form
@@ -2354,6 +2384,592 @@
                 <button onclick="document.getElementById('cam-help-modal').style.display='none'" style="width:100%;background:var(--brand,#CC0B20);color:#fff;border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;">Got it</button>
             </div>
         </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             BOARD ZOOM — virtual camera with calibrated hot-zones (T20,
+             T19, Bull, etc). Independent of the iframe; uses its own
+             getUserMedia stream so DartCounter keeps working as normal.
+             ═══════════════════════════════════════════════════════════════ -->
+        <style>
+        .dv-bz-panel{position:fixed;top:80px;right:24px;width:360px;background:#0c0c10;border:1px solid #252530;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,0.65);z-index:99996;font-family:'Plus Jakarta Sans',sans-serif;color:#eaeaee;overflow:hidden;display:none;}
+        .dv-bz-panel.dv-bz-open{display:block;}
+        .dv-bz-panel.dv-bz-min .dv-bz-body{display:none;}
+        .dv-bz-head{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:linear-gradient(135deg,rgba(204,11,32,0.18),rgba(204,11,32,0.04));border-bottom:1px solid #252530;cursor:move;user-select:none;}
+        .dv-bz-head h4{margin:0;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;}
+        .dv-bz-head .dv-bz-pill{font-size:8px;font-weight:900;letter-spacing:.18em;padding:2px 6px;border-radius:4px;background:rgba(204,11,32,0.25);color:#ff5566;border:1px solid rgba(204,11,32,0.4);}
+        .dv-bz-head-btns{display:flex;gap:4px;}
+        .dv-bz-head-btns button{background:transparent;border:0;color:#888;font-size:14px;width:22px;height:22px;border-radius:6px;cursor:pointer;line-height:1;}
+        .dv-bz-head-btns button:hover{background:rgba(255,255,255,0.08);color:#fff;}
+        .dv-bz-body{padding:12px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 140px);overflow-y:auto;}
+        .dv-bz-row{display:flex;gap:6px;align-items:center;}
+        .dv-bz-row select,.dv-bz-row input{flex:1;background:#16161b;border:1px solid #252530;color:#ddd;border-radius:8px;padding:7px 9px;font-size:12px;}
+        .dv-bz-btn{background:#1a1a20;border:1px solid #252530;color:#ddd;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .15s;}
+        .dv-bz-btn:hover{background:#22222a;border-color:#3a3a45;color:#fff;}
+        .dv-bz-btn.dv-bz-brand{background:var(--brand,#CC0B20);border-color:var(--brand,#CC0B20);color:#fff;}
+        .dv-bz-btn.dv-bz-brand:hover{background:#e60d24;}
+        .dv-bz-btn:disabled{opacity:.45;cursor:not-allowed;}
+        .dv-bz-stage{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;border:1px solid #1d1d24;}
+        .dv-bz-stage canvas, .dv-bz-stage video{display:block;width:100%;height:100%;object-fit:cover;}
+        .dv-bz-stage .dv-bz-overlay{position:absolute;inset:0;pointer-events:none;}
+        .dv-bz-stage.dv-bz-calmode .dv-bz-overlay{pointer-events:auto;cursor:crosshair;}
+        .dv-bz-hint{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(204,11,32,0.92);color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-align:center;letter-spacing:.04em;}
+        .dv-bz-zones-label{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7a7a85;margin-top:2px;}
+        .dv-bz-zones{display:flex;flex-wrap:wrap;gap:4px;}
+        .dv-bz-zones button{background:#16161b;border:1px solid #252530;color:#bbb;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;}
+        .dv-bz-zones button.on{background:rgba(204,11,32,0.18);border-color:rgba(204,11,32,0.55);color:#fff;}
+        .dv-bz-zooms{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+        .dv-bz-zooms .dv-bz-tile{position:relative;background:#000;border:1px solid #252530;border-radius:8px;overflow:hidden;aspect-ratio:1;}
+        .dv-bz-zooms .dv-bz-tile canvas{display:block;width:100%;height:100%;}
+        .dv-bz-zooms .dv-bz-tile .dv-bz-tile-label{position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.65);color:#fff;font-size:9px;font-weight:900;letter-spacing:.12em;padding:2px 6px;border-radius:4px;}
+        .dv-bz-zooms .dv-bz-tile .dv-bz-tile-x{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.65);color:#fff;border:0;width:16px;height:16px;border-radius:4px;cursor:pointer;font-size:11px;line-height:1;}
+        .dv-bz-empty{padding:18px;text-align:center;font-size:11px;color:#666;border:1px dashed #2a2a32;border-radius:8px;}
+        .dv-bz-status{font-size:10px;color:#888;}
+        .dv-bz-studio{margin-top:6px;padding:10px;border:1px solid #252530;border-radius:10px;background:#0a0a0e;display:flex;flex-direction:column;gap:8px;}
+        .dv-bz-studio h5{margin:0;font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;}
+        .dv-bz-studio h5 .dv-bz-pill{background:rgba(34,197,94,0.18);color:#7ae582;border-color:rgba(34,197,94,0.4);}
+        .dv-bz-preview{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;border:1px solid #1d1d24;}
+        .dv-bz-help{font-size:10px;color:#7a7a85;line-height:1.5;}
+        .dv-bz-help b{color:#bbb;}
+        @media (max-width: 640px){.dv-bz-panel{right:8px;left:8px;width:auto;top:64px;}}
+        </style>
+        <div id="dv-bz-panel" class="dv-bz-panel" role="dialog" aria-label="Board zoom">
+            <div class="dv-bz-head" id="dv-bz-head">
+                <h4>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+                    Board Zoom
+                    <span class="dv-bz-pill">BETA</span>
+                </h4>
+                <div class="dv-bz-head-btns">
+                    <button data-bz-min title="Minimize">—</button>
+                    <button data-bz-close title="Close">×</button>
+                </div>
+            </div>
+            <div class="dv-bz-body">
+                <div class="dv-bz-row">
+                    <select id="dv-bz-cam" aria-label="Camera"><option value="">No camera selected</option></select>
+                    <button id="dv-bz-start" class="dv-bz-btn dv-bz-brand">Start</button>
+                </div>
+                <div id="dv-bz-stage" class="dv-bz-stage">
+                    <video id="dv-bz-video" muted playsinline></video>
+                    <canvas id="dv-bz-overlay" class="dv-bz-overlay"></canvas>
+                    <div id="dv-bz-hint" class="dv-bz-hint" style="display:none;"></div>
+                </div>
+                <div class="dv-bz-row">
+                    <button id="dv-bz-calibrate" class="dv-bz-btn" disabled>Calibrate (4 clicks)</button>
+                    <button id="dv-bz-reset" class="dv-bz-btn" title="Clear calibration & zones">Reset</button>
+                </div>
+                <div class="dv-bz-status" id="dv-bz-status">Pick a camera and press Start. Calibrate by clicking 4 outer wire points.</div>
+                <div class="dv-bz-zones-label">Zoom Targets <span style="opacity:.6;font-weight:600;letter-spacing:0;text-transform:none;">(up to 4)</span></div>
+                <div class="dv-bz-zones" id="dv-bz-zones">
+                    <button data-zone="T20">T20</button>
+                    <button data-zone="T19">T19</button>
+                    <button data-zone="T18">T18</button>
+                    <button data-zone="T17">T17</button>
+                    <button data-zone="T16">T16</button>
+                    <button data-zone="T15">T15</button>
+                    <button data-zone="T14">T14</button>
+                    <button data-zone="T13">T13</button>
+                    <button data-zone="D20">D20</button>
+                    <button data-zone="D16">D16</button>
+                    <button data-zone="DBULL">DBull</button>
+                    <button data-zone="BULL">Bull</button>
+                </div>
+                <div id="dv-bz-zooms" class="dv-bz-zooms">
+                    <div class="dv-bz-empty" style="grid-column:1/-1;">No zoom tiles yet — calibrate then pick a target above.</div>
+                </div>
+                <div class="dv-bz-studio">
+                    <h5>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 8l-6 4 6 4V8z"/></svg>
+                        Virtual Cam Studio
+                        <span class="dv-bz-pill">OUTPUT</span>
+                    </h5>
+                    <div class="dv-bz-row">
+                        <select id="dv-bz-layout" aria-label="Layout">
+                            <option value="hero">Hero — board + 3 zooms</option>
+                            <option value="quad">Quad — 4 equal panes</option>
+                            <option value="strip">Strip — board + zoom strip</option>
+                            <option value="pip">Picture-in-picture — board + 1 zoom</option>
+                            <option value="board">Board only (full)</option>
+                        </select>
+                        <button id="dv-bz-popout" class="dv-bz-btn" disabled title="Open fullscreen output for OBS to capture">Pop out</button>
+                    </div>
+                    <canvas id="dv-bz-composite" class="dv-bz-preview" width="1280" height="720"></canvas>
+                    <div class="dv-bz-help">
+                        <b>To use as a virtual camera in DartCounter / Zoom / Discord:</b><br>
+                        1. Pick a layout, calibrate, choose your zooms above.<br>
+                        2. Click <b>Pop out</b> → a clean fullscreen window opens.<br>
+                        3. In <b>OBS Studio</b> add a <i>Window Capture</i> source → pick "DartVoice Virtual Cam" → click <b>Start Virtual Camera</b>.<br>
+                        4. In DartCounter (or any app), select <b>OBS Virtual Camera</b> as the input.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+        /* DartVoice Board Zoom — independent virtual camera with hot-zones.
+           Stays in sync with localStorage so calibration persists across visits.
+           Does NOT touch DartCounter's iframe stream — pure additive feature. */
+        (function(){
+            const LS_KEY = 'dv-boardzoom-v1';
+            // Standard 20-segment dartboard, clockwise from 12 o'clock (20 at top).
+            const SEG_ANGLE = { 20:0, 1:18, 18:36, 4:54, 13:72, 6:90, 10:108, 15:126, 2:144, 17:162, 3:180, 19:198, 7:216, 16:234, 8:252, 11:270, 14:288, 9:306, 12:324, 5:342 };
+            // Distances in mm from board centre. Full outer-wire radius = 170mm.
+            const R_TREBLE_MID = 104; // centre of triple ring
+            const R_DOUBLE_MID = 163; // centre of double ring
+            const R_BULL = 6.35;      // double-bull radius
+            const R_TARGET = {
+                T20:[20,R_TREBLE_MID], T19:[19,R_TREBLE_MID], T18:[18,R_TREBLE_MID], T17:[17,R_TREBLE_MID],
+                T16:[16,R_TREBLE_MID], T15:[15,R_TREBLE_MID], T14:[14,R_TREBLE_MID], T13:[13,R_TREBLE_MID],
+                D20:[20,R_DOUBLE_MID], D16:[16,R_DOUBLE_MID],
+                DBULL:[null,0], BULL:[null,0]
+            };
+
+            let state = { camId:'', calib:null, zones:[], minimized:false };
+            try { Object.assign(state, JSON.parse(localStorage.getItem(LS_KEY) || '{}')); } catch(e){}
+            const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){} };
+
+            const $ = (id) => document.getElementById(id);
+            const panel = $('dv-bz-panel');
+            const head = $('dv-bz-head');
+            const camSel = $('dv-bz-cam');
+            const video = $('dv-bz-video');
+            const stage = $('dv-bz-stage');
+            const overlay = $('dv-bz-overlay');
+            const hint = $('dv-bz-hint');
+            const startBtn = $('dv-bz-start');
+            const calBtn = $('dv-bz-calibrate');
+            const resetBtn = $('dv-bz-reset');
+            const statusEl = $('dv-bz-status');
+            const zonesWrap = $('dv-bz-zones');
+            const zoomsWrap = $('dv-bz-zooms');
+            let stream = null;
+            let calMode = false;
+            let calPoints = [];   // [TOP(20), RIGHT(6), BOTTOM(3), LEFT(11)]
+            const CAL_LABELS = ['TOP — outer wire above 20', 'RIGHT — outer wire right of 6', 'BOTTOM — outer wire below 3', 'LEFT — outer wire left of 11'];
+            let rafId = 0;
+
+            window.dvBoardZoomToggle = function(){
+                panel.classList.toggle('dv-bz-open');
+                if (panel.classList.contains('dv-bz-open')) {
+                    enumerateCams();
+                }
+            };
+
+            // Drag panel by header (desktop only)
+            (function makeDraggable(){
+                let dragging = false, ox = 0, oy = 0;
+                head.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('button')) return;
+                    dragging = true;
+                    const r = panel.getBoundingClientRect();
+                    ox = e.clientX - r.left; oy = e.clientY - r.top;
+                    document.body.style.userSelect = 'none';
+                });
+                document.addEventListener('mousemove', (e) => {
+                    if (!dragging) return;
+                    const x = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, e.clientX - ox));
+                    const y = Math.max(8, Math.min(window.innerHeight - 80, e.clientY - oy));
+                    panel.style.left = x + 'px';
+                    panel.style.top = y + 'px';
+                    panel.style.right = 'auto';
+                });
+                document.addEventListener('mouseup', () => { dragging = false; document.body.style.userSelect=''; });
+            })();
+
+            panel.querySelector('[data-bz-close]').onclick = () => panel.classList.remove('dv-bz-open');
+            panel.querySelector('[data-bz-min]').onclick = () => { panel.classList.toggle('dv-bz-min'); state.minimized = panel.classList.contains('dv-bz-min'); save(); };
+            if (state.minimized) panel.classList.add('dv-bz-min');
+
+            async function enumerateCams(){
+                try {
+                    // Need to prompt at least once to populate device labels.
+                    if (!stream) {
+                        try {
+                            const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
+                            tmp.getTracks().forEach(t => t.stop());
+                        } catch(e){ /* user can still pick by id */ }
+                    }
+                    const devs = await navigator.mediaDevices.enumerateDevices();
+                    const cams = devs.filter(d => d.kind === 'videoinput');
+                    camSel.innerHTML = cams.length
+                        ? cams.map(d => `<option value="${d.deviceId}">${escapeHtml(d.label || ('Camera ' + d.deviceId.slice(0,4)))}</option>`).join('')
+                        : '<option value="">No cameras found</option>';
+                    if (state.camId && cams.find(c => c.deviceId === state.camId)) camSel.value = state.camId;
+                } catch(e){
+                    setStatus('Camera enumeration failed: ' + (e.message || e));
+                }
+            }
+
+            function escapeHtml(v){ const d=document.createElement('div'); d.textContent=String(v||''); return d.innerHTML; }
+            function setStatus(msg){ statusEl.textContent = msg; }
+
+            startBtn.onclick = async () => {
+                if (stream) { stopStream(); startBtn.textContent = 'Start'; return; }
+                const id = camSel.value;
+                state.camId = id; save();
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { deviceId: id ? { exact: id } : undefined, width:{ideal:1280}, height:{ideal:720} },
+                        audio: false
+                    });
+                    video.srcObject = stream;
+                    await video.play();
+                    sizeOverlay();
+                    startBtn.textContent = 'Stop';
+                    calBtn.disabled = false;
+                    setStatus(state.calib ? 'Live. Calibration loaded — pick zoom targets below.' : 'Live. Press Calibrate then click 4 outer-wire points.');
+                    renderZones();
+                    renderZooms();
+                    loop();
+                } catch(e){
+                    setStatus('Could not start camera: ' + (e.message || e));
+                }
+            };
+
+            function stopStream(){
+                if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+                video.srcObject = null;
+                cancelAnimationFrame(rafId); rafId = 0;
+                calBtn.disabled = true;
+                exitCalMode();
+            }
+
+            function sizeOverlay(){
+                const w = video.videoWidth || stage.clientWidth;
+                const h = video.videoHeight || stage.clientHeight;
+                overlay.width = w; overlay.height = h;
+            }
+
+            calBtn.onclick = () => {
+                if (!stream) return;
+                calMode = true; calPoints = [];
+                stage.classList.add('dv-bz-calmode');
+                hint.style.display = 'block';
+                hint.textContent = '1/4 · ' + CAL_LABELS[0];
+            };
+            function exitCalMode(){
+                calMode = false; calPoints = [];
+                stage.classList.remove('dv-bz-calmode');
+                hint.style.display = 'none';
+            }
+            overlay.addEventListener('click', (e) => {
+                if (!calMode) return;
+                const rect = overlay.getBoundingClientRect();
+                // Map click to source video pixel space.
+                const x = (e.clientX - rect.left) / rect.width  * overlay.width;
+                const y = (e.clientY - rect.top)  / rect.height * overlay.height;
+                calPoints.push({ x, y });
+                if (calPoints.length < 4) {
+                    hint.textContent = (calPoints.length+1) + '/4 · ' + CAL_LABELS[calPoints.length];
+                } else {
+                    finalizeCalibration();
+                }
+            });
+            function finalizeCalibration(){
+                const [t,r,b,l] = calPoints;
+                const cx = (t.x + r.x + b.x + l.x) / 4;
+                const cy = (t.y + r.y + b.y + l.y) / 4;
+                const R1 = Math.hypot(t.x-cx, t.y-cy);
+                const R2 = Math.hypot(r.x-cx, r.y-cy);
+                const R3 = Math.hypot(b.x-cx, b.y-cy);
+                const R4 = Math.hypot(l.x-cx, l.y-cy);
+                const R = (R1+R2+R3+R4)/4;
+                // Rotation: angle from centre to TOP click (should be -90° = up).
+                // Use atan2 of (top - centre) with screen coords (y down).
+                // angle_screen_up (where -y is up) = atan2(t.x-cx, -(t.y-cy)) → 0 means straight up.
+                const upAngleRad = Math.atan2(t.x - cx, -(t.y - cy));
+                const rotDeg = upAngleRad * 180 / Math.PI; // offset to add to segment angle
+                state.calib = { cx, cy, R, rotDeg };
+                save();
+                exitCalMode();
+                setStatus('Calibrated. R=' + R.toFixed(0) + 'px, rotation ' + rotDeg.toFixed(1) + '°. Pick zoom targets.');
+                renderZones();
+                renderZooms();
+            }
+
+            resetBtn.onclick = () => {
+                state.calib = null; state.zones = []; save();
+                exitCalMode();
+                setStatus('Reset. Calibrate again to enable zoom tiles.');
+                renderZones(); renderZooms();
+            };
+
+            function renderZones(){
+                zonesWrap.querySelectorAll('button').forEach(b => {
+                    b.classList.toggle('on', state.zones.includes(b.dataset.zone));
+                    b.disabled = !state.calib;
+                    b.style.opacity = state.calib ? '1' : '.45';
+                });
+            }
+            zonesWrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-zone]'); if (!btn || !state.calib) return;
+                const z = btn.dataset.zone;
+                const i = state.zones.indexOf(z);
+                if (i >= 0) state.zones.splice(i, 1);
+                else if (state.zones.length < 4) state.zones.push(z);
+                else { setStatus('Max 4 zoom tiles. Remove one first.'); return; }
+                save(); renderZones(); renderZooms();
+            });
+
+            function renderZooms(){
+                if (!state.calib || !state.zones.length) {
+                    zoomsWrap.innerHTML = '<div class="dv-bz-empty" style="grid-column:1/-1;">' +
+                        (state.calib ? 'Pick a target above.' : 'Calibrate first to enable zoom tiles.') + '</div>';
+                    return;
+                }
+                zoomsWrap.innerHTML = state.zones.map(z => `
+                    <div class="dv-bz-tile" data-tile="${z}">
+                        <canvas></canvas>
+                        <span class="dv-bz-tile-label">${z}</span>
+                        <button class="dv-bz-tile-x" data-rm="${z}" title="Remove">×</button>
+                    </div>`).join('');
+                zoomsWrap.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+                    state.zones = state.zones.filter(z => z !== b.dataset.rm); save(); renderZones(); renderZooms();
+                });
+                // Size each tile canvas to its CSS box once laid out.
+                requestAnimationFrame(() => {
+                    zoomsWrap.querySelectorAll('canvas').forEach(c => {
+                        const r = c.getBoundingClientRect();
+                        c.width = Math.max(120, Math.round(r.width));
+                        c.height = Math.max(120, Math.round(r.height));
+                    });
+                });
+            }
+
+            function targetPoint(zoneKey){
+                const def = R_TARGET[zoneKey]; if (!def) return null;
+                const [seg, rMm] = def;
+                const { cx, cy, R, rotDeg } = state.calib;
+                if (zoneKey === 'BULL' || zoneKey === 'DBULL') {
+                    return { x:cx, y:cy, segPx: (zoneKey==='BULL'?16:R_BULL)/170 * R };
+                }
+                const segPx = R * (rMm / 170);
+                const angleDeg = (SEG_ANGLE[seg] || 0) + rotDeg;
+                const a = angleDeg * Math.PI / 180;
+                // Screen coords: x grows right, y grows down. Up = -y.
+                const x = cx + Math.sin(a) * segPx;
+                const y = cy - Math.cos(a) * segPx;
+                // Crop half-size — generous around the target so dart entry visible.
+                const cropR = Math.max(28, R * 0.16);
+                return { x, y, segPx: cropR };
+            }
+
+            function loop(){
+                rafId = requestAnimationFrame(loop);
+                if (!video.videoWidth) return;
+                if (overlay.width !== video.videoWidth) sizeOverlay();
+                // Draw overlay with calibration markers.
+                const octx = overlay.getContext('2d');
+                octx.clearRect(0, 0, overlay.width, overlay.height);
+                if (calMode) {
+                    octx.fillStyle = '#CC0B20';
+                    calPoints.forEach((p, i) => { drawDot(octx, p.x, p.y, '#CC0B20', String(i+1)); });
+                }
+                if (state.calib) {
+                    const {cx, cy, R} = state.calib;
+                    octx.strokeStyle = 'rgba(204,11,32,0.55)';
+                    octx.lineWidth = 2;
+                    octx.beginPath(); octx.arc(cx, cy, R, 0, Math.PI*2); octx.stroke();
+                    octx.beginPath(); octx.arc(cx, cy, R*(R_TREBLE_MID/170), 0, Math.PI*2); octx.stroke();
+                    drawDot(octx, cx, cy, '#fff', '');
+                    state.zones.forEach(z => {
+                        const tp = targetPoint(z); if (!tp) return;
+                        octx.strokeStyle = '#fff';
+                        octx.lineWidth = 2;
+                        octx.strokeRect(tp.x - tp.segPx, tp.y - tp.segPx, tp.segPx*2, tp.segPx*2);
+                    });
+                }
+                // Render each zoom tile
+                zoomsWrap.querySelectorAll('.dv-bz-tile').forEach(tile => {
+                    const z = tile.dataset.tile;
+                    const cv = tile.querySelector('canvas'); if (!cv) return;
+                    const tp = targetPoint(z); if (!tp) return;
+                    const ctx = cv.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    const sx = tp.x - tp.segPx, sy = tp.y - tp.segPx;
+                    const sw = tp.segPx*2, sh = tp.segPx*2;
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0, 0, cv.width, cv.height);
+                    try {
+                        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+                    } catch(e){}
+                    // Subtle target reticle
+                    ctx.strokeStyle = 'rgba(204,11,32,0.55)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(cv.width/2, 0); ctx.lineTo(cv.width/2, cv.height); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, cv.height/2); ctx.lineTo(cv.width, cv.height/2); ctx.stroke();
+                });
+            }
+            function drawDot(ctx, x, y, color, label){
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+                if (label){
+                    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(label, x, y);
+                }
+            }
+
+            // ─── Virtual Cam Studio ───────────────────────────────────────
+            // Composites the live video + chosen zones into one 1280×720
+            // canvas using a configurable layout. Pop-out window can then
+            // be captured by OBS as a Window Capture and broadcast as a
+            // virtual camera to DartCounter / Zoom / Discord / etc.
+            const composite = $('dv-bz-composite');
+            const layoutSel = $('dv-bz-layout');
+            const popoutBtn = $('dv-bz-popout');
+            let popWin = null, popCanvas = null;
+            if (state.layout) layoutSel.value = state.layout;
+            layoutSel.onchange = () => { state.layout = layoutSel.value; save(); };
+
+            function drawZoneInto(ctx, z, dx, dy, dw, dh){
+                const tp = targetPoint(z); if (!tp) { ctx.fillStyle='#0a0a0e'; ctx.fillRect(dx,dy,dw,dh); return; }
+                ctx.fillStyle = '#000';
+                ctx.fillRect(dx, dy, dw, dh);
+                try { ctx.drawImage(video, tp.x - tp.segPx, tp.y - tp.segPx, tp.segPx*2, tp.segPx*2, dx, dy, dw, dh); } catch(e){}
+                // Label
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(dx+6, dy+6, 50, 18);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                ctx.fillText(z, dx+12, dy+15);
+                // Reticle
+                ctx.strokeStyle = 'rgba(204,11,32,0.5)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(dx+dw/2, dy); ctx.lineTo(dx+dw/2, dy+dh); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(dx, dy+dh/2); ctx.lineTo(dx+dw, dy+dh/2); ctx.stroke();
+            }
+            function drawBoardInto(ctx, dx, dy, dw, dh){
+                ctx.fillStyle = '#000';
+                ctx.fillRect(dx, dy, dw, dh);
+                if (!video.videoWidth) return;
+                if (state.calib) {
+                    // Crop tightly around the board for a cleaner full-board view.
+                    const { cx, cy, R } = state.calib;
+                    const pad = R * 1.15;
+                    const sx = Math.max(0, cx - pad);
+                    const sy = Math.max(0, cy - pad);
+                    const sw = Math.min(video.videoWidth - sx, pad*2);
+                    const sh = Math.min(video.videoHeight - sy, pad*2);
+                    // Letter-box to fit pane
+                    const srcA = sw/sh, dstA = dw/dh;
+                    let rw = dw, rh = dh, rx = dx, ry = dy;
+                    if (srcA > dstA) { rh = dw/srcA; ry = dy + (dh-rh)/2; }
+                    else { rw = dh*srcA; rx = dx + (dw-rw)/2; }
+                    try { ctx.drawImage(video, sx, sy, sw, sh, rx, ry, rw, rh); } catch(e){}
+                } else {
+                    try { ctx.drawImage(video, dx, dy, dw, dh); } catch(e){}
+                }
+            }
+
+            function renderComposite(){
+                const W = composite.width, H = composite.height;
+                const ctx = composite.getContext('2d');
+                ctx.imageSmoothingQuality = 'high';
+                ctx.fillStyle = '#0a0a0e';
+                ctx.fillRect(0, 0, W, H);
+                if (!video.videoWidth) {
+                    ctx.fillStyle = '#444'; ctx.font = '600 18px sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('Start camera to begin output', W/2, H/2);
+                    return;
+                }
+                const layout = layoutSel.value || 'hero';
+                const zones = state.zones.slice(0, 4);
+                const pad = 8;
+                if (layout === 'board') {
+                    drawBoardInto(ctx, 0, 0, W, H);
+                } else if (layout === 'pip') {
+                    drawBoardInto(ctx, 0, 0, W, H);
+                    if (zones[0]) {
+                        const w = W*0.28, h = w; const x = W - w - pad, y = H - h - pad;
+                        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x-2, y-2, w+4, h+4);
+                        drawZoneInto(ctx, zones[0], x, y, w, h);
+                    }
+                } else if (layout === 'quad') {
+                    const cw = (W - pad*3)/2, ch = (H - pad*3)/2;
+                    const cells = [[pad,pad],[pad*2+cw,pad],[pad,pad*2+ch],[pad*2+cw,pad*2+ch]];
+                    cells.forEach(([x,y], i) => {
+                        if (zones[i]) drawZoneInto(ctx, zones[i], x, y, cw, ch);
+                        else if (i === 0) drawBoardInto(ctx, x, y, cw, ch);
+                        else { ctx.fillStyle='#0a0a0e'; ctx.fillRect(x,y,cw,ch); }
+                    });
+                } else if (layout === 'strip') {
+                    const boardW = W * 0.62;
+                    drawBoardInto(ctx, 0, 0, boardW, H);
+                    const stripX = boardW + pad, stripW = W - boardW - pad*2;
+                    const n = Math.max(1, Math.min(4, zones.length || 1));
+                    const ch = (H - pad*(n+1))/n;
+                    for (let i = 0; i < n; i++){
+                        const y = pad + i*(ch + pad);
+                        if (zones[i]) drawZoneInto(ctx, zones[i], stripX, y, stripW, ch);
+                        else { ctx.fillStyle='#0a0a0e'; ctx.fillRect(stripX, y, stripW, ch); }
+                    }
+                } else { // hero
+                    const heroW = W * 0.66, heroH = H;
+                    drawBoardInto(ctx, 0, 0, heroW, heroH);
+                    const sx = heroW + pad;
+                    const sw = W - heroW - pad*2;
+                    const slots = 3;
+                    const sh = (H - pad*(slots+1))/slots;
+                    for (let i = 0; i < slots; i++){
+                        const y = pad + i*(sh + pad);
+                        if (zones[i]) drawZoneInto(ctx, zones[i], sx, y, sw, sh);
+                        else { ctx.fillStyle='#0a0a0e'; ctx.fillRect(sx, y, sw, sh); }
+                    }
+                }
+                // Brand watermark
+                ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+                ctx.fillText('DartVoice Virtual Cam', W - 10, H - 8);
+
+                // Mirror to popout
+                if (popWin && !popWin.closed && popCanvas) {
+                    const pctx = popCanvas.getContext('2d');
+                    pctx.drawImage(composite, 0, 0, popCanvas.width, popCanvas.height);
+                }
+            }
+
+            popoutBtn.onclick = () => {
+                if (popWin && !popWin.closed) { popWin.focus(); return; }
+                popWin = window.open('', 'DartVoiceVirtualCam', 'width=1280,height=720');
+                if (!popWin) { setStatus('Pop-out blocked — allow pop-ups for this site.'); return; }
+                popWin.document.write(`<!doctype html><html><head><title>DartVoice Virtual Cam</title>
+                    <style>html,body{margin:0;background:#000;height:100%;overflow:hidden;}canvas{display:block;width:100vw;height:100vh;background:#000;}</style>
+                    </head><body><canvas id="vc" width="1280" height="720"></canvas></body></html>`);
+                popWin.document.close();
+                popCanvas = popWin.document.getElementById('vc');
+                popWin.addEventListener('beforeunload', () => { popWin = null; popCanvas = null; });
+            };
+
+            // Expose composite stream for any in-page consumer (advanced use).
+            window.dvBoardZoomGetStream = () => {
+                try { return composite.captureStream ? composite.captureStream(30) : null; } catch(e){ return null; }
+            };
+
+            // Enable pop-out only while the stream is live.
+            startBtn.addEventListener('click', () => {
+                setTimeout(() => { popoutBtn.disabled = !stream; }, 50);
+            });
+
+            // Composite render loop — runs alongside the main overlay loop.
+            (function compositeLoop(){
+                requestAnimationFrame(compositeLoop);
+                if (panel.classList.contains('dv-bz-open')) renderComposite();
+            })();
+
+            // Stop stream when panel hidden to free the camera.
+            const obs = new MutationObserver(() => {
+                if (!panel.classList.contains('dv-bz-open') && stream) { stopStream(); startBtn.textContent = 'Start'; }
+            });
+            obs.observe(panel, { attributes:true, attributeFilter:['class'] });
+
+            // Initial paint
+            renderZones(); renderZooms();
+        })();
+        </script>
     </div>
     </div>
 
@@ -5429,6 +6045,57 @@
         fetchMics();
         // mic change: save and notify (no loading overlay)
         (function(){ const ms = document.getElementById('mic-select'); if(ms){ ms.addEventListener('change', (e)=>{ try{ AppConfig.micDeviceId = e.target.value || null; saveSettings(); window.dvToast('Microphone changed','success'); }catch(err){console.warn(err);} }); } })();
+
+        // Custom mic dropdown — matches the closed select's glass aesthetic.
+        // Hijacks the native popup so open + closed look consistent.
+        (function dvMicCustomDropdown(){
+            const sel = document.getElementById('mic-select');
+            if (!sel) return;
+            const wrap = sel.closest('.mic-select-wrap');
+            if (!wrap) return;
+            const pop = document.createElement('div');
+            pop.className = 'dv-cdd-pop';
+            pop.setAttribute('role','listbox');
+            wrap.appendChild(pop);
+
+            function rebuildPop(){
+                pop.innerHTML = '';
+                Array.from(sel.options).forEach((o, i) => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'dv-cdd-opt' + (i === sel.selectedIndex ? ' on' : '');
+                    b.textContent = o.text;
+                    if (o.disabled) { b.disabled = true; b.setAttribute('disabled',''); }
+                    b.dataset.idx = i;
+                    b.setAttribute('role','option');
+                    b.addEventListener('click', (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        if (o.disabled) return;
+                        sel.selectedIndex = i;
+                        sel.dispatchEvent(new Event('change', { bubbles:true }));
+                        close();
+                    });
+                    pop.appendChild(b);
+                });
+            }
+            function open(){ rebuildPop(); wrap.classList.add('dv-cdd-open'); }
+            function close(){ wrap.classList.remove('dv-cdd-open'); }
+            function toggle(){ wrap.classList.contains('dv-cdd-open') ? close() : open(); }
+
+            // Block native popup; show ours instead.
+            sel.addEventListener('mousedown', (e) => { e.preventDefault(); toggle(); });
+            sel.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); open(); }
+                else if (e.key === 'Escape') close();
+            });
+            // Click anywhere else to close.
+            document.addEventListener('mousedown', (e) => {
+                if (!wrap.contains(e.target)) close();
+            });
+            // Re-sync if mic list changes (fetchMics rebuilds <option>s).
+            new MutationObserver(() => { if (wrap.classList.contains('dv-cdd-open')) rebuildPop(); })
+                .observe(sel, { childList:true, subtree:false });
+        })();
 
         // --- MOBILE PANEL LOGIC --- //
         function toggleMobilePanel(forceState) {
