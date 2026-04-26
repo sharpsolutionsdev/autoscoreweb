@@ -805,16 +805,20 @@
       const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
 
       if (lastAccordion) {
-        // Check if accordion already has a visible input
-        let input = lastAccordion.querySelector('input');
+        // Check if accordion already has a visible input.
+        // Prefer the explicitly-labeled value input (verified via recorded flow).
+        let input =
+          lastAccordion.querySelector('input[aria-label="ENTER_NEW_VALUE"]') ||
+          lastAccordion.querySelector('input[inputmode="numeric"]') ||
+          lastAccordion.querySelector('input[type="number"]') ||
+          lastAccordion.querySelector('input');
         if (input && _isVisible(input)) {
-          // Input is visible — fill and save
           _setInputValueFrameworkSafe(input, score);
-          // Find save button within or near the accordion
+          // Save button has aria-label="Save" — must check aria FIRST.
           const saveBtn =
-            lastAccordion.querySelector('button:not([aria-label])') ||
-            lastAccordion.querySelector('button') ||
-            _findModalSaveButton(dialog);
+            lastAccordion.querySelector('button[aria-label="Save" i]') ||
+            _findModalSaveButton(dialog) ||
+            lastAccordion.querySelector('button');
           if (saveBtn && _isVisible(saveBtn)) {
             setTimeout(() => {
               _clickLikeUser(saveBtn);
