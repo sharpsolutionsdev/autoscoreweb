@@ -247,6 +247,32 @@
             background: rgba(var(--brand-rgb), .22);
             border-color: rgba(var(--brand-rgb), .55);
         }
+        /* Ranked mode pill selector */
+        .dv-mode-pill {
+            flex-shrink: 0;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            color: #b9b9c4;
+            background: #0c0c10;
+            border: 1px solid #1f1f28;
+            border-radius: 999px;
+            padding: 6px 11px;
+            cursor: pointer;
+            transition: background .18s, border-color .18s, color .18s, box-shadow .18s;
+            white-space: nowrap;
+        }
+        .dv-mode-pill:hover { background: #141418; color: #fff; }
+        .dv-mode-pill.active {
+            background: linear-gradient(135deg, rgba(var(--brand-rgb),.22), rgba(var(--brand-rgb),.06));
+            border-color: rgba(var(--brand-rgb), .55);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(var(--brand-rgb), .25);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         /* Soft scrim card behind the modal so the modal itself reads cleanly
            even though the page behind isn't dimmed globally. */
         #onboarding-overlay::before {
@@ -2308,12 +2334,28 @@
 
             <!-- TAB: RANKED -->
             <div id="tab-ranked" class="tab-content hidden flex-col flex-1 pb-4">
+                <!-- Mode selector + expand button -->
+                <div class="flex items-center gap-2 mb-2">
+                    <div id="dv-tab-ranked-modes" class="flex-1 flex gap-1 overflow-x-auto no-scrollbar" role="tablist" aria-label="Ranked mode">
+                        <button type="button" data-rmode="501_bo5"   class="dv-mode-pill active">501 · BO5</button>
+                        <button type="button" data-rmode="301_bo5"   class="dv-mode-pill">301 · BO5</button>
+                        <button type="button" data-rmode="cricket_bo5" class="dv-mode-pill">Cricket</button>
+                        <button type="button" data-rmode="bulls_10"  class="dv-mode-pill">Bulls 10</button>
+                        <button type="button" data-rmode="t20s_10"   class="dv-mode-pill">T20s 10</button>
+                    </div>
+                    <button id="dv-tab-ranked-expand-btn" type="button"
+                        class="shrink-0 text-[10px] font-bold text-gray-300 bg-[#0c0c10] border border-[#1f1f28] rounded px-2.5 py-1.5 hover:bg-[#141418] hover:border-brand/40 hover:text-brand tracking-widest uppercase transition-colors flex items-center gap-1.5"
+                        title="Shrink the scorer for a bigger ranked view (ESC restores)">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M16 4h4v4M4 16v4h4M16 20h4v-4"/></svg>
+                        <span data-expand-label>Expand</span>
+                    </button>
+                </div>
                 <!-- Header card: rank/MMR -->
                 <div class="hud-card p-4 mb-3 shadow-lg relative overflow-hidden">
                     <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 80% 20%, rgba(var(--brand-rgb),.18), transparent 60%);"></div>
                     <div class="flex items-center justify-between relative z-10">
                         <div>
-                            <p class="text-[9px] font-bold tracking-[0.3em] uppercase text-brand mb-1">★ Ranked Mode</p>
+                            <p class="text-[9px] font-bold tracking-[0.3em] uppercase text-brand mb-1">★ Ranked Mode <span id="dv-tab-ranked-mode-label" class="text-gray-400 ml-1 normal-case tracking-normal">· 501 BO5</span></p>
                             <h3 class="display text-lg text-chalk leading-none mb-1" style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:900;letter-spacing:.04em;">YOUR RANK</h3>
                             <div class="flex items-baseline gap-2 flex-wrap">
                                 <span id="dv-tab-ranked-tier" class="text-[11px] font-bold text-white tracking-widest uppercase">Unranked</span>
@@ -2485,10 +2527,18 @@
                     const frame = document.getElementById('scorer-frame');
                     const ov = ensureOverlay();
                     if (!frame || !ov) return;
-                    setBody(opts);
+                    if (!opts.hideCard) setBody(opts);
                     frame.classList.add('scorer-pip');
-                    ov.classList.add('active');
-                    ov.setAttribute('aria-hidden', 'false');
+                    if (opts.hideCard) {
+                        // Shrink iframe but keep the overlay card hidden — used
+                        // by the Ranked-tab Expand button to claim more screen
+                        // space without surfacing a celebration card.
+                        ov.classList.remove('active');
+                        ov.setAttribute('aria-hidden', 'true');
+                    } else {
+                        ov.classList.add('active');
+                        ov.setAttribute('aria-hidden', 'false');
+                    }
                     if (timer) { clearTimeout(timer); timer = null; }
                     if (opts.ttl && opts.ttl > 0) {
                         timer = setTimeout(restore, opts.ttl);
@@ -8218,7 +8268,7 @@ window.openScorerUrl = function(url){
                 return;
             }
             try {
-                const { data, error } = await window.sb.functions.invoke('ranked-queue', { body: { action: 'join' } });
+                const { data, error } = await window.sb.functions.invoke('ranked-queue', { body: { action: 'join', mode: (typeof currentMode === 'string' ? currentMode : '501_bo5') } });
                 if (error) throw error;
                 startedAt = Date.now();
                 setState('searching');
@@ -8346,6 +8396,69 @@ window.openScorerUrl = function(url){
         tabAcceptBtn?.addEventListener('click',  () => acceptBtn?.click());
         tabDeclineBtn?.addEventListener('click', () => declineBtn?.click());
 
+        // ── Mode selector ─────────────────────────────────────
+        const MODE_LABELS = {
+            '501_bo5':     '501 BO5',
+            '301_bo5':     '301 BO5',
+            'cricket_bo5': 'Cricket BO5',
+            'bulls_10':    'Bulls 10',
+            't20s_10':     'T20s 10'
+        };
+        let currentMode = (() => {
+            try { return localStorage.getItem('dv_ranked_mode') || '501_bo5'; }
+            catch(_) { return '501_bo5'; }
+        })();
+        function _setActivePill(mode) {
+            document.querySelectorAll('#dv-tab-ranked-modes [data-rmode]').forEach(b => {
+                b.classList.toggle('active', b.dataset.rmode === mode);
+            });
+            const lbl = document.getElementById('dv-tab-ranked-mode-label');
+            if (lbl) lbl.textContent = '· ' + (MODE_LABELS[mode] || mode);
+        }
+        function setMode(mode) {
+            if (!MODE_LABELS[mode]) return;
+            currentMode = mode;
+            try { localStorage.setItem('dv_ranked_mode', mode); } catch(_){}
+            _setActivePill(mode);
+            // Refresh per-mode views.
+            try { loadRankedStats(); } catch(_){}
+            try { loadMiniLeaderboard(); } catch(_){}
+            try { loadMiniHistory(); } catch(_){}
+        }
+        document.querySelectorAll('#dv-tab-ranked-modes [data-rmode]').forEach(b => {
+            b.addEventListener('click', () => setMode(b.dataset.rmode));
+        });
+        _setActivePill(currentMode);
+
+        // Expose so queue join can pass the chosen mode.
+        widget.dvGetMode = () => currentMode;
+
+        // ── Expand button → use PiP API to shrink the scorer ──
+        const expandBtn = document.getElementById('dv-tab-ranked-expand-btn');
+        const expandLbl = expandBtn?.querySelector('[data-expand-label]');
+        let _expandedSticky = false;
+        expandBtn?.addEventListener('click', () => {
+            if (!window.dvScorerPip) return;
+            if (_expandedSticky) {
+                window.dvScorerPip.restore();
+                _expandedSticky = false;
+                if (expandLbl) expandLbl.textContent = 'Expand';
+            } else {
+                // Shrink iframe but DO NOT show the overlay card — user just
+                // wants more screen real-estate to read ranked info.
+                window.dvScorerPip.shrink({ html: '', ttl: 0, hideCard: true });
+                _expandedSticky = true;
+                if (expandLbl) expandLbl.textContent = 'Collapse';
+            }
+        });
+        // Sync label if user hits ESC inside PiP.
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && _expandedSticky) {
+                _expandedSticky = false;
+                if (expandLbl) expandLbl.textContent = 'Expand';
+            }
+        });
+
         // Invite a Friend → share user's referral link.
         document.getElementById('dv-tab-ranked-invite-btn')?.addEventListener('click', async () => {
             try {
@@ -8403,9 +8516,22 @@ window.openScorerUrl = function(url){
         async function loadRankedStats() {
             try {
                 if (!currentUser || !window.sb) return;
-                const { data } = await window.sb.from('ranked_profiles')
-                    .select('mmr, rank_tier, wins, losses').eq('id', currentUser.id).maybeSingle();
-                if (!data) return;
+                const mode = (typeof currentMode === 'string' ? currentMode : '501_bo5');
+                // Per-mode stats from the unified view (preferred).
+                let row = null;
+                try {
+                    const r = await window.sb.from('dartvoice_player_mode_stats')
+                        .select('mmr, peak_mmr, rank_tier, wins, losses, matches_played, avg, win_rate')
+                        .eq('user_id', currentUser.id).eq('mode', mode).maybeSingle();
+                    row = r.data || null;
+                } catch(_){}
+                // Legacy fallback for the default mode only.
+                if (!row && mode === '501_bo5') {
+                    const { data } = await window.sb.from('ranked_profiles')
+                        .select('mmr, rank_tier, wins, losses').eq('id', currentUser.id).maybeSingle();
+                    if (data) row = { mmr: data.mmr, rank_tier: data.rank_tier, wins: data.wins, losses: data.losses, matches_played: (data.wins||0)+(data.losses||0) };
+                }
+                const data = row || { mmr: 0, rank_tier: 'Unranked', wins: 0, losses: 0 };
                 const tierEl = document.getElementById('dv-tab-ranked-tier');
                 const mmrEl  = document.getElementById('dv-tab-ranked-mmr');
                 const wlEl   = document.getElementById('dv-tab-ranked-wl');
@@ -8419,11 +8545,12 @@ window.openScorerUrl = function(url){
                     const ratio = (w + l === 0) ? '—' : (l === 0 ? `${w}.00` : (w / l).toFixed(2));
                     wrEl.textContent = `${ratio} W/L`;
                 }
-                // Compute global leaderboard position (count of players above me on MMR).
+                // Compute leaderboard position WITHIN current mode (count of players above me on MMR).
                 if (posEl) {
                     try {
-                        const { count } = await window.sb.from('ranked_profiles')
-                            .select('id', { count: 'exact', head: true })
+                        const { count } = await window.sb.from('dartvoice_player_mode_stats')
+                            .select('user_id', { count: 'exact', head: true })
+                            .eq('mode', mode)
                             .gt('mmr', data.mmr ?? 0);
                         posEl.textContent = `#${(count ?? 0) + 1}`;
                     } catch(_) { posEl.textContent = '#—'; }
@@ -8434,8 +8561,9 @@ window.openScorerUrl = function(url){
                     const sPos = document.getElementById('dv-rank-stat-pos');
                     const sMmr = document.getElementById('dv-rank-stat-mmr');
                     if (stat && sPos && sMmr) {
-                        const { count: above } = await window.sb.from('ranked_profiles')
-                            .select('id', { count: 'exact', head: true })
+                        const { count: above } = await window.sb.from('dartvoice_player_mode_stats')
+                            .select('user_id', { count: 'exact', head: true })
+                            .eq('mode', mode)
                             .gt('mmr', data.mmr ?? 0);
                         sPos.textContent = `#${(above ?? 0) + 1}`;
                         sMmr.textContent = String(Math.round(data.mmr ?? 0));
@@ -8445,25 +8573,31 @@ window.openScorerUrl = function(url){
             } catch(_){}
         }
 
-        // Mini leaderboard (top 10) — parity with rankings.html: prefer placed, fall back to all.
+        // Mini leaderboard (top 10) — per current mode via the unified view.
         async function loadMiniLeaderboard() {
             const list = document.getElementById('dv-tab-ranked-lb-list');
             if (!list || !window.sb) return;
+            const mode = (typeof currentMode === 'string' ? currentMode : '501_bo5');
             try {
-                let { data } = await window.sb.from('ranked_profiles')
-                    .select('id, display_name, mmr, rank_tier, wins, losses, is_placed')
-                    .eq('is_placed', true)
+                let { data } = await window.sb.from('dartvoice_player_mode_stats')
+                    .select('user_id, mmr, rank_tier, wins, losses, matches_played')
+                    .eq('mode', mode)
                     .order('mmr', { ascending: false }).limit(10);
-                if (!data || data.length === 0) {
-                    const fb = await window.sb.from('ranked_profiles')
-                        .select('id, display_name, mmr, rank_tier, wins, losses, is_placed')
-                        .order('mmr', { ascending: false }).limit(10);
-                    data = fb.data || [];
+                data = data || [];
+                // Resolve display names in a separate query.
+                const ids = data.map(r => r.user_id).filter(Boolean);
+                let nameMap = {};
+                if (ids.length) {
+                    try {
+                        const { data: profs } = await window.sb.from('dartvoice_public_profiles')
+                            .select('id, display_name, dv_username').in('id', ids);
+                        (profs || []).forEach(p => { nameMap[p.id] = p.display_name || p.dv_username || 'Anonymous'; });
+                    } catch(_){}
                 }
                 if (!data.length) { list.innerHTML = '<li class="text-gray-500 text-[10px]">No ranked players yet.</li>'; return; }
                 list.innerHTML = data.map((p, i) => {
-                    const isMe = currentUser && p.id === currentUser.id;
-                    const name = (p.display_name || 'Anonymous').replace(/[<>&]/g, '');
+                    const isMe = currentUser && p.user_id === currentUser.id;
+                    const name = (nameMap[p.user_id] || 'Anonymous').replace(/[<>&]/g, '');
                     return `<li class="flex items-center gap-2 ${isMe ? 'text-brand font-bold' : 'text-gray-200'}">
                         <span class="w-5 text-right text-gray-500 tabular-nums">${i+1}</span>
                         <span class="flex-1 truncate">${name}${isMe ? ' <span class=\"text-[8px] text-brand\">YOU</span>' : ''}</span>
@@ -8473,16 +8607,20 @@ window.openScorerUrl = function(url){
             } catch (e) { console.warn('mini lb fail', e); }
         }
 
-        // Recent matches (mine, last 5).
+        // Recent matches (mine, last 5) — filtered to current mode.
         async function loadMiniHistory() {
             const list = document.getElementById('dv-tab-ranked-hist-list');
             if (!list || !window.sb || !currentUser) return;
+            const mode = (typeof currentMode === 'string' ? currentMode : '501_bo5');
             try {
-                const { data } = await window.sb.from('ranked_matches')
-                    .select('id, player1_id, player2_id, winner_id, player1_legs_won, player2_legs_won, player1_mmr_delta, player2_mmr_delta, completed_at')
+                let q = window.sb.from('ranked_matches')
+                    .select('id, player1_id, player2_id, winner_id, player1_legs_won, player2_legs_won, player1_mmr_delta, player2_mmr_delta, completed_at, mode')
                     .or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`)
                     .eq('status', 'completed')
                     .order('completed_at', { ascending: false }).limit(5);
+                // Best-effort mode filter (column may not exist on legacy rows).
+                try { q = q.eq('mode', mode); } catch(_){}
+                const { data } = await q;
                 if (!data || !data.length) { list.innerHTML = '<li class="text-gray-500 text-[10px]">No completed matches yet.</li>'; return; }
                 list.innerHTML = data.map(m => {
                     const isP1 = m.player1_id === currentUser.id;

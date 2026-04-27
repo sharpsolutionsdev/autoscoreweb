@@ -759,18 +759,47 @@
   }
 
   function _openDartCounterEditUI() {
-    // Prioritize explicit edit controls, then icon fallbacks seen in recorded flow.
+    // Strategy:
+    //   1) Prefer the LATEST score-history row's edit affordance (matches user
+    //      intent "edit the most recent score").
+    //   2) Fall back to scoreboard pencils, iterated LAST→FIRST so we don't
+    //      hit a stale/older player row.
+    //
+    // Returns true if a click was dispatched.
+
+    // 1) Score-history row first.
+    try {
+      const rows = document.querySelectorAll(
+        'app-score-list app-score-list-item, ' +
+        'app-score-history app-score-history-item, ' +
+        'app-match-history li, ' +
+        '[class*="score-list"] [class*="row"], ' +
+        '[class*="history"] [class*="row"]'
+      );
+      for (let i = rows.length - 1; i >= 0; i--) {
+        const r = rows[i];
+        if (!_isVisible(r)) continue;
+        const trig = r.querySelector(
+          'button[aria-label*="edit" i], button[title*="edit" i], dc-icon, ' +
+          'ion-icon[name*="pencil" i], ion-icon[name*="create" i], ' +
+          'svg[class*="pencil" i], svg[class*="edit" i]'
+        );
+        const target = trig && (trig.closest('button') || trig.closest('[role="button"]') || trig);
+        if (target && _isVisible(target)) {
+          _clickLikeUser(target);
+          logTrace('AUTO-EDIT: clicked latest score-history edit trigger');
+          return true;
+        }
+      }
+    } catch(_){}
+
+    // 2) Scoreboard pencil fallbacks.
     const candidates = [
       ...document.querySelectorAll(
         'button[aria-label*="edit" i], button[title*="edit" i], .edit-score-button, [data-testid*="edit" i], app-match-team-score button, div.pl-4 > div.relative'
       ),
       ...document.querySelectorAll('div.pl-4 > div.relative svg, app-match-team-score dc-icon svg')
     ];
-
-    // Layout-tolerant fallback: any visible button/icon adjacent to the
-    // remaining-score that looks like a pencil. The expanded-sidebar layout
-    // re-flows the scoreboard, so positional selectors like `div.pl-4` can
-    // miss — searching by icon shape catches both states.
     try {
       const teamScores = document.querySelectorAll('app-match-team-score, app-remaining-score');
       teamScores.forEach(ts => {
@@ -782,11 +811,13 @@
       });
     } catch(_){}
 
-    for (const raw of candidates) {
+    // Iterate LAST→FIRST: most recently rendered/scoring row wins.
+    for (let i = candidates.length - 1; i >= 0; i--) {
+      const raw = candidates[i];
       const el = raw && raw.closest ? (raw.closest('button') || raw.closest('[role="button"]') || raw) : raw;
       if (_isVisible(el)) {
         _clickLikeUser(el);
-        logTrace('AUTO-EDIT: clicked DartCounter edit trigger');
+        logTrace('AUTO-EDIT: clicked DartCounter edit trigger (most-recent)');
         return true;
       }
     }
@@ -882,21 +913,31 @@
   function triggerAutoEdit(score) {
     const parsed = parseInt(String(score), 10);
     const cleanScore = (!isNaN(parsed) && parsed >= 0 && parsed <= 180) ? String(parsed) : String(score);
+
+    // Re-entry guard: rapid double-fire (e.g. duplicate postMessage from
+    // two listeners, or accidental repeat from voice mis-trigger) was
+    // opening the edit modal twice. Coalesce to a single in-flight pass.
+    if (window.__dvAutoEditBusy) {
+      logTrace(`AUTO-EDIT: ignored duplicate trigger for ${cleanScore} (in-flight)`);
+      return;
+    }
+    window.__dvAutoEditBusy = true;
     logTrace(`Executing AUTO-EDIT (DartCounter modal first) for ${cleanScore}`);
 
     let settled = false;
-    _tryDartCounterModalEdit(cleanScore, 0, (ok) => {
+    const finish = (ok) => {
       if (settled) return;
       settled = true;
       if (!ok) _fallbackAutoEdit(cleanScore);
-    });
+      // Release the guard a moment after settle so a second voice command
+      // that arrives instantly is still ignored, but the user can retry.
+      setTimeout(() => { window.__dvAutoEditBusy = false; }, 600);
+    };
+
+    _tryDartCounterModalEdit(cleanScore, 0, finish);
 
     // Guard timeout: if the modal pathway hangs, force fallback.
-    setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      _fallbackAutoEdit(cleanScore);
-    }, 3400);
+    setTimeout(() => finish(false), 3400);
   }
 
   function processSpeech(transcript) {
