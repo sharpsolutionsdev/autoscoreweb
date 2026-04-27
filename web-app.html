@@ -161,6 +161,92 @@
         body.onboarding-active #iframe-wrap {
             position: relative;
         }
+
+        /* ─── Scorer iframe Picture-in-Picture (ranked pre/post-match overlays) ─── */
+        #scorer-frame {
+            transition: transform .55s cubic-bezier(.2,.8,.2,1),
+                        border-radius .55s cubic-bezier(.2,.8,.2,1),
+                        box-shadow .55s ease,
+                        opacity .35s ease,
+                        filter 0.35s ease;
+            transform-origin: 100% 100%;
+            will-change: transform;
+        }
+        #scorer-frame.scorer-pip {
+            transform: scale(.28) translate(-22px, -22px);
+            border-radius: 16px;
+            box-shadow: 0 22px 60px rgba(0,0,0,.65),
+                        0 0 0 1px rgba(var(--brand-rgb), .55),
+                        0 0 36px rgba(var(--brand-rgb), .35);
+            pointer-events: auto;
+            z-index: 5;
+            position: relative;
+        }
+        @media (max-width: 720px) {
+            #scorer-frame.scorer-pip {
+                transform: scale(.42) translate(-12px, -12px);
+                border-radius: 12px;
+            }
+        }
+        .scorer-pip-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 4;
+            opacity: 0;
+            background: radial-gradient(ellipse at 30% 40%, rgba(var(--brand-rgb),.10), rgba(0,0,0,.85) 70%);
+            transition: opacity .35s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #fff;
+            pointer-events: none;
+        }
+        .scorer-pip-overlay.active {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .scorer-pip-overlay .pip-card {
+            max-width: 640px;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(20,20,26,.96), rgba(12,12,16,.96));
+            border: 1px solid rgba(var(--brand-rgb), .35);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04);
+            transform: translateY(8px);
+            opacity: 0;
+            transition: transform .45s cubic-bezier(.2,.8,.2,1) .08s, opacity .35s ease .08s;
+        }
+        .scorer-pip-overlay.active .pip-card {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .scorer-pip-overlay .pip-restore {
+            position: absolute;
+            right: 14px;
+            top: 14px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.14);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background .2s, border-color .2s, color .2s;
+        }
+        .scorer-pip-overlay .pip-restore:hover {
+            background: rgba(var(--brand-rgb), .22);
+            border-color: rgba(var(--brand-rgb), .55);
+        }
         /* Soft scrim card behind the modal so the modal itself reads cleanly
            even though the page behind isn't dimmed globally. */
         #onboarding-overlay::before {
@@ -2357,6 +2443,84 @@
             <button type="button" id="ranked-banner-exit" class="ranked-banner-exit" title="Exit ranked mode">Exit</button>
         </div>
         <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock"></iframe>
+
+        <!-- Scorer PiP Overlay: smoothly shrinks the iframe to bottom-right
+             so we can display ranked pre/post-match cards in front of it. -->
+        <div id="scorer-pip-overlay" class="scorer-pip-overlay" aria-hidden="true">
+            <button type="button" class="pip-restore" data-pip-restore title="Expand DartCounter back to full size">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                Expand
+            </button>
+            <div class="pip-card" data-pip-body></div>
+        </div>
+        <script>
+            // Public API: window.dvScorerPip.shrink({title?, message?, html?, ttl?})
+            //             window.dvScorerPip.restore()
+            // Smoothly scales the DartCounter iframe down to the bottom-right
+            // corner of the scorer pane and reveals an overlay card for ranked
+            // pre-match (VS screen, queueing) and post-match (results, MMR delta)
+            // surfaces. Iframe stays interactive in its scaled-down state.
+            (function () {
+                let timer = null;
+                function ensureOverlay() {
+                    return document.getElementById('scorer-pip-overlay');
+                }
+                function setBody(opts) {
+                    const ov = ensureOverlay();
+                    if (!ov) return;
+                    const body = ov.querySelector('[data-pip-body]');
+                    if (!body) return;
+                    if (typeof opts.html === 'string') {
+                        body.innerHTML = opts.html;
+                    } else if (opts.title || opts.message) {
+                        const t = String(opts.title || '').replace(/[<>]/g, '');
+                        const m = String(opts.message || '').replace(/[<>]/g, '');
+                        body.innerHTML =
+                            '<div class="display text-3xl font-bold mb-2" style="letter-spacing:.02em">' + t + '</div>' +
+                            (m ? '<div class="text-sm text-gray-300" style="line-height:1.6">' + m + '</div>' : '');
+                    }
+                }
+                function shrink(opts) {
+                    opts = opts || {};
+                    const frame = document.getElementById('scorer-frame');
+                    const ov = ensureOverlay();
+                    if (!frame || !ov) return;
+                    setBody(opts);
+                    frame.classList.add('scorer-pip');
+                    ov.classList.add('active');
+                    ov.setAttribute('aria-hidden', 'false');
+                    if (timer) { clearTimeout(timer); timer = null; }
+                    if (opts.ttl && opts.ttl > 0) {
+                        timer = setTimeout(restore, opts.ttl);
+                    }
+                }
+                function restore() {
+                    const frame = document.getElementById('scorer-frame');
+                    const ov = ensureOverlay();
+                    if (frame) frame.classList.remove('scorer-pip');
+                    if (ov) {
+                        ov.classList.remove('active');
+                        ov.setAttribute('aria-hidden', 'true');
+                    }
+                    if (timer) { clearTimeout(timer); timer = null; }
+                }
+                function isActive() {
+                    const frame = document.getElementById('scorer-frame');
+                    return !!(frame && frame.classList.contains('scorer-pip'));
+                }
+                const ov = ensureOverlay();
+                if (ov) {
+                    ov.addEventListener('click', function (e) {
+                        if (e.target.closest('[data-pip-restore]')) restore();
+                    });
+                }
+                // ESC restores instantly
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && isActive()) restore();
+                });
+                window.dvScorerPip = { shrink: shrink, restore: restore, isActive: isActive };
+            })();
+        </script>
         <script>
             (function(){
                 var b=document.getElementById('cam-help-btn'),m=document.getElementById('cam-help-modal');
@@ -8908,6 +9072,27 @@ window.openScorerUrl = function(url){
                 if (window.dvToast) window.dvToast('Ranked result submitted — MMR updated', 'success');
                 closeSubmitModal();
                 deactivate();
+                // Briefly shrink DartCounter and surface a victory/result card so
+                // the user sees the outcome without losing their game view.
+                try {
+                    const won = (myLegs|0) > (oppLegs|0);
+                    const opp = activeOpponentName || 'Opponent';
+                    window.dvScorerPip && window.dvScorerPip.shrink({
+                        html:
+                            '<div class="display text-2xl font-bold mb-1" style="letter-spacing:.02em;color:' + (won ? 'var(--brand)' : '#fff') + '">' +
+                                (won ? 'Victory locked in' : 'Match recorded') +
+                            '</div>' +
+                            '<div class="text-sm text-gray-300 mb-4" style="line-height:1.6">' +
+                                'Result vs <span class="text-white font-semibold">' + (opp.replace(/[<>]/g,'')) + '</span> submitted. ' +
+                                'MMR + per-mode stats are updating now — check the leaderboard for your new rank.' +
+                            '</div>' +
+                            '<div class="flex flex-wrap items-center gap-2">' +
+                                '<div class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-mono">Legs ' + (myLegs|0) + ' – ' + (oppLegs|0) + '</div>' +
+                                '<a href="rankings" class="px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-bold uppercase tracking-widest hover:brightness-110 transition">View Leaderboard</a>' +
+                            '</div>',
+                        ttl: 8000
+                    });
+                } catch(_){}
             } catch (e) {
                 console.error('[Ranked] submit failed', e);
                 errEl.textContent = e?.message || 'Submission failed. Try again.';
