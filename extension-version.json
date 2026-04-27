@@ -1,0 +1,12 @@
+{
+  "version": "2.3.0",
+  "minSupported": "2.2.0",
+  "webStoreUrl": "https://chromewebstore.google.com/detail/dartvoice-launchpad/fnibjbcmgfedeognilhcamankfjlmaep",
+  "downloadUrl": "https://dartvoice.app/downloads/dartvoice-extension-latest.zip",
+  "updatedAt": "2026-04-27",
+  "releaseNotes": [
+    "Smoother iframe nav bridge for Target/DartCounter",
+    "Reports its version to the site so we can warn outdated users",
+    "Improved chat-paste handler for referral templates"
+  ]
+}

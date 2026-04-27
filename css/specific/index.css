@@ -735,12 +735,37 @@ body {
   }
   .dv-float-180 p.text-4xl,
   .dv-float-180 p.sm\:text-5xl { font-size: 2rem !important; }
-  .dv-hero-canvas { opacity: 0.55 !important; }
+  /* Calm the 3D scene right down behind the copy so body text reads. */
+  .dv-hero-canvas { opacity: 0.22 !important; }
   .board-deco { display: none; }
   .float-orb { display: none; }
+
+  /* Glassy scrim behind the hero copy so the dartboard / mic visuals
+     sitting behind the text stop fighting with body text. */
+  .dv-hero-copy {
+    position: relative;
+    z-index: 2;
+    padding: 18px 16px 22px;
+    border-radius: 20px;
+    background: linear-gradient(180deg,
+      rgba(8,8,10,0.78) 0%,
+      rgba(8,8,10,0.62) 60%,
+      rgba(8,8,10,0.32) 100%);
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    backdrop-filter: blur(10px) saturate(1.05);
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.45);
+  }
+  /* Slight text-shadow polish on the brand wordmark line so the neon
+     glow stays even with the scrim. */
+  .dv-hero-copy h1 {
+    text-shadow: 0 2px 24px rgba(0,0,0,0.55);
+  }
+  .dv-hero-copy p { color: #E6E6F0 !important; }
 }
 @media (max-width: 480px) {
   .dv-float-180 { transform: translateX(calc(-50% - 95px)); width: 84px !important; }
+  .dv-hero-copy { padding: 14px 14px 18px; border-radius: 18px; }
 }
 
 /* ── Deep Dive visual demos ── */

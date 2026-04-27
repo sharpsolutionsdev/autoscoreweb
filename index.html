@@ -216,7 +216,7 @@
 
 
                 <!-- Left: Copy -->
-                <div>
+                <div class="dv-hero-copy">
                     <div
                         class="fade-up inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-wire bg-wire/20 text-xs text-muted mb-7">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand pulse-dot inline-block"></span>
@@ -2032,6 +2032,8 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
     <script src="cookies.js"></script>
     <script src="dv-currency.js"></script>
     <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-toast.js" defer></script>
+    <script src="/dv-extension-check.js" defer></script>
     <script src="/dv-discount.js" defer></script>
     <script src="/dv-welcome.js" defer></script>
     <script>try { window.sb = sb; } catch(_){}</script>
@@ -2096,6 +2098,208 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         // Build a tournament-grade dart from primitive geometries.
         // Refined dimensions: slim tungsten barrel with knurl, anodised shaft,
         // sharp steel point, dimpled red flight (crossed planes).
+        // ── Flight texture factory ─────────────────────────────────────────
+        // Generates a brand-tinted canvas with a curved K-Flex-No.6 kite
+        // silhouette and one of 10 randomised patterns. Returns a
+        // THREE.CanvasTexture suitable for use as a colour+alpha map.
+        function makeFlightTexture(brandHex) {
+            const W = 256, H = 320;
+            const cv = document.createElement('canvas');
+            cv.width = W; cv.height = H;
+            const ctx = cv.getContext('2d');
+            const r = (brandHex >> 16) & 0xff,
+                  g = (brandHex >>  8) & 0xff,
+                  b =  brandHex        & 0xff;
+            const brand = 'rgb(' + r + ',' + g + ',' + b + ')';
+            const brandSoft = 'rgba(' + r + ',' + g + ',' + b + ',0.55)';
+            const brandFaint = 'rgba(' + r + ',' + g + ',' + b + ',0.22)';
+
+            // Curved kite silhouette (K-Flex inspired): rounded upper, gentle
+            // waist, pointed tail. Drawn once on a separate path then used as
+            // a clip for both the base fill and the pattern.
+            ctx.save();
+            const path = new Path2D();
+            // Starting at tail tip (bottom centre) going up-right with a soft
+            // bezier through the wide shoulder, across a curved top, then
+            // mirroring back down. All coords in the 256×320 space.
+            const cx = W / 2;
+            path.moveTo(cx, H * 0.98);                            // tail tip
+            path.bezierCurveTo(W * 0.78, H * 0.82,                // right hip
+                               W * 0.98, H * 0.42,                // right shoulder
+                               W * 0.86, H * 0.10);               // top-right
+            path.bezierCurveTo(W * 0.74, H * 0.02,                // top curl
+                               W * 0.56, H * 0.02,                // top crown
+                               cx,         H * 0.06);             // top centre
+            path.bezierCurveTo(W * 0.44, H * 0.02,
+                               W * 0.26, H * 0.02,
+                               W * 0.14, H * 0.10);               // top-left
+            path.bezierCurveTo(W * 0.02, H * 0.42,
+                               W * 0.22, H * 0.82,
+                               cx,         H * 0.98);             // back to tail
+            path.closePath();
+
+            // Base fill: dark gradient so the brand pattern reads on top.
+            ctx.clip(path);
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0,    '#0a0a0d');
+            grad.addColorStop(0.55, '#14141a');
+            grad.addColorStop(1,    '#08080A');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── 10 patterns, picked at random per dart. All use brand red so
+            // recolouring the texture (theme change) keeps everything on-brand.
+            const PATTERN_COUNT = 10;
+            const idx = Math.floor(Math.random() * PATTERN_COUNT);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (idx === 0) {
+                // 1) "OUT" wordmark (K-Flex homage)
+                ctx.fillStyle = brand;
+                ctx.font = 'bold 64px ui-sans-serif, system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('OUT', cx, H * 0.42);
+                ctx.font = 'bold 22px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = brandSoft;
+                ctx.fillText('DARTVOICE', cx, H * 0.62);
+            } else if (idx === 1) {
+                // 2) Diagonal stripes
+                ctx.strokeStyle = brand;
+                ctx.lineWidth = 14;
+                for (let i = -H; i < W + H; i += 36) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i + H, H);
+                    ctx.stroke();
+                }
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.fill(path);
+                ctx.globalCompositeOperation = 'source-over';
+            } else if (idx === 2) {
+                // 3) Bullseye rings
+                ctx.strokeStyle = brand;
+                ctx.lineWidth = 6;
+                for (let r0 = 18; r0 < 240; r0 += 22) {
+                    ctx.beginPath();
+                    ctx.arc(cx, H * 0.5, r0, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = brand;
+                ctx.beginPath(); ctx.arc(cx, H * 0.5, 10, 0, Math.PI * 2); ctx.fill();
+            } else if (idx === 3) {
+                // 4) Crosshatch
+                ctx.strokeStyle = brandSoft;
+                ctx.lineWidth = 3;
+                for (let i = -H; i < W + H; i += 18) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(i, H); ctx.lineTo(i + H, 0); ctx.stroke();
+                }
+            } else if (idx === 4) {
+                // 5) Carbon weave
+                ctx.fillStyle = brandFaint;
+                for (let y = 0; y < H; y += 12) {
+                    for (let x = ((y / 12) % 2) * 6; x < W; x += 12) {
+                        ctx.fillRect(x, y, 6, 6);
+                    }
+                }
+                ctx.fillStyle = brand;
+                ctx.font = 'bold 28px ui-sans-serif, system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('DV', cx, H * 0.5 + 10);
+            } else if (idx === 5) {
+                // 6) DV monogram
+                ctx.fillStyle = brand;
+                ctx.font = 'bold 140px ui-sans-serif, system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('DV', cx, H * 0.5);
+            } else if (idx === 6) {
+                // 7) Lightning bolt
+                ctx.fillStyle = brand;
+                ctx.beginPath();
+                ctx.moveTo(cx + 10, H * 0.18);
+                ctx.lineTo(cx - 30, H * 0.50);
+                ctx.lineTo(cx - 6,  H * 0.50);
+                ctx.lineTo(cx - 26, H * 0.82);
+                ctx.lineTo(cx + 36, H * 0.42);
+                ctx.lineTo(cx + 10, H * 0.42);
+                ctx.lineTo(cx + 30, H * 0.18);
+                ctx.closePath();
+                ctx.fill();
+            } else if (idx === 7) {
+                // 8) Checkerboard
+                const cell = 24;
+                for (let y = 0; y < H; y += cell) {
+                    for (let x = 0; x < W; x += cell) {
+                        if (((x / cell) + (y / cell)) % 2 === 0) {
+                            ctx.fillStyle = brand;
+                            ctx.fillRect(x, y, cell, cell);
+                        }
+                    }
+                }
+            } else if (idx === 8) {
+                // 9) Hexagon mesh
+                ctx.strokeStyle = brand;
+                ctx.lineWidth = 2.5;
+                const s = 18; // hex side
+                const hh = Math.sqrt(3) * s;
+                for (let row = 0, y = 0; y < H + hh; row++, y += hh / 2) {
+                    const xOff = (row % 2) * (s * 1.5);
+                    for (let x = -s; x < W + s; x += s * 3) {
+                        const px = x + xOff;
+                        ctx.beginPath();
+                        for (let i = 0; i < 6; i++) {
+                            const a = (Math.PI / 3) * i;
+                            const hx = px + Math.cos(a) * s;
+                            const hy = y  + Math.sin(a) * s;
+                            i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+                        }
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                }
+            } else {
+                // 10) Triple-20 wedge fan
+                ctx.fillStyle = brand;
+                for (let i = 0; i < 10; i++) {
+                    ctx.save();
+                    ctx.translate(cx, H * 0.5);
+                    ctx.rotate((i / 10) * Math.PI * 2);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(160, -22);
+                    ctx.lineTo(160,  22);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+                ctx.fillStyle = '#08080A';
+                ctx.beginPath(); ctx.arc(cx, H * 0.5, 32, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = brand;
+                ctx.beginPath(); ctx.arc(cx, H * 0.5, 12, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+
+            // Crisp brand outline so the kite silhouette pops on dark BG.
+            ctx.save();
+            ctx.strokeStyle = brand;
+            ctx.lineWidth = 6;
+            ctx.shadowColor = brand;
+            ctx.shadowBlur = 10;
+            ctx.stroke(path);
+            ctx.restore();
+
+            const tex = new THREE.CanvasTexture(cv);
+            tex.anisotropy = 4;
+            tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.needsUpdate = true;
+            tex.userData = { patternIdx: idx, brandHex: brandHex };
+            return tex;
+        }
+
         function makeDart() {
             const dart = new THREE.Group();
 
@@ -2175,31 +2379,41 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             pointBevel.position.x = 0.55;
             dart.add(pointBevel);
 
-            // ── Flight: 4 crossed half-planes (cleaner standard "no.6" silhouette) ──
-            const flightShape = new THREE.Shape();
-            // Half-flight outline (mirrored across X by DoubleSide rendering).
-            flightShape.moveTo(0, 0);
-            flightShape.lineTo(0.46, 0.08);
-            flightShape.lineTo(0.46, 0.32);
-            flightShape.lineTo(0.0,  0.04);
-            flightShape.lineTo(0, 0);
-            const flightGeo = new THREE.ShapeGeometry(flightShape);
+            // ── Flight: textured kite (K-Flex No.6 inspired silhouette) ──
+            // Built from a 256x320 canvas: a curved-kite alpha mask plus one
+            // of 10 brand-tinted patterns drawn over a dark base. We feed the
+            // canvas to a PlaneGeometry as both colour map and alpha map so
+            // the silhouette has a smooth, non-triangular profile and the
+            // patterns vary between darts. Two crossed planes give the 3D
+            // four-wing effect.
+            const flightTex = makeFlightTexture(BRAND);
+            const matFlightTextured = new THREE.MeshBasicMaterial({
+                map: flightTex,
+                transparent: true,
+                alphaTest: 0.05,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            const flightPlaneGeo = new THREE.PlaneGeometry(0.96, 0.72);
+            // Note: deliberately NOT in `themed` — the colour is baked into
+            // the canvas texture, so multiplicative tinting would muddy the
+            // dark base. Theme changes still affect every other accent.
 
-            function makeFlightWing(rotZ) {
-                const g = new THREE.Group();
-                const a = new THREE.Mesh(flightGeo, matFlight);
-                const b = new THREE.Mesh(flightGeo, matFlight);
-                b.rotation.x = Math.PI; // mirror to make symmetric kite
-                g.add(a, b);
-                g.rotation.x = rotZ;
-                return g;
+            function makeFlightWing(rotX) {
+                const m = new THREE.Mesh(flightPlaneGeo, matFlightTextured);
+                // Plane local +Y is fan-top (texture top) → rotate so fan
+                // extends along world -X (behind the barrel).
+                m.rotation.z = Math.PI / 2;
+                m.rotation.x = rotX;
+                return m;
             }
             const wing1 = makeFlightWing(0);
             const wing2 = makeFlightWing(Math.PI / 2);
             const flightGroup = new THREE.Group();
             flightGroup.add(wing1, wing2);
-            flightGroup.rotation.z = Math.PI; // point flight backward (toward -X tail)
-            flightGroup.position.x = -0.95;
+            // Position: tail-tip of kite touches end of shaft (~ -0.94),
+            // fan extends back to ~ -1.66.
+            flightGroup.position.x = -1.30;
             dart.add(flightGroup);
 
             // Slight forward tilt so the front "leads" visually.

@@ -18,14 +18,21 @@ class DvNav extends HTMLElement {
     const here = path.toLowerCase();
     const links = this.querySelectorAll('a[href]');
     links.forEach((a) => {
-      const href = (a.getAttribute('href') || '').split('#')[0].split('?')[0];
+      const rawHref = a.getAttribute('href') || '';
+      const href = rawHref.split('#')[0].split('?')[0];
       if (!href || href.startsWith('http') || href.startsWith('mailto:')) return;
+      // Anchor-only or hash links to the current page should NOT mark the
+      // link as the active page — otherwise on `/` every `/#section` link
+      // gets a red underline.
+      const hasHash = rawHref.indexOf('#') !== -1;
       const target = href.replace(/\/+$/, '').replace(/\.html$/, '').toLowerCase() || '/';
       const match =
-        target === here ||
-        target === here + '.html' ||
-        target === here.replace(/\.html$/, '') ||
-        (target !== '/' && (here.endsWith(target) || here === target.replace(/^\//, '')));
+        !hasHash && (
+          target === here ||
+          target === here + '.html' ||
+          target === here.replace(/\.html$/, '') ||
+          (target !== '/' && (here.endsWith(target) || here === target.replace(/^\//, '')))
+        );
       if (match) {
         a.setAttribute('aria-current', 'page');
         a.classList.add('dv-nav-active');
@@ -42,7 +49,36 @@ class DvNav extends HTMLElement {
           content:''; position:absolute; left:10px; right:10px; bottom:-2px;
           height:2px; background:var(--brand); border-radius:2px;
           box-shadow:0 0 8px rgba(var(--brand-rgb),.55);
-        }`;
+        }
+        /* Premium glassy mobile burger menu links */
+        #mob-nav .dv-mob-link {
+          display:block; font-size:14px; font-weight:600;
+          color:#D5D5DE; text-decoration:none;
+          padding:11px 14px; border-radius:12px;
+          border:1px solid transparent;
+          background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));
+          transition:background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+        }
+        #mob-nav .dv-mob-link:hover,
+        #mob-nav .dv-mob-link:focus-visible {
+          color:#FFFFFF;
+          background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+          border-color:rgba(255,255,255,0.08);
+        }
+        #mob-nav .dv-mob-link.dv-nav-active {
+          color:#FFFFFF;
+          background:linear-gradient(90deg, rgba(204,11,32,0.16), rgba(204,11,32,0.02));
+          border-color:rgba(204,11,32,0.32);
+        }
+        #mob-nav .dv-mob-link-feature {
+          display:flex; align-items:center; gap:10px;
+          font-size:14px; font-weight:700; color:#FFFFFF;
+          padding:11px 14px; border-radius:12px;
+          text-decoration:none;
+          transition:transform .18s ease, filter .18s ease;
+        }
+        #mob-nav .dv-mob-link-feature:hover { filter:brightness(1.12); transform:translateX(2px); }
+        `;
       document.head.appendChild(s);
     }
   }
@@ -191,39 +227,39 @@ class DvNav extends HTMLElement {
             </svg>
           </button>
         </div>
-        <div id="mob-nav" style="max-height:0;overflow:hidden;transition:max-height .35s ease" class="lg:hidden border-t border-wire/50 bg-dark/95 backdrop-blur-xl">
-          <div class="max-w-6xl mx-auto px-5 py-3 flex flex-col gap-1">
-            <a href="/#features" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Features</a>
-            <a href="/how-it-works" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">How It Works</a>
-            <a href="/#pricing" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Pricing</a>
-            <a href="/#brand-ambassador" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Brand Ambassador</a>
-            <a href="/guide" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Setup Guide</a>
-            <a href="/competitions" class="text-sm font-bold text-chalk transition px-2 py-2.5 rounded-lg flex items-center gap-2" style="background:linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.04)); border:1px solid rgba(245,158,11,0.35);">
+        <div id="mob-nav" style="max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease;background:linear-gradient(180deg,rgba(12,12,16,0.96) 0%,rgba(8,8,10,0.98) 100%);-webkit-backdrop-filter:blur(24px) saturate(1.2);backdrop-filter:blur(24px) saturate(1.2);border-top:1px solid rgba(255,255,255,0.06);box-shadow:inset 0 1px 0 rgba(255,255,255,0.04),0 24px 60px rgba(0,0,0,0.55);" class="lg:hidden">
+          <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-1">
+            <a href="/#features" class="dv-mob-link">Features</a>
+            <a href="/how-it-works" class="dv-mob-link">How It Works</a>
+            <a href="/#pricing" class="dv-mob-link">Pricing</a>
+            <a href="/#brand-ambassador" class="dv-mob-link">Brand Ambassador</a>
+            <a href="/guide" class="dv-mob-link">Setup Guide</a>
+            <a href="/competitions" class="dv-mob-link-feature" style="background:linear-gradient(90deg, rgba(245,158,11,0.18), rgba(245,158,11,0.04)); border:1px solid rgba(245,158,11,0.35);">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
               Competitions
               <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(245,158,11,0.2); color:#f59e0b; border:1px solid rgba(245,158,11,0.4);">NEW</span>
             </a>
-            <a href="/web-app" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
+            <a href="/web-app" class="dv-mob-link" style="display:flex;align-items:center;gap:10px;">
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded">
               Web App
             </a>
-            <a href="/ranked" class="text-sm font-bold text-chalk transition px-2 py-2.5 rounded-lg flex items-center gap-2" style="background:linear-gradient(90deg, rgba(204,11,32,0.18), rgba(204,11,32,0.04)); border:1px solid rgba(204,11,32,0.35);">
+            <a href="/ranked" class="dv-mob-link-feature" style="background:linear-gradient(90deg, rgba(204,11,32,0.20), rgba(204,11,32,0.04)); border:1px solid rgba(204,11,32,0.35);">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--brand,#CC0B20);"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h4l1 4a4 4 0 008 0l1-4h4M5 4v3a4 4 0 004 4h6a4 4 0 004-4V4M9 22h6M12 15v7"/></svg>
               Ranked Hub
-              <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.2); color:var(--brand,#CC0B20); border:1px solid rgba(204,11,32,0.4);">PRO</span>
+              <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(204,11,32,0.22); color:var(--brand,#CC0B20); border:1px solid rgba(204,11,32,0.4);">PRO</span>
             </a>
-            <div class="px-2 pt-2 pb-1 flex items-center justify-between">
-              <p class="text-[10px] font-bold tracking-widest text-brand uppercase">Top Ranked</p>
+            <div class="px-2 pt-3 pb-1 flex items-center justify-between">
+              <p class="text-[10px] font-bold tracking-widest uppercase" style="color:var(--brand,#CC0B20);">Top Ranked</p>
               <a href="/ranked" class="text-[11px] text-muted hover:text-chalk">View all →</a>
             </div>
-            <div id="nav-lb-list-mobile" class="rounded-lg border border-wire/40 bg-black/30 mb-1">
+            <div id="nav-lb-list-mobile" class="rounded-xl border border-wire/30 bg-black/25 mb-2 overflow-hidden">
               <div class="px-3 py-3 text-center text-[11px] text-muted">Loading…</div>
             </div>
-            <a href="/referral" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30 flex items-center gap-2">
+            <a href="/referral" class="dv-mob-link" style="display:flex;align-items:center;gap:8px;">
               <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>Ambassador Program
             </a>
-            <a href="/contact" class="text-sm text-muted hover:text-chalk transition px-2 py-2.5 rounded-lg hover:bg-wire/30">Contact</a>
-            <div id="dv-nav-auth-mobile" class="border-t border-wire/50 mt-1 pt-3 grid grid-cols-2 gap-2">
+            <a href="/contact" class="dv-mob-link">Contact</a>
+            <div id="dv-nav-auth-mobile" style="border-top:1px solid rgba(255,255,255,0.06);margin-top:6px;padding-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
               <a href="/login" class="btn-outline px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-chalk">Sign In</a>
               <a href="/login?intent=subscribe" class="btn-brand px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white">Start Free Trial</a>
             </div>
