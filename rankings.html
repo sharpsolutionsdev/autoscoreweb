@@ -61,7 +61,7 @@
 
         .lb-row {
             display: grid;
-            grid-template-columns: 56px 1.5fr 110px 80px 80px 70px 70px 80px;
+            grid-template-columns: 56px 1.5fr 110px 80px 80px 70px 70px 70px 70px;
             gap: 12px;
             padding: 14px 16px;
             align-items: center;
@@ -74,6 +74,10 @@
             color: #8e8e93;
             background: rgba(255,255,255,0.02);
         }
+        .lb-sort { cursor: pointer; user-select: none; }
+        .lb-sort:hover { color: #fff; }
+        .lb-sort.active { color: var(--brand); }
+        .sort-ind { display: inline-block; width: 10px; opacity: .7; }
         .lb-pos {
             font-family: 'Barlow Condensed', sans-serif;
             font-weight: 800; font-size: 22px;
@@ -167,6 +171,17 @@
             </div>
 
             <!-- Filters -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div class="flex flex-wrap gap-2" id="mode-tabs">
+                    <button type="button" class="filter-pill active" data-mode="501_bo5">501 BO5</button>
+                    <button type="button" class="filter-pill" data-mode="301_bo5">301 BO5</button>
+                    <button type="button" class="filter-pill" data-mode="cricket_bo5">Cricket BO5</button>
+                    <button type="button" class="filter-pill" data-mode="bulls_10">10 Bulls</button>
+                    <button type="button" class="filter-pill" data-mode="t20s_10">10 T20s</button>
+                </div>
+                <div class="text-[10px] text-muted uppercase tracking-widest font-bold">Each mode = its own MMR ladder</div>
+            </div>
+
             <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div class="flex flex-wrap gap-2" id="tier-filters">
                     <button type="button" class="filter-pill active" data-tier="all">All Tiers</button>
@@ -192,11 +207,12 @@
                     <div class="lb-pos" style="font-size:10px; color:#8e8e93;">#</div>
                     <div>Player</div>
                     <div style="text-align:center;">Tier</div>
-                    <div class="lb-stat">MMR</div>
-                    <div class="lb-stat col-hide-mobile">W&nbsp;-&nbsp;L</div>
-                    <div class="lb-stat col-hide-mobile">Avg</div>
-                    <div class="lb-stat col-hide-mobile">180s</div>
-                    <div class="lb-stat col-hide-mobile">Peak</div>
+                    <div class="lb-stat lb-sort" data-sort="mmr">MMR <span class="sort-ind">▼</span></div>
+                    <div class="lb-stat col-hide-mobile lb-sort" data-sort="win_rate">W&nbsp;-&nbsp;L <span class="sort-ind"></span></div>
+                    <div class="lb-stat col-hide-mobile lb-sort" data-sort="avg_match_average">Avg <span class="sort-ind"></span></div>
+                    <div class="lb-stat col-hide-mobile lb-sort" data-sort="avg_first_9">First 9 <span class="sort-ind"></span></div>
+                    <div class="lb-stat col-hide-mobile lb-sort" data-sort="total_180s">180s <span class="sort-ind"></span></div>
+                    <div class="lb-stat col-hide-mobile lb-sort" data-sort="best_finish">High <span class="sort-ind"></span></div>
                 </div>
                 <div id="lb-body">
                     <!-- skeleton rows -->
@@ -208,8 +224,9 @@
                             <div class="lb-stat"><div class="skeleton" style="height:14px;width:42px;margin-left:auto;"></div></div>
                             <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:46px;margin-left:auto;"></div></div>
                             <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:36px;margin-left:auto;"></div></div>
+                            <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:36px;margin-left:auto;"></div></div>
                             <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:30px;margin-left:auto;"></div></div>
-                            <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:40px;margin-left:auto;"></div></div>
+                            <div class="lb-stat col-hide-mobile"><div class="skeleton" style="height:14px;width:30px;margin-left:auto;"></div></div>
                         </div>
                     </template>
                 </div>
@@ -293,39 +310,62 @@
         let _allRows = [];
         let _activeTier = 'all';
         let _searchTerm = '';
+        let _activeMode = '501_bo5';
+        let _sortKey = 'mmr';        // mmr is always the truth — other sorts are exploratory
+        let _sortDir = 'desc';
 
         async function loadAll() {
             showSkeleton();
             empty.classList.add('hidden');
             try {
-                // Try the placed-only filter first; on edge cases (no rows yet) we
-                // fall back to the full set so the page never reads as broken.
+                // Per-mode leaderboard via security_invoker view that joins
+                // ranked_ratings + ranked_modes (matches_played > 0).
                 let { data, error } = await sb
-                    .from('ranked_profiles')
-                    .select('id, display_name, mmr, peak_mmr, rank_tier, wins, losses, total_180s, avg_match_average, avatar_url, is_placed')
-                    .eq('is_placed', true)
+                    .from('dartvoice_player_mode_stats')
+                    .select('user_id, mode, mmr, peak_mmr, rank_tier, wins, losses, total_180s, total_high_finishes, best_finish, avg, first_9_avg, checkout_pct, win_rate, matches_played, is_placed')
+                    .eq('mode', _activeMode)
                     .order('mmr', { ascending: false })
                     .limit(500);
                 if (error) throw error;
-                if (!data || data.length === 0) {
-                    const fb = await sb.from('ranked_profiles')
-                        .select('id, display_name, mmr, peak_mmr, rank_tier, wins, losses, total_180s, avg_match_average, avatar_url, is_placed')
-                        .order('mmr', { ascending: false }).limit(500);
-                    data = fb.data || [];
-                }
-                // Country code lives on dartvoice_profiles — separate join to keep RLS clean.
-                const ids = data.map(r => r.id);
-                let countryMap = {};
+                data = data || [];
+
+                // Public profiles join for display name + avatar + country.
+                const ids = data.map(r => r.user_id);
+                let profMap = {};
                 if (ids.length) {
-                    const { data: profs } = await sb.from('dartvoice_profiles')
-                        .select('id, country_code').in('id', ids);
-                    (profs || []).forEach(p => { if (p.country_code) countryMap[p.id] = p.country_code; });
+                    const { data: profs } = await sb.from('dartvoice_public_profiles')
+                        .select('id, display_name, avatar_url, country_code').in('id', ids);
+                    (profs || []).forEach(p => { profMap[p.id] = p; });
+                    // Fallback: ranked_profiles for display name on legacy 501 rows that haven't migrated.
+                    const missingIds = ids.filter(id => !profMap[id]);
+                    if (missingIds.length) {
+                        const { data: rp } = await sb.from('ranked_profiles')
+                            .select('id, display_name, avatar_url').in('id', missingIds);
+                        (rp || []).forEach(p => { profMap[p.id] = profMap[p.id] || p; });
+                    }
                 }
-                _allRows = data.map(r => ({
-                    ...r,
-                    country_code: countryMap[r.id] || null,
-                    _rankInfo: rankInfo(r.mmr || 1200)
-                }));
+                _allRows = data.map(r => {
+                    const p = profMap[r.user_id] || {};
+                    return {
+                        id: r.user_id,
+                        display_name: p.display_name || 'Unnamed',
+                        avatar_url: p.avatar_url || null,
+                        country_code: p.country_code || null,
+                        mmr: r.mmr,
+                        peak_mmr: r.peak_mmr,
+                        rank_tier: r.rank_tier,
+                        wins: r.wins,
+                        losses: r.losses,
+                        total_180s: r.total_180s,
+                        avg_match_average: r.avg,
+                        avg_first_9: r.first_9_avg,
+                        best_finish: r.best_finish,
+                        win_rate: r.win_rate,
+                        matches_played: r.matches_played,
+                        is_placed: r.is_placed,
+                        _rankInfo: rankInfo(r.mmr || 1200)
+                    };
+                });
                 render();
             } catch (e) {
                 body.innerHTML = '';
@@ -336,6 +376,13 @@
         }
 
         function render() {
+            // Always assign canonical position by MMR — that's the only thing
+            // that actually defines your rank. Other sorts re-order the displayed
+            // rows but the # column shows the player's true MMR-based rank.
+            const mmrSorted = [..._allRows].sort((a, b) => (b.mmr|0) - (a.mmr|0));
+            const posById = new Map();
+            mmrSorted.forEach((r, i) => posById.set(r.id, i + 1));
+
             let rows = _activeTier === 'all'
                 ? _allRows
                 : _allRows.filter(r => r._rankInfo.name === _activeTier);
@@ -345,38 +392,88 @@
                 rows = rows.filter(r => (r.display_name || '').toLowerCase().includes(q));
             }
 
+            // Sort by selected column. mmr is the default — others are toy sorts.
+            const dir = _sortDir === 'asc' ? 1 : -1;
+            rows = [...rows].sort((a, b) => {
+                const av = Number(a[_sortKey] || 0);
+                const bv = Number(b[_sortKey] || 0);
+                if (av === bv) return (b.mmr|0) - (a.mmr|0); // tiebreak on MMR
+                return (av - bv) * dir;
+            });
+
             countEl.textContent = String(rows.length);
             body.innerHTML = '';
             if (!rows.length) { empty.classList.remove('hidden'); return; }
             empty.classList.add('hidden');
 
             const frag = document.createDocumentFragment();
-            rows.forEach((r, idx) => {
-                const pos = idx + 1;
+            rows.forEach((r) => {
+                const pos = posById.get(r.id) || 0;
                 const ri  = r._rankInfo;
                 const w   = r.wins | 0;
                 const l   = r.losses | 0;
+                const wr  = (Number(r.win_rate || 0)).toFixed(0);
                 const avg = Number(r.avg_match_average || 0).toFixed(1);
-                const peak = r.peak_mmr | 0;
+                const f9  = Number(r.avg_first_9 || 0).toFixed(1);
                 const flag = r.country_code ? flagEmoji(r.country_code) : '';
                 const div = document.createElement('div');
                 div.className = 'lb-row' + (pos <= 3 ? ` pos-${pos}` : '');
                 div.innerHTML =
-                    `<div class="lb-pos">${pos}</div>` +
+                    `<div class="lb-pos">${pos || '—'}</div>` +
                     `<div class="lb-name">` +
                         (flag ? `<span class="flag" title="${esc(r.country_code)}">${flag}</span>` : `<span class="flag" style="opacity:.3">·</span>`) +
                         `<span class="nm"><a href="u.html?id=${encodeURIComponent(r.id)}">${esc(r.display_name || 'Unnamed')}</a></span>` +
                     `</div>` +
                     `<div style="text-align:center;"><span class="tier-pill tier-${ri.name}">${ri.label}</span></div>` +
                     `<div class="lb-stat">${(r.mmr|0)}</div>` +
-                    `<div class="lb-stat col-hide-mobile">${w}\u00a0-\u00a0${l}</div>` +
+                    `<div class="lb-stat col-hide-mobile" title="${wr}% win rate">${w}\u00a0-\u00a0${l}</div>` +
                     `<div class="lb-stat col-hide-mobile">${avg}</div>` +
+                    `<div class="lb-stat col-hide-mobile">${f9}</div>` +
                     `<div class="lb-stat col-hide-mobile">${(r.total_180s|0)}</div>` +
-                    `<div class="lb-stat col-hide-mobile dim">${peak}</div>`;
+                    `<div class="lb-stat col-hide-mobile dim">${(r.best_finish|0) || '—'}</div>`;
                 frag.appendChild(div);
             });
             body.appendChild(frag);
+
+            // Reflect active sort in header indicators
+            document.querySelectorAll('.lb-sort').forEach(el => {
+                const ind = el.querySelector('.sort-ind');
+                if (el.dataset.sort === _sortKey) {
+                    el.classList.add('active');
+                    if (ind) ind.textContent = _sortDir === 'asc' ? '▲' : '▼';
+                } else {
+                    el.classList.remove('active');
+                    if (ind) ind.textContent = '';
+                }
+            });
         }
+
+        // Mode tab wiring
+        const modeTabs = document.getElementById('mode-tabs');
+        if (modeTabs) modeTabs.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('.filter-pill');
+            if (!btn) return;
+            modeTabs.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            _activeMode = btn.dataset.mode;
+            // Reset sort to MMR when switching modes — that's the canonical view.
+            _sortKey = 'mmr'; _sortDir = 'desc';
+            loadAll();
+        });
+
+        // Sortable column headers
+        document.querySelectorAll('.lb-sort').forEach(el => {
+            el.addEventListener('click', () => {
+                const k = el.dataset.sort;
+                if (_sortKey === k) {
+                    _sortDir = _sortDir === 'desc' ? 'asc' : 'desc';
+                } else {
+                    _sortKey = k;
+                    _sortDir = 'desc';
+                }
+                render();
+            });
+        });
 
         // Filter pill wiring
         document.getElementById('tier-filters').addEventListener('click', (ev) => {
@@ -410,10 +507,10 @@
             searchInput.focus();
         });
 
-        // Live refresh on any ranked_profiles change.
+        // Live refresh on any ranked_ratings change.
         try {
             sb.channel('rankings-live')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_profiles' }, () => loadAll())
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'ranked_ratings' }, () => loadAll())
               .subscribe();
         } catch(_){}
 

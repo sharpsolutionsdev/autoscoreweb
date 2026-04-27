@@ -618,6 +618,19 @@
                             View Detailed Statistics
                         </button>
 
+                        <!-- Mode Selector -->
+                        <div class="mb-3">
+                            <label for="ranked-mode" class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Mode</label>
+                            <select id="ranked-mode" class="w-full bg-black/40 border border-white/10 hover:border-white/20 focus:border-brand/40 focus:outline-none text-white text-sm font-semibold py-2.5 px-3 rounded-lg transition">
+                                <option value="501_bo5">501 — Best of 5 legs</option>
+                                <option value="301_bo5">301 — Best of 5 legs</option>
+                                <option value="cricket_bo5">Cricket — Best of 5</option>
+                                <option value="bulls_10">10 Bulls — most bulls in 10 visits</option>
+                                <option value="t20s_10">10 T20s — most triple-20s in 10 visits</option>
+                            </select>
+                            <p class="text-[10px] text-gray-500 mt-1">Each mode has its own MMR — like chess.com Bullet vs Blitz.</p>
+                        </div>
+
                         <!-- Matchmaking Button -->
                         <button id="queue-btn" onclick="toggleQueue()" class="w-full bg-[#CC0B20] hover:bg-[#b0091b] text-white font-bold py-4 px-6 rounded-xl transition shadow-lg shadow-brand/20 flex items-center justify-center gap-2 group">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -1007,6 +1020,11 @@
                     </select>
                     <p class="text-[10px] text-gray-500 mt-1.5">Shown as a flag next to your name on the leaderboard and your public profile.</p>
                 </div>
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-widest mb-2">Bio</label>
+                    <textarea id="edit-bio" maxlength="280" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand transition resize-none" placeholder="A short tagline shown on your public profile (max 280 chars)…"></textarea>
+                    <p class="text-[10px] text-gray-500 mt-1.5">Public — appears on your DartVoice profile page.</p>
+                </div>
                 <div class="pt-4 flex gap-3">
                     <button onclick="closeModals()" class="flex-1 px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition font-bold">Cancel</button>
                     <button id="save-profile-btn" onclick="saveProfile()" class="flex-1 px-6 py-3 rounded-xl bg-brand hover:bg-brand/80 text-white transition font-bold">Save Changes</button>
@@ -1186,7 +1204,7 @@
         async function loadUserProfile() {
             try {
                 // Fetch from both tables for redundancy and specific ranked data
-                const { data: profile } = await sb.from('dartvoice_profiles').select('display_name, avatar_url, dartcounter_username, country_code').eq('id', currentUser.id).maybeSingle();
+                const { data: profile } = await sb.from('dartvoice_profiles').select('display_name, avatar_url, dartcounter_username, country_code, bio').eq('id', currentUser.id).maybeSingle();
                 const { data: rankedData } = await sb.from('ranked_profiles').select('*').eq('id', currentUser.id).maybeSingle();
                 
                 const displayName = rankedData?.display_name || profile?.display_name || 'Dart Player';
@@ -1194,6 +1212,8 @@
                 document.getElementById('edit-display-name').value = displayName;
                 const dcInput = document.getElementById('edit-dc-username');
                 if (dcInput) dcInput.value = profile?.dartcounter_username || '';
+                const bioInput = document.getElementById('edit-bio');
+                if (bioInput) bioInput.value = profile?.bio || '';
                 const ccSel = document.getElementById('edit-country');
                 if (ccSel) {
                     if (!ccSel.dataset.populated) populateCountrySelect(ccSel);
@@ -1659,6 +1679,13 @@
                 if (myStats.count140) document.getElementById('res-140').value = myStats.count140;
                 if (myStats.count100) document.getElementById('res-100').value = myStats.count100;
 
+                // Stash anti-cheat metadata for submission
+                window.__dvAutoStats = {
+                    source: parsed.source || 'dartcounter',
+                    first_9_avg: myStats.first9Avg || myStats.first9 || 0,
+                    dartcounter_match_id: parsed.dartcounterMatchId || parsed.matchUrl || null,
+                };
+
                 // Add pulsate to submit button if prefilled
                 document.getElementById('submit-result-btn').classList.add('pulse-brand');
             } catch(e){}
@@ -1937,7 +1964,22 @@
             try {
                 btn.disabled = true;
                 btn.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> <span>Joining...</span>`;
-                await sb.functions.invoke('ranked-queue', { body: { action: 'join' }});
+                const modeSel = document.getElementById('ranked-mode');
+                const mode = modeSel ? modeSel.value : '501_bo5';
+                const { data, error } = await sb.functions.invoke('ranked-queue', { body: { action: 'join', mode } });
+                if (error) {
+                    // Edge function returns 402 with { error: 'pro_required' } for non-Pro users
+                    let detail = '';
+                    try { detail = await error.context?.json?.(); } catch(_){}
+                    const isProGate = (detail && detail.error === 'pro_required') || /pro_required|402/i.test(error.message || '');
+                    if (isProGate) {
+                        if (window.dvToast) window.dvToast('Ranked play requires DartVoice Pro. Free accounts get a 10-min demo of the scorer.', 'warning', 6000);
+                        else alert('Ranked play requires DartVoice Pro.');
+                        window.location.href = 'index.html#pricing';
+                        return;
+                    }
+                    throw error;
+                }
                 isQueueing = true;
                 queueSeconds = 0;
                 btn.disabled = false;
@@ -1974,14 +2016,19 @@
                 btn.disabled = true;
                 btn.textContent = "Submitting...";
                 try {
+                    const auto = window.__dvAutoStats || null;
+                    const stats_source = auto ? auto.source : 'manual';
                     const { error } = await sb.functions.invoke('ranked-match-result', {
                         body: {
                             action: 'submit_result',
                             match_id: activeMatchId,
                             my_legs_won: parseInt(document.getElementById('res-my-legs').value) || 0,
                             opponent_legs_won: parseInt(document.getElementById('res-opp-legs').value) || 0,
+                            stats_source,
+                            dartcounter_match_id: auto?.dartcounter_match_id || null,
                             stats: {
                                 average: parseFloat(document.getElementById('res-avg').value) || 0,
+                                first_9_avg: auto?.first_9_avg || 0,
                                 checkout_pct: parseFloat(document.getElementById('res-co').value) || 0,
                                 high_finish: parseInt(document.getElementById('res-hf').value) || 0,
                                 tons_180: parseInt(document.getElementById('res-180').value) || 0,
@@ -1992,6 +2039,7 @@
                     });
                     if (error) throw error;
                     sessionStorage.removeItem('dv_latest_match_stats');
+                    window.__dvAutoStats = null;
                     await loadActiveMatch();
                     await loadUserProfile();
                 } catch (err) {
@@ -2015,11 +2063,12 @@
             const dcUserRaw = (document.getElementById('edit-dc-username')?.value || '').trim();
             const dcUser = dcUserRaw.slice(0, 64) || null;
             const country = (document.getElementById('edit-country')?.value || '').toUpperCase().slice(0, 2) || null;
+            const bio = ((document.getElementById('edit-bio')?.value || '').trim().slice(0, 280)) || null;
             const btn = document.getElementById('save-profile-btn');
             btn.disabled = true;
             btn.textContent = "Saving...";
             try {
-                await sb.from('dartvoice_profiles').update({ display_name: name, dartcounter_username: dcUser, country_code: country }).eq('id', currentUser.id);
+                await sb.from('dartvoice_profiles').update({ display_name: name, dartcounter_username: dcUser, country_code: country, bio }).eq('id', currentUser.id);
                 await sb.from('ranked_profiles').update({ display_name: name }).eq('id', currentUser.id);
                 window._dvDcUsername = dcUser || '';
                 window._dvCountry = country || '';

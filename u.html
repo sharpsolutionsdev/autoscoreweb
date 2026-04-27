@@ -24,6 +24,10 @@
     .tier-badge{display:inline-flex;align-items:center;gap:.4em;padding:.3em .7em;border-radius:8px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border:1px solid;}
     .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:sk 1.4s ease-in-out infinite;border-radius:8px;}
     @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .pf-mode-pill{padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,.1);color:#cfcfd6;background:rgba(255,255,255,.02);transition:all .15s ease;cursor:pointer;}
+    .pf-mode-pill:hover{border-color:rgba(255,255,255,.25);color:#fff;}
+    .pf-mode-pill.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+    .pf-mode-pill.empty{opacity:.45;}
   </style>
 </head>
 <body>
@@ -63,8 +67,18 @@
                 <h1 id="pf-name" class="display text-4xl sm:text-5xl mb-1" style="line-height:1">PLAYER</h1>
                 <p id="pf-handle" class="text-sm text-muted mb-3">@—</p>
                 <div id="pf-tier-badge-wrap"></div>
+                <p id="pf-bio" class="text-sm text-muted mt-3 hidden" style="white-space:pre-wrap"></p>
               </div>
             </div>
+          </div>
+
+          <!-- Per-mode tab strip -->
+          <div id="pf-mode-tabs" class="flex flex-wrap gap-2 px-5 sm:px-7 py-4 border-t border-white/[0.05] bg-black/20">
+            <button type="button" data-mode="501_bo5" class="pf-mode-pill active">501 BO5</button>
+            <button type="button" data-mode="301_bo5" class="pf-mode-pill">301 BO5</button>
+            <button type="button" data-mode="cricket_bo5" class="pf-mode-pill">Cricket BO5</button>
+            <button type="button" data-mode="bulls_10" class="pf-mode-pill">10 Bulls</button>
+            <button type="button" data-mode="t20s_10" class="pf-mode-pill">10 T20s</button>
           </div>
 
           <!-- Stats grid -->
@@ -136,10 +150,11 @@
     const sb = supabase.createClient(SB_URL, SB_KEY);
     const $ = id => document.getElementById(id);
     const params = new URLSearchParams(location.search);
+    const idParam = (params.get('id') || '').trim();
     const handle = (params.get('u') || '').trim().toLowerCase().replace(/^@+/, '').replace(/[^a-z0-9_]/g, '');
-    if (!handle) { showNotFound(''); return; }
+    if (!idParam && !handle) { showNotFound(''); return; }
 
-    document.title = `@${handle} — DartVoice`;
+    document.title = handle ? `@${handle} — DartVoice` : 'DartVoice Player';
     const desc = document.getElementById('page-desc');
     if (desc) desc.setAttribute('content', `DartVoice profile @${handle} — MMR, win/loss, 180s and more.`);
 
@@ -163,24 +178,54 @@
     }
 
     try {
-      // 1) Look up the public profile by dv_username (case-insensitive).
-      const { data: prof } = await sb.from('dartvoice_profiles')
-        .select('id, display_name, dv_username, avatar_url')
-        .ilike('dv_username', handle).limit(1).maybeSingle();
-      if (!prof) { showNotFound(handle); return; }
+      // 1) Look up the public profile — by id or by dv_username.
+      let prof = null;
+      if (idParam) {
+        const { data } = await sb.from('dartvoice_public_profiles')
+          .select('id, display_name, dv_username, avatar_url, country_code, bio')
+          .eq('id', idParam).maybeSingle();
+        prof = data;
+        if (!prof) {
+          // Fallback to dartvoice_profiles in case the view doesn't include this id yet
+          const { data: dp } = await sb.from('dartvoice_profiles')
+            .select('id, display_name, dv_username, avatar_url, country_code, bio')
+            .eq('id', idParam).maybeSingle();
+          prof = dp;
+        }
+      } else {
+        const { data } = await sb.from('dartvoice_public_profiles')
+          .select('id, display_name, dv_username, avatar_url, country_code, bio')
+          .ilike('dv_username', handle).limit(1).maybeSingle();
+        prof = data;
+        if (!prof) {
+          const { data: dp } = await sb.from('dartvoice_profiles')
+            .select('id, display_name, dv_username, avatar_url, country_code, bio')
+            .ilike('dv_username', handle).limit(1).maybeSingle();
+          prof = dp;
+        }
+      }
+      if (!prof) { showNotFound(handle || idParam.slice(0,8)); return; }
 
-      // 2) Fetch ranked stats (may be missing if user never played ranked).
-      const { data: rp } = await sb.from('ranked_profiles')
-        .select('mmr, peak_mmr, rank_tier, wins, losses, total_180s, total_140_plus, best_win_streak, best_finish')
-        .eq('id', prof.id).maybeSingle();
+      // 2) Fetch ALL per-mode stats so we can swap the grid by tab without round-trips.
+      const { data: modeRows } = await sb.from('dartvoice_player_mode_stats')
+        .select('mode, mmr, peak_mmr, rank_tier, wins, losses, total_180s, total_140_plus, best_win_streak, best_finish, avg, first_9_avg, matches_played')
+        .eq('user_id', prof.id);
+      const byMode = {};
+      (modeRows || []).forEach(r => { byMode[r.mode] = r; });
 
       // Render
       $('state-loading').classList.add('hidden');
       $('state-profile').classList.remove('hidden');
 
-      const name = prof.display_name || ('@' + prof.dv_username);
+      const name = prof.display_name || (prof.dv_username ? '@' + prof.dv_username : 'DartVoice Player');
       $('pf-name').textContent = name;
-      $('pf-handle').textContent = '@' + prof.dv_username;
+      $('pf-handle').textContent = prof.dv_username ? '@' + prof.dv_username : '';
+
+      if (prof.bio) {
+        const bioEl = $('pf-bio');
+        bioEl.textContent = prof.bio;
+        bioEl.classList.remove('hidden');
+      }
 
       const av = $('pf-avatar');
       if (prof.avatar_url) {
@@ -191,27 +236,47 @@
         av.textContent = (name || 'P').slice(0, 1).toUpperCase();
       }
 
-      const tier = rp?.rank_tier || 'Unranked';
-      const tc = tierColor(tier);
-      const tierBadge = $('pf-tier-badge-wrap');
-      tierBadge.innerHTML = `<span class="tier-badge" style="color:${tc};border-color:${tc}55;background:${tc}1a">
-        <span style="width:6px;height:6px;border-radius:50%;background:${tc};box-shadow:0 0 8px ${tc}"></span>
-        ${escHtml((tier || 'Unranked').toUpperCase())}
-      </span>`;
-      const pip = $('pf-tier-pip');
-      pip.style.background = tc;
-      pip.style.color = '#0f0f12';
-      pip.textContent = (tier || 'U').slice(0, 1).toUpperCase();
-      pip.classList.remove('hidden');
+      // Mark which mode pills have data; default to first one with matches, else 501_bo5.
+      const tabsEl = document.getElementById('pf-mode-tabs');
+      const modes = ['501_bo5','301_bo5','cricket_bo5','bulls_10','t20s_10'];
+      modes.forEach(m => {
+        const btn = tabsEl.querySelector(`[data-mode="${m}"]`);
+        if (!btn) return;
+        const has = byMode[m] && (byMode[m].matches_played | 0) > 0;
+        if (!has) btn.classList.add('empty');
+      });
+      const firstWithData = modes.find(m => byMode[m] && (byMode[m].matches_played | 0) > 0) || '501_bo5';
 
-      $('pf-mmr').textContent     = rp?.mmr ?? '—';
-      $('pf-peak').textContent    = rp?.peak_mmr ?? '—';
-      $('pf-wins').textContent    = rp?.wins ?? 0;
-      $('pf-losses').textContent  = rp?.losses ?? 0;
-      $('pf-180s').textContent    = rp?.total_180s ?? 0;
-      $('pf-140s').textContent    = rp?.total_140_plus ?? 0;
-      $('pf-streak').textContent  = rp?.best_win_streak ?? 0;
-      $('pf-bestfin').textContent = rp?.best_finish ?? 0;
+      function paintMode(mode) {
+        tabsEl.querySelectorAll('.pf-mode-pill').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+        const rp = byMode[mode] || {};
+        const tier = rp?.rank_tier || 'Unranked';
+        const tc = tierColor(tier);
+        $('pf-tier-badge-wrap').innerHTML = `<span class="tier-badge" style="color:${tc};border-color:${tc}55;background:${tc}1a">
+          <span style="width:6px;height:6px;border-radius:50%;background:${tc};box-shadow:0 0 8px ${tc}"></span>
+          ${escHtml((tier || 'Unranked').toUpperCase())}
+        </span>`;
+        const pip = $('pf-tier-pip');
+        pip.style.background = tc;
+        pip.style.color = '#0f0f12';
+        pip.textContent = (tier || 'U').slice(0, 1).toUpperCase();
+        pip.classList.remove('hidden');
+
+        $('pf-mmr').textContent     = rp?.mmr ?? '—';
+        $('pf-peak').textContent    = rp?.peak_mmr ?? '—';
+        $('pf-wins').textContent    = rp?.wins ?? 0;
+        $('pf-losses').textContent  = rp?.losses ?? 0;
+        $('pf-180s').textContent    = rp?.total_180s ?? 0;
+        $('pf-140s').textContent    = rp?.total_140_plus ?? 0;
+        $('pf-streak').textContent  = rp?.best_win_streak ?? 0;
+        $('pf-bestfin').textContent = rp?.best_finish ?? 0;
+      }
+      paintMode(firstWithData);
+      tabsEl.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.pf-mode-pill');
+        if (!btn) return;
+        paintMode(btn.dataset.mode);
+      });
 
       // Share button
       $('pf-share').addEventListener('click', () => {

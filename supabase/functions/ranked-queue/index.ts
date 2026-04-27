@@ -65,8 +65,77 @@ Deno.serve(async (req: Request) => {
     // ── JOIN QUEUE ──────────────────────────────────────────
     if (action === "join") {
       const matchFormat = body.match_format || "best_of_5";
+      const mode = (body.mode || "501_bo5").toString();
 
-      // Ensure ranked profile exists (upsert)
+      // ── Pro gate: ranked play requires an active subscription ──
+      // (Free users get the 10-min demo on the scorer; ranked is Pro-only.)
+      const { data: sub } = await admin
+        .from("dartvoice_subscriptions")
+        .select("status, current_period_end")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const isPro = sub && (sub.status === "active" || sub.status === "trialing")
+        && (!sub.current_period_end || new Date(sub.current_period_end).getTime() > Date.now());
+      if (!isPro) {
+        return new Response(JSON.stringify({
+          error: "pro_required",
+          message: "Ranked play requires DartVoice Pro. Free accounts get a 10-minute demo of the scorer; ranked matches need an active subscription.",
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // ── Validate mode exists & is active ──
+      const { data: modeRow } = await admin
+        .from("ranked_modes")
+        .select("code, is_active")
+        .eq("code", mode)
+        .maybeSingle();
+      if (!modeRow || !modeRow.is_active) {
+        return new Response(JSON.stringify({ error: "invalid_mode", mode }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Ensure per-mode rating exists (upsert)
+      let { data: rating } = await admin
+        .from("ranked_ratings")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("mode", mode)
+        .maybeSingle();
+
+      if (!rating) {
+        const { data: season } = await admin
+          .from("ranked_seasons")
+          .select("id")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        const { data: newRating, error: ratErr } = await admin
+          .from("ranked_ratings")
+          .insert({
+            user_id: user.id,
+            mode,
+            mmr: 1200,
+            peak_mmr: 1200,
+            rank_tier: "silver",
+            season_id: season?.id || null,
+          })
+          .select()
+          .single();
+        if (ratErr) {
+          return new Response(JSON.stringify({ error: "Failed to create rating", detail: ratErr.message }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        rating = newRating;
+      }
+
+      // Ensure ranked profile exists (legacy — for display name/avatar lookups)
       let { data: rankedProfile } = await admin
         .from("ranked_profiles")
         .select("*")
@@ -111,6 +180,9 @@ Deno.serve(async (req: Request) => {
         rankedProfile = newProfile;
       }
 
+      // Use per-mode rating for matchmaking (ranked_profiles is legacy 501-only display).
+      const playerRating = rating;
+
       // Check not already in queue
       const { data: existing } = await admin
         .from("ranked_queue")
@@ -141,15 +213,16 @@ Deno.serve(async (req: Request) => {
         .lt("expires_at", new Date().toISOString())
         .eq("status", "waiting");
 
-      // Insert into queue
+      // Insert into queue (per mode)
       const { data: queueEntry, error: queueErr } = await admin
         .from("ranked_queue")
         .insert({
           user_id: user.id,
-          mmr: rankedProfile.mmr,
-          rank_tier: rankedProfile.rank_tier,
-          display_name: rankedProfile.display_name || "Player",
+          mmr: playerRating.mmr,
+          rank_tier: playerRating.rank_tier,
+          display_name: rankedProfile?.display_name || user.email?.split("@")[0] || "Player",
           match_format: matchFormat,
+          mode,
         })
         .select()
         .single();
@@ -161,9 +234,8 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      // ── ATTEMPT MATCHMAKING ──────────────────────────────
-      // Find a waiting opponent within MMR range
-      const playerMmr = rankedProfile.mmr;
+      // ── ATTEMPT MATCHMAKING (per mode) ───────────────────
+      const playerMmr = playerRating.mmr;
       const mmrRange = MMR_BRACKETS[0].range; // Start tight
 
       const { data: opponents } = await admin
@@ -171,6 +243,7 @@ Deno.serve(async (req: Request) => {
         .select("*")
         .eq("status", "waiting")
         .eq("match_format", matchFormat)
+        .eq("mode", mode)
         .neq("user_id", user.id)
         .gte("mmr", playerMmr - mmrRange)
         .lte("mmr", playerMmr + mmrRange)
@@ -187,12 +260,13 @@ Deno.serve(async (req: Request) => {
           .eq("is_active", true)
           .maybeSingle();
 
-        // Get opponent's ranked profile for MMR snapshot
-        const { data: oppProfile } = await admin
-          .from("ranked_profiles")
+        // Get opponent's per-mode rating for MMR snapshot
+        const { data: oppRating } = await admin
+          .from("ranked_ratings")
           .select("mmr")
-          .eq("id", opponent.user_id)
-          .single();
+          .eq("user_id", opponent.user_id)
+          .eq("mode", mode)
+          .maybeSingle();
 
         // Create the match
         const { data: match, error: matchErr } = await admin
@@ -201,9 +275,10 @@ Deno.serve(async (req: Request) => {
             season_id: season?.id || null,
             player1_id: opponent.user_id, // first queuer is P1
             player2_id: user.id,
-            player1_mmr_before: oppProfile?.mmr || opponent.mmr,
-            player2_mmr_before: rankedProfile.mmr,
+            player1_mmr_before: oppRating?.mmr || opponent.mmr,
+            player2_mmr_before: playerRating.mmr,
             match_format: matchFormat,
+            mode,
             status: "lobby",
           })
           .select()
@@ -251,8 +326,9 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({
         status: "waiting",
         queue_id: queueEntry.id,
-        mmr: rankedProfile.mmr,
-        rank_tier: rankedProfile.rank_tier,
+        mmr: playerRating.mmr,
+        rank_tier: playerRating.rank_tier,
+        mode,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

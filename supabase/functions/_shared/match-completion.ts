@@ -2,6 +2,8 @@
 // ranked-match-sweeper. Keep this file dependency-free (Deno + supabase-js v2
 // only) so both edge functions can import it directly.
 
+export const DEFAULT_MODE = "501_bo5";
+
 export function computeRankTier(mmr: number): string {
   if (mmr >= 3000) return "apex";
   if (mmr >= 2500) return "diamond";
@@ -38,6 +40,38 @@ export function calcNewMmr(
   return { newMmr, delta: Math.round(delta) };
 }
 
+/** Load the per-mode rating, creating it (with defaults) if missing. */
+export async function getOrCreateRating(admin: any, userId: string, mode: string) {
+  const { data: existing } = await admin
+    .from("ranked_ratings")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("mode", mode)
+    .maybeSingle();
+  if (existing) return existing;
+
+  const { data: season } = await admin
+    .from("ranked_seasons")
+    .select("id")
+    .eq("is_active", true)
+    .maybeSingle();
+
+  const { data: created } = await admin
+    .from("ranked_ratings")
+    .insert({
+      user_id: userId,
+      mode,
+      mmr: 1200,
+      peak_mmr: 1200,
+      rank_tier: "silver",
+      season_id: season?.id || null,
+    })
+    .select()
+    .single();
+  return created;
+}
+
+
 export async function updateProfileAfterMatch(
   admin: any,
   profile: any,
@@ -45,12 +79,14 @@ export async function updateProfileAfterMatch(
   result: { newMmr: number; delta: number },
   matchAvg: any,
   matchCheckout: any,
+  matchFirst9: any,
   legsWon: number,
   legsLost: number,
   s180s: number,
   s140s: number,
   s100s: number,
   sHigh: number,
+  mode: string,
 ) {
   const wins = profile.wins + (score === 1 ? 1 : 0);
   const losses = profile.losses + (score === 0 ? 1 : 0);
@@ -64,8 +100,12 @@ export async function updateProfileAfterMatch(
   const newCheckout = totalMatches > 1
     ? ((Number(profile.avg_checkout_pct) * (totalMatches - 1)) + Number(matchCheckout || 0)) / totalMatches
     : Number(matchCheckout || 0);
+  const prevFirst9 = Number(profile.avg_first_9 || 0);
+  const newFirst9 = totalMatches > 1
+    ? ((prevFirst9 * (totalMatches - 1)) + Number(matchFirst9 || 0)) / totalMatches
+    : Number(matchFirst9 || 0);
 
-  await admin.from("ranked_profiles").update({
+  const ratingPatch = {
     mmr: result.newMmr,
     peak_mmr: Math.max(profile.peak_mmr, result.newMmr),
     rank_tier: computeRankTier(result.newMmr),
@@ -81,11 +121,31 @@ export async function updateProfileAfterMatch(
     total_high_finishes: profile.total_high_finishes + ((sHigh || 0) >= 80 ? 1 : 0),
     best_finish: Math.max(profile.best_finish, sHigh || 0),
     avg_match_average: Math.round(newAvg * 100) / 100,
+    avg_first_9: Math.round(newFirst9 * 100) / 100,
     avg_checkout_pct: Math.round(newCheckout * 100) / 100,
     total_legs_won: profile.total_legs_won + legsWon,
     total_legs_lost: profile.total_legs_lost + legsLost,
+    matches_played: totalMatches,
+    last_match_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  }).eq("id", profile.id);
+  };
+
+  // Per-mode rating row (new source of truth)
+  await admin
+    .from("ranked_ratings")
+    .update(ratingPatch)
+    .eq("user_id", profile.user_id)
+    .eq("mode", mode);
+
+  // Mirror to legacy ranked_profiles for the default mode so existing UI keeps
+  // working until rankings.html / ranked.html consume ranked_ratings directly.
+  if (mode === DEFAULT_MODE) {
+    const legacyPatch = { ...ratingPatch } as any;
+    delete legacyPatch.matches_played;
+    delete legacyPatch.last_match_at;
+    delete legacyPatch.avg_first_9;
+    await admin.from("ranked_profiles").update(legacyPatch).eq("id", profile.user_id);
+  }
 }
 
 /**
@@ -96,6 +156,7 @@ export async function updateProfileAfterMatch(
 export async function processMatchCompletion(finalMatch: any, admin: any) {
   const p1LegsWon = finalMatch.player1_legs_won;
   const p2LegsWon = finalMatch.player2_legs_won;
+  const mode = finalMatch.mode || DEFAULT_MODE;
 
   let winnerId: string | null = null;
   let p1Score = 0.5;
@@ -111,18 +172,11 @@ export async function processMatchCompletion(finalMatch: any, admin: any) {
     p2Score = 1;
   }
 
-  const { data: p1Profile } = await admin
-    .from("ranked_profiles")
-    .select("*")
-    .eq("id", finalMatch.player1_id)
-    .single();
-  const { data: p2Profile } = await admin
-    .from("ranked_profiles")
-    .select("*")
-    .eq("id", finalMatch.player2_id)
-    .single();
+  // Per-mode ratings are the source of truth.
+  const p1Profile = await getOrCreateRating(admin, finalMatch.player1_id, mode);
+  const p2Profile = await getOrCreateRating(admin, finalMatch.player2_id, mode);
 
-  if (!p1Profile || !p2Profile) throw new Error("Profiles not found");
+  if (!p1Profile || !p2Profile) throw new Error("Ratings not found");
 
   const p1K = getKFactor(p1Profile.mmr, p1Profile.is_placed, p1Profile.placement_matches);
   const p2K = getKFactor(p2Profile.mmr, p2Profile.is_placed, p2Profile.placement_matches);
@@ -161,12 +215,14 @@ export async function processMatchCompletion(finalMatch: any, admin: any) {
     p1Result,
     finalMatch.player1_average,
     finalMatch.player1_checkout_pct,
+    finalMatch.player1_first_9,
     p1LegsWon,
     p2LegsWon,
     finalMatch.player1_180s,
     finalMatch.player1_140_plus,
     finalMatch.player1_100_plus,
     finalMatch.player1_high_finish,
+    mode,
   );
   await updateProfileAfterMatch(
     admin,
@@ -175,18 +231,21 @@ export async function processMatchCompletion(finalMatch: any, admin: any) {
     p2Result,
     finalMatch.player2_average,
     finalMatch.player2_checkout_pct,
+    finalMatch.player2_first_9,
     p2LegsWon,
     p1LegsWon,
     finalMatch.player2_180s,
     finalMatch.player2_140_plus,
     finalMatch.player2_100_plus,
     finalMatch.player2_high_finish,
+    mode,
   );
 
   await admin.from("ranked_queue").delete().eq("match_id", finalMatch.id);
 
   return {
     matchId: finalMatch.id,
+    mode,
     winnerId,
     p1: { id: finalMatch.player1_id, mmr_after: p1Result.newMmr, mmr_delta: p1Result.delta },
     p2: { id: finalMatch.player2_id, mmr_after: p2Result.newMmr, mmr_delta: p2Result.delta },

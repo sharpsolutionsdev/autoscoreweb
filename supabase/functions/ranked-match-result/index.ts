@@ -41,21 +41,43 @@ Deno.serve(async (req: Request) => {
       const myLegsWon = body.my_legs_won;
       const opponentLegsWon = body.opponent_legs_won;
       const stats = body.stats || {};
+      // Anti-cheat: only stats sourced from the live DartCounter scrape (or our
+      // native scorer for native modes) count for ranked. Anything else gets
+      // flagged for review.
+      const claimedSource = (body.stats_source || "manual").toString();
+      const stats_source = (claimedSource === "dartcounter" || claimedSource === "native") ? claimedSource : "manual";
+      const stats_verified = stats_source !== "manual";
+      const dartcounter_match_id = body.dartcounter_match_id || null;
+
       const { data: match } = await admin.from("ranked_matches").select("*").eq("id", matchId).single();
       if (!match) return new Response(JSON.stringify({ error: "Match not found" }), { status: 404, headers: corsHeaders });
 
       const isP1 = match.player1_id === user.id;
       const prefix = isP1 ? "player1" : "player2";
       const nowIso = new Date().toISOString();
+      // Match is verified only if EVERY submission was from a trusted source.
+      // First submitter sets the source; second submitter degrades it if manual.
+      const firstSubmission = !match.player1_result_submitted && !match.player2_result_submitted;
+      const newStatsSource = firstSubmission
+        ? stats_source
+        : (match.stats_source === "manual" || stats_source === "manual" ? "manual" : match.stats_source);
+      const newStatsVerified = newStatsSource !== "manual";
+
       const updateFields: any = {
         [`${prefix}_result_submitted`]: true,
         [`${prefix}_result_submitted_at`]: nowIso,
+        stats_source: newStatsSource,
+        stats_verified: newStatsVerified,
       };
+      if (dartcounter_match_id && !match.dartcounter_match_id) {
+        updateFields.dartcounter_match_id = dartcounter_match_id;
+      }
 
       if (isP1) {
         updateFields.player1_claimed_p1_legs = myLegsWon;
         updateFields.player1_claimed_p2_legs = opponentLegsWon;
         updateFields.player1_average = stats.average || 0;
+        updateFields.player1_first_9 = stats.first_9_avg || stats.first_9 || 0;
         updateFields.player1_checkout_pct = stats.checkout_pct || 0;
         updateFields.player1_180s = stats.tons_180 || 0;
         updateFields.player1_140_plus = stats.tons_140_plus || 0;
@@ -67,6 +89,7 @@ Deno.serve(async (req: Request) => {
         updateFields.player2_claimed_p1_legs = opponentLegsWon;
         updateFields.player2_claimed_p2_legs = myLegsWon;
         updateFields.player2_average = stats.average || 0;
+        updateFields.player2_first_9 = stats.first_9_avg || stats.first_9 || 0;
         updateFields.player2_checkout_pct = stats.checkout_pct || 0;
         updateFields.player2_180s = stats.tons_180 || 0;
         updateFields.player2_140_plus = stats.tons_140_plus || 0;

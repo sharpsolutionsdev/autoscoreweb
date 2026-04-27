@@ -6587,12 +6587,15 @@ window.openScorerUrl = function(url){
 
                             try {
                                 sessionStorage.setItem('dv_latest_match_stats', JSON.stringify({ 
+                                    source: 'dartcounter',
+                                    capturedAt: Date.now(),
                                     p1: state.p1Stats, 
                                     p2: state.p2Stats,
                                     p1Legs: state.p1Legs || 0,
                                     p2Legs: state.p2Legs || 0,
                                     p1Name: state.p1Name || 'Player 1',
-                                    p2Name: state.p2Name || 'Player 2'
+                                    p2Name: state.p2Name || 'Player 2',
+                                    dartcounterMatchId: (typeof location !== 'undefined' && location.href) ? location.href : null
                                 }));
                             } catch(e) {}
                             // Mark this time as recent activity for polling backoff logic
