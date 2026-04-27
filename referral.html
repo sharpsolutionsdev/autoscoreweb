@@ -471,6 +471,7 @@
         navigator.clipboard.writeText('https://' + code.textContent.trim()).then(() => {
             btn.textContent = 'Copied!';
             btn.classList.add('copied');
+            try { window.dvToast && window.dvToast('Referral link copied', 'success'); } catch(_){}
             setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
         });
     }
@@ -539,6 +540,7 @@
     <script src="theme.js"></script>
     <script src="cookies.js"></script>
     <script src="components/dv-nav.js" defer></script>
+    <script src="/dv-toast.js" defer></script>
     <script src="dv-currency.js"></script>
     <!-- DartVoice discount + welcome modules (auto-load) -->
     <script src="/dv-discount.js" defer></script>

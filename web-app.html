@@ -2648,7 +2648,7 @@
                     <li>On your phone's browser, open:
                         <div style="margin:8px 0;display:flex;gap:6px;align-items:center;">
                             <code style="background:#1a1a1f;border:1px solid #252530;border-radius:6px;padding:6px 10px;font-size:12px;color:var(--brand,#CC0B20);flex:1;word-break:break-all;">https://app.dartcounter.net/connect</code>
-                            <button onclick="navigator.clipboard.writeText('https://app.dartcounter.net/connect');this.textContent='Copied'" style="background:var(--brand,#CC0B20);color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">Copy</button>
+                            <button onclick="navigator.clipboard.writeText('https://app.dartcounter.net/connect');this.textContent='Copied';try{window.dvToast&&window.dvToast('Link copied','success');}catch(_){}" style="background:var(--brand,#CC0B20);color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">Copy</button>
                         </div>
                     </li>
                     <li>Pick your camera and activate it. A code will appear.</li>

@@ -608,8 +608,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         const url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(to) + '&su=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
         window.open(url, '_blank', 'noopener');
     }
-    async function copy(text){ try { await navigator.clipboard.writeText(text); } catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); } }
-    function reset(){ $('emailSubject').value = ''; $('emailBody').value = ''; $('emailTemplate').value = ''; render(); }
+    async function copy(text, label){
+        try { await navigator.clipboard.writeText(text); }
+        catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+        try { window.dvToast && window.dvToast(label || 'Copied to clipboard', 'success'); } catch(_){}
+    }
+    function reset(){
+        $('emailSubject').value = ''; $('emailBody').value = ''; $('emailTemplate').value = ''; render();
+        try { window.dvToast && window.dvToast('Composer reset', 'info'); } catch(_){}
+    }
 
     function wire(){
         $('emailCreator').addEventListener('change', () => { applyTemplate(); render(); });
@@ -618,8 +625,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         $('emailAmount').addEventListener('input', render);
         $('emailSubject').addEventListener('input', render);
         $('emailBody').addEventListener('input', render);
-        $('emailCopySubject').addEventListener('click', () => copy(interp($('emailSubject').value, currentCtx())));
-        $('emailCopyBody').addEventListener('click', () => copy(interp($('emailBody').value, currentCtx())));
+        $('emailCopySubject').addEventListener('click', () => copy(interp($('emailSubject').value, currentCtx()), 'Subject copied'));
+        $('emailCopyBody').addEventListener('click', () => copy(interp($('emailBody').value, currentCtx()), 'Body copied'));
         $('emailOpenGmail').addEventListener('click', openGmail);
         $('emailResetBtn').addEventListener('click', reset);
         document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
@@ -641,6 +648,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
 })();
 </script>
     <!-- DartVoice discount + welcome modules (auto-load) -->
+    <script src="/dv-toast.js" defer></script>
     <script src="/dv-discount.js" defer></script>
     <script src="/dv-welcome.js" defer></script>
 

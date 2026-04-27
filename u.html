@@ -34,6 +34,7 @@
   <!-- Top nav (lightweight; relies on global components if loaded) -->
   <dv-nav></dv-nav>
   <script src="components/dv-nav.js" defer></script>
+  <script src="/dv-toast.js" defer></script>
 
   <main class="relative pt-20 pb-20 px-5">
     <div class="absolute inset-0 glow-bg overflow-hidden pointer-events-none" aria-hidden="true"></div>
@@ -282,7 +283,11 @@
       $('pf-share').addEventListener('click', () => {
         const url = location.href;
         if (navigator.share) navigator.share({ title: name, url }).catch(()=>{});
-        else navigator.clipboard?.writeText(url);
+        else navigator.clipboard?.writeText(url).then(() => {
+          try { window.dvToast && window.dvToast('Profile link copied', 'success'); } catch(_){}
+        }).catch(() => {
+          try { window.dvToast && window.dvToast('Could not copy link', 'warn'); } catch(_){}
+        });
       });
 
       // Add friend button (only if logged in and not self)
