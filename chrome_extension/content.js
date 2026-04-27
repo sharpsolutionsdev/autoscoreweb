@@ -1646,6 +1646,43 @@
         startCalibration();
       }
 
+      // Fill DartCounter chat input with a referral message from the parent.
+      // Sent by web-app.html's "Paste in DartCounter chat" button.
+      // We try several known DartCounter chat selectors, fall back to any
+      // visible textarea/input matching common chat patterns. The message is
+      // also already on the user's clipboard, so failure is recoverable.
+      if (event.data.type === "DV_FILL_CHAT") {
+        const text = String(event.data.text || '');
+        if (!text) return;
+        try {
+          const candidates = [
+            'app-chat textarea', 'app-chat input',
+            'textarea[placeholder*="message" i]',
+            'input[placeholder*="message" i]',
+            'textarea[placeholder*="chat" i]',
+            'input[placeholder*="chat" i]',
+            '.chat-input textarea', '.chat-input input',
+            '[data-test*="chat"] textarea', '[data-test*="chat"] input'
+          ];
+          let target = null;
+          for (const sel of candidates) {
+            const el = document.querySelector(sel);
+            if (el && el.offsetParent !== null) { target = el; break; }
+          }
+          if (target) {
+            const setter = Object.getOwnPropertyDescriptor(target.__proto__, 'value')?.set;
+            setter ? setter.call(target, text) : (target.value = text);
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+            target.focus();
+            logTrace('DV_FILL_CHAT: filled chat input');
+          } else {
+            logTrace('DV_FILL_CHAT: no chat input found — clipboard fallback');
+          }
+        } catch (e) { logTrace('DV_FILL_CHAT failed: ' + e.message); }
+        return;
+      }
+
       // Volume control from parent dashboard. We persist the desired volume
       // and apply it to any newly-created media elements as well — DartCounter
       // creates <audio> elements on demand for celebration sounds.

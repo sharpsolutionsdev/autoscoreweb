@@ -86,6 +86,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         <button class="top-tab" data-top="ranked">Ranked <span id="disputeBadge" class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-500 hide">0</span></button>
         <button class="top-tab" data-top="templates">Templates</button>
         <button class="top-tab" data-top="email">Email</button>
+        <button class="top-tab" data-top="blast">Blast</button>
     </div>
 </header>
 
@@ -286,6 +287,55 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#08080A;color:#F0F0F5
         </div>
     </div>
     <p class="text-xs text-muted mt-3">Tokens available: <code>{name}</code> <code>{handle}</code> <code>{slug}</code> <code>{amount}</code> <code>{tier}</code> <code>{sender}</code> <code>{context}</code></p>
+</section>
+
+<!-- ━━━ BULK EMAIL BLAST ━━━ -->
+<section data-pane="blast" class="hide">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="display text-2xl">Bulk Email Blast</h2>
+            <p class="text-xs text-muted mt-1">Send a templated email to many recipients. Sequential, with rate limiting (~250ms gap) so Resend doesn't throttle.</p>
+        </div>
+        <button class="btn-brand" id="blastSendBtn">Send Blast →</button>
+    </div>
+    <div class="grid gap-4" style="grid-template-columns: 360px 1fr;">
+        <div class="crm-card p-4 space-y-3">
+            <div>
+                <label class="text-xs text-muted block mb-1">Template</label>
+                <select id="blastTemplate" class="inp">
+                    <option value="free-trial-blast">Free Trial Invite (7 days)</option>
+                    <option value="one-hour-pass">1-Hour Free Access Pass</option>
+                    <option value="referral-invite">Referral Invite (legacy)</option>
+                    <option value="welcome">Welcome (legacy)</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">Recipients (one email per line)</label>
+                <textarea id="blastRecipients" class="inp" rows="10" placeholder="alice@example.com&#10;bob@example.com" style="font-family:monospace;font-size:12px;"></textarea>
+            </div>
+            <div class="flex gap-2">
+                <button class="btn-ghost flex-1" id="blastImportCRM">Import contacted CRM</button>
+                <button class="btn-ghost flex-1" id="blastDedupe">Dedupe</button>
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">Sender display name</label>
+                <input id="blastSenderName" class="inp" value="Reuben @ DartVoice">
+            </div>
+            <div>
+                <label class="text-xs text-muted block mb-1">Personal note / context (optional)</label>
+                <textarea id="blastContext" class="inp" rows="3" placeholder="Hand-typed pitch line that gets injected into {{context}}"></textarea>
+            </div>
+        </div>
+        <div class="crm-card p-0 overflow-hidden">
+            <div class="px-5 py-3 border-b border-wire/40 flex items-center justify-between">
+                <div class="text-xs text-muted"><span id="blastCount">0</span> recipients queued</div>
+                <div class="text-xs"><span id="blastSent" class="text-brand font-bold">0</span> sent · <span id="blastFailed" class="text-orange-500 font-bold">0</span> failed</div>
+            </div>
+            <div id="blastLog" class="p-4 text-xs space-y-1 overflow-y-auto" style="background:#0A0A0D;min-height:540px;max-height:640px;font-family:monospace;">
+                <div class="text-muted italic">No sends yet. Pick a template, paste recipients, hit "Send Blast".</div>
+            </div>
+        </div>
+    </div>
 </section>
 
 <!-- ━━━ RANKED MANAGEMENT ━━━ -->

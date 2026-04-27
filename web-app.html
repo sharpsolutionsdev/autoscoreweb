@@ -515,7 +515,30 @@
         .referral-close svg.ring { position: absolute; top:0; left:0; transform: rotate(-90deg); }
         .referral-close .x { position: relative; z-index:2; width:18px; height:18px; color: #fff; }
         .referral-ring-circle { stroke: var(--brand); stroke-width:3; fill: none; stroke-linecap: round; }
-        .referral-cta { min-width:120px; padding:8px 12px; font-size:13px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#fff; background:var(--brand); box-shadow: 0 6px 18px rgba(var(--brand-rgb),0.18); border: none; }
+        .referral-cta { min-width:120px; padding:8px 12px; font-size:13px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#fff; background:var(--brand); box-shadow: 0 6px 18px rgba(var(--brand-rgb),0.18); border: none; cursor:pointer; }
+
+        /* Referral modal (full templates + chat-paste) */
+        .dv-ref-modal { position: fixed; inset: 0; z-index: 100002; display: none; align-items: center; justify-content: center; padding: 16px; }
+        .dv-ref-modal.show { display: flex; animation: dvRefFade .18s ease-out; }
+        .dv-ref-modal-backdrop { position:absolute; inset:0; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+        .dv-ref-modal-card { position: relative; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; background: #111114; border: 1px solid rgba(var(--brand-rgb),.35); border-radius: 16px; padding: 24px; box-shadow: 0 24px 70px rgba(0,0,0,.6), 0 0 60px rgba(var(--brand-rgb),.15); }
+        .dv-ref-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+        .dv-ref-x { background: none; border: none; color: #888; font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; }
+        .dv-ref-x:hover { color: #fff; }
+        .dv-ref-link-row { display: flex; gap: 8px; margin-top: 6px; }
+        .dv-ref-link { flex: 1; background: #0a0a0d; border: 1px solid #252530; border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 12px; font-family: ui-monospace, monospace; }
+        .dv-ref-templates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 12px; }
+        .dv-ref-tpl { background: #0a0a0d; border: 1px solid #252530; border-radius: 8px; padding: 8px 4px; color: #ccc; font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; }
+        .dv-ref-tpl:hover { border-color: rgba(var(--brand-rgb),.5); color: #fff; }
+        .dv-ref-tpl.active { background: rgba(var(--brand-rgb),.15); border-color: var(--brand); color: #fff; }
+        .dv-ref-message { width: 100%; background: #0a0a0d; border: 1px solid #252530; border-radius: 8px; padding: 12px; color: #fff; font-size: 13px; line-height: 1.5; resize: vertical; min-height: 90px; font-family: inherit; }
+        .dv-ref-message:focus { outline: none; border-color: rgba(var(--brand-rgb),.6); }
+        .dv-ref-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .dv-ref-btn { flex: 1; min-width: 110px; padding: 10px 14px; border-radius: 8px; background: #1a1a20; border: 1px solid #252530; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s; }
+        .dv-ref-btn:hover { border-color: rgba(var(--brand-rgb),.5); background: #20202a; }
+        .dv-ref-btn-brand { background: var(--brand); border-color: var(--brand); }
+        .dv-ref-btn-brand:hover { background: var(--brand); filter: brightness(1.1); }
+        @keyframes dvRefFade { from { opacity:0; transform: scale(.96);} to { opacity:1; transform: scale(1);} }
 
         /* Confetti canvas overlay (used by dvConfetti) */
         #dv-confetti-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 99998; pointer-events: none; }
@@ -1653,10 +1676,10 @@
     <div id="dv-referral-popup" aria-hidden="true" class="dv-referral">
         <div class="dv-referral-inner">
             <div class="referral-content">
-                <div class="referral-title">Invite friends — get credits</div>
-                <div class="referral-sub">Share your referral link to earn rewards and free plays.</div>
+                <div class="referral-title">Earn £5 per friend</div>
+                <div class="referral-sub">Share your link, your friend tries DartVoice, you both win.</div>
             </div>
-            <a id="dv-referral-cta" class="referral-cta" href="dartvoice-dashboard#ambassador">Open Ambassador</a>
+            <button id="dv-referral-cta" type="button" class="referral-cta">Invite</button>
             <button id="dv-referral-close" class="referral-close" aria-label="Close referral">
                 <svg class="ring" width="44" height="44" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                     <circle class="referral-ring-circle" cx="24" cy="24" r="20" stroke-linecap="round" fill="none"></circle>
@@ -1665,6 +1688,38 @@
                     <path d="M6 6L18 18M6 18L18 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
+        </div>
+    </div>
+
+    <!-- Referral modal (richer: templates + copy + chat paste) -->
+    <div id="dv-referral-modal" class="dv-ref-modal" aria-hidden="true" role="dialog" aria-labelledby="dv-ref-title">
+        <div class="dv-ref-modal-backdrop" data-ref-close></div>
+        <div class="dv-ref-modal-card">
+            <div class="dv-ref-modal-head">
+                <div>
+                    <h3 id="dv-ref-title" class="display text-2xl text-white not-italic" style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:900;letter-spacing:.04em;">INVITE A MATE</h3>
+                    <p class="text-xs text-gray-400 mt-1">Earn <span class="text-brand font-bold">£5 cash</span> for every friend who subscribes.</p>
+                </div>
+                <button type="button" class="dv-ref-x" data-ref-close aria-label="Close">&times;</button>
+            </div>
+
+            <label class="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Your referral link</label>
+            <div class="dv-ref-link-row">
+                <input id="dv-ref-link-input" type="text" readonly class="dv-ref-link" />
+                <button type="button" id="dv-ref-link-copy" class="dv-ref-btn dv-ref-btn-brand">Copy</button>
+            </div>
+
+            <label class="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-4 block">Pick a message</label>
+            <div class="dv-ref-templates" id="dv-ref-templates"></div>
+
+            <textarea id="dv-ref-message" class="dv-ref-message" rows="4" aria-label="Referral message"></textarea>
+
+            <div class="dv-ref-actions">
+                <button type="button" id="dv-ref-msg-copy" class="dv-ref-btn">Copy message</button>
+                <button type="button" id="dv-ref-msg-chat" class="dv-ref-btn dv-ref-btn-brand" title="Paste into DartCounter chat">Paste in DartCounter chat</button>
+                <button type="button" id="dv-ref-msg-share" class="dv-ref-btn">Share…</button>
+            </div>
+            <p class="text-[10px] text-gray-500 mt-3">£5 cash credited after your friend's first paid month. <a href="dartvoice-dashboard#ambassador" class="text-brand underline">View earnings</a></p>
         </div>
     </div>
     <!-- Floating expand button — only visible when sidebar is collapsed -->
@@ -5228,6 +5283,58 @@
 
         // Drive the cinematic sequence
         document.addEventListener('DOMContentLoaded', () => {
+            // Post-payment success: thanks.html redirects logged-in users to
+            // /dartvoice-dashboard?checkout=success, but if they ever land on
+            // web-app with paid=1 or checkout=success, show a celebration
+            // toast and strip the query param so refreshes are clean.
+            try {
+                const sp = new URLSearchParams(location.search);
+                const paid = sp.get('paid') === '1' || sp.get('checkout') === 'success';
+                const justSubbed = (() => { try { return sessionStorage.getItem('dv-just-subscribed') === '1'; } catch(_){ return false; } })();
+                if (paid || justSubbed) {
+                    try { sessionStorage.removeItem('dv-just-subscribed'); } catch(_){}
+                    setTimeout(() => {
+                        if (typeof window.dvToast === 'function') {
+                            window.dvToast('🎯 Subscription active — welcome to DartVoice Pro!', 'success', 6000);
+                        }
+                        try { window.dvConfetti && window.dvConfetti(); } catch(_){}
+                    }, 900);
+                    if (paid) {
+                        try {
+                            sp.delete('paid'); sp.delete('checkout');
+                            const qs = sp.toString();
+                            history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+                        } catch(_){}
+                    }
+                }
+                // 1-hour free pass from admin email blast.
+                // URL shape: /web-app?pass=1h&iss=<email>&exp=<unix-ms>
+                // We persist the expiry in localStorage; downstream entitlement
+                // checks treat dv_temp_pass_until > Date.now() as "Pro".
+                if (sp.get('pass') === '1h') {
+                    const exp = parseInt(sp.get('exp'), 10);
+                    const valid = Number.isFinite(exp) && exp > Date.now();
+                    if (valid) {
+                        try { localStorage.setItem('dv_temp_pass_until', String(exp)); } catch(_){}
+                        setTimeout(() => {
+                            if (typeof window.dvToast === 'function') {
+                                window.dvToast('⏱ 1-hour DartVoice pass activated — go!', 'success', 7000);
+                            }
+                        }, 700);
+                    } else {
+                        setTimeout(() => {
+                            if (typeof window.dvToast === 'function') {
+                                window.dvToast('Pass link expired — start a free trial instead.', 'info', 6000);
+                            }
+                        }, 700);
+                    }
+                    try {
+                        sp.delete('pass'); sp.delete('iss'); sp.delete('exp');
+                        const qs = sp.toString();
+                        history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+                    } catch(_){}
+                }
+            } catch(_){}
             try {
                 if (!_cinema) return;
 
@@ -5340,17 +5447,9 @@
                 window._dvReferral._raf = requestAnimationFrame(step);
                 // hook close button
                 const btn = popup.querySelector('#dv-referral-close'); if (btn) btn.onclick = (ev)=>{ ev.preventDefault(); hideReferralPopup(); };
-                // set CTA link (prefer AppConfig values if present) and close on click
+                // CTA opens the rich invite modal (templates + copy + chat paste).
                 const cta = popup.querySelector('#dv-referral-cta'); if (cta) {
-                    try {
-                        let target = 'dartvoice-dashboard#ambassador';
-                        if (typeof AppConfig !== 'undefined') {
-                            if (AppConfig.referralUrl) target = AppConfig.referralUrl;
-                            else if (AppConfig.ambassadorLink) target = AppConfig.ambassadorLink;
-                        }
-                        cta.setAttribute('href', target);
-                        cta.addEventListener('click', () => { try { hideReferralPopup(); } catch(e){} });
-                    } catch(e){}
+                    cta.onclick = (ev) => { ev.preventDefault(); hideReferralPopup(); try { window.dvOpenReferralModal && window.dvOpenReferralModal(); } catch(e){} };
                 }
             } catch(e){}
         };
@@ -5361,6 +5460,96 @@
                 if (window._dvReferral._raf) { cancelAnimationFrame(window._dvReferral._raf); window._dvReferral._raf = null; }
             } catch(e){}
         };
+
+        // Rich referral modal: templates + copy link + copy message + chat paste.
+        // Templates intentionally vary tone so users can pick the one that
+        // matches their friend group. {LINK} is replaced with the personal
+        // referral URL at render time.
+        window.dvReferralTemplates = [
+            { id:'casual', label:'Casual', body:"Yo — found this voice-controlled darts scoring app. You shout the score, it just tracks it for you, no clipboard needed. Free 7-day trial: {LINK}" },
+            { id:'comp',   label:'Competitive', body:"You into ranked darts? Check this out — DartVoice does voice scoring + matchmaking against real players, MMR ladder, the lot. Sign up here, we both get a £5 credit when you join: {LINK}" },
+            { id:'pro',    label:'Pro',     body:"DartVoice — voice-controlled auto-scoring for X01, Cricket, 121. Plugs straight into DartCounter. 7-day free trial then £6.99/mo. {LINK}" }
+        ];
+        window.dvOpenReferralModal = async function(){
+            const modal = document.getElementById('dv-referral-modal');
+            if (!modal) return;
+            // Resolve current user's referral link.
+            let url = location.origin + '/referral.html';
+            try {
+                const u = (typeof ensureUser === 'function') ? await ensureUser() : null;
+                const code = (u && (u.user_metadata?.referral_code || u.id?.slice(0,8))) || '';
+                if (code) url = `${location.origin}/referral.html?ref=${encodeURIComponent(code)}`;
+            } catch(_){}
+            const linkInp = modal.querySelector('#dv-ref-link-input');
+            const msg = modal.querySelector('#dv-ref-message');
+            const tplWrap = modal.querySelector('#dv-ref-templates');
+            if (linkInp) linkInp.value = url;
+            // Render template chips.
+            tplWrap.innerHTML = window.dvReferralTemplates.map((t,i) =>
+                `<button type="button" class="dv-ref-tpl${i===0?' active':''}" data-tpl-id="${t.id}">${t.label}</button>`
+            ).join('');
+            const applyTemplate = (id) => {
+                const t = window.dvReferralTemplates.find(x => x.id === id) || window.dvReferralTemplates[0];
+                msg.value = t.body.replace('{LINK}', url);
+                tplWrap.querySelectorAll('.dv-ref-tpl').forEach(b => b.classList.toggle('active', b.dataset.tplId === t.id));
+            };
+            applyTemplate('casual');
+            tplWrap.querySelectorAll('.dv-ref-tpl').forEach(b => b.onclick = () => applyTemplate(b.dataset.tplId));
+
+            modal.classList.add('show');
+            modal.removeAttribute('aria-hidden');
+        };
+        window.dvCloseReferralModal = function(){
+            const modal = document.getElementById('dv-referral-modal');
+            if (modal) { modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
+        };
+        // Wire modal buttons once on load.
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('dv-referral-modal');
+            if (!modal) return;
+            modal.querySelectorAll('[data-ref-close]').forEach(el => el.addEventListener('click', () => window.dvCloseReferralModal()));
+            const linkCopy = modal.querySelector('#dv-ref-link-copy');
+            const msgCopy  = modal.querySelector('#dv-ref-msg-copy');
+            const msgChat  = modal.querySelector('#dv-ref-msg-chat');
+            const msgShare = modal.querySelector('#dv-ref-msg-share');
+            const linkInp  = modal.querySelector('#dv-ref-link-input');
+            const msg      = modal.querySelector('#dv-ref-message');
+
+            const copyText = async (txt, label) => {
+                try {
+                    await navigator.clipboard.writeText(txt);
+                    window.dvToast && window.dvToast(label || 'Copied to clipboard', 'success');
+                } catch(_) {
+                    // Fallback: select the field if it's an input/textarea, else prompt.
+                    try { (linkInp || msg).select(); document.execCommand('copy'); window.dvToast && window.dvToast(label || 'Copied', 'success'); }
+                    catch(__){ prompt('Copy:', txt); }
+                }
+            };
+            linkCopy?.addEventListener('click', () => copyText(linkInp.value, 'Referral link copied'));
+            msgCopy?.addEventListener('click',  () => copyText(msg.value, 'Message copied — paste it anywhere'));
+            msgShare?.addEventListener('click', async () => {
+                if (navigator.share) {
+                    try { await navigator.share({ title: 'DartVoice', text: msg.value, url: linkInp.value }); return; }
+                    catch(_){}
+                }
+                copyText(msg.value, 'Message copied');
+            });
+            // "Paste into DartCounter chat": copy the message AND poke the
+            // DartCounter iframe to focus its chat input via postMessage.
+            // The Chrome extension content.js listens for this event and
+            // performs the actual DOM injection (cross-origin safe).
+            msgChat?.addEventListener('click', async () => {
+                await copyText(msg.value, 'Message copied — paste into DartCounter chat');
+                try {
+                    const frame = document.getElementById('scorer-frame');
+                    frame?.contentWindow?.postMessage({ type: 'DV_FILL_CHAT', text: msg.value }, '*');
+                } catch(_){}
+            });
+            // Close with ESC.
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('show')) window.dvCloseReferralModal();
+            });
+        });
 
         function clearTranscript() {
             transcriptBox.innerHTML = '<div class="log-entry log-sys">Log cleared.</div>';
@@ -8459,19 +8648,9 @@ window.openScorerUrl = function(url){
             }
         });
 
-        // Invite a Friend → share user's referral link.
-        document.getElementById('dv-tab-ranked-invite-btn')?.addEventListener('click', async () => {
-            try {
-                const u = await ensureUser();
-                const code = (u && (u.user_metadata?.referral_code || u.id?.slice(0,8))) || '';
-                const url  = `${location.origin}/referral.html${code ? '?ref=' + encodeURIComponent(code) : ''}`;
-                const text = `Come play Ranked darts with me on DartVoice — voice scoring & matchmaking. Join with my link: ${url}`;
-                if (navigator.share) {
-                    try { await navigator.share({ title: 'DartVoice Ranked', text, url }); return; } catch(_){}
-                }
-                try { await navigator.clipboard.writeText(url); window.dvToast && window.dvToast('Referral link copied — paste anywhere to invite!', 'success'); }
-                catch(_) { prompt('Copy your referral link:', url); }
-            } catch (e) { console.warn('invite failed', e); }
+        // Invite a Friend → open the rich invite modal (templates + paste-to-chat).
+        document.getElementById('dv-tab-ranked-invite-btn')?.addEventListener('click', () => {
+            try { window.dvOpenReferralModal && window.dvOpenReferralModal(); } catch(e){ console.warn('invite failed', e); }
         });
 
         function syncTabPanes() {

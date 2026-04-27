@@ -817,3 +817,121 @@ function toast(msg, kind) {
     host.appendChild(t);
     setTimeout(() => t.remove(), 3500);
 }
+
+// ===== BULK EMAIL BLAST =====
+// Parses recipients, calls send-dartvoice-email per email with a small gap to
+// avoid Resend rate-limit. Logs each result inline. Recipients are deduped on
+// send so accidental repeats don't double-mail.
+(function initBlast(){
+    const $recip = document.getElementById('blastRecipients');
+    const $tpl   = document.getElementById('blastTemplate');
+    const $send  = document.getElementById('blastSendBtn');
+    const $log   = document.getElementById('blastLog');
+    const $count = document.getElementById('blastCount');
+    const $sent  = document.getElementById('blastSent');
+    const $fail  = document.getElementById('blastFailed');
+    const $sender= document.getElementById('blastSenderName');
+    const $ctx   = document.getElementById('blastContext');
+    const $crm   = document.getElementById('blastImportCRM');
+    const $dedupe= document.getElementById('blastDedupe');
+    if (!$send) return;
+
+    const parseEmails = () => (($recip.value || '')
+        .split(/[\s,;]+/)
+        .map(s => s.trim().toLowerCase())
+        .filter(s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)));
+
+    const updateCount = () => { $count.textContent = parseEmails().length; };
+    $recip.addEventListener('input', updateCount);
+    updateCount();
+
+    $dedupe.addEventListener('click', () => {
+        const uniq = Array.from(new Set(parseEmails()));
+        $recip.value = uniq.join('\n');
+        updateCount();
+        toast(`Deduped to ${uniq.length} unique`);
+    });
+    $crm.addEventListener('click', () => {
+        try {
+            // Pull contacted/responded creators with emails from the loaded CRM.
+            const rows = (creators || []).filter(r => r.email && ['contacted','responded','negotiating','active'].includes(r.status));
+            const emails = Array.from(new Set(rows.map(r => r.email.toLowerCase())));
+            if (!emails.length) { toast('No CRM emails to import', 'err'); return; }
+            const merged = Array.from(new Set([...parseEmails(), ...emails]));
+            $recip.value = merged.join('\n');
+            updateCount();
+            toast(`Imported ${emails.length} from CRM`);
+        } catch(e) { toast('Import failed: ' + e.message, 'err'); }
+    });
+
+    const logLine = (html, cls) => {
+        const div = document.createElement('div');
+        div.className = cls || '';
+        div.innerHTML = html;
+        $log.appendChild(div);
+        $log.scrollTop = $log.scrollHeight;
+    };
+
+    $send.addEventListener('click', async () => {
+        const emails = Array.from(new Set(parseEmails()));
+        if (!emails.length) { toast('No valid recipients', 'err'); return; }
+        const type = $tpl.value;
+        const sender = $sender.value || 'DartVoice';
+        const context = $ctx.value || '';
+        if (!confirm(`Send "${type}" to ${emails.length} recipients?`)) return;
+
+        $send.disabled = true;
+        $log.innerHTML = '';
+        let sent = 0, failed = 0;
+        $sent.textContent = '0'; $fail.textContent = '0';
+        logLine(`<span class="text-muted">Starting blast: ${emails.length} × ${type}</span>`);
+
+        for (let i = 0; i < emails.length; i++) {
+            const to = emails[i];
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                const res = await fetch(`${SUPABASE_URL}/functions/v1/send-dartvoice-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + (session?.access_token || SUPABASE_KEY),
+                        'apikey': SUPABASE_KEY,
+                    },
+                    body: JSON.stringify({
+                        type,
+                        to,
+                        data: {
+                            sender_name: sender,
+                            context,
+                            referrer_name: sender,
+                            // For one-hour-pass: include a signed-ish URL the
+                            // web-app can detect. Server-side validation TBD.
+                            pass_url: `${location.origin}/web-app?pass=1h&iss=${encodeURIComponent(to)}&exp=${Date.now() + 3600000}`,
+                            referral_link: `${location.origin}/referral.html`,
+                        }
+                    })
+                });
+                if (res.ok) {
+                    sent++;
+                    $sent.textContent = String(sent);
+                    logLine(`<span style="color:#22c55e">✓</span> ${esc(to)}`);
+                } else {
+                    failed++;
+                    $fail.textContent = String(failed);
+                    const detail = await res.text().catch(() => '');
+                    logLine(`<span style="color:#ef4444">✗</span> ${esc(to)} <span class="text-muted">— ${esc(detail.slice(0, 120))}</span>`);
+                }
+            } catch (e) {
+                failed++;
+                $fail.textContent = String(failed);
+                logLine(`<span style="color:#ef4444">✗</span> ${esc(to)} <span class="text-muted">— ${esc(e.message)}</span>`);
+            }
+            // Throttle: ~4 emails/second is safely under Resend's default cap.
+            await new Promise(r => setTimeout(r, 250));
+        }
+        logLine(`<span class="text-muted">Blast complete: ${sent} sent, ${failed} failed.</span>`);
+        toast(`Blast done: ${sent} sent, ${failed} failed`, failed ? 'err' : null);
+        $send.disabled = false;
+    });
+})();
+

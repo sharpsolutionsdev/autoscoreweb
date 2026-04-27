@@ -60,6 +60,17 @@ const TEMPLATE_MAP: Record<
     subject: "You earned £5 — referral commission from DartVoice",
     from: "DartVoice <noreply@dartvoice.app>",
   },
+  // Bulk-blast templates triggered from admin.html.
+  "free-trial-blast": {
+    file: "email-free-trial-blast.html",
+    subject: "Try DartVoice free for 7 days — voice darts scoring",
+    from: "DartVoice <hello@dartvoice.app>",
+  },
+  "one-hour-pass": {
+    file: "email-one-hour-pass.html",
+    subject: "Your 1-hour DartVoice pass — no signup needed",
+    from: "DartVoice <hello@dartvoice.app>",
+  },
 };
 
 const CORS_HEADERS = {

@@ -177,7 +177,7 @@
         <!-- Three.js floating darts — sits ABOVE the video so the dartboard,
              darts, mic and platform emblems are clearly visible. -->
         <canvas id="dv-three-darts"
-                class="absolute inset-0 w-full h-full pointer-events-none"
+                class="dv-hero-canvas absolute inset-0 w-full h-full pointer-events-none"
                 style="z-index:2; opacity:1;"></canvas>
 
         <!-- Floating blur accent orbs (from prototype flourishes) -->
@@ -344,7 +344,7 @@
                 </div>
 
                 <!-- Right: Device composition -->
-                <div class="relative flex justify-center fade-up-3 lg:justify-end">
+                <div class="dv-hero-cluster relative flex justify-center fade-up-3 lg:justify-end">
 
                     <!-- Laptop mockup (behind phone, offset left) -->
                         <div class="absolute -top-12 left-1/2 -translate-x-1/2 z-[5] lg:relative lg:left-auto lg:translate-x-0 lg:top-auto hidden md:block"
@@ -476,7 +476,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
 
 
                     <!-- Floating 180 card -->
-                    <div class="absolute -top-4 right-10 sm:right-16 lg:right-auto lg:left-[280px] z-20 w-28 sm:w-32"
+                    <div class="dv-float-180 absolute -top-4 right-10 sm:right-16 lg:right-auto lg:left-[280px] z-20 w-28 sm:w-32"
                         style="animation: fadeUp 0.7s 0.4s ease-out both, floatSlow 7s ease-in-out 1s infinite">
                         <div class="rounded-2xl p-3 sm:p-4 text-center relative overflow-hidden shadow-2xl"
                             style="background: linear-gradient(160deg, #1A0608, #111114); border: 1.5px solid var(--brand); box-shadow: 0 0 30px rgba(var(--brand-rgb), 0.25)">
@@ -496,7 +496,7 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                     </div>
 
                     <!-- Phone frame — positioned to the right -->
-                    <div class="phone-frame w-[220px] sm:w-[250px] ml-auto relative z-10"
+                    <div class="phone-frame dv-hero-phone w-[220px] sm:w-[250px] ml-auto relative z-10"
                         style="height:490px; animation: fadeUp 0.7s 0.3s ease-out both">
 
                         <!-- Status bar -->

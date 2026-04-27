@@ -708,6 +708,41 @@ body {
   pointer-events: none;
 }
 
+/* ── Hero mobile polish ──
+   The hero device cluster (laptop + phone + floating 180) was designed for
+   wide screens. On phones the laptop is hidden, but the phone frame was
+   pushed to the right with `ml-auto` and the floating 180 sat right on top
+   of the score readout, making it look broken. These rules center the
+   phone, push the 180 chip clear of the score, and quiet down the
+   ambient 3D canvas so the copy stays the focal point. */
+@media (max-width: 767px) {
+  .dv-hero-cluster {
+    width: 100%;
+    margin-top: 1.25rem;
+  }
+  .dv-hero-phone {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: min(230px, 78vw) !important;
+    height: 440px !important;
+  }
+  .dv-float-180 {
+    top: -0.5rem !important;
+    right: auto !important;
+    left: 50% !important;
+    transform: translateX(calc(-50% - 110px));
+    width: 96px !important;
+  }
+  .dv-float-180 p.text-4xl,
+  .dv-float-180 p.sm\:text-5xl { font-size: 2rem !important; }
+  .dv-hero-canvas { opacity: 0.55 !important; }
+  .board-deco { display: none; }
+  .float-orb { display: none; }
+}
+@media (max-width: 480px) {
+  .dv-float-180 { transform: translateX(calc(-50% - 95px)); width: 84px !important; }
+}
+
 /* ── Deep Dive visual demos ── */
 @keyframes cycleFade {
   0%,
