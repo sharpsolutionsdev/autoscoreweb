@@ -1803,6 +1803,47 @@
           logTrace("Received Window Payload:", event.data);
       }
 
+      // ------------------------------------------------------------------
+      // GLOBAL DUPLICATE-COMMAND GUARD
+      // content.js runs in every dartcounter frame (manifest all_frames:true).
+      // Without this, postMessage from the parent triggers handlers in every
+      // nested frame → camera dialog opens 2x, scores submit 2x, etc.
+      // We apply two layers:
+      //   1. Frame-position guard: any DOM-mutating action runs ONLY in the
+      //      outermost dartcounter frame (window.parent === window.top).
+      //   2. Type+payload dedupe: ignore the same command within 800ms even
+      //      in the first-level frame (covers touch+click double-fires).
+      // Handshake messages (PING) are exempt — they need every-frame replies.
+      // ------------------------------------------------------------------
+      const _MUTATING_TYPES = new Set([
+        'DV_ACTION', 'DARTVOICE_SCORE_INJECT', 'DV_NAVIGATE',
+        'DV_FILL_CHAT', 'DV_ADD_DC_FRIEND', 'DV_CHECKOUT_REPLY',
+        'DV_REQUEST_REMAINING_SCORE', 'DARTVOICE_CALIBRATE_START'
+      ]);
+      if (_MUTATING_TYPES.has(event.data.type)) {
+        try {
+          if (window.parent !== window.top) {
+            // Nested sub-iframe — let the first-level frame handle it.
+            return;
+          }
+        } catch (e) { return; }
+        try {
+          window.__dvLastCmd = window.__dvLastCmd || {};
+          // Include payload signature so e.g. two different scores are not
+          // suppressed, but two identical "60"s in 800ms are.
+          const sig = event.data.type + '|' + JSON.stringify(
+            event.data.score ?? event.data.action ?? event.data.path ?? event.data.text ?? event.data.username ?? ''
+          );
+          const now = Date.now();
+          const last = window.__dvLastCmd[sig] || 0;
+          if (now - last < 800) {
+            logTrace('Duplicate command suppressed: ' + sig + ' (' + (now - last) + 'ms)');
+            return;
+          }
+          window.__dvLastCmd[sig] = now;
+        } catch (e) {}
+      }
+
       // Extension detection handshake — reply so the parent knows we're alive
       if (event.data.type === "DARTVOICE_PING") {
         event.source.postMessage({ type: "DARTVOICE_PONG" }, event.origin);
