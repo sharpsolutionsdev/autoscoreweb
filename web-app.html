@@ -1978,7 +1978,7 @@
                                     <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Mic Gain</span>
                                     <span id="qa-mic-val" class="text-[10px] text-brand font-bold tabular-nums">250%</span>
                                 </div>
-                                <input id="qa-mic-slider" type="range" min="25" max="250" value="250">
+                                <input id="qa-mic-slider" type="range" min="25" max="500" value="250">
                                 <div class="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
                                     <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Whisper Mode</span>
                                     <label class="relative inline-flex items-center cursor-pointer">
@@ -2406,9 +2406,9 @@
                                 <span class="text-xs text-gray-300 font-medium">Mic Sensitivity</span>
                                 <span id="mic-sensitivity-val" class="text-[10px] text-brand font-bold tabular-nums">250%</span>
                             </div>
-                            <input id="mic-sensitivity-slider" type="range" min="25" max="250" value="250"
+                            <input id="mic-sensitivity-slider" type="range" min="25" max="500" value="250"
                                 class="w-full accent-brand cursor-pointer">
-                            <p class="text-[9px] text-gray-500 leading-tight">Boost or dampen the mic level meter. Raise if the meter reads too low.</p>
+                            <p class="text-[9px] text-gray-500 leading-tight">Boost or dampen the mic level meter (25–500%). Raise above 250% for weak / built-in mics.</p>
                         </div>
 
                         <!-- Trigger Word (customisable) -->
@@ -6988,11 +6988,11 @@
             if (_qaMicVal) _qaMicVal.textContent = v + '%';
             if (_qaMic && +_qaMic.value !== v) _qaMic.value = v;
         }
-        // Restore last mic sensitivity (default 250 — 100 is too quiet for
-        // most consumer mics, so we ship 250 out of the box).
+        // Restore last mic sensitivity. Range is 25-500 (we ship 250 by
+        // default; up to 500 for very weak / built-in laptop mics).
         try {
             const savedMic = parseInt(localStorage.getItem('dv-mic-sensitivity'), 10);
-            if (!isNaN(savedMic) && savedMic >= 25 && savedMic <= 250) AppConfig.micSensitivity = savedMic;
+            if (!isNaN(savedMic) && savedMic >= 25 && savedMic <= 500) AppConfig.micSensitivity = savedMic;
         } catch(e){}
         if (_micSens) {
             applyMicSensitivity(AppConfig.micSensitivity || 250);

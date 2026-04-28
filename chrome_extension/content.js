@@ -2056,16 +2056,19 @@
               return el;
             };
             const clickIt = (el) => {
-              try { el.click(); } catch (e) { }
-              try {
-                const inner = (typeof el.querySelector === 'function') && (el.querySelector('button, a, ion-button, app-icon, span, div') || el.querySelector('*'));
-                if (inner && inner !== el) { try { inner.click(); } catch (e) { } }
+              // IMPORTANT: do NOT shotgun-fire pointer + click + inner.click().
+              // DartCounter’s recent build registers handlers on multiple
+              // ancestors, which means a synthetic burst opens the camera
+              // dialog 4-5 times. A single trusted click() bubbles correctly
+              // through Angular’s zone and is enough.
+              try { el.click(); }
+              catch (e) {
+                // Fallback path only if .click() threw (extremely rare on
+                // detached / non-Element nodes).
                 try {
-                  el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
-                  el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
                   el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                } catch (e) { }
-              } catch (e) { }
+                } catch (_) {}
+              }
               logTrace('DV_ACTION camera: clicked ' + (el.tagName || '') + (el.className ? '.' + String(el.className).split(' ')[0] : ''));
             };
             let el = findCameraBtn();

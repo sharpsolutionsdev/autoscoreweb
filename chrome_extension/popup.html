@@ -8,12 +8,13 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      width: 320px;
+      width: 340px;
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: #08080A;
       color: #F0F0F5;
       position: relative;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
     body::before {
       content: '';
@@ -45,18 +46,20 @@
     .status-chip.warn { color:#eab308; border-color:rgba(234,179,8,.28); background:rgba(234,179,8,.06); }
     .status-chip.warn .dot { background:#eab308; }
 
-    .content { position: relative; z-index: 1; padding: 20px; }
+    .content { position: relative; z-index: 1; padding: 18px 18px 16px; }
 
     /* ── Header ── */
     .brand {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 16px; padding-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 14px; padding-bottom: 12px;
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
     .brand h1 {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 20px; font-weight: 900; font-style: italic;
+      font-size: 22px; font-weight: 900; font-style: italic;
       letter-spacing: -0.02em; text-transform: uppercase; color: white;
+      line-height: 1;
     }
     .brand .version {
       font-size: 9px; color: #4A4A5A; font-weight: 600;
@@ -66,8 +69,10 @@
 
     /* ── Account card ── */
     .account {
-      background: #111114; border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 12px; padding: 14px; margin-bottom: 14px;
+      background: linear-gradient(180deg, #131318 0%, #0e0e12 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; padding: 14px; margin-bottom: 12px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 8px 24px rgba(0,0,0,.25);
     }
     .account-signed-in {
       display: flex; align-items: center; justify-content: space-between;
@@ -131,15 +136,16 @@
       padding: 13px 16px; font-size: 12px;
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
-      cursor: pointer; transition: all 0.2s;
+      cursor: pointer; transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     .btn-primary {
-      background: #CC0B20; color: white;
-      box-shadow: 0 0 20px rgba(204,11,32,0.3);
+      background: linear-gradient(180deg, #d80f24 0%, #b80a1c 100%);
+      color: white;
+      box-shadow: 0 0 18px rgba(204,11,32,0.32), 0 1px 0 rgba(255,255,255,.08) inset;
     }
     .btn-primary:hover {
-      background: #e60d24; box-shadow: 0 0 30px rgba(204,11,32,0.5);
+      box-shadow: 0 0 30px rgba(204,11,32,0.55), 0 1px 0 rgba(255,255,255,.12) inset;
       transform: translateY(-1px);
     }
     .btn-primary:active { transform: translateY(1px); }
