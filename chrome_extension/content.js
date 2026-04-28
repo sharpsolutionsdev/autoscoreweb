@@ -2033,6 +2033,20 @@
       // clickable element by href/testid. Does NOT reload the iframe either way.
       if (event.data.type === "DV_ACTION" && isIframe) {
         const action = event.data.action;
+        // Dedupe: ignore the same action fired within 800ms. Fixes camera
+        // dialog opening twice when content.js receives the postMessage in
+        // multiple nested frames OR when the host button double-fires
+        // (touchstart + click on touch devices).
+        try {
+          window.__dvLastAction = window.__dvLastAction || {};
+          const now = Date.now();
+          const last = window.__dvLastAction[action] || 0;
+          if (now - last < 800) {
+            logTrace('DV_ACTION ' + action + ': suppressed duplicate (' + (now - last) + 'ms)');
+            return;
+          }
+          window.__dvLastAction[action] = now;
+        } catch (e) {}
         try {
           if (action === 'camera') {
             // DartCounter renders the activation dialog via <app-activate-camera-dialog>.
