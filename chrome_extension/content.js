@@ -1304,6 +1304,10 @@
     let _lastStateTick = 0;
 
     function detectMode() {
+      // Strongest signal: cricket-specific Angular components in the DOM
+      try {
+        if (document.querySelector('app-cricket-tactics-keyboard, app-cricket-tactics-team-score, app-cricket-tactics-online-gameplay, app-cricket-tactics-score-input')) return 'cricket';
+      } catch {}
       const p = location.pathname.toLowerCase();
       if (/cricket/.test(p)) return 'cricket';
       if (/tactics/.test(p)) return 'tactics';
@@ -1522,6 +1526,97 @@
       return result;
     }
 
+    // --- Cricket / Tactics scoreboard scraper ---
+    // DartCounter renders the cricket scoreboard inside <app-cricket-tactics-keyboard>.
+    // Each row container has classes ".flex.flex-1.flex-row.items-center.rounded-xl"
+    // and gains "isClosed" when closed_by_all.
+    // Children layout (web, 2 teams): [team0-marks][center-number-buttons][team1-marks]
+    // Mark icons: <app-icon icon="tactics_one|tactics_two|tactics_full"> = 1/2/3 closed.
+    // Total points: <app-cricket-tactics-team-score> contains a span with bulevar-80 typography.
+    function scrapeCricketBoard() {
+      try {
+        const kb = document.querySelector('app-cricket-tactics-keyboard');
+        if (!kb || !kb.offsetParent) return null;
+        // Find rows by class signature
+        const rows = Array.from(kb.querySelectorAll('div.rounded-xl.flex.flex-row.items-center, div.flex.flex-row.items-center.rounded-xl, div.flex.flex-1.flex-row.items-center.rounded-xl'))
+          .filter(el => el.querySelector('button') && el.offsetParent);
+        const numbers = [];
+        for (const row of rows) {
+          const closed = row.classList.contains('isClosed');
+          // Extract center label
+          let label = null;
+          const btns = row.querySelectorAll('button');
+          for (const b of btns) {
+            const t = (b.textContent || '').replace(/[^0-9A-Za-z]/g, '').trim();
+            const m = t.match(/^(\d+|B|Bull)/i);
+            if (m) { label = m[1].toUpperCase(); break; }
+          }
+          if (!label) continue;
+          const value = (label === 'B' || /^bull$/i.test(label)) ? 25 : parseInt(label, 10);
+          if (!value) continue;
+          // Walk row children; team mark cells appear before/after the center button cell.
+          const kids = Array.from(row.children).filter(c => c.offsetParent);
+          let centerSeen = false;
+          const before = []; const after = [];
+          for (const c of kids) {
+            if (c.querySelector && c.querySelector('button') && (/^\d+|B|Bull/i).test((c.textContent||'').trim())) {
+              centerSeen = true; continue;
+            }
+            (centerSeen ? after : before).push(c);
+          }
+          function countMarks(cells) {
+            let max = 0;
+            for (const cell of cells) {
+              const ic = cell.querySelector && cell.querySelector('app-icon[icon^="tactics_"]');
+              if (!ic) continue;
+              const name = ic.getAttribute('icon') || '';
+              const ct = name === 'tactics_full' ? 3 : name === 'tactics_two' ? 2 : name === 'tactics_one' ? 1 : 0;
+              if (ct > max) max = ct;
+            }
+            return max;
+          }
+          const team0Marks = countMarks(before);
+          const team1Marks = countMarks(after);
+          numbers.push({ value, label: value === 25 ? 'Bull' : String(value), closed, marks: [team0Marks, team1Marks] });
+        }
+        if (!numbers.length) return null;
+        // Sort canonically: 20,19,18,17,16,15,(14..10 if tactics),Bull(25)
+        numbers.sort((a, b) => {
+          if (a.value === 25) return 1;
+          if (b.value === 25) return -1;
+          return b.value - a.value;
+        });
+        // Total points per team from app-cricket-tactics-team-score
+        const totals = [];
+        const teamScores = Array.from(document.querySelectorAll('app-cricket-tactics-team-score'))
+          .filter(el => el.offsetParent);
+        for (const ts of teamScores) {
+          const txt = (ts.textContent || '').replace(/\s+/g, ' ').trim();
+          const m = txt.match(/-?\d+/);
+          totals.push(m ? parseInt(m[0], 10) : 0);
+        }
+        // Active team detection: the keyboard renders a triangle marker
+        // (border-t-oche-orange) above the active team's column.
+        let activeTeam = null;
+        try {
+          const triangles = kb.querySelectorAll('[class*="border-t-oche-orange"], [class*="border-t-orange"]');
+          if (triangles.length) {
+            // Find triangle's nearest row-children to determine which side it sits on.
+            const tri = triangles[0];
+            const row = tri.closest('div.flex.flex-row.items-center.rounded-xl, div.flex.flex-1.flex-row.items-center.rounded-xl, div.rounded-xl.flex.flex-row.items-center');
+            if (row) {
+              const kids = Array.from(row.children);
+              let triIdx = -1;
+              for (let i = 0; i < kids.length; i++) { if (kids[i] === tri || kids[i].contains(tri)) { triIdx = i; break; } }
+              const centerIdx = kids.findIndex(c => c.querySelector && c.querySelector('button'));
+              if (triIdx >= 0 && centerIdx >= 0) activeTeam = triIdx < centerIdx ? 0 : 1;
+            }
+          }
+        } catch {}
+        return { numbers, totals, closedByAll: numbers.filter(n => n.closed).map(n => n.value), activeTeam };
+      } catch (e) { return null; }
+    }
+
     function snapshotState() {
       const mode = detectMode();
       const checkout = detectCheckoutModal();
@@ -1627,6 +1722,16 @@
         } : null,
         checkoutSuggestion,
         checkoutPrompt: checkout.visible ? checkout.text : null,
+        cricketState: (function(){
+          // Detect cricket presence robustly via DOM, not just URL/text.
+          if (!document.querySelector('app-cricket-tactics-keyboard, app-cricket-tactics-team-score, app-cricket-tactics-online-gameplay, app-cricket-tactics-score-input')) return null;
+          const cs = scrapeCricketBoard();
+          // Surface cricket active team into top-level activePlayer when X01 detection didn't find one.
+          if (cs && (cs.activeTeam === 0 || cs.activeTeam === 1)) {
+            try { /* mutate outer object after-the-fact via closure */ } catch {}
+          }
+          return cs;
+        })(),
         ts: Date.now()
       };
     }

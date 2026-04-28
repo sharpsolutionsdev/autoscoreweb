@@ -172,21 +172,80 @@
             transform-origin: 100% 100%;
             will-change: transform;
         }
+        /* FaceTime / Discord-style picture-in-picture for the scorer iframe.
+           Sits in the bottom-right corner, semi-visible, hover-to-grow,
+           click anywhere on it to restore. */
         #scorer-frame.scorer-pip {
             transform: scale(.28) translate(-22px, -22px);
             border-radius: 16px;
             box-shadow: 0 22px 60px rgba(0,0,0,.65),
                         0 0 0 1px rgba(var(--brand-rgb), .55),
                         0 0 36px rgba(var(--brand-rgb), .35);
-            pointer-events: auto;
+            /* Iframe is non-interactive so the click overlay reliably gets the click. */
+            pointer-events: none;
             z-index: 5;
             position: relative;
+            opacity: .92;
+            filter: saturate(1.05);
+            transform-origin: 100% 100%;
+        }
+        #scorer-frame.scorer-pip:hover,
+        .scorer-pip-wrap.is-hover #scorer-frame.scorer-pip {
+            transform: scale(.34) translate(-22px, -22px);
+            opacity: 1;
+            box-shadow: 0 28px 72px rgba(0,0,0,.7),
+                        0 0 0 1px rgba(var(--brand-rgb), .8),
+                        0 0 56px rgba(var(--brand-rgb), .5);
         }
         @media (max-width: 720px) {
             #scorer-frame.scorer-pip {
                 transform: scale(.42) translate(-12px, -12px);
                 border-radius: 12px;
             }
+            #scorer-frame.scorer-pip:hover {
+                transform: scale(.48) translate(-12px, -12px);
+            }
+        }
+        /* Click-to-restore hit area — sits over the shrunken iframe and shows
+           a 'click to expand' affordance on hover. */
+        .scorer-pip-clickcatch {
+            position: absolute;
+            right: 10px; bottom: 10px;
+            width: 28%; height: 28%;
+            min-width: 180px; min-height: 130px;
+            border-radius: 16px;
+            cursor: pointer;
+            z-index: 6;
+            display: none;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
+        }
+        .scorer-pip-clickcatch.active { display: block; }
+        .scorer-pip-clickcatch::after {
+            content: 'CLICK TO EXPAND';
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%) scale(.96);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900; font-style: italic;
+            font-size: 11px; letter-spacing: .25em;
+            color: #fff;
+            background: rgba(8,8,10,.78);
+            border: 1px solid rgba(var(--brand-rgb), .7);
+            box-shadow: 0 0 24px rgba(var(--brand-rgb), .45);
+            padding: 7px 12px; border-radius: 999px;
+            opacity: 0; pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+            white-space: nowrap;
+        }
+        .scorer-pip-clickcatch:hover { background: rgba(var(--brand-rgb), .08); }
+        .scorer-pip-clickcatch:hover::after {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        @media (max-width: 720px) {
+            .scorer-pip-clickcatch { min-width: 130px; min-height: 100px; }
+            .scorer-pip-clickcatch::after { font-size: 9px; padding: 5px 9px; letter-spacing: .2em; }
         }
         .scorer-pip-overlay {
             position: absolute;
@@ -1367,6 +1426,79 @@
             #dv-live-panel { padding: 10px !important; }
         }
 
+        /* --- CRICKET SCOREBOARD --- */
+        .dv-cricket-points {
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: .02em;
+            text-shadow: 0 0 10px rgba(var(--brand-rgb),.25);
+        }
+        .dv-cricket-turn-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--brand, #cc0b20);
+            box-shadow: 0 0 8px rgba(var(--brand-rgb),.85);
+            display: inline-block;
+            animation: textGlow 2s infinite;
+        }
+        .dv-cricket-row {
+            display: grid;
+            grid-template-columns: 1fr 44px 1fr;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 6px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: background .2s ease, border-color .2s ease, opacity .2s ease;
+        }
+        .dv-cricket-row.is-active-p0 { box-shadow: inset 4px 0 0 rgba(var(--brand-rgb),.6); }
+        .dv-cricket-row.is-active-p1 { box-shadow: inset -4px 0 0 rgba(var(--brand-rgb),.6); }
+        .dv-cricket-row.is-closed-all {
+            opacity: .35;
+            background: rgba(255,255,255,0.01);
+            text-decoration: line-through;
+            text-decoration-color: rgba(255,255,255,.3);
+        }
+        .dv-cricket-num {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: .04em;
+            font-variant-numeric: tabular-nums;
+        }
+        .dv-cricket-marks {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 18px;
+            line-height: 1;
+            font-weight: 800;
+            min-height: 22px;
+        }
+        .dv-cricket-marks.left { justify-content: flex-end; }
+        .dv-cricket-marks.right { justify-content: flex-start; }
+        .dv-cricket-mark {
+            color: rgba(255,255,255,.85);
+            text-shadow: 0 0 6px rgba(255,255,255,.18);
+            font-family: 'Courier New', monospace;
+        }
+        .dv-cricket-mark.closed {
+            color: var(--brand, #cc0b20);
+            text-shadow: 0 0 8px rgba(var(--brand-rgb),.55);
+        }
+        .dv-cricket-mark.empty {
+            color: rgba(255,255,255,.12);
+        }
+        @media (max-width: 520px) {
+            .dv-cricket-points { font-size: 18px; }
+            .dv-cricket-num { font-size: 12px; }
+            .dv-cricket-marks { font-size: 15px; gap: 4px; }
+            .dv-cricket-row { grid-template-columns: 1fr 36px 1fr; gap: 6px; padding: 3px 5px; }
+        }
+
         /* --- MOBILE FLOATING BAR --- */
         .mobile-bar {
             display: none;
@@ -2007,7 +2139,7 @@
 
                     <!-- Per-player stats (Remaining / Avg / Last / Darts). Data order from the iframe:
                          1=remaining, 2=avg, 3=last, 4=darts, then repeats for the next player. -->
-                    <div class="space-y-2 relative z-10">
+                    <div id="dv-live-x01" class="space-y-2 relative z-10">
                         <!-- Player 1 -->
                         <div class="dv-live-pcard" data-player-idx="0">
                             <div class="flex items-center justify-between mb-1">
@@ -2042,8 +2174,29 @@
                         </div>
                     </div>
 
+                    <!-- Cricket scoreboard (auto-shown when DartCounter is in cricket mode) -->
+                    <div id="dv-live-cricket" class="relative z-10 mt-2" style="display:none;">
+                        <div class="flex items-center justify-between mb-2 text-[10px] tracking-[0.2em] uppercase font-bold">
+                            <div class="flex-1 flex items-center justify-end gap-1.5 truncate">
+                                <span id="dv-cricket-p1-name" class="text-white truncate">Player 1</span>
+                                <span class="dv-cricket-turn-dot hidden" data-player-idx="0"></span>
+                            </div>
+                            <div class="px-2 text-[8px] text-white/50 font-bold tracking-[0.25em]">CRICKET</div>
+                            <div class="flex-1 flex items-center gap-1.5 truncate">
+                                <span class="dv-cricket-turn-dot hidden" data-player-idx="1"></span>
+                                <span id="dv-cricket-p2-name" class="text-white truncate">Player 2</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mb-2">
+                            <div id="dv-cricket-p1-points" class="dv-cricket-points text-right flex-1 pr-2">0</div>
+                            <div class="px-2 text-[9px] text-gray-500 font-bold tracking-widest uppercase">PTS</div>
+                            <div id="dv-cricket-p2-points" class="dv-cricket-points text-left flex-1 pl-2">0</div>
+                        </div>
+                        <div id="dv-cricket-rows" class="space-y-1"></div>
+                    </div>
+
                     <!-- Checkout paths — both players shown simultaneously -->
-                    <div class="mt-3 pt-2 border-t border-white/10 relative z-10">
+                    <div id="dv-live-checkout-section" class="mt-3 pt-2 border-t border-white/10 relative z-10">
                         <!-- P1 Checkout -->
                         <div class="mb-2">
                             <div class="flex items-center gap-2 mb-0.5">
@@ -2195,9 +2348,9 @@
                                 <span class="text-[10px] text-gray-400 font-medium block mb-1">Game Type</span>
                                 <select class="w-full bg-black/50 border border-white/10 text-xs text-white p-1.5 rounded outline-none">
                                     <option>X01</option>
-                                    <option disabled style="color:#666">Cricket — Windows app only</option>
+                                    <option>Cricket</option>
                                 </select>
-                                <span class="text-[9px] text-gray-500 block mt-1 leading-tight">Cricket scoring is available in the <a href="downloads" class="text-brand hover:underline">Windows desktop app</a>.</span>
+                                <span class="text-[9px] text-gray-500 block mt-1 leading-tight">Cricket auto-detected from your scorer. Voice scoring works in both modes.</span>
                             </div>
                         </div>
 
@@ -2291,8 +2444,8 @@
                         </div>
 
                         <!-- Pre-checkout Tip mirror (also lives in dashboard toolbar) -->
-                        <div class="flex items-center justify-between" title="Show a brief checkout suggestion when an opponent is on a finish.">
-                            <span class="text-xs text-gray-300 font-medium">Pre-Checkout Tip <span class="opacity-50 text-[10px]">opponent finish hint</span></span>
+                        <div class="flex items-center justify-between" title="Pop a styled checkout overlay (matches the live-game card) for ~2.5s when the active player lands on a finish — works for both you and your opponent.">
+                            <span class="text-xs text-gray-300 font-medium">Pre-Checkout Tip <span class="opacity-50 text-[10px]">active player finish overlay</span></span>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="toggle-precheckout-tip-settings" class="sr-only peer">
                                 <div class="w-7 h-4 bg-[#252530] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand"></div>
@@ -2575,6 +2728,11 @@
         </div>
         <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock"></iframe>
 
+        <!-- Click-catcher overlay shown only while iframe is in PiP mode. Lets
+             users click anywhere on the shrunken scorer to restore it without
+             interfering with normal full-size interaction. -->
+        <div id="scorer-pip-clickcatch" class="scorer-pip-clickcatch" data-pip-restore aria-label="Click to expand DartCounter"></div>
+
         <!-- Scorer PiP Overlay: smoothly shrinks the iframe to bottom-right
              so we can display ranked pre/post-match cards in front of it. -->
         <div id="scorer-pip-overlay" class="scorer-pip-overlay" aria-hidden="true">
@@ -2674,6 +2832,13 @@
                     linear-gradient(180deg, #0a0a0d 0%, #050507 100%);
                 overflow-y: auto;
             }
+            .dv-ranked-stage {
+                opacity: 1; transform: translateY(0) scale(1);
+                transition: opacity .35s ease, transform .45s cubic-bezier(.2,.8,.2,1);
+            }
+            .dv-ranked-stage.is-leaving {
+                opacity: 0; transform: translateY(8px) scale(.985); pointer-events: none;
+            }
             .dv-ranked-stage[hidden] { display: none; }
             .dv-ranked-stage .dvrs-bg {
                 position: absolute; inset: 0; pointer-events: none; z-index: 0;
@@ -2770,6 +2935,13 @@
             }
             /* Queue card */
             .dvrs-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 8px 0; }
+            /* Critical: [hidden] must beat display:flex on .dvrs-state and on the
+               compact ranked sub-panes — without this all three states render
+               simultaneously (idle + searching + found stacked). */
+            .dvrs-state[hidden] { display: none !important; }
+            #dv-tab-ranked-idle.hidden,
+            #dv-tab-ranked-searching.hidden,
+            #dv-tab-ranked-found.hidden { display: none !important; }
             .dvrs-queue-text { font-size: 13px; color: #b8b8c2; line-height: 1.6; max-width: 340px; }
             .dvrs-cta {
                 width: 100%; padding: 16px;
@@ -2880,9 +3052,11 @@
                     opts = opts || {};
                     const frame = document.getElementById('scorer-frame');
                     const ov = ensureOverlay();
+                    const click = document.getElementById('scorer-pip-clickcatch');
                     if (!frame || !ov) return;
                     if (!opts.hideCard) setBody(opts);
                     frame.classList.add('scorer-pip');
+                    if (click) click.classList.add('active');
                     if (opts.hideCard) {
                         // Shrink iframe but keep the overlay card hidden — used
                         // by the Ranked-tab Expand button to claim more screen
@@ -2901,7 +3075,9 @@
                 function restore() {
                     const frame = document.getElementById('scorer-frame');
                     const ov = ensureOverlay();
+                    const click = document.getElementById('scorer-pip-clickcatch');
                     if (frame) frame.classList.remove('scorer-pip');
+                    if (click) click.classList.remove('active');
                     if (ov) {
                         ov.classList.remove('active');
                         ov.setAttribute('aria-hidden', 'true');
@@ -2926,6 +3102,19 @@
                                 }
                             } catch(_){}
                         }
+                    });
+                }
+                // FaceTime-style click-anywhere-on-PiP-iframe to restore.
+                const clickCatch = document.getElementById('scorer-pip-clickcatch');
+                if (clickCatch) {
+                    clickCatch.addEventListener('click', function () {
+                        restore();
+                        try {
+                            const stage = document.getElementById('dv-ranked-stage');
+                            if (stage && !stage.hidden) {
+                                document.getElementById('dvrs-collapse-btn')?.click();
+                            }
+                        } catch(_){}
                     });
                 }
                 // ESC restores instantly
@@ -5105,6 +5294,160 @@
             const totalMs = 250 + Math.max(1, (checkoutRoute || []).length - 1) * 520 + 900;
             _scheduleGameShotHide(totalMs + 1400);
         }
+
+        // ── Transient "your turn" / "opponent's turn" checkout preview ──
+        // Shows a styled card (same look as the game-shot overlay) for ~4s
+        // whenever the *active* player lands on a valid checkout. Fires for
+        // BOTH the user and the opponent so the user always sees a finish
+        // suggestion the moment it's actionable. Suppresses itself if a real
+        // game-shot is currently displayed.
+        let _dvTurnCkLastKey = null;
+        let _dvTurnCkTimer = null;
+        // One-time keyframes injection for the shimmer/pulse details.
+        (function _dvInjectTurnCkStyles(){
+            if (document.getElementById('dv-turn-ck-styles')) return;
+            const st = document.createElement('style');
+            st.id = 'dv-turn-ck-styles';
+            st.textContent = `
+                @keyframes dvTurnCkShimmer { 0% { transform: translateX(-120%); } 100% { transform: translateX(220%); } }
+                @keyframes dvTurnCkPulse   { 0%,100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb),0.55); } 50% { box-shadow: 0 0 0 8px rgba(var(--brand-rgb),0); } }
+                @keyframes dvTurnCkChip    { from { opacity:0; transform: translateY(6px) scale(0.96); } to { opacity:1; transform: translateY(0) scale(1); } }
+                @keyframes dvTurnCkBar     { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+            `;
+            document.head.appendChild(st);
+        })();
+        function dvShowTurnCheckoutOverlay(score, route, playerName) {
+            try {
+                const s = parseInt(score, 10);
+                if (!isFinite(s) || s < 2 || s > 170) return;
+                if (gameShotLock) return; // don't stomp on the real "game shot!" celebration
+                if (!route || !route.length) route = CHECKOUT_ROUTES[s] || null;
+                if (!route || !route.length) return;
+
+                const key = String(playerName || '') + '|' + s + '|' + route.join('-');
+                if (key === _dvTurnCkLastKey) return; // already showing this exact preview
+                _dvTurnCkLastKey = key;
+
+                const HOLD_MS = 4000;
+
+                let host = document.getElementById('dv-turn-checkout-overlay');
+                if (host) host.remove();
+                host = document.createElement('div');
+                host.id = 'dv-turn-checkout-overlay';
+                host.style.cssText = [
+                    'position:fixed','left:50%','top:11%',
+                    'transform:translateX(-50%) translateY(-10px) scale(0.94)',
+                    'z-index:100040','pointer-events:none',
+                    'min-width:340px','max-width:min(560px, 92vw)',
+                    'padding:18px 22px 16px',
+                    'border-radius:20px',
+                    // Layered backdrop: deep neutral with a brand-tinted radial highlight
+                    'background:' +
+                      'radial-gradient(120% 90% at 0% 0%, rgba(var(--brand-rgb),0.18) 0%, rgba(var(--brand-rgb),0) 55%),' +
+                      'radial-gradient(120% 90% at 100% 100%, rgba(var(--brand-rgb),0.10) 0%, rgba(var(--brand-rgb),0) 60%),' +
+                      'linear-gradient(180deg, rgba(22,22,30,0.96) 0%, rgba(8,8,12,0.97) 100%)',
+                    'border:1px solid rgba(var(--brand-rgb),0.45)',
+                    'box-shadow:' +
+                      '0 24px 80px rgba(0,0,0,0.65),' +
+                      '0 0 0 1px rgba(var(--brand-rgb),0.10),' +
+                      '0 0 48px rgba(var(--brand-rgb),0.28),' +
+                      'inset 0 1px 0 rgba(255,255,255,0.06)',
+                    'backdrop-filter:blur(12px) saturate(1.2)','-webkit-backdrop-filter:blur(12px) saturate(1.2)',
+                    'opacity:0',
+                    'transition:opacity .26s ease, transform .32s cubic-bezier(.34,1.56,.64,1)',
+                    'font-family:"Plus Jakarta Sans",sans-serif',
+                    'overflow:hidden'
+                ].join(';');
+
+                // Shimmer sweep across the top edge.
+                const shimmer = document.createElement('div');
+                shimmer.style.cssText = [
+                    'position:absolute','top:0','left:0','height:2px','width:40%',
+                    'background:linear-gradient(90deg, transparent, rgba(var(--brand-rgb),0.95), transparent)',
+                    'animation:dvTurnCkShimmer 2.4s ease-in-out infinite',
+                    'pointer-events:none'
+                ].join(';');
+                host.appendChild(shimmer);
+
+                // Header: ✓ CHECKOUT · <name>      <total>
+                const head = document.createElement('div');
+                head.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px;';
+                const who = (playerName ? String(playerName).toUpperCase() : '');
+                head.innerHTML =
+                    '<div style="display:flex;align-items:center;gap:9px;min-width:0;">' +
+                      '<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:var(--brand);color:#fff;font-weight:900;font-size:14px;line-height:1;flex:0 0 auto;animation:dvTurnCkPulse 1.6s ease-out infinite;">✓</span>' +
+                      '<span style="font:900 14px/1 \'Plus Jakarta Sans\',sans-serif;letter-spacing:0.22em;color:rgba(var(--brand-rgb),1);text-transform:uppercase;">Checkout</span>' +
+                      (who ? '<span style="font:800 11px/1 \'Plus Jakarta Sans\',sans-serif;letter-spacing:0.16em;color:rgba(255,255,255,0.55);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">· ' + who + '</span>' : '') +
+                    '</div>' +
+                    '<span style="font:900 30px/1 \'Plus Jakarta Sans\',sans-serif;color:#fff;letter-spacing:0.02em;flex:0 0 auto;text-shadow:0 0 18px rgba(var(--brand-rgb),0.45);">' + s + '</span>';
+                host.appendChild(head);
+
+                // Route chips: T20 › T17 › D16
+                const routeRow = document.createElement('div');
+                routeRow.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font:800 17px/1 \'Plus Jakarta Sans\',sans-serif;';
+                route.forEach((seg, i) => {
+                    if (i > 0) {
+                        const arr = document.createElement('span');
+                        arr.textContent = '›';
+                        arr.style.cssText = 'color:rgba(var(--brand-rgb),0.55);font-weight:800;font-size:18px;animation:dvTurnCkChip .35s ease-out both;animation-delay:' + (i * 80) + 'ms;';
+                        routeRow.appendChild(arr);
+                    }
+                    const chip = document.createElement('span');
+                    chip.textContent = seg;
+                    const isFinish = i === route.length - 1;
+                    chip.style.cssText = [
+                        'padding:9px 14px',
+                        'border-radius:11px',
+                        'letter-spacing:0.04em',
+                        'animation:dvTurnCkChip .42s cubic-bezier(.34,1.56,.64,1) both',
+                        'animation-delay:' + (i * 90) + 'ms',
+                        'background:' + (isFinish
+                            ? 'linear-gradient(180deg, rgba(var(--brand-rgb),0.95) 0%, rgba(var(--brand-rgb),0.78) 100%);color:#fff;'
+                            : 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);color:rgba(255,255,255,0.95);'),
+                        'border:1px solid ' + (isFinish ? 'rgba(var(--brand-rgb),1)' : 'rgba(255,255,255,0.12)'),
+                        'box-shadow:' + (isFinish
+                            ? '0 6px 18px rgba(var(--brand-rgb),0.45), inset 0 1px 0 rgba(255,255,255,0.18)'
+                            : '0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)')
+                    ].join(';');
+                    routeRow.appendChild(chip);
+                });
+                host.appendChild(routeRow);
+
+                // Countdown progress bar (visual cue that the card is timed).
+                const barWrap = document.createElement('div');
+                barWrap.style.cssText = 'position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,0.05);overflow:hidden;';
+                const bar = document.createElement('div');
+                bar.style.cssText = [
+                    'height:100%','width:100%',
+                    'background:linear-gradient(90deg, rgba(var(--brand-rgb),0.95), rgba(var(--brand-rgb),0.55))',
+                    'transform-origin:left center','transform:scaleX(1)',
+                    'animation:dvTurnCkBar ' + HOLD_MS + 'ms linear forwards'
+                ].join(';');
+                barWrap.appendChild(bar);
+                host.appendChild(barWrap);
+
+                document.body.appendChild(host);
+                // Animate in
+                requestAnimationFrame(() => {
+                    host.style.opacity = '1';
+                    host.style.transform = 'translateX(-50%) translateY(0) scale(1)';
+                });
+
+                // Hold for HOLD_MS, then fade and remove
+                if (_dvTurnCkTimer) { clearTimeout(_dvTurnCkTimer); _dvTurnCkTimer = null; }
+                _dvTurnCkTimer = setTimeout(() => {
+                    try {
+                        host.style.opacity = '0';
+                        host.style.transform = 'translateX(-50%) translateY(-10px) scale(0.94)';
+                        setTimeout(() => { try { host.remove(); } catch(_){} }, 320);
+                    } catch(_){}
+                    // Allow the same preview to re-show next time the player
+                    // re-enters the checkout zone (e.g. after a bust).
+                    _dvTurnCkLastKey = null;
+                }, HOLD_MS);
+            } catch(_){}
+        }
+        window.dvShowTurnCheckoutOverlay = dvShowTurnCheckoutOverlay;
 
         // Darts-at-double stats capture. Shown only for user-driven game shots.
         // Inferred default = number of darts in the checkout route (if all were doubles
@@ -7291,6 +7634,70 @@ window.openScorerUrl = function(url){
             window._dvPendingRender = null;
             window._dvRenderScheduled = false;
             window._dvLastGameStateHash = window._dvLastGameStateHash || null;
+
+            // Cricket scoreboard renderer. Uses state.cricketState if present:
+            //   { numbers:[{value,label,closed,marks:[L,R]}], totals:[L,R] }
+            // Falls back to a default empty grid (20..15, Bull) when scoreboard
+            // hasn't been scraped yet.
+            window.dvRenderCricketBoard = function(state) {
+                try {
+                    const cs = state && state.cricketState;
+                    const rowsEl = document.getElementById('dv-cricket-rows');
+                    if (!rowsEl) return;
+                    // Names
+                    const p1Name = (state && (state.p1Name || (state.p1Stats && state.p1Stats.name))) || 'Player 1';
+                    const p2Name = (state && (state.p2Name || (state.p2Stats && state.p2Stats.name))) || 'Player 2';
+                    const p1n = document.getElementById('dv-cricket-p1-name');
+                    const p2n = document.getElementById('dv-cricket-p2-name');
+                    if (p1n) p1n.textContent = p1Name;
+                    if (p2n) p2n.textContent = p2Name;
+                    // Active turn dots
+                    const activeIdx = (cs && (cs.activeTeam === 0 || cs.activeTeam === 1))
+                        ? cs.activeTeam
+                        : ((state && (state.activePlayer === 0 || state.activePlayer === 1)) ? state.activePlayer : null);
+                    document.querySelectorAll('.dv-cricket-turn-dot').forEach(d => {
+                        const idx = parseInt(d.getAttribute('data-player-idx'), 10);
+                        d.classList.toggle('hidden', activeIdx == null || idx !== activeIdx);
+                    });
+                    // Totals
+                    const totals = (cs && Array.isArray(cs.totals)) ? cs.totals : [0, 0];
+                    const p1pts = document.getElementById('dv-cricket-p1-points');
+                    const p2pts = document.getElementById('dv-cricket-p2-points');
+                    if (p1pts) p1pts.textContent = totals[0] != null ? String(totals[0]) : '0';
+                    if (p2pts) p2pts.textContent = totals[1] != null ? String(totals[1]) : '0';
+                    // Build numbers array (default order if scrape produced nothing)
+                    const fallback = [
+                        { value: 20, label: '20', closed: false, marks: [0, 0] },
+                        { value: 19, label: '19', closed: false, marks: [0, 0] },
+                        { value: 18, label: '18', closed: false, marks: [0, 0] },
+                        { value: 17, label: '17', closed: false, marks: [0, 0] },
+                        { value: 16, label: '16', closed: false, marks: [0, 0] },
+                        { value: 15, label: '15', closed: false, marks: [0, 0] },
+                        { value: 25, label: 'Bull', closed: false, marks: [0, 0] }
+                    ];
+                    const numbers = (cs && Array.isArray(cs.numbers) && cs.numbers.length) ? cs.numbers : fallback;
+                    const renderMark = (n, allClosed) => {
+                        // n: 0..3+ marks. 1=slash, 2=cross (X), 3+=closed circle.
+                        const cls = allClosed ? 'closed' : '';
+                        if (n >= 3) return '<span class="dv-cricket-mark ' + cls + '">⊘</span>';
+                        if (n === 2) return '<span class="dv-cricket-mark ' + cls + '">✕</span>';
+                        if (n === 1) return '<span class="dv-cricket-mark ' + cls + '">╱</span>';
+                        return '<span class="dv-cricket-mark empty">·</span>';
+                    };
+                    const html = numbers.map(row => {
+                        const closedAll = !!row.closed;
+                        const marks = row.marks || [0, 0];
+                        const activeCls = activeIdx === 0 ? 'is-active-p0' : (activeIdx === 1 ? 'is-active-p1' : '');
+                        return '<div class="dv-cricket-row ' + (closedAll ? 'is-closed-all ' : '') + activeCls + '">'
+                            + '<div class="dv-cricket-marks left">' + renderMark(marks[0], closedAll) + '</div>'
+                            + '<div class="dv-cricket-num">' + (row.label || row.value) + '</div>'
+                            + '<div class="dv-cricket-marks right">' + renderMark(marks[1], closedAll) + '</div>'
+                            + '</div>';
+                    }).join('');
+                    rowsEl.innerHTML = html;
+                } catch (e) { /* swallow */ }
+            };
+
             window.dvRenderGameState = function(s){
                 if (!s) return;
                 window._dvPendingRender = s;
@@ -7311,6 +7718,22 @@ window.openScorerUrl = function(url){
                         if (_p && _p.style.display === 'none') _p.style.display = 'block';
                     } catch (_) {}
 
+                    // Cricket vs X01: toggle visibility of mode-specific sub-panels
+                    try {
+                        const isCricket = !!(state && (state.cricketState || state.mode === 'cricket'));
+                        const x01Box = document.getElementById('dv-live-x01');
+                        const checkoutBox = document.getElementById('dv-live-checkout-section');
+                        const cricketBox = document.getElementById('dv-live-cricket');
+                        const modeSel = document.getElementById('live-checkout-select');
+                        if (x01Box) x01Box.style.display = isCricket ? 'none' : '';
+                        if (checkoutBox) checkoutBox.style.display = isCricket ? 'none' : '';
+                        if (modeSel) modeSel.style.display = isCricket ? 'none' : '';
+                        if (cricketBox) cricketBox.style.display = isCricket ? '' : 'none';
+                        if (isCricket && typeof window.dvRenderCricketBoard === 'function') {
+                            window.dvRenderCricketBoard(state);
+                        }
+                    } catch (_) {}
+
                     try {
                         const keyObj = {
                             p1: state.p1Stats || null,
@@ -7318,7 +7741,8 @@ window.openScorerUrl = function(url){
                             p1Name: state.p1Name || null,
                             p2Name: state.p2Name || null,
                             active: typeof state.activePlayer !== 'undefined' ? state.activePlayer : null,
-                            mode: state.mode || null
+                            mode: state.mode || null,
+                            cricket: state.cricketState || null
                         };
                             const stateKey = JSON.stringify(keyObj);
                             if (stateKey === window._dvLastGameStateHash) return;
@@ -7457,21 +7881,27 @@ window.openScorerUrl = function(url){
                     if (clean.checkoutSuggestion) {
                         if (coVal) coVal.textContent = clean.checkoutSuggestion;
                         if (coRow) coRow.style.display = '';
-                        try {
-                            if (AppConfig && AppConfig.preCheckoutTip) {
-                                const last = window._dvLastCheckoutSuggestion || '';
-                                const now = String(clean.checkoutSuggestion || '');
-                                if (now && now !== last) {
-                                    window._dvLastCheckoutSuggestion = now;
-                                    let tip = document.getElementById('dv-precheckout-tip');
-                                    if (!tip) { tip = document.createElement('div'); tip.id = 'dv-precheckout-tip'; document.body.appendChild(tip); }
-                                    tip.textContent = now;
-                                    tip.classList.add('show');
-                                    setTimeout(() => { try { tip.classList.remove('show'); } catch(e){} }, 1400);
-                                }
-                            }
-                        } catch(e){}
                     } else if (coRow) { coRow.style.display = 'none'; }
+
+                    // Styled live-game checkout preview — fires for the
+                    // ACTIVE player (user OR opponent) when they're on a
+                    // valid finish (2..170). Mirrors the in-game overlay
+                    // styling and auto-hides after 2.5s. Suppressed during
+                    // a real "game shot!" celebration.
+                    try {
+                        if (AppConfig && AppConfig.preCheckoutTip && !state.cricketState && state.mode !== 'cricket') {
+                            const activeRemNow = activeIdx === 0 ? p1Rem : p2Rem;
+                            const activeName = activeIdx === 0 ? (p1DisplayName || 'P1') : (p2DisplayName || 'P2');
+                            if (activeRemNow != null && !isNaN(activeRemNow) && activeRemNow >= 2 && activeRemNow <= 170) {
+                                let route = null;
+                                if (clean.checkoutSuggestion) {
+                                    route = String(clean.checkoutSuggestion).split(/[\s,→▸›]+/).map(d => d.trim()).filter(Boolean);
+                                }
+                                if (!route || !route.length) route = CHECKOUT_ROUTES[activeRemNow] || null;
+                                dvShowTurnCheckoutOverlay(activeRemNow, route, activeName);
+                            }
+                        }
+                    } catch(_){}
                 });
             };
 
@@ -8967,13 +9397,28 @@ window.openScorerUrl = function(url){
 
         function _showRankedStage() {
             if (!rankedStage) return;
+            // Two-step reveal so the CSS transition runs from the leaving state.
+            rankedStage.classList.add('is-leaving');
             rankedStage.hidden = false;
             rankedStage.setAttribute('aria-hidden', 'false');
+            // Force a reflow then drop the leaving class so the browser
+            // animates opacity/transform from 0/translated to 1/0.
+            void rankedStage.offsetWidth;
+            requestAnimationFrame(() => {
+                rankedStage.classList.remove('is-leaving');
+            });
         }
         function _hideRankedStage() {
             if (!rankedStage) return;
-            rankedStage.hidden = true;
+            rankedStage.classList.add('is-leaving');
             rankedStage.setAttribute('aria-hidden', 'true');
+            // Wait for the transition before fully detaching from layout.
+            const done = () => {
+                if (rankedStage.classList.contains('is-leaving')) {
+                    rankedStage.hidden = true;
+                }
+            };
+            setTimeout(done, 380);
         }
         function _doCollapseRanked() {
             if (!_expandedSticky) return;
