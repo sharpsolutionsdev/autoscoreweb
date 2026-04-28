@@ -2269,8 +2269,7 @@
                         <span class="text-gray-500">Bullseye</span><span class="text-gray-300 font-mono">"bullseye"</span>
                         <span class="text-gray-500">Miss/Bust</span><span class="text-gray-300 font-mono">"miss" · "bust"</span>
                         <span class="text-gray-500">Undo</span><span class="text-gray-300 font-mono">"cancel"</span>
-                        <span class="text-gray-500">Edit Last</span><span class="text-gray-300 font-mono">"edit score 36"</span>
-                        <span class="text-gray-500">Correct</span><span class="text-gray-300 font-mono">"change score to 60"</span>
+                        <span class="text-gray-500">Edit Last</span><span class="text-gray-300 font-mono">"edit" · "edit 60"</span>
                     </div>
                 </div>
 
@@ -5814,7 +5813,7 @@
             if (!t) return false;
 
             // Always allow direct control commands.
-            if (/^(cancel|edit|change|correct)\b/.test(t)) return true;
+            if (/^(cancel|edit)\b/.test(t)) return true;
             // Compact score forms.
             if (/^[tds]\s*\d{1,3}$/.test(t) || /^\d{1,3}$/.test(t)) return true;
 
@@ -6364,7 +6363,9 @@
                     // "edit" / "edit score" / "edit last" — opens the EDIT SCORE
                     // dialog on dartcounter and auto-expands the most recent turn so
                     // the next spoken number lands in the highlighted input.
-                    if (/^(?:edit|fix|change)(?:\s+(?:my|last|that|the|score))*\s*$/.test(raw) || /\bedit\s+(?:my\s+)?(?:last\s+)?score\b/.test(raw) || /\bedit\s+last\b/.test(raw)) {
+                    // Single keyword "edit" only — "change"/"correct" removed to avoid
+                    // triggering on conversational speech.
+                    if (/^edit(?:\s+(?:my|last|that|the|score))*\s*$/.test(raw) || /\bedit\s+(?:my\s+)?(?:last\s+)?score\b/.test(raw) || /\bedit\s+last\b/.test(raw)) {
                         log('✏️ Edit command detected — opening edit dialog...', false);
                         if (typeof dvToast === 'function') dvToast('Opening edit — say the corrected score', 'info');
                         if (typeof openScorerAction === 'function') openScorerAction('edit');
@@ -6395,17 +6396,14 @@
                         }
                     }
 
-                    // Expanded Edit Commands:
-                    // 1. "edit correct score to [new]"
-                    // 2. "edit score to [new]"
-                    // 3. "change score to [new]"
-                    // 4. "edit [new]"
-                    // 5. "change [new]"
-                    // 6. "correct score [to] [new]"
-                    
+                    // Edit Commands (single keyword "edit" only):
+                    // 1. "edit score to [new]"
+                    // 2. "edit [new]"
+                    // 3. "edit score [new]"
+                    // "change"/"correct" removed — too easily triggered by chat.
                     let targetScoreStr = null;
-                    const editFromToMatch = commandStr.match(/(?:edit|change|correct)\s+(?:correct\s+)?(?:score\s+)?(?:\d+|[a-z\s]+)\s+to\s+(.*)/i);
-                    const directEditMatch = commandStr.match(/^(?:edit|change|correct)(?:\s+correct)?(?:\s+score)?(?:\s+to)?\s+(.*)/i);
+                    const editFromToMatch = commandStr.match(/edit\s+(?:score\s+)?(?:\d+|[a-z\s]+)\s+to\s+(.*)/i);
+                    const directEditMatch = commandStr.match(/^edit(?:\s+score)?(?:\s+to)?\s+(.*)/i);
 
                     if (editFromToMatch) {
                         targetScoreStr = editFromToMatch[1].trim();
