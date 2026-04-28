@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com; img-src 'self' data: https:;">
+
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var hx=h.replace('#','');var r=parseInt(hx.slice(0,2),16),g=parseInt(hx.slice(2,4),16),b=parseInt(hx.slice(4,6),16);var d=document.documentElement.style;d.setProperty('--brand',h);d.setProperty('--brand-r',r);d.setProperty('--brand-g',g);d.setProperty('--brand-b',b);d.setProperty('--brand-rgb',r+','+g+','+b);}();</script>
+
+    <title>My Competition Entries · DartVoice</title>
+    <meta name="description" content="Your DartVoice competition entries, ticket numbers and draw history.">
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DARTVOICE_PROD"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-DARTVOICE_PROD');
+    </script>
+
+    <link rel="stylesheet" href="css/tailwind.built.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/general/base.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="components/dv-nav.js" defer></script>
+    <script src="components/dv-footer.js" defer></script>
+    <script src="theme.js" defer></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0b0e; color: #f0f0f5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+        :root { --brand: #CC0B20; --brand-rgb: 204, 11, 32; }
+
+        .page-bg {
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(var(--brand-rgb),0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 85% 30%, rgba(245,158,11,0.10) 0%, transparent 70%),
+                linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
+            z-index: -1; pointer-events: none;
+        }
+
+        .entry-card {
+            background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 0;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        .entry-card:hover { border-color: rgba(var(--brand-rgb),0.35); box-shadow: 0 8px 30px rgba(var(--brand-rgb),0.12); }
+        @media (max-width: 600px) {
+            .entry-card { grid-template-columns: 1fr; }
+            .entry-card .image { aspect-ratio: 16 / 9; }
+        }
+
+        .entry-card .image {
+            background: #0a0a0d center/cover no-repeat;
+            border-right: 1px solid rgba(255,255,255,0.04);
+            min-height: 140px;
+            position: relative;
+        }
+        .entry-card .image .badge {
+            position: absolute; top: 8px; left: 8px;
+            font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+            padding: 3px 7px; border-radius: 6px;
+            background: rgba(0,0,0,0.7); color: #fff;
+            backdrop-filter: blur(4px);
+        }
+        .status-pill {
+            display:inline-block; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 999px;
+        }
+        .status-pill.paid    { background: rgba(34,197,94,0.12);  color:#4ade80; border:1px solid rgba(34,197,94,0.3); }
+        .status-pill.pending { background: rgba(245,158,11,0.12); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); }
+        .status-pill.refunded{ background: rgba(148,163,184,0.12);color:#94a3b8; border:1px solid rgba(148,163,184,0.3); }
+        .status-pill.failed  { background: rgba(239,68,68,0.12);  color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
+        .status-pill.postal  { background: rgba(99,102,241,0.12); color:#818cf8; border:1px solid rgba(99,102,241,0.3); }
+        .status-pill.won     { background: rgba(245,158,11,0.18); color:#fbbf24; border:1px solid rgba(245,158,11,0.5); }
+        .status-pill.drawn   { background: rgba(148,163,184,0.12);color:#94a3b8; border:1px solid rgba(148,163,184,0.3); }
+
+        .ticket-chip {
+            display:inline-block; font-family:'Barlow Condensed',sans-serif; font-weight:700;
+            background: rgba(var(--brand-rgb), 0.10); color: var(--brand);
+            border: 1px solid rgba(var(--brand-rgb), 0.3);
+            font-size: 12px; padding: 2px 8px; border-radius: 6px; margin: 2px;
+            letter-spacing: .04em;
+        }
+        .ticket-chip.win { background: rgba(245,158,11,0.18); color:#fbbf24; border-color: rgba(245,158,11,0.5); box-shadow: 0 0 12px rgba(245,158,11,0.3); }
+
+        .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04)); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        .stat-card {
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 14px 16px;
+        }
+        .stat-card .v { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:28px; line-height:1; color:#fff; }
+        .stat-card .l { font-size: 10px; letter-spacing:.14em; text-transform:uppercase; color:#94a3b8; margin-top:6px; }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+    <div class="page-bg"></div>
+
+    <dv-nav></dv-nav>
+
+    <main class="max-w-5xl mx-auto px-5 pt-28">
+        <!-- Hero -->
+        <section class="mb-8">
+            <a href="competitions.html" class="text-xs text-muted hover:text-chalk transition">← All competitions</a>
+            <h1 class="display text-4xl sm:text-5xl mt-3 leading-none">My <span style="color:var(--brand);">Entries</span></h1>
+            <p class="text-muted text-sm mt-2">Your competition tickets, draw status and any prizes you've won.</p>
+        </section>
+
+        <!-- Stats -->
+        <section id="stats-row" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" hidden>
+            <div class="stat-card"><div class="v" id="stat-comps">0</div><div class="l">Draws entered</div></div>
+            <div class="stat-card"><div class="v" id="stat-tickets">0</div><div class="l">Tickets held</div></div>
+            <div class="stat-card"><div class="v" id="stat-spent">£0</div><div class="l">Lifetime spend</div></div>
+            <div class="stat-card"><div class="v" id="stat-wins">0</div><div class="l">Prizes won</div></div>
+        </section>
+
+        <!-- Auth gate -->
+        <section id="auth-gate" class="hidden text-center py-16 px-5 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+            <p class="display text-3xl text-muted">Sign in to see your entries</p>
+            <p class="text-sm text-muted mt-2 mb-5">Your ticket numbers and draw status are tied to your DartVoice account.</p>
+            <a href="login.html?next=%2Fmy-competitions.html" class="inline-block px-5 py-2 rounded bg-brand text-white text-sm font-bold hover:opacity-90 transition">Sign in</a>
+        </section>
+
+        <!-- Loading -->
+        <section id="loading-state">
+            <div class="space-y-3">
+                <div class="entry-card"><div class="skeleton" style="min-height:140px;border-radius:0;"></div><div class="p-5 space-y-3"><div class="skeleton" style="height:18px;width:60%;"></div><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:14px;width:80%;"></div></div></div>
+                <div class="entry-card"><div class="skeleton" style="min-height:140px;border-radius:0;"></div><div class="p-5 space-y-3"><div class="skeleton" style="height:18px;width:60%;"></div><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:14px;width:80%;"></div></div></div>
+            </div>
+        </section>
+
+        <!-- Empty -->
+        <section id="empty-state" class="hidden text-center py-16 px-5 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+            <p class="display text-3xl text-muted">No entries yet</p>
+            <p class="text-sm text-muted mt-2 mb-5">When you enter a draw, your tickets will appear here with their numbers and live draw status.</p>
+            <a href="competitions.html" class="inline-block px-5 py-2 rounded bg-brand text-white text-sm font-bold hover:opacity-90 transition">Browse live draws →</a>
+        </section>
+
+        <!-- Entries list -->
+        <section id="entries-list" class="space-y-3 hidden"></section>
+    </main>
+
+    <dv-footer></dv-footer>
+
+    <script>
+    (function () {
+        const SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        const SB_KEY = document.querySelector('meta[name="supabase-key"]')?.content || '';
+        const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+        const $ = (id) => document.getElementById(id);
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        const gbp = (pence) => '£' + (Number(pence || 0) / 100).toFixed(2).replace(/\.00$/, '');
+        const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+
+        function statusFor(t, comp) {
+            // If competition has been drawn and this user is in winners, mark won.
+            // Otherwise reflect the payment_status.
+            const s = (t.payment_status || 'pending').toLowerCase();
+            return { key: s, label: s };
+        }
+
+        function buildCard(t, comp, wins) {
+            const card = document.createElement('article');
+            card.className = 'entry-card';
+
+            const img = document.createElement('div');
+            img.className = 'image';
+            if (comp.prize_image_url && /^https?:\/\//.test(comp.prize_image_url)) {
+                img.style.backgroundImage = `url("${comp.prize_image_url.replace(/"/g, '%22')}")`;
+            } else {
+                img.style.background = `linear-gradient(135deg, ${esc(comp.hero_color || '#CC0B20')}33, #0a0a0d)`;
+            }
+            const badge = document.createElement('span');
+            badge.className = 'badge';
+            badge.textContent = comp.status === 'drawn' ? 'DRAWN' : (comp.status || 'ACTIVE').toUpperCase();
+            img.appendChild(badge);
+            card.appendChild(img);
+
+            const wonNumbers = new Set((wins || []).map(w => w.ticket_number));
+            const hasWin = (t.ticket_numbers || []).some(n => wonNumbers.has(n));
+
+            const body = document.createElement('div');
+            body.className = 'p-5 space-y-3';
+
+            const stat = statusFor(t, comp);
+            const statusHtml = hasWin
+                ? '<span class="status-pill won">★ Winner</span>'
+                : (comp.status === 'drawn'
+                    ? '<span class="status-pill drawn">Drawn — not this time</span>'
+                    : `<span class="status-pill ${stat.key}">${esc(stat.label)}</span>`);
+
+            const ticketChips = (t.ticket_numbers || []).map(n => {
+                const cls = wonNumbers.has(n) ? 'ticket-chip win' : 'ticket-chip';
+                return `<span class="${cls}">#${n}</span>`;
+            }).join('') || '<span class="text-xs text-muted">Ticket numbers issue — contact support.</span>';
+
+            body.innerHTML = `
+                <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                        <h3 class="font-bold text-chalk text-base leading-tight">${esc(comp.title || 'Competition')}</h3>
+                        ${comp.subtitle ? `<p class="text-xs text-muted mt-0.5">${esc(comp.subtitle)}</p>` : ''}
+                    </div>
+                    ${statusHtml}
+                </div>
+                <div class="flex flex-wrap gap-3 text-[11px] text-muted">
+                    <span>Bought <span class="text-chalk">${fmtDate(t.paid_at || t.created_at)}</span></span>
+                    <span>·</span>
+                    <span>Qty <span class="text-chalk">${t.qty}</span></span>
+                    <span>·</span>
+                    <span>Paid <span class="text-chalk">${gbp(t.amount_paid_pence)}</span></span>
+                    <span>·</span>
+                    <span>Draw <span class="text-chalk">${fmtDate(comp.draw_at)}</span></span>
+                </div>
+                <div class="pt-2">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Your tickets</p>
+                    <div>${ticketChips}</div>
+                </div>
+                <div class="pt-2 flex gap-3 text-[11px]">
+                    <a href="competition.html?slug=${encodeURIComponent(comp.slug || '')}" class="text-muted hover:text-chalk transition">View competition →</a>
+                </div>
+            `;
+            card.appendChild(body);
+            return card;
+        }
+
+        async function load() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                $('loading-state').classList.add('hidden');
+                $('auth-gate').classList.remove('hidden');
+                return;
+            }
+            const userId = session.user.id;
+
+            try {
+                // Tickets owned by this user (RLS: tickets_own_read).
+                const { data: tickets, error: tErr } = await sb
+                    .from('competition_tickets')
+                    .select('id,competition_id,qty,ticket_numbers,amount_paid_pence,payment_status,paid_at,created_at')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (tErr) throw tErr;
+
+                $('loading-state').classList.add('hidden');
+
+                if (!tickets || !tickets.length) {
+                    $('empty-state').classList.remove('hidden');
+                    return;
+                }
+
+                const compIds = [...new Set(tickets.map(t => t.competition_id))];
+
+                // Fetch competitions in one round-trip.
+                const { data: comps } = await sb
+                    .from('competitions')
+                    .select('id,slug,title,subtitle,prize_image_url,hero_color,draw_at,status')
+                    .in('id', compIds);
+                const compMap = Object.fromEntries((comps || []).map(c => [c.id, c]));
+
+                // Fetch this user's winning rows (if any) for any of these comps.
+                const { data: winsData } = await sb
+                    .from('competition_winners')
+                    .select('competition_id,ticket_number,ticket_id,prize_label,drawn_at')
+                    .eq('user_id', userId)
+                    .in('competition_id', compIds);
+                const winsByComp = {};
+                (winsData || []).forEach(w => {
+                    (winsByComp[w.competition_id] = winsByComp[w.competition_id] || []).push(w);
+                });
+
+                // Stats.
+                const totalTickets = tickets.reduce((n, t) => n + (t.qty || 0), 0);
+                const totalSpent   = tickets.reduce((n, t) => n + (t.amount_paid_pence || 0), 0);
+                const totalWins    = (winsData || []).length;
+                $('stat-comps').textContent   = compIds.length;
+                $('stat-tickets').textContent = totalTickets;
+                $('stat-spent').textContent   = gbp(totalSpent);
+                $('stat-wins').textContent    = totalWins;
+                $('stats-row').hidden = false;
+
+                // Render entries.
+                const list = $('entries-list');
+                list.innerHTML = '';
+                tickets.forEach(t => {
+                    const comp = compMap[t.competition_id] || { title: 'Competition', slug: '', status: '' };
+                    list.appendChild(buildCard(t, comp, winsByComp[t.competition_id]));
+                });
+                list.classList.remove('hidden');
+            } catch (e) {
+                console.error('Failed to load entries', e);
+                $('loading-state').classList.add('hidden');
+                const el = document.createElement('p');
+                el.className = 'text-sm text-muted text-center py-8';
+                el.textContent = 'Couldn\u2019t load your entries. Try refreshing.';
+                document.querySelector('main').appendChild(el);
+            }
+        }
+
+        load();
+    })();
+    </script>
+</body>
+</html>

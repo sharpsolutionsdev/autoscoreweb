@@ -2127,28 +2127,106 @@
         }
         renderRankLadder();
 
-        // ── Friends form (UI scaffolding — real backend wired in a follow-up) ──
+        // ── Friends form (wired to shared dv_friends + dartvoice_profiles) ──
+        async function rankedLoadFriends() {
+            if (!currentUser) return;
+            const list = document.getElementById('friends-list');
+            const pending = document.getElementById('friends-pending-badge');
+            try {
+                const { data: rows } = await sb.from('dv_friends')
+                    .select('id, requester_id, recipient_id, status')
+                    .or(`requester_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`);
+                if (!rows || !rows.length) {
+                    list.innerHTML = '<div class="friend-row opacity-60"><div class="avatar">+</div><div class="flex-1 min-w-0"><p class="text-sm text-gray-400 italic">No friends yet — search above to add some.</p></div></div>';
+                    if (pending) pending.textContent = '0';
+                    return;
+                }
+                const otherIds = rows.map(r => r.requester_id === currentUser.id ? r.recipient_id : r.requester_id);
+                const { data: profs } = await sb.from('dartvoice_profiles')
+                    .select('id, display_name, dv_username, avatar_url')
+                    .in('id', otherIds);
+                const profById = new Map((profs || []).map(p => [p.id, p]));
+                const accepted = rows.filter(r => r.status === 'accepted');
+                const incoming = rows.filter(r => r.status === 'pending' && r.recipient_id === currentUser.id);
+                if (pending) pending.textContent = String(incoming.length);
+                const escH = s => { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; };
+                const renderRow = (r, label) => {
+                    const otherId = r.requester_id === currentUser.id ? r.recipient_id : r.requester_id;
+                    const p = profById.get(otherId) || {};
+                    const name = escH(p.display_name || 'Player');
+                    const handle = p.dv_username ? '@' + escH(p.dv_username) : '';
+                    const initial = (p.display_name || 'P').slice(0, 1).toUpperCase();
+                    const avatar = p.avatar_url
+                        ? `<div class="avatar"><img src="${escH(p.avatar_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt=""></div>`
+                        : `<div class="avatar">${initial}</div>`;
+                    return `<div class="friend-row">${avatar}<div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">${name}</p><p class="text-[11px] text-gray-500 truncate">${handle || label}</p></div></div>`;
+                };
+                list.innerHTML = (accepted.length ? accepted.map(r => renderRow(r, 'Friend')).join('') : '')
+                    + (incoming.length ? incoming.map(r => renderRow(r, 'Incoming request')).join('') : '');
+                if (!list.innerHTML) {
+                    list.innerHTML = '<div class="friend-row opacity-60"><div class="avatar">+</div><div class="flex-1 min-w-0"><p class="text-sm text-gray-400 italic">No friends yet — search above to add some.</p></div></div>';
+                }
+            } catch (err) {
+                console.warn('[ranked friends] load error', err);
+            }
+        }
+
         try {
             const fForm = document.getElementById('friend-add-form');
             const fInput = document.getElementById('friend-add-input');
+            const showFriendToast = (msg, isError) => {
+                const t = document.createElement('div');
+                t.textContent = msg;
+                t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:' + (isError ? 'rgba(220,38,38,0.95)' : 'rgba(var(--brand-rgb),0.95)') + ';color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+                document.body.appendChild(t);
+                setTimeout(() => t.remove(), 2600);
+            };
             if (fForm) {
-                fForm.addEventListener('submit', (e) => {
+                fForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const v = (fInput?.value || '').trim();
+                    const v = (fInput?.value || '').trim().replace(/^@+/, '');
                     if (!v) return;
                     if (!currentUser) {
                         window.location.href = '/login?next=/ranked%23friends';
                         return;
                     }
-                    // Optimistic toast — server-side friend graph is a follow-up.
-                    const t = document.createElement('div');
-                    t.textContent = `Friend request to "${v}" queued · backend coming soon`;
-                    t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(var(--brand-rgb),0.95);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
-                    document.body.appendChild(t);
-                    setTimeout(() => t.remove(), 2600);
-                    fInput.value = '';
+                    const btn = fForm.querySelector('button[type="submit"]');
+                    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+                    try {
+                        const like = '%' + v.replace(/[%_]/g, m => '\\' + m) + '%';
+                        const { data: profs, error: pErr } = await sb.from('dartvoice_profiles')
+                            .select('id, display_name, dv_username')
+                            .or(`dv_username.ilike.${like},display_name.ilike.${like}`)
+                            .neq('id', currentUser.id)
+                            .limit(1);
+                        if (pErr) throw pErr;
+                        if (!profs || !profs.length) { showFriendToast(`No player matches "${v}"`, true); return; }
+                        const target = profs[0];
+                        const { error: insErr } = await sb.from('dv_friends').insert({
+                            requester_id: currentUser.id,
+                            recipient_id: target.id,
+                            status: 'pending'
+                        });
+                        if (insErr) {
+                            showFriendToast(insErr.message?.includes('duplicate') ? 'Already requested' : 'Could not send', true);
+                            return;
+                        }
+                        showFriendToast(`Friend request sent to ${target.display_name || target.dv_username || 'player'}`);
+                        fInput.value = '';
+                        rankedLoadFriends();
+                    } catch (err) {
+                        console.warn('[ranked friends] send error', err);
+                        showFriendToast('Action failed', true);
+                    } finally {
+                        if (btn) { btn.disabled = false; btn.textContent = 'Add'; }
+                    }
                 });
             }
+            // Re-load whenever auth resolves.
+            const _waitAuth = setInterval(() => {
+                if (currentUser) { clearInterval(_waitAuth); rankedLoadFriends(); }
+            }, 500);
+            setTimeout(() => clearInterval(_waitAuth), 8000);
         } catch(_){}
 
         document.addEventListener('DOMContentLoaded', init);

@@ -7,7 +7,7 @@
 - [ ] Extend the 20% launch promo (`PROMO_20`) — currently ~3 days remaining, decide new end date
 - [ ] Code-sign the Windows installer with an EV cert (kills SmartScreen warning, ~30% install drop-off today)
 - [ ] Submit signed `.aab` to Google Play (currently sideload-only via `apk-gate.html`)
-- [ ] Outreach worker (`outreach-server/src/index.js`) — finish RPC retry loop, then `pm2 restart` on the box
+- [ ] Outreach worker (`outreach-server/src/index.js`) — `pm2 restart` on the box (RPC retry loop now in code: exponential backoff, MAX_ATTEMPTS=5)
 - [ ] Bump Chrome extension to v2.1.6 zip + upload to Web Store (review queue)
 
 ## 📈 Next (this month)

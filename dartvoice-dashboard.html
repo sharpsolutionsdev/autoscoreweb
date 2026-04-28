@@ -511,6 +511,95 @@
             -webkit-mask-image: radial-gradient(ellipse at center top, #000 30%, transparent 75%);
         }
 
+        /* ── Glass Player Card (Overview top) ────────────────────── */
+        .dv-player-card {
+            position: relative; border-radius: 22px; padding: 22px 22px 18px;
+            background: linear-gradient(180deg, rgba(20,20,26,0.85) 0%, rgba(13,13,17,0.92) 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            overflow: hidden;
+        }
+        .dv-player-card .dv-pc-bg {
+            position: absolute; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(60% 60% at 90% 0%, rgba(var(--brand-rgb,204,11,32),0.22), transparent 70%),
+                radial-gradient(45% 45% at 0% 100%, rgba(120,40,200,0.14), transparent 70%);
+        }
+        .dv-player-card > *:not(.dv-pc-bg) { position: relative; z-index: 1; }
+        .dv-pc-row { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; }
+        @media (max-width: 700px) {
+            .dv-pc-row { grid-template-columns: auto 1fr; }
+            .dv-pc-rank { grid-column: 1 / -1; text-align: left; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.06); margin-top: 2px; }
+        }
+        .dv-pc-avatar {
+            width: 76px; height: 76px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900;
+            font-size: 1.6rem; color: #fff; letter-spacing: -0.01em;
+            background: linear-gradient(135deg, rgb(var(--brand-rgb,204,11,32)) 0%, rgba(var(--brand-rgb,204,11,32),0.6) 100%);
+            box-shadow: 0 10px 30px rgba(var(--brand-rgb,204,11,32),0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+            background-size: cover; background-position: center;
+        }
+        .dv-pc-id { min-width: 0; }
+        .dv-pc-id-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
+        .dv-pc-name {
+            font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900;
+            font-size: 28px; line-height: 1; letter-spacing: 0.02em; color: #fff; margin: 0; text-transform: uppercase;
+        }
+        .dv-pc-tier {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 9px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+            padding: 4px 9px; border-radius: 999px;
+            background: rgba(var(--brand-rgb,204,11,32),0.15);
+            color: rgb(var(--brand-rgb,204,11,32));
+            border: 1px solid rgba(var(--brand-rgb,204,11,32),0.32);
+        }
+        .dv-pc-tier.free { background: rgba(255,255,255,0.05); color: #c0c0c8; border-color: rgba(255,255,255,0.12); }
+        .dv-pc-handle { font-size: 13px; color: #c0c0c8; font-weight: 600; margin: 0; }
+        .dv-pc-email { font-size: 11px; color: #6e6e7a; margin: 2px 0 0; }
+        .dv-pc-rank { text-align: right; }
+        .dv-pc-eyebrow {
+            font-size: 9px; font-weight: 800; letter-spacing: 0.28em; text-transform: uppercase;
+            color: rgb(var(--brand-rgb,204,11,32)); margin: 0 0 4px;
+        }
+        .dv-pc-rank-num {
+            font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900;
+            font-size: 32px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums;
+        }
+        .dv-pc-rank-tier { margin: 4px 0 0; font-size: 11px; color: #b8b8c2; }
+        .dv-pc-rank-tier b { color: #fff; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+        .dv-pc-mmr { margin-left: 8px; color: rgb(var(--brand-rgb,204,11,32)); font-weight: 800; font-variant-numeric: tabular-nums; }
+        .dv-pc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0 14px; }
+        @media (max-width: 700px) { .dv-pc-stats { grid-template-columns: repeat(2, 1fr); } }
+        .dv-pc-stat {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 10px 8px; text-align: center;
+        }
+        .dv-pc-stat b {
+            display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+            font-size: 20px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; margin-bottom: 4px;
+        }
+        .dv-pc-stat span {
+            font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #7a7a85;
+        }
+        .dv-pc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .dv-pc-cta, .dv-pc-ghost {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 10px 16px; border-radius: 10px;
+            font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+            text-decoration: none; transition: all .15s;
+        }
+        .dv-pc-cta {
+            background: linear-gradient(135deg, rgb(var(--brand-rgb,204,11,32)), rgba(var(--brand-rgb,204,11,32),0.7));
+            color: #fff; box-shadow: 0 8px 24px rgba(var(--brand-rgb,204,11,32),0.35);
+        }
+        .dv-pc-cta:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .dv-pc-ghost {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #d0d0d8;
+        }
+        .dv-pc-ghost:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.18); }
+
         /* ── Pro Profile ── */
         .pro-profile-card {
             background: linear-gradient(160deg, #131317 0%, #0f0f12 100%);
@@ -723,32 +812,8 @@
 
 <body class="min-h-screen text-white antialiased noise" style="background:#08080A;">
 
-    <!-- ━━━ NAV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <nav class="border-b border-white/[0.05] sticky top-0 z-50"
-        style="background:rgba(8,8,10,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
-        <div class="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-
-            <!-- Logo -->
-            <a href="/" class="flex items-center gap-2.5 group">
-                <img src="/logo-transparent.png" alt="DartVoice" class="w-7 h-7 shrink-0" style="object-fit:contain;">
-                <span class="display text-base group-hover:text-brand transition-colors">DARTVOICE</span>
-            </a>
-
-            <!-- Right side -->
-            <div class="flex items-center gap-3">
-                <a href="/" class="text-xs text-muted hover:text-white transition hidden sm:block">Home</a>
-                <a href="guide" class="text-xs text-muted hover:text-white transition hidden sm:block">Guide</a>
-                <a href="contact" class="text-xs text-muted hover:text-white transition hidden sm:block">Contact</a>
-                <div data-dv-currency-mount class="hidden sm:block"></div>
-                <div class="w-px h-4 bg-white/10 hidden sm:block"></div>
-                <span id="nav-email" class="hidden text-xs text-muted truncate max-w-[160px]"></span>
-                <button id="btn-signout" onclick="signOut()"
-                    class="hidden btn-ghost text-xs text-muted hover:text-white px-3 py-1.5 rounded-lg">
-                    Sign out
-                </button>
-            </div>
-        </div>
-    </nav>
+    <!-- ━━━ NAV (unified site component) ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <dv-nav></dv-nav>
 
     <!-- ━━━ LOADING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div id="view-loading" class="flex flex-col items-center justify-center gap-4" style="height:calc(100vh - 56px)">
@@ -893,6 +958,39 @@
 
             <!-- ── TAB: Overview ─────────────────────────────────── -->
             <div id="tab-overview">
+
+                <!-- ── Glass player overview card ──────────────────────── -->
+                <section id="dv-player-card" class="dv-player-card fade-up mb-5" aria-label="Your DartVoice profile">
+                    <div class="dv-pc-bg" aria-hidden="true"></div>
+                    <div class="dv-pc-row">
+                        <div class="dv-pc-avatar" id="dv-pc-avatar" aria-hidden="true">DV</div>
+                        <div class="dv-pc-id">
+                            <div class="dv-pc-id-row">
+                                <h2 id="dv-pc-name" class="dv-pc-name">Welcome</h2>
+                                <span id="dv-pc-tier" class="dv-pc-tier" hidden></span>
+                            </div>
+                            <p id="dv-pc-handle" class="dv-pc-handle">@you</p>
+                            <p id="dv-pc-email" class="dv-pc-email"></p>
+                        </div>
+                        <div class="dv-pc-rank">
+                            <p class="dv-pc-eyebrow">★ Order of Merit</p>
+                            <div class="dv-pc-rank-num"><span id="dv-pc-pos">#—</span></div>
+                            <p class="dv-pc-rank-tier"><b id="dv-pc-rank-tier">Unranked</b><span class="dv-pc-mmr" id="dv-pc-mmr">— MMR</span></p>
+                        </div>
+                    </div>
+                    <div class="dv-pc-stats">
+                        <div class="dv-pc-stat"><b id="dv-pc-stat-record">0 W · 0 L</b><span>Ranked record</span></div>
+                        <div class="dv-pc-stat"><b id="dv-pc-stat-wr">—</b><span>Win rate</span></div>
+                        <div class="dv-pc-stat"><b id="dv-pc-stat-avg">—</b><span>Ranked avg</span></div>
+                        <div class="dv-pc-stat"><b id="dv-pc-stat-played">0</b><span>Matches</span></div>
+                    </div>
+                    <div class="dv-pc-actions">
+                        <a href="web-app#ranked" class="dv-pc-cta">★ Find Ranked</a>
+                        <a href="my-competitions.html" class="dv-pc-ghost">My competitions</a>
+                        <a href="#" onclick="switchTab('profile');return false;" class="dv-pc-ghost">My profile</a>
+                    </div>
+                </section>
+
                 <!-- ── Main grid ─────────────────────────────────────── -->
                 <div class="grid lg:grid-cols-[1fr_340px] gap-5">
 
@@ -1988,8 +2086,10 @@
 
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const $ = id => document.getElementById(id);
-        const show = id => $(id).classList.remove('hidden');
-        const hide = id => $(id).classList.add('hidden');
+        // Tolerant show/hide so callers can target IDs that may not exist
+        // (e.g. nav-email / btn-signout were moved into the unified <dv-nav>).
+        const show = id => { const el = $(id); if (el) el.classList.remove('hidden'); };
+        const hide = id => { const el = $(id); if (el) el.classList.add('hidden'); };
 
         /**
          * Call the server-side referral-upsert Edge Function.
@@ -2243,9 +2343,78 @@
         let _profileEmail = '';
         let _currentSub = null;
 
+        // Populate the glass player card at the top of #tab-overview.
+        // Pulls dv profile + subscription tier + ranked stats (mmr/tier/W-L/avg/pos).
+        async function populatePlayerCard(user, profile, sub) {
+            const initials = (s) => (s || 'DV').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase() || 'DV';
+            const setText = (id, v) => { const el = $(id); if (el && v != null) el.textContent = v; };
+
+            // Identity
+            const name = (profile?.display_name) || (user.email?.split('@')[0]) || 'DartVoice Player';
+            const handle = profile?.dv_username ? '@' + profile.dv_username : '@' + (user.email?.split('@')[0] || 'you');
+            setText('dv-pc-name', name);
+            setText('dv-pc-handle', handle);
+            setText('dv-pc-email', user.email || '');
+
+            // Avatar (image if present, else initials)
+            const avEl = $('dv-pc-avatar');
+            if (avEl) {
+                if (profile?.avatar_url) {
+                    avEl.style.backgroundImage = `url("${profile.avatar_url}")`;
+                    avEl.textContent = '';
+                } else {
+                    avEl.textContent = initials(name);
+                }
+            }
+
+            // Membership tier badge
+            const tierEl = $('dv-pc-tier');
+            if (tierEl) {
+                const status = sub?.status || 'free';
+                const label = status === 'active' ? 'PRO' : status === 'trialing' ? 'PRO TRIAL' : status === 'past_due' ? 'PRO • PAST DUE' : status === 'canceled' ? 'PRO • CANCELED' : 'FREE';
+                tierEl.textContent = label;
+                tierEl.classList.toggle('free', status === 'free' || status === 'canceled');
+                tierEl.hidden = false;
+            }
+
+            // Ranked stats — try ranked_profiles + dartvoice_player_mode_stats
+            try {
+                const [{ data: rp }, { data: stats }] = await Promise.all([
+                    sb.from('ranked_profiles').select('mmr,rank_tier,wins,losses').eq('user_id', user.id).maybeSingle(),
+                    sb.from('dartvoice_player_mode_stats').select('three_dart_avg,matches_played,wins,losses').eq('user_id', user.id).eq('mode', '501_bo5').maybeSingle(),
+                ]);
+
+                const mmr = rp?.mmr;
+                const tierName = rp?.rank_tier || 'Unranked';
+                setText('dv-pc-rank-tier', tierName);
+                setText('dv-pc-mmr', mmr != null ? `${mmr} MMR` : '— MMR');
+
+                const wins = (rp?.wins ?? stats?.wins ?? 0);
+                const losses = (rp?.losses ?? stats?.losses ?? 0);
+                const total = wins + losses;
+                setText('dv-pc-stat-record', `${wins} W · ${losses} L`);
+                setText('dv-pc-stat-wr', total > 0 ? `${Math.round((wins / total) * 100)}%` : '—');
+                setText('dv-pc-stat-avg', stats?.three_dart_avg != null ? Number(stats.three_dart_avg).toFixed(1) : '—');
+                setText('dv-pc-stat-played', String(stats?.matches_played ?? total));
+
+                // Order-of-merit position: count ranked_profiles with higher MMR + 1.
+                if (mmr != null) {
+                    const { count } = await sb.from('ranked_profiles')
+                        .select('user_id', { count: 'exact', head: true })
+                        .gt('mmr', mmr);
+                    if (typeof count === 'number') setText('dv-pc-pos', `#${count + 1}`);
+                } else {
+                    setText('dv-pc-pos', '#—');
+                }
+            } catch (e) {
+                console.warn('[player-card] ranked fetch failed', e);
+            }
+        }
+
         async function loadDashboard(user) {
             _profileEmail = user.email;
-            $('nav-email').textContent = user.email;
+            const _navEmailEl = $('nav-email');
+            if (_navEmailEl) _navEmailEl.textContent = user.email;
             showView('dashboard');
 
             // Admin gating — show Messages + Admin Stats tabs for admin emails
@@ -2318,6 +2487,9 @@
             }
 
             _currentSub = sub;
+
+            // Populate the glass overview player card (fire-and-forget).
+            try { populatePlayerCard(user, profile, sub); } catch (e) { console.warn('player card render failed', e); }
 
             // Fire Pro activation celebration if user arrived from checkout success
             // and their subscription is now active/trialing. The flag is set by

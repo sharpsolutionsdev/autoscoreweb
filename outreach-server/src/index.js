@@ -6,6 +6,13 @@ import { drivers } from './drivers/index.js';
 const PORT = Number(process.env.PORT || 3050);
 const POLL = Number(process.env.POLL_INTERVAL_MS || 20000);
 const ENABLED = String(process.env.BOT_ENABLED).toLowerCase() === 'true';
+// Retry loop: transient driver failures (network, rate-limit, 5xx) are
+// requeued with exponential backoff up to MAX_ATTEMPTS. Permanent failures
+// (driver returns ok:false without transient:true, e.g. validation errors)
+// go straight to "failed".
+const MAX_ATTEMPTS = Number(process.env.MAX_ATTEMPTS || 5);
+const BACKOFF_BASE_MS = Number(process.env.BACKOFF_BASE_MS || 60000);   // 1 min
+const BACKOFF_CAP_MS  = Number(process.env.BACKOFF_CAP_MS  || 3600000); // 1 h
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
     console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY'); process.exit(1);
@@ -54,6 +61,30 @@ async function hydrate(row) {
 }
 
 async function markResult(row, result) {
+    const attempts = row.attempts || 1;
+    // Transient failure under the cap → requeue with exponential backoff + jitter.
+    if (!result.ok && result.transient && attempts < MAX_ATTEMPTS) {
+        const exp = Math.min(BACKOFF_CAP_MS, BACKOFF_BASE_MS * Math.pow(2, attempts - 1));
+        const jitter = Math.floor(Math.random() * (exp * 0.25));
+        const next = new Date(Date.now() + exp + jitter).toISOString();
+        await sb.from('outreach_queue').update({
+            status: 'pending',
+            scheduled_for: next,
+            last_error: result.error || null,
+        }).eq('id', row.id);
+        await sb.from('outreach_log').insert({
+            creator_id: row.creator_id,
+            prospect_id: row.prospect_id,
+            sent_by: row.created_by,
+            channel: row.channel,
+            subject: row.subject,
+            body: row.body,
+            status: 'retry',
+            error: `attempt ${attempts}/${MAX_ATTEMPTS}: ${result.error || 'transient'}`,
+        });
+        console.log(`[${row.channel}] ${row.id} → retry in ${Math.round((exp+jitter)/1000)}s (attempt ${attempts}/${MAX_ATTEMPTS})`);
+        return;
+    }
     const patch = {
         status: result.ok ? 'done' : 'failed',
         last_error: result.error || null,
@@ -100,7 +131,10 @@ async function tick() {
         const hydrated = await hydrate(row);
         result = await driver.send(hydrated);
     } catch (e) {
-        result = { ok: false, error: String(e.message || e) };
+        // Uncaught driver throws are treated as transient — usually network /
+        // timeout / 5xx. Permanent driver issues should return ok:false without
+        // throwing so they fail-fast without consuming retry budget.
+        result = { ok: false, error: String(e.message || e), transient: true };
     }
     lastSentAt.set(platformKey, Date.now());
     await markResult(row, result);

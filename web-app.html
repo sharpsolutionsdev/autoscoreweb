@@ -1691,6 +1691,40 @@
         </div>
     </div>
 
+    <!-- Refer Opponent floating button (sits to the left of theme picker) -->
+    <button id="dv-refer-opponent-btn" type="button"
+        onclick="try{window.dvOpenReferralModal&&window.dvOpenReferralModal();}catch(e){}"
+        aria-label="Refer Opponent">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <line x1="19" y1="8" x2="19" y2="14"/>
+            <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        <span>Refer Opponent</span>
+    </button>
+    <style>
+        #dv-refer-opponent-btn{
+            position:fixed; bottom:20px; right:140px; z-index:99998;
+            display:inline-flex; align-items:center; gap:8px;
+            height:42px; padding:0 14px; border-radius:12px;
+            background:linear-gradient(135deg, rgb(var(--brand-rgb,204,11,32)) 0%, rgba(var(--brand-rgb,204,11,32),0.78) 100%);
+            color:#fff; border:2px solid rgba(255,255,255,0.08);
+            font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;
+            font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+            cursor:pointer; outline:none;
+            box-shadow:0 10px 28px rgba(var(--brand-rgb,204,11,32),0.42), inset 0 1px 0 rgba(255,255,255,0.18);
+            transition:transform .15s, filter .15s, box-shadow .2s;
+        }
+        #dv-refer-opponent-btn:hover{ transform:scale(1.05); filter:brightness(1.08); }
+        #dv-refer-opponent-btn:active{ transform:scale(.96); }
+        #dv-refer-opponent-btn svg{ flex:0 0 auto; }
+        @media(max-width:640px){
+            #dv-refer-opponent-btn{ bottom:16px; right:124px; height:38px; padding:0 10px; font-size:10px; letter-spacing:.1em; }
+            #dv-refer-opponent-btn span{ display:none; }
+        }
+    </style>
+
     <!-- Referral modal (richer: templates + copy + chat paste) -->
     <div id="dv-referral-modal" class="dv-ref-modal" aria-hidden="true" role="dialog" aria-labelledby="dv-ref-title">
         <div class="dv-ref-modal-backdrop" data-ref-close></div>
@@ -1810,9 +1844,9 @@
                             <div class="qa-slider-popup" id="qa-mic-popup">
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Mic Gain</span>
-                                    <span id="qa-mic-val" class="text-[10px] text-brand font-bold tabular-nums">100%</span>
+                                    <span id="qa-mic-val" class="text-[10px] text-brand font-bold tabular-nums">250%</span>
                                 </div>
-                                <input id="qa-mic-slider" type="range" min="25" max="250" value="100">
+                                <input id="qa-mic-slider" type="range" min="25" max="250" value="250">
                                 <div class="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
                                     <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Whisper Mode</span>
                                     <label class="relative inline-flex items-center cursor-pointer">
@@ -2217,9 +2251,9 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-gray-300 font-medium">Mic Sensitivity</span>
-                                <span id="mic-sensitivity-val" class="text-[10px] text-brand font-bold tabular-nums">100%</span>
+                                <span id="mic-sensitivity-val" class="text-[10px] text-brand font-bold tabular-nums">250%</span>
                             </div>
-                            <input id="mic-sensitivity-slider" type="range" min="25" max="250" value="100"
+                            <input id="mic-sensitivity-slider" type="range" min="25" max="250" value="250"
                                 class="w-full accent-brand cursor-pointer">
                             <p class="text-[9px] text-gray-500 leading-tight">Boost or dampen the mic level meter. Raise if the meter reads too low.</p>
                         </div>
@@ -2550,9 +2584,274 @@
             </button>
             <div class="pip-card" data-pip-body></div>
         </div>
+
+        <!-- ── Expanded Ranked Stage (filled when user clicks Expand on Ranked tab) ── -->
+        <div id="dv-ranked-stage" class="dv-ranked-stage" hidden aria-hidden="true">
+            <div class="dvrs-bg" aria-hidden="true"></div>
+            <header class="dvrs-header">
+                <div>
+                    <p class="dvrs-eyebrow">★ Ranked Mode <span class="dvrs-mode-label" id="dvrs-mode-label">501 BO5</span></p>
+                    <h1 class="dvrs-title">Your Rank</h1>
+                </div>
+                <button type="button" id="dvrs-collapse-btn" class="dvrs-collapse" title="Collapse ( ESC )">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9H4V4m11 0v5h5M4 15h5v5m6 0v-5h5"/></svg>
+                    <span>Collapse · ESC</span>
+                </button>
+            </header>
+            <div class="dvrs-grid">
+                <!-- LEFT: Player rank card -->
+                <section class="dvrs-card dvrs-rank-card">
+                    <p class="dvrs-card-eyebrow">Tier · MMR · Rank</p>
+                    <div class="dvrs-tier" id="dvrs-tier">Unranked</div>
+                    <div class="dvrs-mmr-row">
+                        <span class="dvrs-mmr" id="dvrs-mmr">— MMR</span>
+                        <span class="dvrs-pos" id="dvrs-pos">#—</span>
+                    </div>
+                    <div class="dvrs-stats">
+                        <div><b id="dvrs-wins">0</b><span>Wins</span></div>
+                        <div><b id="dvrs-losses">0</b><span>Losses</span></div>
+                        <div><b id="dvrs-winrate">—</b><span>W/L</span></div>
+                        <div><b id="dvrs-avg">—</b><span>Avg</span></div>
+                    </div>
+                    <p class="dvrs-card-foot">Per-mode stats — switch modes from the sidebar pills.</p>
+                </section>
+
+                <!-- CENTER: Queue / searching / found state -->
+                <section class="dvrs-card dvrs-queue-card">
+                    <p class="dvrs-card-eyebrow">Matchmaking</p>
+                    <div id="dvrs-state-idle" class="dvrs-state">
+                        <p class="dvrs-queue-text">Queue solo. We'll match you with someone of similar skill on DartCounter.<br>Best of 5 · 501 · Double-out.</p>
+                        <button id="dvrs-find-btn" type="button" class="dvrs-cta">★ Find Ranked Match</button>
+                        <button id="dvrs-invite-btn" type="button" class="dvrs-cta-ghost">Invite a Friend to Ranked</button>
+                    </div>
+                    <div id="dvrs-state-searching" class="dvrs-state" hidden>
+                        <div class="dvrs-spinner" aria-hidden="true"></div>
+                        <p class="dvrs-search-eyebrow">★ Searching</p>
+                        <p class="dvrs-search-text">Finding an opponent for you…</p>
+                        <p class="dvrs-elapsed-row">Elapsed <b id="dvrs-elapsed" class="dvrs-elapsed">0s</b></p>
+                        <button id="dvrs-cancel-btn" type="button" class="dvrs-cta-ghost">Cancel</button>
+                    </div>
+                    <div id="dvrs-state-found" class="dvrs-state" hidden>
+                        <p class="dvrs-found-eyebrow">★ Match Found</p>
+                        <p class="dvrs-found-vs">VS <span id="dvrs-opp">Opponent</span></p>
+                        <p class="dvrs-found-rules">Best of 5 · 501 · Double-out</p>
+                        <div class="dvrs-found-actions">
+                            <button id="dvrs-decline-btn" type="button" class="dvrs-cta-ghost">Decline</button>
+                            <button id="dvrs-accept-btn" type="button" class="dvrs-cta">Accept</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RIGHT: Top 10 leaderboard + recent matches -->
+                <section class="dvrs-card dvrs-side-card">
+                    <p class="dvrs-card-eyebrow">Top 10 · This mode</p>
+                    <ol id="dvrs-lb-list" class="dvrs-lb">
+                        <li class="dvrs-lb-loading">Loading leaderboard…</li>
+                    </ol>
+                    <p class="dvrs-card-eyebrow" style="margin-top:18px;">Your recent matches</p>
+                    <ul id="dvrs-hist-list" class="dvrs-hist">
+                        <li class="dvrs-hist-loading">Loading history…</li>
+                    </ul>
+                    <a href="ranked.html" class="dvrs-foot-link">Open full ranked hub →</a>
+                </section>
+            </div>
+        </div>
+
+        <style>
+            /* ── Expanded Ranked Stage ─────────────────────────────────────── */
+            .dv-ranked-stage {
+                position: absolute; inset: 0;
+                /* Above the shrunken iframe (z-index:5 with transform creates
+                   its own stacking context). 8 keeps us safely on top. */
+                z-index: 8;
+                display: flex; flex-direction: column;
+                padding: 22px 28px;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                color: #fff;
+                background:
+                    radial-gradient(60% 50% at 80% 0%, rgba(var(--brand-rgb),0.14), transparent 70%),
+                    radial-gradient(45% 45% at 10% 100%, rgba(var(--brand-rgb),0.08), transparent 70%),
+                    linear-gradient(180deg, #0a0a0d 0%, #050507 100%);
+                overflow-y: auto;
+            }
+            .dv-ranked-stage[hidden] { display: none; }
+            .dv-ranked-stage .dvrs-bg {
+                position: absolute; inset: 0; pointer-events: none; z-index: 0;
+                background-image:
+                    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+                background-size: 48px 48px;
+                mask-image: radial-gradient(ellipse 60% 50% at 50% 40%, #000 0%, transparent 80%);
+            }
+            .dvrs-header {
+                position: relative; z-index: 1;
+                display: flex; align-items: flex-start; justify-content: space-between;
+                gap: 16px; margin-bottom: 22px;
+            }
+            .dvrs-eyebrow {
+                font-size: 10px; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase;
+                color: rgb(var(--brand-rgb));
+            }
+            .dvrs-mode-label { color: #9aa0aa; margin-left: 6px; font-weight: 600; letter-spacing: 0.05em; text-transform: none; }
+            .dvrs-title {
+                font-family: 'Barlow Condensed', sans-serif;
+                font-style: italic; font-weight: 900; font-size: 44px; line-height: 1; letter-spacing: 0.04em;
+                margin-top: 2px;
+                background: linear-gradient(180deg, #fff 0%, #b9b9c4 100%);
+                -webkit-background-clip: text; background-clip: text; color: transparent;
+                text-transform: uppercase;
+            }
+            .dvrs-collapse {
+                display: inline-flex; align-items: center; gap: 8px;
+                padding: 10px 14px; border-radius: 10px;
+                background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+                color: #d0d0d8; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+                cursor: pointer; transition: all .15s;
+            }
+            .dvrs-collapse:hover { background: rgba(var(--brand-rgb),0.1); border-color: rgba(var(--brand-rgb),0.5); color: #fff; }
+            .dvrs-grid {
+                position: relative; z-index: 1;
+                display: grid;
+                grid-template-columns: 1.1fr 1.2fr 1.1fr;
+                gap: 18px;
+                flex: 1; min-height: 0;
+            }
+            @media (max-width: 1100px) { .dvrs-grid { grid-template-columns: 1fr; } }
+            .dvrs-card {
+                background: linear-gradient(180deg, rgba(20,20,26,0.85) 0%, rgba(13,13,17,0.92) 100%);
+                border: 1px solid rgba(255,255,255,0.06);
+                border-radius: 18px; padding: 22px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+                backdrop-filter: blur(8px);
+                display: flex; flex-direction: column; min-height: 0;
+            }
+            .dvrs-card-eyebrow {
+                font-size: 9px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase;
+                color: #6a6a78; margin-bottom: 10px;
+            }
+            .dvrs-card-foot {
+                font-size: 10px; color: #5a5a66; margin-top: auto; padding-top: 12px;
+                border-top: 1px dashed rgba(255,255,255,0.05);
+            }
+            /* Rank card */
+            .dvrs-tier {
+                font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 900; font-style: italic; font-size: 38px; line-height: 1;
+                letter-spacing: 0.04em; text-transform: uppercase;
+                color: #fff; margin-bottom: 8px;
+                text-shadow: 0 0 30px rgba(var(--brand-rgb),0.4);
+            }
+            .dvrs-mmr-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+            .dvrs-mmr {
+                font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 24px;
+                color: rgb(var(--brand-rgb)); letter-spacing: 0.02em;
+                font-variant-numeric: tabular-nums;
+            }
+            .dvrs-pos {
+                font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px;
+                color: #c0c0c8; font-variant-numeric: tabular-nums;
+            }
+            .dvrs-stats {
+                display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+                margin-bottom: 16px;
+            }
+            .dvrs-stats > div {
+                background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+                border-radius: 10px; padding: 12px 8px; text-align: center;
+            }
+            .dvrs-stats b {
+                display: block; font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 900; font-size: 22px; line-height: 1;
+                color: #fff; font-variant-numeric: tabular-nums; margin-bottom: 4px;
+            }
+            .dvrs-stats span {
+                font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+                color: #7a7a85;
+            }
+            /* Queue card */
+            .dvrs-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 8px 0; }
+            .dvrs-queue-text { font-size: 13px; color: #b8b8c2; line-height: 1.6; max-width: 340px; }
+            .dvrs-cta {
+                width: 100%; padding: 16px;
+                background: linear-gradient(135deg, rgb(var(--brand-rgb)), rgba(var(--brand-rgb),0.7));
+                border: none; border-radius: 12px;
+                color: #fff; font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 900; font-style: italic; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase;
+                cursor: pointer; transition: all .15s;
+                box-shadow: 0 10px 32px rgba(var(--brand-rgb),0.4);
+            }
+            .dvrs-cta:hover { transform: translateY(-1px); filter: brightness(1.1); }
+            .dvrs-cta-ghost {
+                width: 100%; padding: 12px;
+                background: rgba(var(--brand-rgb),0.08);
+                border: 1px solid rgba(var(--brand-rgb),0.3);
+                border-radius: 10px;
+                color: rgb(var(--brand-rgb));
+                font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+                cursor: pointer; transition: all .15s;
+            }
+            .dvrs-cta-ghost:hover { background: rgba(var(--brand-rgb),0.16); }
+            .dvrs-spinner {
+                width: 48px; height: 48px; border-radius: 50%;
+                border: 3px solid rgba(255,255,255,0.08);
+                border-top-color: rgb(var(--brand-rgb));
+                animation: dvrsSpin 0.9s linear infinite;
+            }
+            @keyframes dvrsSpin { to { transform: rotate(360deg); } }
+            .dvrs-search-eyebrow {
+                font-size: 10px; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase;
+                color: rgb(var(--brand-rgb));
+            }
+            .dvrs-search-text { font-size: 14px; font-weight: 700; color: #fff; }
+            .dvrs-elapsed-row { font-size: 11px; color: #8a8a95; letter-spacing: 0.1em; text-transform: uppercase; }
+            .dvrs-elapsed { color: rgb(var(--brand-rgb)); font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; margin-left: 6px; }
+            .dvrs-found-eyebrow {
+                font-size: 11px; font-weight: 900; letter-spacing: 0.32em; text-transform: uppercase;
+                color: rgb(var(--brand-rgb));
+            }
+            .dvrs-found-vs {
+                font-family: 'Barlow Condensed', sans-serif;
+                font-style: italic; font-weight: 900; font-size: 32px; line-height: 1; letter-spacing: 0.04em;
+                color: #fff;
+            }
+            .dvrs-found-rules { font-size: 11px; color: #8a8a95; letter-spacing: 0.16em; text-transform: uppercase; }
+            .dvrs-found-actions { display: flex; gap: 10px; width: 100%; margin-top: 8px; }
+            .dvrs-found-actions > button { flex: 1; }
+            /* Side card */
+            .dvrs-lb { list-style: none; padding: 0; margin: 0 0 4px; display: flex; flex-direction: column; gap: 4px; }
+            .dvrs-lb li {
+                display: flex; align-items: center; gap: 10px;
+                padding: 8px 10px; border-radius: 8px;
+                background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+                font-size: 12px;
+            }
+            .dvrs-lb li.dvrs-lb-loading { justify-content: center; color: #6a6a78; font-size: 11px; }
+            .dvrs-lb .lb-pos { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; color: rgb(var(--brand-rgb)); width: 22px; font-variant-numeric: tabular-nums; }
+            .dvrs-lb .lb-name { flex: 1; color: #d0d0d8; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .dvrs-lb .lb-mmr { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+            .dvrs-hist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+            .dvrs-hist li {
+                display: flex; align-items: center; gap: 8px;
+                padding: 7px 10px; border-radius: 8px;
+                background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+                font-size: 11px;
+            }
+            .dvrs-hist li.dvrs-hist-loading { justify-content: center; color: #6a6a78; }
+            .dvrs-hist .h-res { font-weight: 900; font-size: 10px; padding: 2px 7px; border-radius: 5px; letter-spacing: 0.1em; }
+            .dvrs-hist .h-res.win { background: rgba(34,197,94,0.15); color: #22c55e; }
+            .dvrs-hist .h-res.loss { background: rgba(239,68,68,0.15); color: #ef4444; }
+            .dvrs-hist .h-name { flex: 1; color: #d0d0d8; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .dvrs-hist .h-mmr { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-variant-numeric: tabular-nums; }
+            .dvrs-hist .h-mmr.up { color: #22c55e; }
+            .dvrs-hist .h-mmr.down { color: #ef4444; }
+            .dvrs-foot-link {
+                display: inline-block; margin-top: 14px;
+                font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+                color: #8a8a95; text-decoration: none;
+            }
+            .dvrs-foot-link:hover { color: rgb(var(--brand-rgb)); }
+        </style>
         <script>
-            // Public API: window.dvScorerPip.shrink({title?, message?, html?, ttl?})
-            //             window.dvScorerPip.restore()
             // Smoothly scales the DartCounter iframe down to the bottom-right
             // corner of the scorer pane and reveals an overlay card for ranked
             // pre-match (VS screen, queueing) and post-match (results, MMR delta)
@@ -2616,7 +2915,17 @@
                 const ov = ensureOverlay();
                 if (ov) {
                     ov.addEventListener('click', function (e) {
-                        if (e.target.closest('[data-pip-restore]')) restore();
+                        if (e.target.closest('[data-pip-restore]')) {
+                            restore();
+                            // Also collapse the expanded ranked stage so we don't
+                            // leave it covering the now-restored scorer.
+                            try {
+                                const stage = document.getElementById('dv-ranked-stage');
+                                if (stage && !stage.hidden) {
+                                    document.getElementById('dvrs-collapse-btn')?.click();
+                                }
+                            } catch(_){}
+                        }
                     });
                 }
                 // ESC restores instantly
@@ -5956,6 +6265,17 @@
                 const targetContent = document.getElementById(targetId);
                 targetContent.classList.remove('hidden');
                 targetContent.classList.add('flex');
+
+                // If user navigates away from Ranked while the expanded stage
+                // is open, auto-collapse so the scorer is fully visible again.
+                if (targetId !== 'tab-ranked') {
+                    try {
+                        const stage = document.getElementById('dv-ranked-stage');
+                        if (stage && !stage.hidden) {
+                            document.getElementById('dvrs-collapse-btn')?.click();
+                        }
+                    } catch(_){}
+                }
             });
         });
 
@@ -6070,7 +6390,7 @@
             perDartSubmitGraceMs: 1200, // grace period after 3rd dart before final submit
             totalModeSubmitDelayMs: 0, // delay before submitting in per-visit/total mode (0 = instant)
             dcVolume: 80,       // 0-100, scorer iframe volume preference
-            micSensitivity: 100, // 25-250, multiplier applied to mic level meter
+            micSensitivity: 250, // 25-250, multiplier applied to mic level meter (default 250 — 100 reads too low for most mics)
             // Visual & detection options
             enableScoreBurst: true,
             popIntensity: 2, // 0..3 (reserved for future use)
@@ -6301,7 +6621,17 @@
             _qaVol.addEventListener('input', (e) => { applyDcVolume(+e.target.value); window.saveSettings(); });
         }
 
-        window.saveSettings = function(){ /* Stub - implement localStorage persistence later */ console.log('Settings saved'); };
+        // Persist a subset of UI prefs to localStorage. Silent — must not log
+        // anything per-event because sliders fire `input` on every pixel which
+        // would flood the console.
+        window.saveSettings = function(){
+            try {
+                if (AppConfig.dcVolume != null)        localStorage.setItem('dv-dc-volume', String(AppConfig.dcVolume));
+                if (AppConfig.micSensitivity != null)  localStorage.setItem('dv-mic-sensitivity', String(AppConfig.micSensitivity));
+                if (AppConfig.micFeedback != null)     localStorage.setItem('dv-mic-feedback', AppConfig.micFeedback ? '1' : '0');
+                if (AppConfig.totalModeSubmitDelayMs != null) localStorage.setItem('dv-submit-delay', String(AppConfig.totalModeSubmitDelayMs));
+            } catch(_) {}
+        };
 
         // Mic sensitivity slider — synced between settings and quick-access
         const _micSens = document.getElementById('mic-sensitivity-slider');
@@ -6315,8 +6645,14 @@
             if (_qaMicVal) _qaMicVal.textContent = v + '%';
             if (_qaMic && +_qaMic.value !== v) _qaMic.value = v;
         }
+        // Restore last mic sensitivity (default 250 — 100 is too quiet for
+        // most consumer mics, so we ship 250 out of the box).
+        try {
+            const savedMic = parseInt(localStorage.getItem('dv-mic-sensitivity'), 10);
+            if (!isNaN(savedMic) && savedMic >= 25 && savedMic <= 250) AppConfig.micSensitivity = savedMic;
+        } catch(e){}
         if (_micSens) {
-            applyMicSensitivity(AppConfig.micSensitivity || 100);
+            applyMicSensitivity(AppConfig.micSensitivity || 250);
             _micSens.addEventListener('input', (e) => { applyMicSensitivity(+e.target.value); saveSettings(); });
         }
         if (_qaMic) {
@@ -6346,7 +6682,7 @@
                     log('🤫 Whisper Mode ON — max sensitivity, ultra-low threshold', false);
                     if (typeof dvToast === 'function') dvToast('🤫 Whisper Mode', 'success');
                 } else {
-                    applyMicSensitivity(100);
+                    applyMicSensitivity(250);
                     AppConfig.minFinalConfidence = 0.20;
                     log('Whisper Mode OFF — normal sensitivity', false);
                 }
@@ -8623,31 +8959,119 @@ window.openScorerUrl = function(url){
         // Expose so queue join can pass the chosen mode.
         widget.dvGetMode = () => currentMode;
 
-        // ── Expand button → use PiP API to shrink the scorer ──
+        // ── Expand button → shrink scorer + reveal big ranked stage ──
         const expandBtn = document.getElementById('dv-tab-ranked-expand-btn');
         const expandLbl = expandBtn?.querySelector('[data-expand-label]');
+        const rankedStage = document.getElementById('dv-ranked-stage');
         let _expandedSticky = false;
+
+        function _showRankedStage() {
+            if (!rankedStage) return;
+            rankedStage.hidden = false;
+            rankedStage.setAttribute('aria-hidden', 'false');
+        }
+        function _hideRankedStage() {
+            if (!rankedStage) return;
+            rankedStage.hidden = true;
+            rankedStage.setAttribute('aria-hidden', 'true');
+        }
+        function _doCollapseRanked() {
+            if (!_expandedSticky) return;
+            try { window.dvScorerPip && window.dvScorerPip.restore(); } catch(_){}
+            _hideRankedStage();
+            _expandedSticky = false;
+            if (expandLbl) expandLbl.textContent = 'Expand';
+        }
+        function _doExpandRanked() {
+            if (_expandedSticky) return;
+            try { window.dvScorerPip && window.dvScorerPip.shrink({ html: '', ttl: 0, hideCard: true }); } catch(_){}
+            _showRankedStage();
+            _expandedSticky = true;
+            if (expandLbl) expandLbl.textContent = 'Collapse';
+            // Refresh data when user expands.
+            try { loadRankedStats && loadRankedStats(); } catch(_){}
+            try { loadMiniLeaderboard && loadMiniLeaderboard(); } catch(_){}
+            try { loadMiniHistory && loadMiniHistory(); } catch(_){}
+        }
         expandBtn?.addEventListener('click', () => {
-            if (!window.dvScorerPip) return;
-            if (_expandedSticky) {
-                window.dvScorerPip.restore();
-                _expandedSticky = false;
-                if (expandLbl) expandLbl.textContent = 'Expand';
-            } else {
-                // Shrink iframe but DO NOT show the overlay card — user just
-                // wants more screen real-estate to read ranked info.
-                window.dvScorerPip.shrink({ html: '', ttl: 0, hideCard: true });
-                _expandedSticky = true;
-                if (expandLbl) expandLbl.textContent = 'Collapse';
-            }
+            if (_expandedSticky) _doCollapseRanked(); else _doExpandRanked();
         });
-        // Sync label if user hits ESC inside PiP.
+        document.getElementById('dvrs-collapse-btn')?.addEventListener('click', _doCollapseRanked);
+        // Sync if user hits ESC inside PiP.
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && _expandedSticky) {
-                _expandedSticky = false;
-                if (expandLbl) expandLbl.textContent = 'Expand';
-            }
+            if (e.key === 'Escape' && _expandedSticky) _doCollapseRanked();
         });
+
+        // ── Mirror compact-widget state into the expanded stage ──
+        (function mirrorRankedStage(){
+            if (!rankedStage) return;
+            const map = [
+                ['dv-tab-ranked-tier', 'dvrs-tier'],
+                ['dv-tab-ranked-mmr', 'dvrs-mmr'],
+                ['dv-tab-ranked-pos', 'dvrs-pos'],
+                ['dv-tab-ranked-winrate', 'dvrs-winrate'],
+                ['dv-tab-ranked-avg', 'dvrs-avg'],
+                ['dv-tab-ranked-mode-label', 'dvrs-mode-label'],
+                ['dv-tab-ranked-elapsed', 'dvrs-elapsed'],
+                ['dv-tab-ranked-opp', 'dvrs-opp']
+            ];
+            map.forEach(([from, to]) => {
+                const src = document.getElementById(from);
+                const dst = document.getElementById(to);
+                if (!src || !dst) return;
+                const sync = () => { dst.textContent = src.textContent; };
+                sync();
+                new MutationObserver(sync).observe(src, { childList: true, characterData: true, subtree: true });
+            });
+            // Wins/Losses come from one element "0 W · 0 L"
+            const wlSrc = document.getElementById('dv-tab-ranked-wl');
+            const winsEl = document.getElementById('dvrs-wins');
+            const lossEl = document.getElementById('dvrs-losses');
+            const syncWL = () => {
+                if (!wlSrc) return;
+                const txt = wlSrc.textContent || '';
+                const m = txt.match(/(\d+)\s*W[^\d]+(\d+)\s*L/i);
+                if (m) {
+                    if (winsEl) winsEl.textContent = m[1];
+                    if (lossEl) lossEl.textContent = m[2];
+                }
+            };
+            if (wlSrc) { syncWL(); new MutationObserver(syncWL).observe(wlSrc, { childList: true, characterData: true, subtree: true }); }
+
+            // Mirror queue states from widget data-state.
+            const idleEl = document.getElementById('dvrs-state-idle');
+            const searchEl = document.getElementById('dvrs-state-searching');
+            const foundEl = document.getElementById('dvrs-state-found');
+            function syncStates() {
+                const s = widget.getAttribute('data-state') || 'idle';
+                if (idleEl) idleEl.hidden = s !== 'idle';
+                if (searchEl) searchEl.hidden = s !== 'searching';
+                if (foundEl) foundEl.hidden = s !== 'found';
+            }
+            syncStates();
+            new MutationObserver(syncStates).observe(widget, { attributes: true, attributeFilter: ['data-state'] });
+
+            // Mirror leaderboard / history list HTML.
+            const lbSrc = document.getElementById('dv-tab-ranked-lb-list');
+            const lbDst = document.getElementById('dvrs-lb-list');
+            const histSrc = document.getElementById('dv-tab-ranked-hist-list');
+            const histDst = document.getElementById('dvrs-hist-list');
+            const syncLB = () => { if (lbSrc && lbDst && lbSrc.innerHTML.trim()) lbDst.innerHTML = lbSrc.innerHTML; };
+            const syncHist = () => { if (histSrc && histDst && histSrc.innerHTML.trim()) histDst.innerHTML = histSrc.innerHTML; };
+            if (lbSrc) new MutationObserver(syncLB).observe(lbSrc, { childList: true, subtree: true });
+            if (histSrc) new MutationObserver(syncHist).observe(histSrc, { childList: true, subtree: true });
+
+            // Forward button clicks to the compact widget controls.
+            const fwd = (fromId, toId) => {
+                const a = document.getElementById(fromId); const b = document.getElementById(toId);
+                if (a && b) a.addEventListener('click', () => b.click());
+            };
+            fwd('dvrs-find-btn', 'dv-tab-ranked-find-btn');
+            fwd('dvrs-cancel-btn', 'dv-tab-ranked-cancel-btn');
+            fwd('dvrs-decline-btn', 'dv-tab-ranked-decline-btn');
+            fwd('dvrs-accept-btn', 'dv-tab-ranked-accept-btn');
+            fwd('dvrs-invite-btn', 'dv-tab-ranked-invite-btn');
+        })();
 
         // Invite a Friend → open the rich invite modal (templates + paste-to-chat).
         document.getElementById('dv-tab-ranked-invite-btn')?.addEventListener('click', () => {
@@ -8774,8 +9198,14 @@ window.openScorerUrl = function(url){
                         (profs || []).forEach(p => { nameMap[p.id] = p.display_name || p.dv_username || 'Anonymous'; });
                     } catch(_){}
                 }
-                if (!data.length) { list.innerHTML = '<li class="text-gray-500 text-[10px]">No ranked players yet.</li>'; return; }
-                list.innerHTML = data.map((p, i) => {
+                if (!data.length) {
+                    const empty = '<li class="text-gray-500 text-[10px]">No ranked players yet.</li>';
+                    list.innerHTML = empty;
+                    const stageList = document.getElementById('dvrs-lb-list');
+                    if (stageList) stageList.innerHTML = empty;
+                    return;
+                }
+                const compactHtml = data.map((p, i) => {
                     const isMe = currentUser && p.user_id === currentUser.id;
                     const name = (nameMap[p.user_id] || 'Anonymous').replace(/[<>&]/g, '');
                     return `<li class="flex items-center gap-2 ${isMe ? 'text-brand font-bold' : 'text-gray-200'}">
@@ -8784,6 +9214,20 @@ window.openScorerUrl = function(url){
                         <span class="text-gray-400 tabular-nums">${Math.round(p.mmr || 0)}</span>
                     </li>`;
                 }).join('');
+                list.innerHTML = compactHtml;
+                // Mirror into the expanded ranked-stage card so it isn't blank.
+                const stageList = document.getElementById('dvrs-lb-list');
+                if (stageList) {
+                    stageList.innerHTML = data.map((p, i) => {
+                        const isMe = currentUser && p.user_id === currentUser.id;
+                        const name = (nameMap[p.user_id] || 'Anonymous').replace(/[<>&]/g, '');
+                        return `<li class="dvrs-lb-row${isMe ? ' is-me' : ''}">
+                            <span class="dvrs-lb-pos">${i+1}</span>
+                            <span class="dvrs-lb-name">${name}${isMe ? ' <em>YOU</em>' : ''}</span>
+                            <span class="dvrs-lb-mmr">${Math.round(p.mmr || 0)}</span>
+                        </li>`;
+                    }).join('');
+                }
             } catch (e) { console.warn('mini lb fail', e); }
         }
 
@@ -8801,7 +9245,13 @@ window.openScorerUrl = function(url){
                 // Best-effort mode filter (column may not exist on legacy rows).
                 try { q = q.eq('mode', mode); } catch(_){}
                 const { data } = await q;
-                if (!data || !data.length) { list.innerHTML = '<li class="text-gray-500 text-[10px]">No completed matches yet.</li>'; return; }
+                if (!data || !data.length) {
+                    const empty = '<li class="text-gray-500 text-[10px]">No completed matches yet.</li>';
+                    list.innerHTML = empty;
+                    const stageList = document.getElementById('dvrs-hist-list');
+                    if (stageList) stageList.innerHTML = empty;
+                    return;
+                }
                 list.innerHTML = data.map(m => {
                     const isP1 = m.player1_id === currentUser.id;
                     const my = isP1 ? m.player1_legs_won : m.player2_legs_won;
@@ -8815,6 +9265,23 @@ window.openScorerUrl = function(url){
                         <span class="text-[10px] tabular-nums ${(d ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}">${sign}${d ?? 0}</span>
                     </li>`;
                 }).join('');
+                // Mirror into the expanded ranked-stage card.
+                const stageList = document.getElementById('dvrs-hist-list');
+                if (stageList) {
+                    stageList.innerHTML = data.map(m => {
+                        const isP1 = m.player1_id === currentUser.id;
+                        const my = isP1 ? m.player1_legs_won : m.player2_legs_won;
+                        const op = isP1 ? m.player2_legs_won : m.player1_legs_won;
+                        const won = m.winner_id === currentUser.id;
+                        const d = isP1 ? m.player1_mmr_delta : m.player2_mmr_delta;
+                        const sign = (d ?? 0) >= 0 ? '+' : '';
+                        return `<li class="dvrs-hist-row">
+                            <span class="dvrs-hist-tag ${won ? 'win' : 'loss'}">${won ? 'WIN' : 'LOSS'}</span>
+                            <span class="dvrs-hist-score">${my} - ${op}</span>
+                            <span class="dvrs-hist-delta ${(d ?? 0) >= 0 ? 'pos' : 'neg'}">${sign}${d ?? 0}</span>
+                        </li>`;
+                    }).join('');
+                }
             } catch(e) { console.warn('mini hist fail', e); }
         }
 

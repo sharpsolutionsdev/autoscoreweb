@@ -1831,6 +1831,18 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                 </div>
             </div>
 
+            <!-- Live competitions preview (populated from Supabase) -->
+            <div id="dv-comp-live-wrap" hidden>
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        <p class="text-[11px] font-bold tracking-[0.18em] uppercase" style="color:#f59e0b;">Live draws right now</p>
+                    </div>
+                    <a href="/competitions.html" class="text-[11px] text-muted hover:text-chalk">See all →</a>
+                </div>
+                <div id="dv-comp-live" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8"></div>
+            </div>
+
             <div class="text-center">
                 <a href="/competitions.html" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-white" style="background: linear-gradient(135deg,#f59e0b,#d97706); box-shadow:0 10px 30px rgba(245,158,11,0.35);">
                     Browse competitions
@@ -1862,6 +1874,58 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
                 document.getElementById('mob-menu').classList.remove('open');
             });
         });
+    </script>
+
+    <!-- ── Live competitions preview (top of page section) ───────────────── -->
+    <script>
+    (function(){
+        var SB_URL = 'https://poyjykgqsvgimssbhsuz.supabase.co';
+        var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
+        function esc(s){var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML;}
+        function gbp(p){return '£'+(Number(p||0)/100).toFixed(2);}
+        function countdown(target){
+            var ms = new Date(target).getTime() - Date.now();
+            if (ms <= 0) return 'Drawing now';
+            var d = Math.floor(ms/86400000), h = Math.floor((ms%86400000)/3600000), m = Math.floor((ms%3600000)/60000);
+            if (d > 0) return d + 'd ' + h + 'h';
+            if (h > 0) return h + 'h ' + m + 'm';
+            return m + 'm';
+        }
+        function card(c){
+            var sold = c.sold_tickets||0, total = c.total_tickets||1;
+            var pct = Math.min(100, Math.round((sold/total)*100));
+            var bg = c.prize_image_url
+              ? "background-image:url('" + esc(c.prize_image_url) + "'); background-size:cover; background-position:center;"
+              : "background:linear-gradient(135deg," + esc(c.hero_color||'#f59e0b') + ",#1a1a20);";
+            return ''
+              + '<a href="/competition.html?slug=' + encodeURIComponent(c.slug) + '" class="group block rounded-xl overflow-hidden border transition" '
+              + 'style="background:#0f0f12; border-color:rgba(245,158,11,0.18);">'
+              + '<div style="' + bg + ' aspect-ratio:16/10;"></div>'
+              + '<div class="p-4">'
+              + '<p class="text-[10px] font-bold tracking-widest uppercase mb-1" style="color:#f59e0b;">' + gbp(c.ticket_price_pence) + ' / ticket</p>'
+              + '<p class="text-chalk font-bold text-sm leading-snug mb-2 line-clamp-2">' + esc(c.title) + '</p>'
+              + '<div class="h-1.5 rounded-full overflow-hidden mb-1.5" style="background:rgba(255,255,255,0.06);">'
+              +   '<span class="block h-full" style="width:' + pct + '%; background:linear-gradient(90deg,#f59e0b,#d97706);"></span>'
+              + '</div>'
+              + '<div class="flex justify-between text-[10px] text-muted">'
+              +   '<span>' + pct + '% sold</span>'
+              +   '<span>Closes in ' + countdown(c.draw_at) + '</span>'
+              + '</div>'
+              + '</div></a>';
+        }
+        fetch(SB_URL + '/rest/v1/competitions?select=slug,title,prize_image_url,ticket_price_pence,total_tickets,sold_tickets,draw_at,status,hero_color&status=in.(active,sold_out)&order=draw_at.asc&limit=3',
+            { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
+          .then(function(r){ return r.ok ? r.json() : []; })
+          .then(function(rows){
+              if (!rows || !rows.length) return;
+              var wrap = document.getElementById('dv-comp-live-wrap');
+              var grid = document.getElementById('dv-comp-live');
+              if (!wrap || !grid) return;
+              grid.innerHTML = rows.map(card).join('');
+              wrap.hidden = false;
+          })
+          .catch(function(){});
+    })();
     </script>
 
     <!-- ── Auth-aware nav ──────────────────────────────────────────────────── -->
