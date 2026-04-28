@@ -828,26 +828,72 @@
     const maxAttempts = 15;
     const dialog =
       document.querySelector('[id^="ion-overlay-"] app-edit-match-scores-dialog') ||
-      document.querySelector('app-edit-match-scores-dialog');
+      document.querySelector('app-edit-match-scores-dialog') ||
+      // New 2026 DartCounter shell: dialog is rendered as a generic overlay
+      // with no app-* tag. Detect by the presence of accordion-header rows
+      // (each turn is a collapsible row) inside any visible overlay.
+      (function(){
+        const overlays = document.querySelectorAll(
+          '[id^="ion-overlay-"], [class*="cdk-overlay"], [role="dialog"], dialog'
+        );
+        for (const o of overlays) {
+          if (_isVisible(o) && o.querySelector('[accordion-header]')) return o;
+        }
+        return null;
+      })();
 
     if (dialog && _isVisible(dialog)) {
-      // Target the LAST accordion (most recent turn)
-      const accordions = dialog.querySelectorAll('app-accordion');
+      // Locate every "turn" row. Newer DartCounter exposes a
+      // `[accordion-header]` element nested inside a clickable parent. We
+      // pick the element-with-input-when-expanded by walking from the
+      // header up to its expandable container.
+      let accordions = Array.from(dialog.querySelectorAll('app-accordion'));
+      if (!accordions.length) {
+        const headers = Array.from(dialog.querySelectorAll('[accordion-header]'));
+        accordions = headers.map(h => {
+          // Walk up to the nearest container that holds both the header and
+          // its expandable body. The clickable parent has class "cursor-pointer".
+          return (
+            h.closest('[dctypography]') ||
+            h.closest('.cursor-pointer') ||
+            h.parentElement ||
+            h
+          );
+        });
+      }
       const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
 
       if (lastAccordion) {
-        // Check if accordion already has a visible input.
-        // Prefer the explicitly-labeled value input (verified via recorded flow).
-        let input =
-          lastAccordion.querySelector('input[aria-label="ENTER_NEW_VALUE"]') ||
-          lastAccordion.querySelector('input[inputmode="numeric"]') ||
-          lastAccordion.querySelector('input[type="number"]') ||
-          lastAccordion.querySelector('input');
+        // Look for the input both inside the accordion AND in its next-sibling
+        // (the expanded body is sometimes rendered as a sibling, not a child).
+        const inputIn = (root) => root && (
+          root.querySelector('input[aria-label="ENTER_NEW_VALUE"]') ||
+          root.querySelector('input[inputmode="numeric"]') ||
+          root.querySelector('input[type="number"]') ||
+          root.querySelector('input[type="text"]') ||
+          root.querySelector('input')
+        );
+        let input = inputIn(lastAccordion) || inputIn(lastAccordion.nextElementSibling) || inputIn(lastAccordion.parentElement);
         if (input && _isVisible(input)) {
           _setInputValueFrameworkSafe(input, score);
-          // Save button has aria-label="Save" — must check aria FIRST.
+          // Save button (new shell): `<button dcbutton dcbgcolor="oche-orange">`
+          // with a child <span>Save</span>. Older shells used aria-label.
+          const findSave = (root) => {
+            if (!root) return null;
+            // Prefer dcbutton with "oche-orange" colour (used for primary CTA).
+            const orange = root.querySelector('button[dcbutton][dcbgcolor="oche-orange"]');
+            if (orange && _isVisible(orange)) return orange;
+            // Match by inner text "Save".
+            const buttons = root.querySelectorAll('button[dcbutton], button');
+            for (const b of buttons) {
+              if (!_isVisible(b)) continue;
+              const t = (b.textContent || '').trim().toLowerCase();
+              if (t === 'save' || t.startsWith('save')) return b;
+            }
+            return root.querySelector('button[aria-label="Save" i]');
+          };
           const saveBtn =
-            lastAccordion.querySelector('button[aria-label="Save" i]') ||
+            findSave(dialog) ||
             _findModalSaveButton(dialog) ||
             lastAccordion.querySelector('button');
           if (saveBtn && _isVisible(saveBtn)) {
@@ -858,28 +904,29 @@
             }, 150);
             return;
           }
-        } else if (attempt <= 2) {
-          // Accordion not expanded — click the toggle to expand it
-          const toggle =
-            lastAccordion.querySelector('dc-icon') ||
-            lastAccordion.querySelector('svg') ||
-            lastAccordion.querySelector('[class*="toggle"]') ||
-            lastAccordion.querySelector('div > div:first-child'); // header area
-          if (toggle) {
-            const clickTarget = toggle.closest('button') || toggle.closest('[role="button"]') || toggle;
-            if (_isVisible(clickTarget)) {
-              _clickLikeUser(clickTarget);
-              logTrace('AUTO-EDIT: expanded last accordion');
-            }
+        } else if (attempt <= 4) {
+          // Accordion not expanded — click the clickable header row.
+          const header = lastAccordion.querySelector('[accordion-header]') || lastAccordion;
+          const clickTarget =
+            header.closest('button') ||
+            header.closest('[role="button"]') ||
+            // The wrapper div carries `cursor-pointer` and is the actual click
+            // target in the new DartCounter shell.
+            (header.classList && header.classList.contains('cursor-pointer') ? header : null) ||
+            lastAccordion.querySelector('.cursor-pointer') ||
+            lastAccordion;
+          if (clickTarget && _isVisible(clickTarget)) {
+            _clickLikeUser(clickTarget);
+            logTrace('AUTO-EDIT: expanded last accordion (turn row)');
           }
         }
       } else {
-        // No accordions found — try direct input approach
-        let input =
-          dialog.querySelector('input[inputmode="numeric"]') ||
-          dialog.querySelector('input[type="number"]') ||
-          dialog.querySelector('input');
-        if (input && _isVisible(input)) {
+        // No accordions found — try direct input approach as a last resort,
+        // but ONLY if the dialog has a single input (otherwise we'd risk
+        // editing the wrong turn).
+        const inputs = Array.from(dialog.querySelectorAll('input')).filter(_isVisible);
+        if (inputs.length === 1) {
+          const input = inputs[0];
           _setInputValueFrameworkSafe(input, score);
           const saveBtn = _findModalSaveButton(dialog);
           if (saveBtn) {
@@ -917,11 +964,26 @@
     // Re-entry guard: rapid double-fire (e.g. duplicate postMessage from
     // two listeners, or accidental repeat from voice mis-trigger) was
     // opening the edit modal twice. Coalesce to a single in-flight pass.
+    //
+    // Two layers:
+    //   1) __dvAutoEditBusy — true from start until 1.5s after settle, blocks
+    //      ANY new trigger including identical scores.
+    //   2) __dvAutoEditLastKey — same {score} within 2.5s is ignored even if
+    //      the busy flag has cleared (covers the case where voice + the host
+    //      postMessage arrive separated by a brief window).
+    const now = Date.now();
+    const key = `s:${cleanScore}`;
     if (window.__dvAutoEditBusy) {
       logTrace(`AUTO-EDIT: ignored duplicate trigger for ${cleanScore} (in-flight)`);
       return;
     }
+    if (window.__dvAutoEditLastKey === key && (now - (window.__dvAutoEditLastAt || 0)) < 2500) {
+      logTrace(`AUTO-EDIT: ignored duplicate trigger for ${cleanScore} (within debounce)`);
+      return;
+    }
     window.__dvAutoEditBusy = true;
+    window.__dvAutoEditLastKey = key;
+    window.__dvAutoEditLastAt = now;
     logTrace(`Executing AUTO-EDIT (DartCounter modal first) for ${cleanScore}`);
 
     let settled = false;
@@ -929,15 +991,15 @@
       if (settled) return;
       settled = true;
       if (!ok) _fallbackAutoEdit(cleanScore);
-      // Release the guard a moment after settle so a second voice command
-      // that arrives instantly is still ignored, but the user can retry.
-      setTimeout(() => { window.__dvAutoEditBusy = false; }, 600);
+      // Release the busy flag after a longer cooldown so the *second* of two
+      // racing triggers (voice + host postMessage) is reliably swallowed.
+      setTimeout(() => { window.__dvAutoEditBusy = false; }, 1500);
     };
 
     _tryDartCounterModalEdit(cleanScore, 0, finish);
 
     // Guard timeout: if the modal pathway hangs, force fallback.
-    setTimeout(() => finish(false), 3400);
+    setTimeout(() => finish(false), 4500);
   }
 
   function processSpeech(transcript) {
