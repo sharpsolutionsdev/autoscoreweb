@@ -2033,10 +2033,17 @@
       // clickable element by href/testid. Does NOT reload the iframe either way.
       if (event.data.type === "DV_ACTION" && isIframe) {
         const action = event.data.action;
-        // Dedupe: ignore the same action fired within 800ms. Fixes camera
-        // dialog opening twice when content.js receives the postMessage in
-        // multiple nested frames OR when the host button double-fires
-        // (touchstart + click on touch devices).
+        // Frame guard: only respond in the FIRST-LEVEL dartcounter frame
+        // (the one whose parent is our host web-app). Deeper nested iframes
+        // (intercom, auth, etc.) also receive the bubbled postMessage but
+        // must not act on it — that's what was causing camera-2x.
+        try {
+          if (window.parent !== window.top) {
+            // We're in a nested sub-iframe inside dartcounter — ignore.
+            return;
+          }
+        } catch (e) { /* cross-origin throw → we're definitely not the top */ return; }
+        // Dedupe (safety net for touch+click double-fires from the host button).
         try {
           window.__dvLastAction = window.__dvLastAction || {};
           const now = Date.now();
