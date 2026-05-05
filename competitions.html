@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.google-analytics.com; img-src 'self' data: https:; frame-src https://js.stripe.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.google-analytics.com https://region1.google-analytics.com; img-src 'self' data: https:; frame-src https://js.stripe.com">
 
     <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var hx=h.replace('#','');var r=parseInt(hx.slice(0,2),16),g=parseInt(hx.slice(2,4),16),b=parseInt(hx.slice(4,6),16);var d=document.documentElement.style;d.setProperty('--brand',h);d.setProperty('--brand-r',r);d.setProperty('--brand-g',g);d.setProperty('--brand-b',b);d.setProperty('--brand-rgb',r+','+g+','+b);}();</script>
 
@@ -46,6 +46,8 @@
         }
 
         .comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+        .filter-chip { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.035); color: #a1a1aa; border-radius: 999px; padding: 7px 12px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; transition: all .16s ease; }
+        .filter-chip:hover, .filter-chip.active { color: #fff; border-color: rgba(var(--brand-rgb),0.45); background: rgba(var(--brand-rgb),0.12); box-shadow: 0 0 0 2px rgba(var(--brand-rgb),0.08) inset; }
 
         .comp-card {
             background: linear-gradient(180deg, #131317 0%, #0f0f12 100%);
@@ -79,6 +81,7 @@
             background: rgba(0,0,0,0.7); color: #fff;
             backdrop-filter: blur(4px);
         }
+        .skill-pill { display:inline-flex; align-items:center; gap:5px; width:max-content; padding:4px 8px; border-radius:999px; border:1px solid rgba(245,158,11,.28); background:rgba(245,158,11,.09); color:#fbbf24; font-size:10px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
 
         .progress { height: 6px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
         .progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), #f59e0b); transition: width .4s ease; }
@@ -143,6 +146,13 @@
                 <a href="#how-it-works" class="text-xs text-muted hover:text-chalk transition">How it works →</a>
             </div>
 
+            <div class="flex flex-wrap gap-2 mb-5" id="comp-filters" aria-label="Filter competitions">
+                <button type="button" class="filter-chip active" data-filter="all">All</button>
+                <button type="button" class="filter-chip" data-filter="darts">Darts</button>
+                <button type="button" class="filter-chip" data-filter="boards">Boards</button>
+                <button type="button" class="filter-chip" data-filter="cash">Cash</button>
+            </div>
+
             <div id="comp-grid" class="comp-grid">
                 <!-- Skeleton loaders -->
                 <div class="comp-card"><div class="skeleton" style="height:240px;border-radius:0;"></div><div class="p-5 space-y-3"><div class="skeleton" style="height:18px;width:80%;"></div><div class="skeleton" style="height:14px;width:60%;"></div><div class="skeleton" style="height:6px;width:100%;"></div><div class="skeleton" style="height:42px;width:100%;"></div></div></div>
@@ -194,9 +204,30 @@
         const SB_KEY = document.querySelector('meta[name="supabase-key"]')?.content || '';
         const grid = document.getElementById('comp-grid');
         const empty = document.getElementById('comp-empty');
+        const filters = document.getElementById('comp-filters');
+        let currentRows = [];
+        let currentFilter = 'all';
+
+        const demoDrawDate = (days) => new Date(Date.now() + days * 86400000).toISOString();
+        function demoImage(label, color) {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 675"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.95"/><stop offset="1" stop-color="#050508"/></linearGradient><radialGradient id="r" cx="50%" cy="42%" r="42%"><stop offset="0" stop-color="#ffffff" stop-opacity="0.20"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs><rect width="900" height="675" fill="url(#g)"/><rect width="900" height="675" fill="url(#r)"/><circle cx="450" cy="320" r="190" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="18"/><circle cx="450" cy="320" r="78" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="12"/><path d="M240 466 690 190" stroke="#fff" stroke-width="18" stroke-linecap="round" stroke-opacity=".85"/><path d="M285 510 735 234" stroke="#111" stroke-width="10" stroke-linecap="round" stroke-opacity=".55"/><text x="52" y="92" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="900" letter-spacing="4">DARTVOICE</text><text x="52" y="604" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="54" font-weight="900">${label}</text></svg>`;
+            return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        }
+        const DEMO_COMPS = [
+            { id:'demo-phil-taylor', slug:'phil-taylor-gen-7-demo', title:'Phil Taylor Gen 7 Signed Set', subtitle:'Collector-grade signature darts with premium case', category:'darts', prize_image_url:demoImage('SIGNED DARTS', '#CC0B20'), prize_value_pence:16999, ticket_price_pence:199, total_tickets:650, sold_tickets:421, draw_at:demoDrawDate(2), status:'active', hero_color:'#CC0B20', demo:true },
+            { id:'demo-blade-six', slug:'winmau-blade-6-demo', title:'Winmau Blade 6 Triple Core Board', subtitle:'Pro-level board plus surround and oche setup', category:'boards', prize_image_url:demoImage('PRO BOARD', '#f59e0b'), prize_value_pence:12499, ticket_price_pence:99, total_tickets:900, sold_tickets:688, draw_at:demoDrawDate(5), status:'active', hero_color:'#f59e0b', demo:true },
+            { id:'demo-littler', slug:'luke-littler-signature-demo', title:'Luke Littler Signature Bundle', subtitle:'Darts, flights, stems and display stand', category:'darts', prize_image_url:demoImage('PLAYER BUNDLE', '#22c55e'), prize_value_pence:21999, ticket_price_pence:249, total_tickets:750, sold_tickets:201, draw_at:demoDrawDate(7), status:'active', hero_color:'#22c55e', demo:true },
+            { id:'demo-cash', slug:'cash-500-demo', title:'£500 Cash Checkout', subtitle:'Straight cash prize paid by bank transfer', category:'cash', prize_image_url:demoImage('CASH DRAW', '#7c3aed'), prize_value_pence:50000, ticket_price_pence:299, total_tickets:1000, sold_tickets:742, draw_at:demoDrawDate(1), status:'active', hero_color:'#7c3aed', demo:true }
+        ];
+        const DEMO_WINNERS = [
+            { display_name:'Mason T.', prize_label:'Winmau Blade 6 setup' },
+            { display_name:'Sarah D.', prize_label:'£250 cash draw' },
+            { display_name:'Jay R.', prize_label:'signature darts bundle' }
+        ];
 
         const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
         const gbp = (pence) => '£' + (Number(pence || 0) / 100).toFixed(2).replace(/\.00$/, '');
+        const safeImageUrl = (url) => /^(https?:|data:image|\/assets\/|assets\/)/.test(String(url || ''));
 
         function timeLeft(iso) {
             const ms = new Date(iso).getTime() - Date.now();
@@ -213,15 +244,16 @@
             const card = document.createElement('article');
             card.className = 'comp-card';
 
-            const sold = Math.min(c.sold_tickets || 0, c.total_tickets);
-            const pct = Math.round((sold / c.total_tickets) * 100);
-            const remaining = c.total_tickets - sold;
+            const totalTickets = Number(c.total_tickets || 0) || 1;
+            const sold = Math.min(c.sold_tickets || 0, totalTickets);
+            const pct = Math.round((sold / totalTickets) * 100);
+            const remaining = totalTickets - sold;
             const isSoldOut = c.status === 'sold_out' || remaining <= 0;
             const drawingSoon = !isSoldOut && new Date(c.draw_at).getTime() - Date.now() < 86400000;
 
             const img = document.createElement('div');
             img.className = 'image';
-            if (c.prize_image_url && /^https?:\/\//.test(c.prize_image_url)) {
+            if (safeImageUrl(c.prize_image_url)) {
                 img.style.backgroundImage = `url("${c.prize_image_url.replace(/"/g, '%22')}")`;
             } else {
                 img.style.background = `linear-gradient(135deg, ${esc(c.hero_color || '#CC0B20')}33, #0a0a0d)`;
@@ -245,8 +277,9 @@
                     <h3 class="font-bold text-chalk text-base leading-tight">${esc(c.title)}</h3>
                     ${c.subtitle ? `<p class="text-xs text-muted mt-1">${esc(c.subtitle)}</p>` : ''}
                 </div>
+                <span class="skill-pill">Skill question required</span>
                 <div class="flex items-center justify-between text-[11px]">
-                    <span class="text-muted">${sold.toLocaleString()} / ${c.total_tickets.toLocaleString()} tickets</span>
+                    <span class="text-muted">${sold.toLocaleString()} / ${totalTickets.toLocaleString()} tickets</span>
                     <span class="font-bold" style="color:var(--brand);">${pct}%</span>
                 </div>
                 <div class="progress"><span style="width:${pct}%"></span></div>
@@ -272,22 +305,69 @@
             return card;
         }
 
+        function renderRows(rows) {
+            currentRows = rows.slice();
+            const filtered = currentFilter === 'all' ? currentRows : currentRows.filter(c => (c.category || 'darts') === currentFilter);
+            grid.innerHTML = '';
+            empty.classList.add('hidden');
+            grid.classList.remove('hidden');
+            if (!filtered.length) {
+                grid.innerHTML = '<p class="text-sm text-muted col-span-full text-center py-8">No draws in this category right now.</p>';
+                return;
+            }
+            filtered.forEach(c => grid.appendChild(buildCard(c)));
+        }
+
+        function inferCategory(c) {
+            const text = `${c.title || ''} ${c.subtitle || ''}`.toLowerCase();
+            if (/cash|money|bank|£|gbp/.test(text)) return 'cash';
+            if (/board|blade|surround|oche/.test(text)) return 'boards';
+            return 'darts';
+        }
+
+        function normalizeRows(rows) {
+            return rows.map(c => ({
+                category: inferCategory(c),
+                hero_color: c.hero_color || '#CC0B20',
+                ...c
+            }));
+        }
+
+        filters?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-filter]'); if (!btn) return;
+            currentFilter = btn.dataset.filter || 'all';
+            filters.querySelectorAll('.filter-chip').forEach(x => x.classList.toggle('active', x === btn));
+            renderRows(currentRows.length ? currentRows : DEMO_COMPS);
+        });
+
         async function load() {
             try {
                 const url = `${SB_URL}/rest/v1/competitions?select=id,slug,title,subtitle,prize_image_url,prize_value_pence,ticket_price_pence,total_tickets,sold_tickets,draw_at,status,hero_color&status=in.(active,sold_out)&order=draw_at.asc`;
                 const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
                 const rows = r.ok ? await r.json() : [];
-                grid.innerHTML = '';
-                if (!rows.length) {
-                    grid.classList.add('hidden');
-                    empty.classList.remove('hidden');
+                const freshRows = rows.filter(c => c.status === 'sold_out' || new Date(c.draw_at).getTime() > Date.now());
+                if (!freshRows.length) {
+                    renderRows(DEMO_COMPS);
                     return;
                 }
-                rows.forEach(c => grid.appendChild(buildCard(c)));
+                renderRows(normalizeRows(freshRows));
             } catch (e) {
                 console.error('Failed to load competitions', e);
-                grid.innerHTML = '<p class="text-sm text-muted col-span-full text-center py-8">Couldn\u2019t load competitions. Try refreshing.</p>';
+                renderRows(DEMO_COMPS);
             }
+        }
+
+        function renderWinners(rows) {
+            if (!rows.length) return;
+            const strip = document.getElementById('winners-strip');
+            strip.innerHTML = '';
+            rows.forEach(w => {
+                const pill = document.createElement('span');
+                pill.className = 'winner-pill';
+                pill.textContent = `🏆 ${(w.display_name || 'A winner')} won ${w.prize_label}`;
+                strip.appendChild(pill);
+            });
+            document.getElementById('winners-section').hidden = false;
         }
 
         async function loadWinners() {
@@ -295,16 +375,8 @@
                 const url = `${SB_URL}/rest/v1/competition_winners?select=display_name,prize_label,drawn_at&order=drawn_at.desc&limit=10`;
                 const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
                 const rows = r.ok ? await r.json() : [];
-                if (!rows.length) return;
-                const strip = document.getElementById('winners-strip');
-                rows.forEach(w => {
-                    const pill = document.createElement('span');
-                    pill.className = 'winner-pill';
-                    pill.textContent = `🏆 ${(w.display_name || 'A winner')} won ${w.prize_label}`;
-                    strip.appendChild(pill);
-                });
-                document.getElementById('winners-section').hidden = false;
-            } catch (_) { /* silent */ }
+                renderWinners(rows.length ? rows : DEMO_WINNERS);
+            } catch (_) { renderWinners(DEMO_WINNERS); }
         }
 
         load();

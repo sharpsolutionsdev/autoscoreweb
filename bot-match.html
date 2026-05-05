@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';">
+    <title>Offline Bot Match | DartVoice</title>
+    <meta name="description" content="Play an instant offline competitive darts match against a DartVoice bot opponent.">
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+    <link rel="stylesheet" href="css/tailwind.built.css">
+    <link rel="stylesheet" href="css/general/base.css">
+    <script src="theme.js" defer></script>
+    <script src="components/dv-nav.js" defer></script>
+    <script src="components/dv-footer.js" defer></script>
+    <style>
+        :root { --brand:#CC0B20; --brand-rgb:204,11,32; }
+        body { margin:0; min-height:100vh; background:#07070a; color:#f7f7fb; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+        .display { font-family:'Barlow Condensed',Impact,sans-serif; text-transform:uppercase; letter-spacing:.03em; }
+        .page-bg { position:fixed; inset:0; pointer-events:none; z-index:-1; background: radial-gradient(ellipse 70% 45% at 50% 0%, rgba(var(--brand-rgb),.22), transparent 62%), linear-gradient(180deg,#101014,#050507 68%); }
+        .panel { border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018)); border-radius:12px; box-shadow:0 18px 55px rgba(0,0,0,.32); }
+        .scorebox { min-height:190px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.035); }
+        .active { border-color:rgba(var(--brand-rgb),.65); box-shadow:0 0 0 2px rgba(var(--brand-rgb),.12) inset, 0 0 26px rgba(var(--brand-rgb),.12); }
+        .btn { border-radius:10px; min-height:44px; padding:10px 14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; transition:transform .14s ease, filter .14s ease, border-color .14s ease; }
+        .btn:hover { transform:translateY(-1px); filter:brightness(1.08); }
+        .btn-brand { background:var(--brand); color:white; }
+        .btn-ghost { border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.035); color:#fff; }
+        .visit-log { max-height:270px; overflow:auto; }
+        .visit-row { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.055); color:#c9c9d2; font-size:13px; }
+        .pill { display:inline-flex; align-items:center; gap:7px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.035); padding:6px 10px; font-size:11px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; color:#bfc0ca; }
+        .status-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 10px #22c55e; }
+        input, select { background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.12); color:white; border-radius:10px; min-height:44px; padding:0 12px; outline:none; }
+        input:focus, select:focus { border-color:rgba(var(--brand-rgb),.65); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.12); }
+        .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111118; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:10px 14px; color:white; font-size:13px; box-shadow:0 16px 40px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; }
+        .toast.show { opacity:1; transform:translate(-50%,-4px); }
+    </style>
+</head>
+<body>
+    <div class="page-bg"></div>
+    <dv-nav></dv-nav>
+    <main class="max-w-6xl mx-auto px-5 pt-28 pb-16">
+        <header class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8">
+            <div>
+                <span class="pill"><span class="status-dot"></span>Offline competitive queue</span>
+                <h1 class="display text-5xl md:text-7xl mt-4 leading-none">Bot Match</h1>
+                <p class="text-gray-400 max-w-2xl mt-3">Instant practice with ranked-style pressure. No Supabase, no waiting, no opponent required.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a class="btn btn-ghost inline-flex items-center" href="ranked.html">Ranked Hub</a>
+                <a class="btn btn-ghost inline-flex items-center" href="web-app.html">Open Scorer</a>
+            </div>
+        </header>
+
+        <section class="panel p-5 md:p-6 mb-6">
+            <div class="grid md:grid-cols-4 gap-3">
+                <label class="grid gap-1 text-xs font-bold uppercase tracking-widest text-gray-500">Format
+                    <select id="format">
+                        <option value="501">501</option>
+                        <option value="301">301</option>
+                    </select>
+                </label>
+                <label class="grid gap-1 text-xs font-bold uppercase tracking-widest text-gray-500">Bot
+                    <select id="difficulty">
+                        <option value="easy">Easy · 55 avg</option>
+                        <option value="medium" selected>Medium · 75 avg</option>
+                        <option value="hard">Hard · 90 avg</option>
+                        <option value="pro">Pro · 102 avg</option>
+                    </select>
+                </label>
+                <label class="grid gap-1 text-xs font-bold uppercase tracking-widest text-gray-500">Legs
+                    <select id="legsToWin">
+                        <option value="1">First to 1</option>
+                        <option value="2">Best of 3</option>
+                        <option value="3" selected>Best of 5</option>
+                    </select>
+                </label>
+                <button id="newMatch" class="btn btn-brand self-end">Start Queue</button>
+            </div>
+        </section>
+
+        <section class="grid lg:grid-cols-[1fr_340px] gap-6">
+            <div class="grid md:grid-cols-2 gap-5">
+                <article id="playerBox" class="scorebox active p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest font-black">You</p>
+                            <h2 class="display text-3xl">Player</h2>
+                        </div>
+                        <span id="playerLegs" class="pill">0 legs</span>
+                    </div>
+                    <div id="playerScore" class="display text-8xl leading-none">501</div>
+                    <p id="playerHint" class="text-sm text-gray-400 mt-2">Enter your visit score.</p>
+                </article>
+                <article id="botBox" class="scorebox p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest font-black">Opponent</p>
+                            <h2 id="botName" class="display text-3xl">Bot</h2>
+                        </div>
+                        <span id="botLegs" class="pill">0 legs</span>
+                    </div>
+                    <div id="botScore" class="display text-8xl leading-none">501</div>
+                    <p id="botHint" class="text-sm text-gray-400 mt-2">Queued and ready.</p>
+                </article>
+            </div>
+
+            <aside class="panel p-5">
+                <h3 class="display text-2xl mb-4">Visit</h3>
+                <div class="grid gap-3">
+                    <input id="visitScore" inputmode="numeric" pattern="[0-9]*" placeholder="0-180" aria-label="Your visit score">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="btn btn-ghost quick" data-score="26">26</button>
+                        <button class="btn btn-ghost quick" data-score="60">60</button>
+                        <button class="btn btn-ghost quick" data-score="100">100</button>
+                        <button class="btn btn-ghost quick" data-score="121">121</button>
+                        <button class="btn btn-ghost quick" data-score="140">140</button>
+                        <button class="btn btn-ghost quick" data-score="180">180</button>
+                    </div>
+                    <button id="submitVisit" class="btn btn-brand">Submit Visit</button>
+                    <button id="undo" class="btn btn-ghost">Undo</button>
+                </div>
+                <div class="mt-6 pt-5 border-t border-white/10">
+                    <div class="grid grid-cols-3 gap-2 mb-5 text-center">
+                        <div class="scorebox p-3 min-h-0">
+                            <p class="text-[10px] uppercase tracking-widest text-gray-500 font-black">Played</p>
+                            <p id="statMatches" class="display text-2xl">0</p>
+                        </div>
+                        <div class="scorebox p-3 min-h-0">
+                            <p class="text-[10px] uppercase tracking-widest text-gray-500 font-black">Wins</p>
+                            <p id="statWins" class="display text-2xl">0</p>
+                        </div>
+                        <div class="scorebox p-3 min-h-0">
+                            <p class="text-[10px] uppercase tracking-widest text-gray-500 font-black">Rate</p>
+                            <p id="statRate" class="display text-2xl">0%</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-gray-500">Match log</h4>
+                        <span id="matchStatus" class="text-xs text-gray-400">Ready</span>
+                    </div>
+                    <div id="log" class="visit-log"></div>
+                </div>
+            </aside>
+        </section>
+    </main>
+    <dv-footer></dv-footer>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+    (function(){
+        const $ = id => document.getElementById(id);
+        const botProfiles = {
+            easy: { name:'Checkout Charlie', avg:55, spread:24, checkout:0.35 },
+            medium: { name:'Treble Tess', avg:75, spread:20, checkout:0.52 },
+            hard: { name:'Double Dylan', avg:90, spread:16, checkout:0.68 },
+            pro: { name:'Pro Pace Parker', avg:102, spread:12, checkout:0.82 }
+        };
+        let state = null;
+        const history = [];
+
+        function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+        function randomNormal(){ let u=0,v=0; while(!u) u=Math.random(); while(!v) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+        function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1800); }
+        function validCheckout(score){ return score === 50 || score <= 40 && score % 2 === 0; }
+        function canFinish(remaining){ return remaining <= 170 && remaining !== 169 && remaining !== 168 && remaining !== 166 && remaining !== 165 && remaining !== 163 && remaining !== 162 && remaining !== 159; }
+
+        function startMatch(){
+            const start = Number($('format').value);
+            const profile = botProfiles[$('difficulty').value];
+            state = { start, player:start, bot:start, playerLegs:0, botLegs:0, targetLegs:Number($('legsToWin').value), turn:'player', profile, over:false };
+            history.length = 0;
+            $('botName').textContent = profile.name;
+            log(`Queue popped: you vs ${profile.name}`);
+            render();
+            $('visitScore').focus();
+        }
+
+        function log(text){
+            const row = document.createElement('div');
+            row.className = 'visit-row';
+            row.innerHTML = `<span>${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span><strong>${text}</strong>`;
+            $('log').prepend(row);
+        }
+
+        function render(){
+            $('playerScore').textContent = state.player;
+            $('botScore').textContent = state.bot;
+            $('playerLegs').textContent = `${state.playerLegs} legs`;
+            $('botLegs').textContent = `${state.botLegs} legs`;
+            $('playerBox').classList.toggle('active', state.turn === 'player' && !state.over);
+            $('botBox').classList.toggle('active', state.turn === 'bot' && !state.over);
+            $('matchStatus').textContent = state.over ? 'Match complete' : state.turn === 'player' ? 'Your throw' : 'Bot throw';
+            $('playerHint').textContent = checkoutHint(state.player);
+            $('botHint').textContent = state.turn === 'bot' ? 'Thinking...' : checkoutHint(state.bot);
+            $('submitVisit').disabled = state.over || state.turn !== 'player';
+        }
+
+        function checkoutHint(score){
+            if (score <= 1) return 'Bust danger. You need a double finish.';
+            if (canFinish(score)) return `Checkout available from ${score}.`;
+            return 'Set up the next visit.';
+        }
+
+        function submitPlayer(score){
+            if (!state || state.over || state.turn !== 'player') return;
+            score = Number(score);
+            if (!Number.isFinite(score) || score < 0 || score > 180) { toast('Enter a score from 0 to 180'); return; }
+            if (score > state.player || state.player - score === 1) { log(`You bust on ${score}`); history.push(JSON.stringify(state)); state.turn='bot'; render(); setTimeout(botThrow, 650); return; }
+            if (score === state.player) {
+                if (!validCheckout(score)) { log(`You bust: ${score} is not a double finish`); history.push(JSON.stringify(state)); state.turn='bot'; render(); setTimeout(botThrow, 650); return; }
+                history.push(JSON.stringify(state));
+                state.player = 0;
+                winLeg('player');
+                return;
+            }
+            history.push(JSON.stringify(state));
+            state.player -= score;
+            log(`You scored ${score}, ${state.player} left`);
+            state.turn = 'bot';
+            render();
+            setTimeout(botThrow, 650);
+        }
+
+        function botThrow(){
+            if (!state || state.over) return;
+            const p = state.profile;
+            let score;
+            if (canFinish(state.bot) && Math.random() < p.checkout) score = state.bot;
+            else score = clamp(Math.round(p.avg + randomNormal() * p.spread), 0, 180);
+            if (score > state.bot || state.bot - score === 1 || score === state.bot && !validCheckout(score)) {
+                log(`${p.name} busts on ${score}`);
+            } else if (score === state.bot) {
+                state.bot = 0;
+                log(`${p.name} checks out ${score}`);
+                winLeg('bot');
+                return;
+            } else {
+                state.bot -= score;
+                log(`${p.name} scores ${score}, ${state.bot} left`);
+            }
+            state.turn = 'player';
+            render();
+            $('visitScore').focus();
+        }
+
+        function winLeg(who){
+            if (who === 'player') { state.playerLegs++; log('You win the leg'); }
+            else { state.botLegs++; log(`${state.profile.name} wins the leg`); }
+            if (state[who + 'Legs'] >= state.targetLegs) {
+                state.over = true;
+                toast(who === 'player' ? 'Match won' : 'Match lost');
+                saveStats(who === 'player');
+                render();
+                return;
+            }
+            state.player = state.start;
+            state.bot = state.start;
+            state.turn = who === 'player' ? 'bot' : 'player';
+            render();
+            if (state.turn === 'bot') setTimeout(botThrow, 700);
+        }
+
+        function saveStats(won){
+            const key = 'dv-offline-bot-stats-v1';
+            const stats = JSON.parse(localStorage.getItem(key) || '{"wins":0,"losses":0,"matches":0}');
+            stats.matches++; won ? stats.wins++ : stats.losses++;
+            localStorage.setItem(key, JSON.stringify(stats));
+            renderStats();
+        }
+
+        function renderStats(){
+            const stats = JSON.parse(localStorage.getItem('dv-offline-bot-stats-v1') || '{"wins":0,"losses":0,"matches":0}');
+            const rate = stats.matches ? Math.round((stats.wins / stats.matches) * 100) : 0;
+            $('statMatches').textContent = stats.matches || 0;
+            $('statWins').textContent = stats.wins || 0;
+            $('statRate').textContent = rate + '%';
+        }
+
+        $('newMatch').addEventListener('click', startMatch);
+        $('submitVisit').addEventListener('click', () => { submitPlayer($('visitScore').value); $('visitScore').value=''; });
+        $('visitScore').addEventListener('keydown', e => { if (e.key === 'Enter') $('submitVisit').click(); });
+        document.querySelectorAll('.quick').forEach(btn => btn.addEventListener('click', () => { $('visitScore').value = btn.dataset.score; $('submitVisit').click(); }));
+        $('undo').addEventListener('click', () => {
+            const prev = history.pop();
+            if (!prev) { toast('Nothing to undo'); return; }
+            state = JSON.parse(prev);
+            render();
+        });
+        renderStats();
+        startMatch();
+    })();
+    </script>
+</body>
+</html>

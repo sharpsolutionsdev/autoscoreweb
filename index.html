@@ -618,6 +618,50 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         </div>
     </section>
 
+    <!-- Product paths -->
+    <section id="play-paths" class="dv-paths py-20 sm:py-24 relative overflow-hidden">
+        <div class="max-w-6xl mx-auto px-5 relative">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8 reveal">
+                <div>
+                    <p class="text-brand text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Choose your match</p>
+                    <h2 class="display text-4xl sm:text-5xl md:text-6xl leading-none text-chalk">ONE HUB, FOUR WAYS TO PLAY</h2>
+                </div>
+                <p class="text-muted max-w-md text-sm leading-relaxed">Jump straight into the scorer, queue ranked, warm up against an offline bot, or chase prize draws without losing the DartVoice flow.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <a href="web-app" class="dv-path-card reveal">
+                    <div class="dv-path-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v11H4zM8 20h8m-4-4v4"/></svg></div>
+                    <p class="dv-path-eyebrow">Live scorer</p>
+                    <h3 class="dv-path-title">Web App</h3>
+                    <p class="dv-path-copy">Voice scoring, DartCounter bridge, camera zoom calibration and checkout support in the browser.</p>
+                    <div class="dv-path-meta"><span class="dv-path-pill">Ready now</span><span>Open -></span></div>
+                </a>
+                <a href="ranked.html" class="dv-path-card reveal">
+                    <div class="dv-path-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v18l7-5 7 5V3z"/></svg></div>
+                    <p class="dv-path-eyebrow">Season ladder</p>
+                    <h3 class="dv-path-title">Ranked</h3>
+                    <p class="dv-path-copy">Mode-specific MMR, player stats, placements and online matchmaking for serious sessions.</p>
+                    <div class="dv-path-meta"><span class="dv-path-pill">Pro ladder</span><span>Queue -></span></div>
+                </a>
+                <a href="bot-match.html" class="dv-path-card reveal">
+                    <div class="dv-path-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8m8 0h-4m0 4a6 6 0 106 6 6 6 0 00-6-6zm-3 6h.01M15 14h.01M9 17h6"/></svg></div>
+                    <p class="dv-path-eyebrow">Always on</p>
+                    <h3 class="dv-path-title">Bot Queue</h3>
+                    <p class="dv-path-copy">Instant offline competitive legs with difficulty, match logs, bust logic and local results.</p>
+                    <div class="dv-path-meta"><span class="dv-path-pill">Offline</span><span>Play -></span></div>
+                </a>
+                <a href="competitions.html" class="dv-path-card reveal">
+                    <div class="dv-path-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 21h8m-4-4v4m-7-9V5a2 2 0 012-2h10a2 2 0 012 2v7a5 5 0 01-5 5H10a5 5 0 01-5-5z"/></svg></div>
+                    <p class="dv-path-eyebrow">Prize draws</p>
+                    <h3 class="dv-path-title">Competitions</h3>
+                    <p class="dv-path-copy">Signature darts, boards and cash specials with skill-question entry and transparent draws.</p>
+                    <div class="dv-path-meta"><span class="dv-path-pill">Live draws</span><span>Browse -></span></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- Built for the Oche section -->
     <section id="features" class="py-24 sm:py-32 relative overflow-hidden" style="border-top: 1px solid #252530;">
         <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at 15% 20%, rgba(var(--brand-rgb), 0.12), transparent 40%), radial-gradient(circle at 85% 80%, rgba(59,130,246,0.08), transparent 38%);"></div>
@@ -1883,6 +1927,16 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
         var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveWp5a2dxc3ZnaW1zc2Joc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjgyMzQsImV4cCI6MjA4OTQwNDIzNH0.1_KBIagUj_EkfTU2MF3qsyR1lvJQ4jVqZ2AuVcGDBIA';
         function esc(s){var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML;}
         function gbp(p){return '£'+(Number(p||0)/100).toFixed(2);}
+        function demoDrawDate(days){ return new Date(Date.now() + days * 86400000).toISOString(); }
+        function demoImage(label, color){
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + color + '"/><stop offset="1" stop-color="#050508"/></linearGradient></defs><rect width="900" height="560" fill="url(#g)"/><circle cx="450" cy="250" r="142" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="16"/><path d="M260 396 640 160" stroke="#fff" stroke-width="18" stroke-linecap="round" stroke-opacity=".86"/><text x="46" y="82" fill="#fff" font-family="Arial" font-size="32" font-weight="900" letter-spacing="4">DARTVOICE</text><text x="46" y="500" fill="#fff" font-family="Arial" font-size="50" font-weight="900">' + label + '</text></svg>';
+            return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        }
+        var DEMO_PREVIEW = [
+            { slug:'cash-500-demo', title:'£500 Cash Checkout', prize_image_url:demoImage('CASH DRAW','#7c3aed'), ticket_price_pence:299, total_tickets:1000, sold_tickets:742, draw_at:demoDrawDate(1), status:'active', hero_color:'#7c3aed' },
+            { slug:'phil-taylor-gen-7-demo', title:'Phil Taylor Gen 7 Signed Set', prize_image_url:demoImage('SIGNED DARTS','#CC0B20'), ticket_price_pence:199, total_tickets:650, sold_tickets:421, draw_at:demoDrawDate(2), status:'active', hero_color:'#CC0B20' },
+            { slug:'winmau-blade-6-demo', title:'Winmau Blade 6 Triple Core Board', prize_image_url:demoImage('PRO BOARD','#f59e0b'), ticket_price_pence:99, total_tickets:900, sold_tickets:688, draw_at:demoDrawDate(5), status:'active', hero_color:'#f59e0b' }
+        ];
         function countdown(target){
             var ms = new Date(target).getTime() - Date.now();
             if (ms <= 0) return 'Drawing now';
@@ -1917,14 +1971,21 @@ style="background:rgba(var(--brand-rgb), 0.5);">3 Darts</span>
             { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
           .then(function(r){ return r.ok ? r.json() : []; })
           .then(function(rows){
-              if (!rows || !rows.length) return;
+              var freshRows = (rows || []).filter(function(c){ return c.status === 'sold_out' || new Date(c.draw_at).getTime() > Date.now(); });
+              if (!freshRows.length) freshRows = DEMO_PREVIEW;
               var wrap = document.getElementById('dv-comp-live-wrap');
               var grid = document.getElementById('dv-comp-live');
               if (!wrap || !grid) return;
-              grid.innerHTML = rows.map(card).join('');
+              grid.innerHTML = freshRows.slice(0, 3).map(card).join('');
               wrap.hidden = false;
           })
-          .catch(function(){});
+          .catch(function(){
+              var wrap = document.getElementById('dv-comp-live-wrap');
+              var grid = document.getElementById('dv-comp-live');
+              if (!wrap || !grid) return;
+              grid.innerHTML = DEMO_PREVIEW.map(card).join('');
+              wrap.hidden = false;
+          });
     })();
     </script>
 

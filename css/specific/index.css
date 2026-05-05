@@ -1328,3 +1328,94 @@ body {
   .hero-strike, .hero-strike * { animation: none !important; }
   .hs-dart { opacity: 1; transform: translate3d(var(--strike-x), var(--strike-y), 0); }
 }
+
+/* Product paths */
+.dv-paths {
+  border-top: 1px solid #252530;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(var(--brand-rgb), 0.13), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,0.015), transparent 65%);
+}
+
+.dv-path-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 252px;
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.dv-path-card:hover,
+.dv-path-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(var(--brand-rgb),0.48);
+  box-shadow: 0 18px 48px rgba(0,0,0,0.34), 0 0 0 1px rgba(var(--brand-rgb),0.10) inset;
+  outline: none;
+}
+
+.dv-path-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(var(--brand-rgb),0.12);
+  color: #fff;
+}
+
+.dv-path-eyebrow {
+  margin-top: 18px;
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.dv-path-title {
+  margin-top: 7px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.dv-path-copy {
+  margin-top: 10px;
+  color: #9E9EB0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dv-path-meta {
+  margin-top: auto;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #F0F0F5;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.dv-path-pill {
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #bfc0ca;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}

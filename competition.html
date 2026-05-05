@@ -171,6 +171,17 @@
         const $ = id => document.getElementById(id);
         const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const gbp = p => '£' + (Number(p || 0) / 100).toFixed(2);
+        const demoDrawDate = (days) => new Date(Date.now() + days * 86400000).toISOString();
+        function demoImage(label, color) {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.95"/><stop offset="1" stop-color="#050508"/></linearGradient><radialGradient id="r" cx="50%" cy="42%" r="42%"><stop offset="0" stop-color="#ffffff" stop-opacity="0.20"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs><rect width="1200" height="900" fill="url(#g)"/><rect width="1200" height="900" fill="url(#r)"/><circle cx="600" cy="420" r="245" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="22"/><circle cx="600" cy="420" r="96" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="14"/><path d="M320 620 920 250" stroke="#fff" stroke-width="24" stroke-linecap="round" stroke-opacity=".85"/><path d="M375 680 975 310" stroke="#111" stroke-width="12" stroke-linecap="round" stroke-opacity=".55"/><text x="72" y="120" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="900" letter-spacing="5">DARTVOICE</text><text x="72" y="805" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="72" font-weight="900">${label}</text></svg>`;
+            return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        }
+        const DEMO_COMPS = {
+            'phil-taylor-gen-7-demo': { slug:'phil-taylor-gen-7-demo', title:'Phil Taylor Gen 7 Signed Set', subtitle:'Collector-grade signature darts with premium case', description:'A premium signed darts bundle for players who want a showpiece set and a match-ready backup.', prize_image_url:demoImage('SIGNED DARTS', '#CC0B20'), prize_value_pence:16999, ticket_price_pence:199, total_tickets:650, sold_tickets:421, draw_at:demoDrawDate(2), status:'active', hero_color:'#CC0B20', max_per_user:75, payment_link_url:'https://buy.stripe.com/28E00b8oN1RQ2wN4qgf7i06', demo:true },
+            'winmau-blade-6-demo': { slug:'winmau-blade-6-demo', title:'Winmau Blade 6 Triple Core Board', subtitle:'Board, surround and oche setup', description:'A full board refresh package for a cleaner home setup and fewer bounce-outs.', prize_image_url:demoImage('PRO BOARD', '#f59e0b'), prize_value_pence:12499, ticket_price_pence:99, total_tickets:900, sold_tickets:688, draw_at:demoDrawDate(5), status:'active', hero_color:'#f59e0b', max_per_user:75, payment_link_url:'https://buy.stripe.com/28EaEP6gFcwu8VbcWMf7i03', demo:true },
+            'luke-littler-signature-demo': { slug:'luke-littler-signature-demo', title:'Luke Littler Signature Bundle', subtitle:'Darts, flights, stems and display stand', description:'A signature-style performance bundle with matching accessories and display storage.', prize_image_url:demoImage('PLAYER BUNDLE', '#22c55e'), prize_value_pence:21999, ticket_price_pence:249, total_tickets:750, sold_tickets:201, draw_at:demoDrawDate(7), status:'active', hero_color:'#22c55e', max_per_user:75, payment_link_url:'https://buy.stripe.com/6oUcMX7kJ5421sJ7Csf7i04', demo:true },
+            'cash-500-demo': { slug:'cash-500-demo', title:'£500 Cash Checkout', subtitle:'Straight cash prize paid by bank transfer', description:'A simple cash draw for players who prefer the prize to be completely flexible.', prize_image_url:demoImage('CASH DRAW', '#7c3aed'), prize_value_pence:50000, ticket_price_pence:299, total_tickets:1000, sold_tickets:742, draw_at:demoDrawDate(1), status:'active', hero_color:'#7c3aed', max_per_user:75, payment_link_url:'https://buy.stripe.com/28E6ozeNb8ge3AR0a0f7i05', demo:true }
+        };
 
         if (!slug) { showNotFound(); return; }
 
@@ -187,11 +198,16 @@
                 const r = await fetch(`${SB_URL}/rest/v1/competitions?select=*&slug=eq.${encodeURIComponent(slug)}&limit=1`,
                     { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
                 const rows = r.ok ? await r.json() : [];
+                if (!rows.length && DEMO_COMPS[slug]) { comp = DEMO_COMPS[slug]; render(); return; }
                 if (!rows.length) return showNotFound();
                 comp = rows[0];
                 if (!['active','sold_out','drawing','drawn'].includes(comp.status)) return showNotFound();
                 render();
-            } catch (e) { console.error(e); showNotFound(); }
+            } catch (e) {
+                console.error(e);
+                if (DEMO_COMPS[slug]) { comp = DEMO_COMPS[slug]; render(); return; }
+                showNotFound();
+            }
         }
 
         function showNotFound() {
@@ -324,7 +340,9 @@
                     return;
                 }
                 if (!comp.payment_link_url) {
-                    throw new Error('Checkout not configured for this competition yet.');
+                    alert('Demo draw: checkout is ready once this prize is connected to a Stripe Payment Link. Your quantity and skill answer are working.');
+                    btn.disabled = false; btn.textContent = orig;
+                    return;
                 }
                 const sep = comp.payment_link_url.includes('?') ? '&' : '?';
                 location.href = comp.payment_link_url

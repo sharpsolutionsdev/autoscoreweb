@@ -132,7 +132,7 @@
             100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb),0); }
         }
 
-        /* ── Hub Mode Cards (Ranked / Tournaments / Casual) ── */
+        /* ── Hub Mode Cards (Ranked / Bot / Tournaments / Competitions) ── */
         .hub-mode-card {
             position: relative; display: flex; flex-direction: column;
             padding: 1.4rem 1.4rem 1.2rem; border-radius: 18px;
@@ -150,6 +150,10 @@
         .hub-mode-card:hover { transform: translateY(-3px); border-color: rgba(var(--brand-rgb),0.45); box-shadow: 0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(var(--brand-rgb),0.08) inset; }
         .hub-mode-card:hover::before { opacity: 1; }
         .hub-mode-card.hub-mode-active { border-color: rgba(var(--brand-rgb),0.55); box-shadow: 0 6px 24px rgba(var(--brand-rgb),0.18); }
+        .ranked-bot-cta { background: rgba(34,197,94,0.08); }
+        .hub-mode-bot-icon { background: linear-gradient(135deg,rgba(34,197,94,0.24),rgba(14,165,233,0.05)); }
+        .hub-mode-bot-accent { color: #86efac; }
+        .hub-mode-bot-pill { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.30); color: #86efac; }
         .hub-mode-icon { width: 54px; height: 54px; border-radius: 14px; display:flex; align-items:center; justify-content:center; color:#fff; margin-bottom: 0.85rem; border:1px solid rgba(255,255,255,0.06); }
         .hub-mode-body { display:flex; flex-direction:column; gap:.35rem; flex:1; }
         .hub-mode-eyebrow { font-size: .65rem; letter-spacing: .18em; text-transform: uppercase; font-weight: 800; color: #ff5066; }
@@ -573,6 +577,10 @@
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                         Find Match
                     </a>
+                    <a href="bot-match.html" class="ranked-bot-cta inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold border border-emerald-400/30 text-emerald-200 hover:border-emerald-300/60 transition">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8m8 0h-4m0 4a6 6 0 106 6 6 6 0 00-6-6zm-3 6h.01M15 14h.01M9 17h6"/></svg>
+                        Queue Bot
+                    </a>
                     <a href="#friends" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold border border-white/10 hover:border-white/30 transition" style="background:rgba(255,255,255,0.03);">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         Friends
@@ -585,9 +593,9 @@
             </div>
         </div>
 
-        <!-- ── 3-Mode Hub Selector ── (Ranked / Tournaments / Casual) -->
+        <!-- ── 4-Mode Hub Selector ── (Ranked / Bot / Tournaments / Competitions) -->
         <section id="hub-modes" class="mb-12" aria-label="Game modes">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5">
                 <a href="#queue" class="hub-mode-card hub-mode-active" data-mode="ranked">
                     <div class="hub-mode-icon" style="background:linear-gradient(135deg,rgba(var(--brand-rgb),0.30),rgba(var(--brand-rgb),0.05));">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v18l7-5 7 5V3z"/></svg>
@@ -602,12 +610,26 @@
                         </div>
                     </div>
                 </a>
+                <a href="bot-match.html" class="hub-mode-card" data-mode="bot">
+                    <div class="hub-mode-icon hub-mode-bot-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8m8 0h-4m0 4a6 6 0 106 6 6 6 0 00-6-6zm-3 6h.01M15 14h.01M9 17h6"/></svg>
+                    </div>
+                    <div class="hub-mode-body">
+                        <div class="hub-mode-eyebrow hub-mode-bot-accent">Mode 2 · Offline</div>
+                        <h3 class="hub-mode-title">Bot Queue</h3>
+                        <p class="hub-mode-desc">Instant ranked-style legs against a local bot. Always available.</p>
+                        <div class="hub-mode-meta">
+                            <span class="hub-mode-pill hub-mode-bot-pill">No wait</span>
+                            <span class="hub-mode-cta">Play Bot →</span>
+                        </div>
+                    </div>
+                </a>
                 <a href="tournaments.html" class="hub-mode-card" data-mode="tournaments">
                     <div class="hub-mode-icon" style="background:linear-gradient(135deg,rgba(255,200,80,0.28),rgba(255,140,40,0.04));">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 21h8m-4-4v4m-7-9V5a2 2 0 012-2h10a2 2 0 012 2v7a5 5 0 01-5 5H10a5 5 0 01-5-5zm0 0H3a2 2 0 01-2-2V8a2 2 0 012-2h2m14 6h2a2 2 0 002-2V8a2 2 0 00-2-2h-2"/></svg>
                     </div>
                     <div class="hub-mode-body">
-                        <div class="hub-mode-eyebrow" style="color:#ffd166;">Mode 2 · New</div>
+                        <div class="hub-mode-eyebrow" style="color:#ffd166;">Mode 3 · New</div>
                         <h3 class="hub-mode-title">Tournaments</h3>
                         <p class="hub-mode-desc">Bracketed events. Daily, weekly, and prize-cash specials.</p>
                         <div class="hub-mode-meta">
@@ -621,12 +643,12 @@
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <div class="hub-mode-body">
-                        <div class="hub-mode-eyebrow" style="color:#7cd1ff;">Mode 3 · Always on</div>
-                        <h3 class="hub-mode-title">Casual & Competitions</h3>
-                        <p class="hub-mode-desc">Friendly matches, cash games, no MMR pressure.</p>
+                        <div class="hub-mode-eyebrow" style="color:#7cd1ff;">Mode 4 · Prizes</div>
+                        <h3 class="hub-mode-title">Competitions</h3>
+                        <p class="hub-mode-desc">Prize draws, signature darts, boards and cash specials.</p>
                         <div class="hub-mode-meta">
-                            <span class="hub-mode-pill" style="background:rgba(124,209,255,0.12);border-color:rgba(124,209,255,0.30);color:#7cd1ff;">Open lobbies</span>
-                            <span class="hub-mode-cta">Find a Game →</span>
+                            <span class="hub-mode-pill" style="background:rgba(124,209,255,0.12);border-color:rgba(124,209,255,0.30);color:#7cd1ff;">Live draws</span>
+                            <span class="hub-mode-cta">Browse Draws →</span>
                         </div>
                     </div>
                 </a>
@@ -713,6 +735,10 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <span>Find Match</span>
                         </button>
+                        <a href="bot-match.html" class="mt-3 w-full border border-emerald-400/25 bg-emerald-400/[0.08] hover:bg-emerald-400/[0.12] text-emerald-100 font-bold py-3 px-5 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8m8 0h-4m0 4a6 6 0 106 6 6 6 0 00-6-6zm-3 6h.01M15 14h.01M9 17h6"/></svg>
+                            Queue Offline Bot
+                        </a>
                         
                         <div id="queue-status" class="hidden mt-4 text-center">
                             <p class="text-sm text-brand animate-pulse font-medium">Searching for opponent...</p>

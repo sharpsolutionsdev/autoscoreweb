@@ -2744,7 +2744,7 @@
             <div id="ranked-match-id-display" style="opacity: 0.8; font-size: 10px;">ID: --</div>
             <button type="button" id="ranked-banner-exit" class="ranked-banner-exit" title="Exit ranked mode">Exit</button>
         </div>
-        <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock; fullscreen" allowfullscreen></iframe>
+        <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock; fullscreen"></iframe>
 
         <!-- Click-catcher overlay shown only while iframe is in PiP mode. Lets
              users click anywhere on the shrunken scorer to restore it without
@@ -3200,8 +3200,11 @@
         .dv-bz-stage{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;border:1px solid #1d1d24;}
         .dv-bz-stage canvas, .dv-bz-stage video{display:block;width:100%;height:100%;object-fit:cover;}
         .dv-bz-stage .dv-bz-overlay{position:absolute;inset:0;pointer-events:none;}
-        .dv-bz-stage.dv-bz-calmode .dv-bz-overlay{pointer-events:auto;cursor:crosshair;}
-        .dv-bz-hint{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(204,11,32,0.92);color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-align:center;letter-spacing:.04em;pointer-events:none;}
+        .dv-bz-stage.dv-bz-calmode .dv-bz-overlay{pointer-events:auto;cursor:crosshair;touch-action:none;}
+        .dv-bz-stage.dv-bz-calmode{box-shadow:0 0 0 2px rgba(204,11,32,0.55), 0 0 28px rgba(204,11,32,0.35) inset;}
+        .dv-bz-hint{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(204,11,32,0.96);color:#fff;font-size:13px;font-weight:800;padding:10px 12px;border-radius:8px;text-align:center;letter-spacing:.04em;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,0.5);line-height:1.3;}
+        .dv-bz-hint .dv-bz-hint-step{display:block;font-size:10px;letter-spacing:.18em;opacity:.85;margin-bottom:2px;}
+        .dv-bz-hint .dv-bz-hint-skip{display:block;margin-top:6px;font-size:10px;font-weight:700;opacity:.85;letter-spacing:.06em;}
         .dv-bz-zones-label{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7a7a85;margin-top:2px;}
         .dv-bz-zones{display:flex;flex-wrap:wrap;gap:4px;}
         .dv-bz-zones button{background:#16161b;border:1px solid #252530;color:#bbb;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;}
@@ -3269,10 +3272,11 @@
                     <div id="dv-bz-hint" class="dv-bz-hint" style="display:none;"></div>
                 </div>
                 <div class="dv-bz-row">
-                    <button id="dv-bz-calibrate" class="dv-bz-btn" disabled>Calibrate (4 clicks)</button>
+                    <button id="dv-bz-calibrate" class="dv-bz-btn" disabled title="Click 4 outer wire points: top, right, bottom, left">Calibrate (4 clicks)</button>
+                    <button id="dv-bz-autocal" class="dv-bz-btn dv-bz-brand" disabled title="Assume board is centred — drag the dots to fine-tune">⚡ Auto</button>
                     <button id="dv-bz-reset" class="dv-bz-btn" title="Clear calibration & zones">Reset</button>
                 </div>
-                <div class="dv-bz-status" id="dv-bz-status">Pick a camera and press Start. Calibrate by clicking 4 outer wire points.</div>
+                <div class="dv-bz-status" id="dv-bz-status">Pick a camera and press Start. Then tap <b>⚡ Auto</b> for instant setup, or use the 4-click flow.</div>
                 <div class="dv-bz-zones-label">Zoom Targets <span style="opacity:.6;font-weight:600;letter-spacing:0;text-transform:none;">(up to 4)</span></div>
                 <div class="dv-bz-zones" id="dv-bz-zones">
                     <button data-zone="T20">T20</button>
@@ -3360,6 +3364,8 @@
             let calPoints = [];   // [TOP(20), RIGHT(6), BOTTOM(3), LEFT(11)]
             const CAL_LABELS = ['TOP — outer wire above 20', 'RIGHT — outer wire right of 6', 'BOTTOM — outer wire below 3', 'LEFT — outer wire left of 11'];
             let rafId = 0;
+            let dragHandle = null;     // index of calib handle being dragged after finalize (0=top,1=right,2=bot,3=left)
+            let _zoomBeforeCal = null; // saved CSS scale we clear during calmode
 
             window.dvBoardZoomToggle = function(){
                 panel.classList.toggle('dv-bz-open');
@@ -3468,6 +3474,7 @@
                     video.addEventListener('resize', sizeOverlay);
                     startBtn.textContent = 'Stop';
                     calBtn.disabled = false;
+                    if (autoCalBtn) autoCalBtn.disabled = false;
                     // ── Wire up native camera zoom (real hardware zoom on Android Chrome). ──
                     try { setupCamZoom(stream); } catch(_){}
                     setStatus(state.calib ? 'Live. Calibration loaded — pick zoom targets below.' : 'Live. Press Calibrate then click 4 outer-wire points.');
@@ -3485,6 +3492,7 @@
                 video.srcObject = null;
                 cancelAnimationFrame(rafId); rafId = 0;
                 calBtn.disabled = true;
+                if (autoCalBtn) autoCalBtn.disabled = true;
                 exitCalMode();
                 // Hide zoom slider when no live stream.
                 try {
@@ -3599,29 +3607,129 @@
                 // Defensive: ensure the canvas has a non-zero bitmap before we
                 // start mapping clicks into it.
                 if (!overlay.width || !overlay.height) sizeOverlay();
+                enterCalMode();
+                hint.innerHTML = '<span class="dv-bz-hint-step">STEP 1 OF 4</span>' + CAL_LABELS[0] + '<span class="dv-bz-hint-skip">Tip: tap ⚡ Auto for instant setup</span>';
+            };
+            // ── ⚡ Auto-calibrate: assume board is centred, full frame. User can
+            // then drag the 4 handles to fine-tune. This removes the most-friction
+            // step (precise click on outer wire) for users on small screens / mobile.
+            const autoCalBtn = document.getElementById('dv-bz-autocal');
+            if (autoCalBtn) autoCalBtn.onclick = () => {
+                if (!stream) return;
+                if (!overlay.width || !overlay.height) sizeOverlay();
+                const w = overlay.width || 1280;
+                const h = overlay.height || 720;
+                const cx = w / 2, cy = h / 2;
+                // Take 42% of min-dimension as a generous default outer-wire radius.
+                const R = Math.min(w, h) * 0.42;
+                state.calib = { cx, cy, R, rotDeg: 0 };
+                save();
+                exitCalMode();
+                setStatus('⚡ Auto-calibrated. Drag the 4 dots on the preview to fine-tune, then pick zoom targets.');
+                renderZones(); renderZooms();
+            };
+            function enterCalMode(){
                 calMode = true; calPoints = [];
                 stage.classList.add('dv-bz-calmode');
                 hint.style.display = 'block';
-                hint.textContent = '1/4 · ' + CAL_LABELS[0];
-            };
+                // Clear any CSS-scale fallback so click coords map 1:1 to video pixels.
+                if (video.style.transform) {
+                    _zoomBeforeCal = video.style.transform;
+                    video.style.transform = '';
+                } else {
+                    _zoomBeforeCal = null;
+                }
+            }
             function exitCalMode(){
-                calMode = false; calPoints = [];
+                calMode = false; calPoints = []; dragHandle = null;
                 stage.classList.remove('dv-bz-calmode');
                 hint.style.display = 'none';
+                // Restore CSS-scale if we had cleared it.
+                if (_zoomBeforeCal !== null) { video.style.transform = _zoomBeforeCal; _zoomBeforeCal = null; }
             }
-            overlay.addEventListener('click', (e) => {
-                if (!calMode) return;
+            // Map a pointer event to source-video pixel coords.
+            function pointToVideoPx(e){
                 const rect = overlay.getBoundingClientRect();
-                // Map click to source video pixel space.
-                const x = (e.clientX - rect.left) / rect.width  * overlay.width;
-                const y = (e.clientY - rect.top)  / rect.height * overlay.height;
+                const cx = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+                const cy = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (cx - rect.left) / rect.width  * overlay.width,
+                    y: (cy - rect.top)  / rect.height * overlay.height
+                };
+            }
+            function handlePoint(e){
+                if (!calMode) return;
+                e.preventDefault();
+                const { x, y } = pointToVideoPx(e);
                 calPoints.push({ x, y });
                 if (calPoints.length < 4) {
-                    hint.textContent = (calPoints.length+1) + '/4 · ' + CAL_LABELS[calPoints.length];
+                    hint.innerHTML = '<span class="dv-bz-hint-step">STEP ' + (calPoints.length+1) + ' OF 4</span>' + CAL_LABELS[calPoints.length];
                 } else {
                     finalizeCalibration();
                 }
-            });
+            }
+            overlay.addEventListener('click', handlePoint);
+            overlay.addEventListener('touchstart', handlePoint, { passive: false });
+            // ── Drag-to-adjust calibration handles AFTER calibration is finalized. ──
+            function getCalibHandlesPx(){
+                if (!state.calib) return null;
+                const { cx, cy, R, rotDeg } = state.calib;
+                // Handles for top, right, bottom, left of the outer-wire circle.
+                // angles measured screen-up = -y; Top is angleDeg=rotDeg+0, Right=+90, etc.
+                const at = (deg) => {
+                    const a = (deg + rotDeg) * Math.PI/180;
+                    return { x: cx + Math.sin(a)*R, y: cy - Math.cos(a)*R };
+                };
+                return [ at(0), at(90), at(180), at(270) ];
+            }
+            function pickHandle(e){
+                const handles = getCalibHandlesPx(); if (!handles) return -1;
+                const { x, y } = pointToVideoPx(e);
+                let best = -1, bestD = Infinity;
+                handles.forEach((h, i) => { const d = Math.hypot(h.x-x, h.y-y); if (d < bestD) { bestD = d; best = i; } });
+                // Only snap if click landed within ~6% of overlay width of the handle.
+                const tol = Math.max(20, overlay.width * 0.06);
+                return bestD <= tol ? best : -1;
+            }
+            function applyDragMove(idx, x, y){
+                if (!state.calib) return;
+                // Recompute calib from one moved handle: keep other 3 fixed.
+                const handles = getCalibHandlesPx(); if (!handles) return;
+                handles[idx] = { x, y };
+                const [t,r,b,l] = handles;
+                const cx = (t.x + r.x + b.x + l.x)/4;
+                const cy = (t.y + r.y + b.y + l.y)/4;
+                const R = (Math.hypot(t.x-cx,t.y-cy) + Math.hypot(r.x-cx,r.y-cy) + Math.hypot(b.x-cx,b.y-cy) + Math.hypot(l.x-cx,l.y-cy))/4;
+                const upAngleRad = Math.atan2(t.x - cx, -(t.y - cy));
+                state.calib = { cx, cy, R, rotDeg: upAngleRad * 180/Math.PI };
+            }
+            function onPointerDown(e){
+                if (calMode) return; // 4-click flow is in handlePoint
+                if (!state.calib) return;
+                const idx = pickHandle(e);
+                if (idx < 0) return;
+                e.preventDefault();
+                dragHandle = idx;
+                stage.classList.add('dv-bz-calmode'); // re-uses crosshair + pointer-events
+            }
+            function onPointerMove(e){
+                if (dragHandle == null) return;
+                e.preventDefault();
+                const { x, y } = pointToVideoPx(e);
+                applyDragMove(dragHandle, x, y);
+            }
+            function onPointerUp(){
+                if (dragHandle == null) return;
+                dragHandle = null;
+                stage.classList.remove('dv-bz-calmode');
+                save();
+            }
+            overlay.addEventListener('mousedown', onPointerDown);
+            overlay.addEventListener('touchstart', onPointerDown, { passive: false });
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('touchmove', onPointerMove, { passive: false });
+            window.addEventListener('mouseup', onPointerUp);
+            window.addEventListener('touchend', onPointerUp);
             function finalizeCalibration(){
                 const [t,r,b,l] = calPoints;
                 const cx = (t.x + r.x + b.x + l.x) / 4;
@@ -3729,6 +3837,24 @@
                     octx.beginPath(); octx.arc(cx, cy, R, 0, Math.PI*2); octx.stroke();
                     octx.beginPath(); octx.arc(cx, cy, R*(R_TREBLE_MID/170), 0, Math.PI*2); octx.stroke();
                     drawDot(octx, cx, cy, '#fff', '');
+                    // Draggable handles for fine-tuning AFTER finalize (skip during 4-click flow)
+                    if (!calMode || calPoints.length === 4) {
+                        const handles = getCalibHandlesPx();
+                        if (handles) {
+                            const labels = ['T','R','B','L'];
+                            handles.forEach((h, i) => {
+                                const isActive = (dragHandle === i);
+                                octx.fillStyle = isActive ? '#fff' : '#CC0B20';
+                                octx.strokeStyle = '#fff';
+                                octx.lineWidth = 2;
+                                octx.beginPath(); octx.arc(h.x, h.y, isActive ? 11 : 9, 0, Math.PI*2); octx.fill(); octx.stroke();
+                                octx.fillStyle = isActive ? '#CC0B20' : '#fff';
+                                octx.font = 'bold 10px sans-serif';
+                                octx.textAlign = 'center'; octx.textBaseline = 'middle';
+                                octx.fillText(labels[i], h.x, h.y);
+                            });
+                        }
+                    }
                     state.zones.forEach(z => {
                         const tp = targetPoint(z); if (!tp) return;
                         octx.strokeStyle = '#fff';
