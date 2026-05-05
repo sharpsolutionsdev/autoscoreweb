@@ -770,6 +770,7 @@
         .app-ctrl-btn:active { transform: translateY(0) scale(0.97); }
         .app-ctrl-btn.accent { background: linear-gradient(135deg, rgba(var(--brand-rgb),0.18) 0%, rgba(var(--brand-rgb),0.06) 100%); border-color: rgba(var(--brand-rgb),0.4); color: #fff; }
         .app-ctrl-btn.accent:hover { background: linear-gradient(135deg, rgba(var(--brand-rgb),0.28) 0%, rgba(var(--brand-rgb),0.12) 100%); color: #fff; }
+        .app-ctrl-btn.app-ctrl-btn-active { background: linear-gradient(135deg, rgba(var(--brand-rgb),0.32) 0%, rgba(var(--brand-rgb),0.12) 100%); border-color: rgba(var(--brand-rgb),0.7); color: #fff; box-shadow: 0 0 0 1px rgba(var(--brand-rgb),0.45) inset, 0 6px 20px rgba(var(--brand-rgb),0.28); }
         .app-ctrl-btn svg { transition: transform .25s ease; }
         .app-ctrl-btn:hover svg { transform: scale(1.15); }
         
@@ -953,7 +954,24 @@
         /* QoL: subtle button polish */
         .btn-brand { transition: background .15s ease, box-shadow .2s ease, transform .1s ease; }
         .btn-brand:active { transform: scale(.98); }
+        .btn-brand:hover { transform: translateY(-1px); }
         .hud-card { transition: border-color .2s ease, background .2s ease; }
+
+        /* Hud card entrance — one-shot fade-up, staggered by JS */
+        @keyframes hudFadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hud-card.dv-anim-in { animation: hudFadeUp .42s cubic-bezier(.22,.61,.36,1) both; }
+
+        /* Active-turn breathing aura on the live player card */
+        @keyframes dvActiveBreath {
+            0%,100% { box-shadow: 0 0 0 1px rgba(var(--brand-rgb),0.25), 0 0 18px rgba(var(--brand-rgb),0.18); }
+            50%     { box-shadow: 0 0 0 1px rgba(var(--brand-rgb),0.45), 0 0 28px rgba(var(--brand-rgb),0.32); }
+        }
+
+        /* Subtle press feedback on any clickable hud control */
+        button:not([disabled]):active, .clickable:active { transform: scale(.985); }
 
         /* Toast notifications */
         #dv-toast-host { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
@@ -1371,6 +1389,7 @@
         .dv-live-pcard.dv-active-turn {
             border-color: rgba(var(--brand-rgb), 0.55);
             box-shadow: 0 0 0 1px rgba(var(--brand-rgb),0.25), 0 0 18px rgba(var(--brand-rgb),0.18);
+            animation: dvActiveBreath 2.4s ease-in-out infinite;
         }
         .dv-live-turn-dot {
             width: 6px; height: 6px; border-radius: 999px;
@@ -2725,7 +2744,7 @@
             <div id="ranked-match-id-display" style="opacity: 0.8; font-size: 10px;">ID: --</div>
             <button type="button" id="ranked-banner-exit" class="ranked-banner-exit" title="Exit ranked mode">Exit</button>
         </div>
-        <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock"></iframe>
+        <iframe id="scorer-frame" src="https://app.dartcounter.net/" title="Target DartCounter" allow="microphone; camera; screen-wake-lock; fullscreen" allowfullscreen></iframe>
 
         <!-- Click-catcher overlay shown only while iframe is in PiP mode. Lets
              users click anywhere on the shrunken scorer to restore it without
@@ -3200,6 +3219,17 @@
         .dv-bz-preview{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;border:1px solid #1d1d24;}
         .dv-bz-help{font-size:10px;color:#7a7a85;line-height:1.5;}
         .dv-bz-help b{color:#bbb;}
+        /* Polish — frosted glass desktop look + accent ring on open + preset hover. */
+        @media (min-width: 720px){
+            .dv-bz-panel{width:380px;background:rgba(12,12,16,0.92);backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1);}
+        }
+        .dv-bz-panel.dv-bz-open{animation:dvBzPop .22s ease-out;}
+        @keyframes dvBzPop{from{opacity:0;transform:translateY(-6px) scale(.98);}to{opacity:1;transform:none;}}
+        .dv-bz-btn.dv-bz-preset{background:#16161b;color:#ccc;border-color:#23232c;letter-spacing:.06em;}
+        .dv-bz-btn.dv-bz-preset:hover{background:#22222a;color:#fff;border-color:rgba(204,11,32,0.45);box-shadow:0 0 0 2px rgba(204,11,32,0.12) inset;}
+        .dv-bz-btn.dv-bz-preset:active{transform:translateY(1px);}
+        #dv-bz-zoomctl{height:24px;}
+        #dv-bz-zoomctl-row{padding:6px 8px;background:rgba(255,255,255,0.02);border:1px solid #1f1f26;border-radius:8px;}
         @media (max-width: 640px){.dv-bz-panel{right:8px;left:8px;width:auto;top:64px;}}
         </style>
         <div id="dv-bz-panel" class="dv-bz-panel" role="dialog" aria-label="Board zoom">
@@ -3208,6 +3238,7 @@
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
                     Board Zoom
                     <span class="dv-bz-pill">BETA</span>
+                    <span id="dv-bz-link-pill" class="dv-bz-pill" style="display:none;background:linear-gradient(135deg,#1d8a3a,#15a83b);color:#dcffe4;border-color:rgba(122,229,130,.5);" title="Cam Zoom is altering the footage DartCounter sends to opponents">LIVE LINK</span>
                 </h4>
                 <div class="dv-bz-head-btns">
                     <button data-bz-min title="Minimize">—</button>
@@ -3218,6 +3249,19 @@
                 <div class="dv-bz-row">
                     <select id="dv-bz-cam" aria-label="Camera"><option value="">No camera selected</option></select>
                     <button id="dv-bz-start" class="dv-bz-btn dv-bz-brand">Start</button>
+                </div>
+                <!-- Native hardware zoom (Android Chrome supports this on most rear cameras) -->
+                <div class="dv-bz-row" id="dv-bz-zoomctl-row" style="display:none;align-items:center;gap:8px;">
+                    <label for="dv-bz-zoomctl" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;font-weight:700;flex-shrink:0;">Cam Zoom</label>
+                    <input id="dv-bz-zoomctl" type="range" min="1" max="3" step="0.1" value="1" style="flex:1;accent-color:var(--brand);" aria-label="Camera hardware zoom">
+                    <span id="dv-bz-zoomctl-val" style="font-size:11px;font-weight:700;color:#fff;min-width:32px;text-align:right;">1.0x</span>
+                </div>
+                <div class="dv-bz-row" id="dv-bz-zoom-presets" style="display:none;gap:4px;flex-wrap:wrap;">
+                    <button type="button" data-bz-preset="1"   class="dv-bz-btn dv-bz-preset" style="flex:1;min-width:48px;padding:4px 0;font-size:11px;">1×</button>
+                    <button type="button" data-bz-preset="1.5" class="dv-bz-btn dv-bz-preset" style="flex:1;min-width:48px;padding:4px 0;font-size:11px;">1.5×</button>
+                    <button type="button" data-bz-preset="2"   class="dv-bz-btn dv-bz-preset" style="flex:1;min-width:48px;padding:4px 0;font-size:11px;">2×</button>
+                    <button type="button" data-bz-preset="2.5" class="dv-bz-btn dv-bz-preset" style="flex:1;min-width:48px;padding:4px 0;font-size:11px;">2.5×</button>
+                    <button type="button" data-bz-preset="3"   class="dv-bz-btn dv-bz-preset" style="flex:1;min-width:48px;padding:4px 0;font-size:11px;">3×</button>
                 </div>
                 <div id="dv-bz-stage" class="dv-bz-stage">
                     <video id="dv-bz-video" muted playsinline></video>
@@ -3319,7 +3363,12 @@
 
             window.dvBoardZoomToggle = function(){
                 panel.classList.toggle('dv-bz-open');
-                if (panel.classList.contains('dv-bz-open')) {
+                const open = panel.classList.contains('dv-bz-open');
+                try {
+                    const tb = document.getElementById('app-ctrl-boardzoom');
+                    if (tb) tb.classList.toggle('app-ctrl-btn-active', open);
+                } catch(_){}
+                if (open) {
                     enumerateCams();
                 }
             };
@@ -3348,6 +3397,33 @@
             panel.querySelector('[data-bz-close]').onclick = () => panel.classList.remove('dv-bz-open');
             panel.querySelector('[data-bz-min]').onclick = () => { panel.classList.toggle('dv-bz-min'); state.minimized = panel.classList.contains('dv-bz-min'); save(); };
             if (state.minimized) panel.classList.add('dv-bz-min');
+
+            // ── Preset zoom chips: one-tap jump to common levels. ──
+            (function wirePresets(){
+                const wrap = document.getElementById('dv-bz-zoom-presets');
+                if (!wrap) return;
+                wrap.addEventListener('click', (e) => {
+                    const b = e.target.closest('[data-bz-preset]'); if (!b) return;
+                    const slider = document.getElementById('dv-bz-zoomctl');
+                    if (!slider) return;
+                    const v = parseFloat(b.getAttribute('data-bz-preset')) || 1;
+                    const min = parseFloat(slider.min) || 1;
+                    const max = parseFloat(slider.max) || 3;
+                    slider.value = String(Math.min(max, Math.max(min, v)));
+                    slider.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            })();
+
+            // ── Listen for "camera-patch ready" ack from the dartcounter iframe.
+            // When extension is installed and active, it posts dv-cam-patch-ready
+            // up to the parent frame on injection. We light up the LIVE LINK pill
+            // so the user knows their zoom is altering the outbound footage.
+            window.addEventListener('message', (ev) => {
+                const d = ev && ev.data;
+                if (!d || typeof d !== 'object' || d.type !== 'dv-cam-patch-ready') return;
+                const pill = document.getElementById('dv-bz-link-pill');
+                if (pill) pill.style.display = '';
+            });
 
             async function enumerateCams(){
                 try {
@@ -3378,18 +3454,22 @@
                 state.camId = id; save();
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({
-                        video: { deviceId: id ? { exact: id } : undefined, width:{ideal:1280}, height:{ideal:720} },
+                        video: { deviceId: id ? { exact: id } : undefined, width:{ideal:1280}, height:{ideal:720}, zoom: true },
                         audio: false
                     });
                     video.srcObject = stream;
                     await video.play();
                     sizeOverlay();
+                    // Hook the rolling 5s buffer for instant-replay on checkout.
+                    try { window.dvReplay && window.dvReplay.attach(stream); } catch(_){}
                     // Re-size whenever the source resolves (some virtual cams
                     // report 0×0 until the first frame).
                     video.addEventListener('loadedmetadata', sizeOverlay, { once: false });
                     video.addEventListener('resize', sizeOverlay);
                     startBtn.textContent = 'Stop';
                     calBtn.disabled = false;
+                    // ── Wire up native camera zoom (real hardware zoom on Android Chrome). ──
+                    try { setupCamZoom(stream); } catch(_){}
                     setStatus(state.calib ? 'Live. Calibration loaded — pick zoom targets below.' : 'Live. Press Calibrate then click 4 outer-wire points.');
                     renderZones();
                     renderZooms();
@@ -3401,10 +3481,110 @@
 
             function stopStream(){
                 if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+                try { window.dvReplay && window.dvReplay.detach(); } catch(_){}
                 video.srcObject = null;
                 cancelAnimationFrame(rafId); rafId = 0;
                 calBtn.disabled = true;
                 exitCalMode();
+                // Hide zoom slider when no live stream.
+                try {
+                    const row = document.getElementById('dv-bz-zoomctl-row');
+                    if (row) row.style.display = 'none';
+                    const pr = document.getElementById('dv-bz-zoom-presets'); if (pr) pr.style.display = 'none';
+                    video.style.transform = '';
+                    video.style.transformOrigin = '';
+                } catch(_){}
+            }
+
+            // ── Native camera zoom (MediaStreamTrack capabilities) with CSS-scale fallback. ──
+            // On Android Chrome most rear cameras advertise zoom in their
+            // capabilities — we hook applyConstraints({ advanced:[{zoom: x}] }).
+            // If unsupported (iOS Safari, many laptops, USB webcams) we transparently
+            // fall back to CSS transform: scale() so the user always sees a zoom.
+            function setupCamZoom(s){
+                const row    = document.getElementById('dv-bz-zoomctl-row');
+                const slider = document.getElementById('dv-bz-zoomctl');
+                const valEl  = document.getElementById('dv-bz-zoomctl-val');
+                if (!row || !slider || !valEl) return;
+                const track = (s.getVideoTracks && s.getVideoTracks()[0]) || null;
+                if (!track) { row.style.display = 'none'; return; }
+                let caps = null;
+                try { caps = (typeof track.getCapabilities === 'function') ? track.getCapabilities() : null; } catch(_){}
+                const native = !!(caps && 'zoom' in caps && caps.zoom && typeof caps.zoom.max === 'number');
+                if (native) {
+                    const min  = caps.zoom.min  || 1;
+                    const max  = caps.zoom.max  || 3;
+                    const step = caps.zoom.step || 0.1;
+                    let cur = 1;
+                    try { const settings = track.getSettings && track.getSettings(); if (settings && typeof settings.zoom === 'number') cur = settings.zoom; } catch(_){}
+                    cur = Math.min(max, Math.max(min, cur));
+                    slider.min   = String(min);
+                    slider.max   = String(max);
+                    slider.step  = String(step);
+                    slider.value = String(cur);
+                    valEl.textContent = Number(cur).toFixed(1) + 'x';
+                    slider.title = 'Hardware zoom — drives the camera lens directly';
+                } else {
+                    // CSS-scale fallback (visual only — does not increase actual capture detail).
+                    slider.min = '1'; slider.max = '3'; slider.step = '0.05'; slider.value = '1';
+                    valEl.textContent = '1.0x';
+                    slider.title = 'Software zoom (camera does not expose hardware zoom on this device)';
+                }
+                row.style.display = 'flex';
+                try { const pr = document.getElementById('dv-bz-zoom-presets'); if (pr) pr.style.display = 'flex'; } catch(_){}
+                // Restore last zoom from state if the user previously set one for this device.
+                try {
+                    const savedKey = 'dv-cam-zoom-' + (state.camId || 'default');
+                    const saved = parseFloat(localStorage.getItem(savedKey));
+                    if (Number.isFinite(saved) && saved >= parseFloat(slider.min) && saved <= parseFloat(slider.max)) {
+                        slider.value = String(saved);
+                        valEl.textContent = saved.toFixed(1) + 'x';
+                    }
+                } catch(_){}
+                // Apply current value once on hookup.
+                applyCamZoom(track, native, parseFloat(slider.value));
+                // Also push the initial value into the DartCounter iframe so
+                // the extension's camera-patch picks up our saved zoom even
+                // before the user touches the slider.
+                try {
+                    const f0 = document.getElementById('scorer-frame');
+                    if (f0 && f0.contentWindow) {
+                        f0.contentWindow.postMessage({ type:'dv-cam-config', zoom: parseFloat(slider.value) || 1 }, 'https://app.dartcounter.net');
+                    }
+                } catch(_){}
+                slider.oninput = () => {
+                    const v = parseFloat(slider.value) || 1;
+                    valEl.textContent = v.toFixed(1) + 'x';
+                    applyCamZoom(track, native, v);
+                    try { localStorage.setItem('dv-cam-zoom-' + (state.camId || 'default'), String(v)); } catch(_){}
+                    // ── Broadcast to the DartCounter iframe so the extension's
+                    // camera-patch.js applies the same zoom to the footage
+                    // DartCounter actually streams to opponents (or records).
+                    try {
+                        const f = document.getElementById('scorer-frame');
+                        if (f && f.contentWindow) {
+                            f.contentWindow.postMessage({ type:'dv-cam-config', zoom: v }, 'https://app.dartcounter.net');
+                        }
+                    } catch(_){}
+                };
+            }
+            function applyCamZoom(track, native, v){
+                if (native) {
+                    try {
+                        const p = track.applyConstraints({ advanced: [{ zoom: v }] });
+                        if (p && p.catch) p.catch(err => {
+                            console.warn('[bz] zoom constraint failed', err);
+                            // Fall through to CSS scale on error.
+                            video.style.transformOrigin = 'center center';
+                            video.style.transform = 'scale(' + v + ')';
+                        });
+                    } catch(err) {
+                        console.warn('[bz] zoom constraint exception', err);
+                    }
+                } else {
+                    video.style.transformOrigin = 'center center';
+                    video.style.transform = v > 1.001 ? ('scale(' + v + ')') : '';
+                }
             }
 
             function sizeOverlay(){
@@ -5315,6 +5495,112 @@
             `;
             document.head.appendChild(st);
         })();
+
+        // ── Instant replay ring buffer ──────────────────────────────────
+        // When the user has the on-page webcam running (Board Zoom panel),
+        // we keep a rolling 5-second buffer of webm chunks. On a checkout
+        // (or any caller), dvReplay.play() composes the buffer into a
+        // floating <video> next to the checkout overlay.
+        // No-op if no stream is attached or MediaRecorder is unsupported.
+        window.dvReplay = (function(){
+            const BUFFER_MS = 5500;            // keep ~5.5s so we always cover 5
+            const TIMESLICE = 250;             // chunk every 250ms
+            let recorder = null, chunks = [], mimeType = '';
+            let attachedStream = null;
+            function _supports(){
+                try {
+                    if (!('MediaRecorder' in window)) return false;
+                    const cands = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'];
+                    for (const m of cands) {
+                        if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) { mimeType = m; return true; }
+                    }
+                } catch(_){}
+                return false;
+            }
+            function attach(stream){
+                try {
+                    if (!stream || !_supports()) return;
+                    if (recorder && attachedStream === stream) return;
+                    detach();
+                    attachedStream = stream;
+                    const opts = mimeType ? { mimeType } : undefined;
+                    recorder = new MediaRecorder(stream, opts);
+                    chunks = [];
+                    recorder.ondataavailable = (ev) => {
+                        if (!ev.data || !ev.data.size) return;
+                        chunks.push({ t: Date.now(), blob: ev.data });
+                        // Trim chunks older than the buffer window.
+                        const cutoff = Date.now() - BUFFER_MS;
+                        while (chunks.length && chunks[0].t < cutoff) chunks.shift();
+                    };
+                    recorder.onerror = () => { try { dvTrace('replay','recorder error'); } catch(_){} };
+                    recorder.start(TIMESLICE);
+                    try { dvTrace('replay','attached', { mimeType }); } catch(_){}
+                } catch(e){ try { dvTrace('replay','attach failed', { e: String(e) }); } catch(_){} }
+            }
+            function detach(){
+                try { if (recorder && recorder.state !== 'inactive') recorder.stop(); } catch(_){}
+                recorder = null; chunks = []; attachedStream = null;
+            }
+            function _snapshot(){
+                if (!chunks.length) return null;
+                try { return new Blob(chunks.map(c => c.blob), { type: mimeType || 'video/webm' }); }
+                catch(_){ return null; }
+            }
+            // Show a floating PIP replay box for ~5s. Idempotent: if one is
+            // already up, replace it.
+            function play(opts){
+                try {
+                    opts = opts || {};
+                    const blob = _snapshot();
+                    if (!blob) return false;
+                    const url = URL.createObjectURL(blob);
+                    let host = document.getElementById('dv-replay-pip');
+                    if (host) { try { host.remove(); } catch(_){} }
+                    host = document.createElement('div');
+                    host.id = 'dv-replay-pip';
+                    host.style.cssText = [
+                        'position:fixed','right:18px','bottom:18px','z-index:100050',
+                        'width:min(38vw,420px)','aspect-ratio:16/9',
+                        'border-radius:14px','overflow:hidden',
+                        'border:1px solid rgba(var(--brand-rgb),0.55)',
+                        'box-shadow:0 18px 60px rgba(0,0,0,0.55), 0 0 32px rgba(var(--brand-rgb),0.30)',
+                        'background:#000',
+                        'opacity:0','transform:translateY(8px) scale(.96)',
+                        'transition:opacity .26s ease, transform .32s cubic-bezier(.34,1.56,.64,1)',
+                        'pointer-events:auto','font-family:"Plus Jakarta Sans",sans-serif'
+                    ].join(';');
+                    const v = document.createElement('video');
+                    v.src = url; v.autoplay = true; v.muted = true; v.playsInline = true; v.controls = false;
+                    v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+                    host.appendChild(v);
+                    // Top-left "REPLAY" label
+                    const tag = document.createElement('div');
+                    tag.textContent = '● INSTANT REPLAY';
+                    tag.style.cssText = 'position:absolute;top:8px;left:10px;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.55);color:#fff;font:900 10px/1 "Plus Jakarta Sans",sans-serif;letter-spacing:.18em;text-transform:uppercase;backdrop-filter:blur(4px);';
+                    host.appendChild(tag);
+                    // Close button
+                    const x = document.createElement('button');
+                    x.type = 'button'; x.textContent = '×';
+                    x.style.cssText = 'position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:999px;border:none;background:rgba(0,0,0,0.6);color:#fff;font:900 16px/1 sans-serif;cursor:pointer;';
+                    x.onclick = () => close();
+                    host.appendChild(x);
+                    document.body.appendChild(host);
+                    requestAnimationFrame(() => { host.style.opacity = '1'; host.style.transform = 'translateY(0) scale(1)'; });
+                    function close(){
+                        try { host.style.opacity = '0'; host.style.transform = 'translateY(8px) scale(.96)'; } catch(_){}
+                        setTimeout(() => { try { URL.revokeObjectURL(url); } catch(_){} try { host.remove(); } catch(_){} }, 320);
+                    }
+                    // Auto-dismiss after the buffer's playable length + a beat.
+                    const holdMs = Math.max(4500, (opts.holdMs|0) || 6000);
+                    setTimeout(close, holdMs);
+                    try { dvTrace('replay','played', { bytes: blob.size }); } catch(_){}
+                    return true;
+                } catch(e){ try { dvTrace('replay','play failed', { e: String(e) }); } catch(_){} return false; }
+            }
+            return { attach, detach, play, isReady: () => !!recorder };
+        })();
+
         function dvShowTurnCheckoutOverlay(score, route, playerName) {
             try {
                 const s = parseInt(score, 10);
@@ -5327,19 +5613,22 @@
                 if (key === _dvTurnCkLastKey) return; // already showing this exact preview
                 _dvTurnCkLastKey = key;
 
-                const HOLD_MS = 4000;
+                // Hold longer (was 4000) — users asked for it to stay on screen 3–5s longer
+                // so they have time to read the route while throwing.
+                const HOLD_MS = 8000;
 
                 let host = document.getElementById('dv-turn-checkout-overlay');
                 if (host) host.remove();
                 host = document.createElement('div');
                 host.id = 'dv-turn-checkout-overlay';
                 host.style.cssText = [
-                    'position:fixed','left:50%','top:11%',
+                    'position:fixed','left:50%','top:9%',
                     'transform:translateX(-50%) translateY(-10px) scale(0.94)',
                     'z-index:100040','pointer-events:none',
-                    'min-width:340px','max-width:min(560px, 92vw)',
-                    'padding:18px 22px 16px',
-                    'border-radius:20px',
+                    // Bigger card — more legible at glance distance from the oche
+                    'min-width:440px','max-width:min(720px, 94vw)',
+                    'padding:22px 28px 20px',
+                    'border-radius:22px',
                     // Layered backdrop: deep neutral with a brand-tinted radial highlight
                     'background:' +
                       'radial-gradient(120% 90% at 0% 0%, rgba(var(--brand-rgb),0.18) 0%, rgba(var(--brand-rgb),0) 55%),' +
@@ -5373,17 +5662,17 @@
                 head.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px;';
                 const who = (playerName ? String(playerName).toUpperCase() : '');
                 head.innerHTML =
-                    '<div style="display:flex;align-items:center;gap:9px;min-width:0;">' +
-                      '<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:var(--brand);color:#fff;font-weight:900;font-size:14px;line-height:1;flex:0 0 auto;animation:dvTurnCkPulse 1.6s ease-out infinite;">✓</span>' +
-                      '<span style="font:900 14px/1 \'Plus Jakarta Sans\',sans-serif;letter-spacing:0.22em;color:rgba(var(--brand-rgb),1);text-transform:uppercase;">Checkout</span>' +
-                      (who ? '<span style="font:800 11px/1 \'Plus Jakarta Sans\',sans-serif;letter-spacing:0.16em;color:rgba(255,255,255,0.55);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">· ' + who + '</span>' : '') +
+                    '<div style="display:flex;align-items:center;gap:11px;min-width:0;">' +
+                      '<span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:var(--brand);color:#fff;font-weight:900;font-size:17px;line-height:1;flex:0 0 auto;animation:dvTurnCkPulse 1.6s ease-out infinite;">✓</span>' +
+                      '<span style="font:900 17px/1 \'Plus Jakarta Sans\',sans-serif;letter-spacing:0.22em;color:rgba(var(--brand-rgb),1);text-transform:uppercase;">Checkout</span>' +
+                      (who ? '<span style="font:800 13px/1 \'Plus Jakarta Sans\',sans-serif;letter-spacing:0.16em;color:rgba(255,255,255,0.55);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">· ' + who + '</span>' : '') +
                     '</div>' +
-                    '<span style="font:900 30px/1 \'Plus Jakarta Sans\',sans-serif;color:#fff;letter-spacing:0.02em;flex:0 0 auto;text-shadow:0 0 18px rgba(var(--brand-rgb),0.45);">' + s + '</span>';
+                    '<span style="font:900 40px/1 \'Plus Jakarta Sans\',sans-serif;color:#fff;letter-spacing:0.02em;flex:0 0 auto;text-shadow:0 0 22px rgba(var(--brand-rgb),0.5);">' + s + '</span>';
                 host.appendChild(head);
 
                 // Route chips: T20 › T17 › D16
                 const routeRow = document.createElement('div');
-                routeRow.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font:800 17px/1 \'Plus Jakarta Sans\',sans-serif;';
+                routeRow.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font:800 22px/1 \'Plus Jakarta Sans\',sans-serif;';
                 route.forEach((seg, i) => {
                     if (i > 0) {
                         const arr = document.createElement('span');
@@ -5395,8 +5684,8 @@
                     chip.textContent = seg;
                     const isFinish = i === route.length - 1;
                     chip.style.cssText = [
-                        'padding:9px 14px',
-                        'border-radius:11px',
+                        'padding:12px 18px',
+                        'border-radius:13px',
                         'letter-spacing:0.04em',
                         'animation:dvTurnCkChip .42s cubic-bezier(.34,1.56,.64,1) both',
                         'animation-delay:' + (i * 90) + 'ms',
@@ -5431,6 +5720,9 @@
                     host.style.opacity = '1';
                     host.style.transform = 'translateX(-50%) translateY(0) scale(1)';
                 });
+                // Fire instant replay (last 5s of webcam) alongside the overlay,
+                // if the user has the on-page camera running. Silently no-ops otherwise.
+                try { window.dvReplay && window.dvReplay.isReady() && window.dvReplay.play({ holdMs: HOLD_MS }); } catch(_){}
 
                 // Hold for HOLD_MS, then fade and remove
                 if (_dvTurnCkTimer) { clearTimeout(_dvTurnCkTimer); _dvTurnCkTimer = null; }
@@ -6206,6 +6498,56 @@
             transcriptBox.innerHTML = '<div class="log-entry log-sys">Log cleared.</div>';
         }
 
+        // ── Structured tracer ────────────────────────────────────────────
+        // Mirrors the extension-side window.__dvTrace ring buffer. dvTrace()
+        // is a fire-and-forget structured event; it does NOT touch the
+        // user-visible log (use log() for that). Dump via dvTraceDump() in
+        // the console — copies last 500 events as JSON to the clipboard,
+        // including any trace events the extension content script captured
+        // (those live on the iframe side; see DV_TRACE_REQUEST below).
+        try { window.__dvTrace = window.__dvTrace || []; } catch(_){}
+        function dvTrace(category, msg, data) {
+            try {
+                const entry = {
+                    ts: Date.now(),
+                    side: 'web',
+                    cat: category || 'misc',
+                    msg: String(msg || ''),
+                    data: data === undefined ? null : (function(){ try { return JSON.parse(JSON.stringify(data)); } catch(_){ try { return String(data); } catch(__){ return null; } } })()
+                };
+                window.__dvTrace.push(entry);
+                if (window.__dvTrace.length > 2000) window.__dvTrace.splice(0, window.__dvTrace.length - 2000);
+            } catch(_){}
+        }
+        try {
+            window.dvTraceDump = async function(n) {
+                const local = (window.__dvTrace || []).slice(-(n || 500));
+                // Pull iframe-side trace via postMessage round-trip, with a 600ms timeout.
+                let extEvents = [];
+                try {
+                    const iframe = document.getElementById('scorer-frame');
+                    if (iframe && iframe.contentWindow) {
+                        const reqId = 'tr-' + Math.random().toString(36).slice(2);
+                        extEvents = await new Promise((resolve) => {
+                            const onMsg = (ev) => {
+                                if (!ev.data || ev.data.type !== 'DV_TRACE_REPLY' || ev.data.reqId !== reqId) return;
+                                window.removeEventListener('message', onMsg);
+                                resolve(Array.isArray(ev.data.events) ? ev.data.events : []);
+                            };
+                            window.addEventListener('message', onMsg);
+                            iframe.contentWindow.postMessage({ type: 'DV_TRACE_REQUEST', reqId, n: n || 500 }, '*');
+                            setTimeout(() => { window.removeEventListener('message', onMsg); resolve([]); }, 600);
+                        });
+                    }
+                } catch(_){}
+                const merged = local.concat(extEvents).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+                const text = JSON.stringify(merged, null, 2);
+                console.log('[DartVoice TRACE DUMP]', merged);
+                try { await navigator.clipboard.writeText(text); console.log('Trace copied to clipboard ('+merged.length+' events; '+local.length+' web + '+extEvents.length+' ext)'); } catch(_){}
+                return merged;
+            };
+        } catch(_){}
+
         function log(msg, isScore=false) {
             if (isScore) {
                 // Clear placeholder if it's the first score
@@ -6359,17 +6701,61 @@
                         continue;
                     }
 
+                    // --- IN-GAME VOICE CHAT ---
+                    // "say <message>" / "chat <message>" / "send chat <message>" / "tell them <message>"
+                    // → posts DV_FILL_CHAT to the iframe (ext content.js types into DC chat + sends).
+                    // Strict-anchored prefix so we don't hijack score speech.
+                    {
+                        const _chatRe = /^(?:send\s+chat|chat|say|tell\s+(?:them|him|her|opponent))\s+(.{2,120})$/i;
+                        const _m = raw.match(_chatRe);
+                        if (_m && _m[1]) {
+                            const msg = _m[1].trim().replace(/[.!?]+$/,'');
+                            // Don't send a chat that's *only* a number — that's almost certainly a score.
+                            if (msg && !/^\d+$/.test(msg)) {
+                                dvTrace('voice', 'chat matched', { msg });
+                                log(`💬 Sending chat: "${msg}"`, false);
+                                if (typeof dvToast === 'function') dvToast('Sent: ' + msg, 'success');
+                                try {
+                                    const frame = document.getElementById('scorer-frame');
+                                    frame?.contentWindow?.postMessage({ type: 'DV_FILL_CHAT', text: msg, autoSend: true }, '*');
+                                } catch(_){}
+                                continue;
+                            }
+                        }
+                    }
+
                     // --- EDIT VOICE COMMAND ---
-                    // "edit" / "edit score" / "edit last" — opens the EDIT SCORE
-                    // dialog on dartcounter and auto-expands the most recent turn so
-                    // the next spoken number lands in the highlighted input.
-                    // Single keyword "edit" only — "change"/"correct" removed to avoid
-                    // triggering on conversational speech.
-                    if (/^edit(?:\s+(?:my|last|that|the|score))*\s*$/.test(raw) || /\bedit\s+(?:my\s+)?(?:last\s+)?score\b/.test(raw) || /\bedit\s+last\b/.test(raw)) {
-                        log('✏️ Edit command detected — opening edit dialog...', false);
-                        if (typeof dvToast === 'function') dvToast('Opening edit — say the corrected score', 'info');
-                        if (typeof openScorerAction === 'function') openScorerAction('edit');
-                        continue;
+                    // "edit" / "edit score" / "edit last" / "change last" / "change score" /
+                    // "correct that" / "fix score" / "redo" / "that was wrong" — opens the EDIT
+                    // SCORE dialog on dartcounter and auto-expands the most recent turn so the
+                    // next spoken number lands in the highlighted input.
+                    // Strict-anchored to score-editing intent (won't fire on conversational speech).
+                    {
+                        const _editRe = [
+                            // bare or trailing target words
+                            /^edit(?:\s+(?:my|last|that|the|score|it))*\s*$/,
+                            /\bedit\s+(?:my\s+)?(?:last\s+)?(?:score|that|it)\b/,
+                            /\bedit\s+last\b/,
+                            // "change <score|last>" family
+                            /^change(?:\s+(?:my|last|that|the|score|it))+\s*$/,
+                            /\bchange\s+(?:my\s+)?(?:last\s+)?score\b/,
+                            /\bchange\s+last(?:\s+score)?\b/,
+                            /\blast\s+score\s+change\b/,
+                            // "correct <score|that>" / "fix <score|that>"
+                            /\b(?:correct|fix)\s+(?:my\s+)?(?:last\s+)?(?:score|that|it)\b/,
+                            // "redo (last|score|that)"
+                            /\bredo(?:\s+(?:last|score|that|it))?\b/,
+                            // "that was wrong" / "wrong score"
+                            /\bthat\s+was\s+wrong\b/,
+                            /\bwrong\s+score\b/
+                        ];
+                        if (_editRe.some(re => re.test(raw))) {
+                            dvTrace('voice', 'edit matched', { raw, confidence });
+                            log('✏️ Edit command detected — opening edit dialog...', false);
+                            if (typeof dvToast === 'function') dvToast('Opening edit — say the corrected score', 'info');
+                            if (typeof openScorerAction === 'function') openScorerAction('edit');
+                            continue;
+                        }
                     }
 
                     // Extra guard when wake word is disabled:
@@ -6414,6 +6800,7 @@
                     if (targetScoreStr) {
                         const eScore = parseSpokenScore(targetScoreStr);
                         if (eScore !== null && eScore >= 0 && eScore <= 180) {
+                            dvTrace('voice', 'edit-with-score matched', { raw, targetScoreStr, eScore });
                             log(`Auto-Edit Trigger -> Sending Edit command for ${eScore}`, true);
                             blastScoreToIframe(`__EDIT__:${eScore}`);
                             window.dvToast(`Corrected to ${eScore}`, 'success');
@@ -6676,6 +7063,7 @@
                 try {
                     const targetIframe = document.getElementById('scorer-frame');
                     if (targetIframe && targetIframe.contentWindow) {
+                        if (typeof dvTrace === 'function') dvTrace('iframe-out', 'DARTVOICE_SCORE_INJECT sent', { score: scoreString, delayMs });
                         targetIframe.contentWindow.postMessage({
                             type: "DARTVOICE_SCORE_INJECT",
                             score: scoreString
@@ -7387,6 +7775,7 @@ window.openScorerUrl = function(url){
                     if (!iframe) { window.dvToast('Could not find scorer frame', 'warn'); return; }
                     const origin = iframe.src ? (new URL(iframe.src)).origin : 'https://app.dartcounter.net';
                     // action could be 'camera' or an object
+                    if (typeof dvTrace === 'function') dvTrace('iframe-out', 'DV_ACTION sent', { action, origin });
                     iframe.contentWindow.postMessage({ type: 'DV_ACTION', action: action }, origin);
                     window.dvToast('Sent action: ' + action, 'success');
                 } catch(e){ console.warn(e); window.dvToast('Failed to send action', 'warn'); }
@@ -8426,14 +8815,33 @@ window.openScorerUrl = function(url){
             function _syncFsLabel() { if (fsLabel) fsLabel.textContent = _isFs() ? 'Exit FS' : 'Fullscreen'; }
             if (fsBtn) fsBtn.addEventListener('click', () => {
                 const el = document.documentElement;
-                if (!_isFs()) {
-                    (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
-                } else {
-                    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+                try {
+                    if (!_isFs()) {
+                        const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+                        if (!req) { dvToast('Fullscreen not supported in this browser', 'warn'); return; }
+                        const p = req.call(el);
+                        if (p && typeof p.catch === 'function') {
+                            p.catch(err => {
+                                console.warn('[fs] request failed', err);
+                                dvToast('Fullscreen blocked — check browser permissions', 'warn');
+                            });
+                        }
+                    } else {
+                        const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                        if (exit) {
+                            const p = exit.call(document);
+                            if (p && typeof p.catch === 'function') p.catch(()=>{});
+                        }
+                    }
+                } catch (err) {
+                    console.warn('[fs] toggle exception', err);
+                    dvToast('Fullscreen failed: ' + (err && err.message || err), 'warn');
                 }
             });
             document.addEventListener('fullscreenchange', _syncFsLabel);
             document.addEventListener('webkitfullscreenchange', _syncFsLabel);
+            document.addEventListener('mozfullscreenchange', _syncFsLabel);
+            document.addEventListener('MSFullscreenChange', _syncFsLabel);
 
             // ── Sidebar collapse / expand ──
             const collapseBtn = $('sidebar-collapse-btn');
@@ -9059,6 +9467,35 @@ window.openScorerUrl = function(url){
         } else {
             buildToggles(); renderOverlays();
         }
+    })();
+    </script>
+
+    <!-- --- HUD CARD ENTRANCE ANIMATION (one-shot, staggered) --- -->
+    <script>
+    (function(){
+        function animateHudCards(){
+            try {
+                if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                const cards = document.querySelectorAll('.hud-card');
+                let i = 0;
+                cards.forEach(c => {
+                    if (c.dataset.dvAnimDone) return;
+                    // Skip cards inside hidden subtrees \u2014 they'll animate on first reveal via observer below.
+                    const cs = c.offsetParent === null;
+                    if (cs) return;
+                    c.dataset.dvAnimDone = '1';
+                    c.style.animationDelay = (i++ * 55) + 'ms';
+                    c.classList.add('dv-anim-in');
+                });
+            } catch(_){}
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', animateHudCards);
+        else animateHudCards();
+        // Animate any cards that become visible later (tab switches etc.)
+        try {
+            const io = new MutationObserver(() => { try { animateHudCards(); } catch(_){} });
+            io.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class','style','hidden'] });
+        } catch(_){}
     })();
     </script>
 

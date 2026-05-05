@@ -744,24 +744,50 @@ class VideoBoardCalibrator(ctk.CTkToplevel):
         self._live   = True
 
         rw, rh = region['w'], region['h']
+
+        # ── Upscale the live preview so users can hit the wires accurately.
+        # Target ~80 % of screen height while preserving the region's aspect
+        # ratio. Clicks are translated back to source-region coords via
+        # self._scale before being stored in the calibration dict.
+        try:
+            sw = self.winfo_screenwidth()
+            sh = self.winfo_screenheight()
+        except Exception:
+            sw, sh = 1920, 1080
+        max_w = int(sw * 0.86)
+        max_h = int(sh * 0.78)
+        scale = min(max_w / max(1, rw), max_h / max(1, rh))
+        # Always upscale (>=1) for tiny screen regions, but never downscale.
+        scale = max(1.0, scale)
+        self._scale = scale
+        dw, dh = int(rw * scale), int(rh * scale)
+
         self.title("Calibrate Board — Video")
-        self.geometry(f"{rw}x{rh + 100}")
+        # Centred big window so the dartboard fills the user's vision.
+        win_w, win_h = dw, dh + 130
+        try:
+            x = max(0, (sw - win_w) // 2)
+            y = max(0, (sh - win_h) // 2)
+            self.geometry(f"{win_w}x{win_h}+{x}+{y}")
+        except Exception:
+            self.geometry(f"{win_w}x{win_h}")
         self.configure(fg_color=BG)
         self.attributes('-topmost', True)
         self.resizable(False, False)
         self.after(50, lambda: (self.lift(), self.focus_force()))
 
-        self._cv = tk.Canvas(self, width=rw, height=rh,
+        self._cv = tk.Canvas(self, width=dw, height=dh,
                              bg='#111111', highlightthickness=0, cursor='crosshair')
         self._cv.pack()
+        self._dw, self._dh = dw, dh
 
         self._lbl = ctk.CTkLabel(
-            self, text=self._PROMPTS[0], wraplength=rw - 30,
-            font=("Uber Move Bold", 12, "bold"), text_color=FG,
+            self, text=self._PROMPTS[0], wraplength=max(dw - 30, 600),
+            font=("Uber Move Bold", 16, "bold"), text_color=FG,
         )
-        self._lbl.pack(pady=(8, 0))
+        self._lbl.pack(pady=(10, 0))
         ctk.CTkLabel(self, text="Press  ESC  to cancel",
-                     font=("Rubik", 10), text_color=FG2).pack()
+                     font=("Rubik", 11), text_color=FG2).pack()
 
         self._cv.bind('<Button-1>', self._click)
         self.bind('<Escape>', lambda e: self.destroy())
@@ -782,19 +808,29 @@ class VideoBoardCalibrator(ctk.CTkToplevel):
         if img:
             try:
                 from PIL import ImageTk
+                # Upscale to display size if we're zooming.
+                if getattr(self, '_scale', 1.0) > 1.0:
+                    try:
+                        from PIL import Image as _PILImage
+                        img = img.resize((self._dw, self._dh), _PILImage.LANCZOS)
+                    except Exception:
+                        img = img.resize((self._dw, self._dh))
                 self._tkimg = ImageTk.PhotoImage(img)
                 self._cv.create_image(0, 0, anchor='nw', image=self._tkimg)
             except Exception:
                 pass
         cx = self._cal.get('cx'); cy = self._cal.get('cy')
+        s = getattr(self, '_scale', 1.0)
+        # Marks are stored in source-coords; render at display-coords.
         for mx, my, col in self._marks:
-            self._cv.create_oval(mx-7, my-7, mx+7, my+7, outline=col, width=2)
-            self._cv.create_line(mx-14, my, mx+14, my, fill=col, width=1)
-            self._cv.create_line(mx, my-14, mx, my+14, fill=col, width=1)
+            dx_, dy_ = mx * s, my * s
+            self._cv.create_oval(dx_-9, dy_-9, dx_+9, dy_+9, outline=col, width=2)
+            self._cv.create_line(dx_-18, dy_, dx_+18, dy_, fill=col, width=1)
+            self._cv.create_line(dx_, dy_-18, dx_, dy_+18, fill=col, width=1)
         # Draw connecting line from centre to each perimeter click
         if cx is not None:
             for mx, my, col in self._marks[1:]:
-                self._cv.create_line(cx, cy, mx, my, fill=col, width=1, dash=(4, 4))
+                self._cv.create_line(cx * s, cy * s, mx * s, my * s, fill=col, width=1, dash=(4, 4))
         self.after(120, self._refresh)
 
     def _dist(self, x, y):
@@ -803,20 +839,24 @@ class VideoBoardCalibrator(ctk.CTkToplevel):
 
     def _click(self, e):
         col = self._COLOURS[self._step]
-        self._marks.append((e.x, e.y, col))
+        # Translate display-space click back to source-region coordinates so
+        # all stored calibration values stay in the original capture frame.
+        s = getattr(self, '_scale', 1.0) or 1.0
+        sx, sy = e.x / s, e.y / s
+        self._marks.append((sx, sy, col))
 
         if self._step == 0:
-            self._cal['cx'] = e.x; self._cal['cy'] = e.y
+            self._cal['cx'] = sx; self._cal['cy'] = sy
         elif self._step == 1:  # D20 — top
-            self._cal['r_top'] = self._dist(e.x, e.y)
-            dx = e.x - self._cal['cx']; dy = e.y - self._cal['cy']
+            self._cal['r_top'] = self._dist(sx, sy)
+            dx = sx - self._cal['cx']; dy = sy - self._cal['cy']
             self._cal['rot'] = math.degrees(math.atan2(dx, -dy))
         elif self._step == 2:  # D6 — right
-            self._cal['r_right'] = self._dist(e.x, e.y)
+            self._cal['r_right'] = self._dist(sx, sy)
         elif self._step == 3:  # D3 — bottom
-            self._cal['r_bottom'] = self._dist(e.x, e.y)
+            self._cal['r_bottom'] = self._dist(sx, sy)
         elif self._step == 4:  # D11 — left
-            self._cal['r_left'] = self._dist(e.x, e.y)
+            self._cal['r_left'] = self._dist(sx, sy)
             # Compute averaged vertical / horizontal radii
             self._cal['r_v'] = (self._cal['r_top'] + self._cal['r_bottom']) / 2
             self._cal['r_h'] = (self._cal['r_right'] + self._cal['r_left']) / 2

@@ -22,6 +22,8 @@ $include = @(
     'content.js',
     'dartcounter-inject.js',
     'auth-bridge.js',
+    'audio-patch.js',
+    'camera-patch.js',
     'popup.html',
     'popup.js',
     'rules.json',

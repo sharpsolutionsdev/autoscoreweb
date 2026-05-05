@@ -553,12 +553,35 @@
     }
   }, 300);
 
+  // Ring-buffer tracer. logTrace() still logs to console as before, but ALSO
+  // pushes structured events into window.__dvTrace so a full session can be
+  // dumped via window.dvTraceDump() (copies JSON to clipboard).
+  // Cap at 2000 entries to bound memory.
+  try { window.__dvTrace = window.__dvTrace || []; } catch(_){}
   function logTrace(msg, data) {
-    const timestamp = new Date().toLocaleTimeString();
+    const ts = Date.now();
     const prefix = `[DartVoice Bridge ${frameID}]`;
-    if (data) console.log(`${prefix} ${msg}`, data);
+    if (data !== undefined) console.log(`${prefix} ${msg}`, data);
     else console.log(`${prefix} ${msg}`);
+    try {
+      const entry = { ts, side: 'ext', frame: frameID, msg, data: data === undefined ? null : safeClone(data) };
+      window.__dvTrace.push(entry);
+      if (window.__dvTrace.length > 2000) window.__dvTrace.splice(0, window.__dvTrace.length - 2000);
+    } catch(_){}
   }
+  function safeClone(v) {
+    try { return JSON.parse(JSON.stringify(v)); } catch(_) { try { return String(v); } catch(_){ return null; } }
+  }
+  // Console helper: dvTraceDump() prints + copies last 500 events as JSON.
+  try {
+    window.dvTraceDump = function(n) {
+      const buf = (window.__dvTrace || []).slice(-(n || 500));
+      const text = JSON.stringify(buf, null, 2);
+      console.log('[DartVoice TRACE DUMP]', buf);
+      try { navigator.clipboard.writeText(text).then(() => console.log('Trace copied to clipboard ('+buf.length+' events)')); } catch(_){}
+      return buf;
+    };
+  } catch(_){}
 
   logTrace("Extension Script Injected and Ready.");
 
@@ -716,12 +739,16 @@
   function _clickLikeUser(el) {
     if (!el) return false;
     try { el.scrollIntoView({ block: 'center', inline: 'center' }); } catch (e) {}
-    try { el.click(); } catch (e) {}
+    // Single-activation: pointer events first (touch-bound buttons need them),
+    // then ONE el.click(). Previously also dispatched a separate MouseEvent
+    // 'click' which made Angular handlers fire twice (root cause of edit-2x,
+    // and likely contributed to the camera/score 2x bugs that were masked by
+    // dedupe layers).
     try {
       el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
       el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
-      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     } catch (e) {}
+    try { el.click(); } catch (e) {}
     return true;
   }
 
@@ -1844,6 +1871,22 @@
         } catch (e) {}
       }
 
+      // Trace dump request from the dartvoice.app parent. Replies with the
+      // last N entries from this frame's __dvTrace ring buffer so the parent
+      // can merge them into its own trace and copy a unified JSON.
+      if (event.data.type === "DV_TRACE_REQUEST") {
+        try {
+          const n = Math.min(2000, Math.max(1, +event.data.n || 500));
+          const events = (window.__dvTrace || []).slice(-n);
+          (event.source || window.parent).postMessage({
+            type: 'DV_TRACE_REPLY',
+            reqId: event.data.reqId,
+            events
+          }, event.origin || '*');
+        } catch (e) {}
+        return;
+      }
+
       // Extension detection handshake — reply so the parent knows we're alive
       if (event.data.type === "DARTVOICE_PING") {
         event.source.postMessage({ type: "DARTVOICE_PONG" }, event.origin);
@@ -1884,6 +1927,33 @@
             target.dispatchEvent(new Event('change', { bubbles: true }));
             target.focus();
             logTrace('DV_FILL_CHAT: filled chat input');
+            // Optional auto-send: voice chat uses this; the referral-modal "paste"
+            // button does not (user can edit before sending).
+            if (event.data.autoSend) {
+              try {
+                // Try to find a sibling/nearby submit button first.
+                const root = target.closest('app-chat, .chat-input, form, [data-test*="chat"]') || target.parentElement;
+                const sendBtn = root && (
+                  root.querySelector('button[type="submit"]') ||
+                  root.querySelector('button[aria-label*="send" i]') ||
+                  root.querySelector('button[title*="send" i]') ||
+                  Array.from(root.querySelectorAll('button')).find(b => /\bsend\b/i.test((b.textContent || '') + ' ' + (b.getAttribute('aria-label') || '')))
+                );
+                if (sendBtn) {
+                  setTimeout(() => { try { sendBtn.click(); logTrace('DV_FILL_CHAT: auto-sent'); } catch(_){} }, 60);
+                } else {
+                  // Fall back to Enter key on the input.
+                  setTimeout(() => {
+                    try {
+                      target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+                      target.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+                      target.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+                      logTrace('DV_FILL_CHAT: auto-send via Enter key');
+                    } catch(_){}
+                  }, 60);
+                }
+              } catch(_){}
+            }
           } else {
             logTrace('DV_FILL_CHAT: no chat input found — clipboard fallback');
           }
@@ -2166,10 +2236,11 @@
             };
             const moreBtn = findMoreMenu();
             if (moreBtn) {
-              moreBtn.click();
+              // Single click activation. Pointer events first (Ionic touch handlers),
+              // then exactly one click via .click(). No extra MouseEvent('click').
               moreBtn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
               moreBtn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
-              moreBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+              moreBtn.click();
               logTrace('DV_ACTION break: clicked more menu');
               let breakDone = false;
               const findBreakBtn = () => {
@@ -2193,8 +2264,8 @@
                   breakDone = true;
                   bmo.disconnect();
                   setTimeout(() => {
+                    // Single click activation only.
                     btn.click();
-                    btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
                     logTrace('DV_ACTION break: clicked break button');
                   }, 200);
                 }
@@ -2232,12 +2303,15 @@
               return null;
             };
 
+            // Single-activation click. Previously dispatched both el.click() AND
+            // a separate MouseEvent('click') — Angular/Ionic handlers fired twice,
+            // which opened the EDIT modal 2x. Pointer events first (touch-bound
+            // buttons need them), then a SINGLE click via el.click().
             const fireClick = (el) => {
-              try { el.click(); } catch(_){}
               try {
                 el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
                 el.dispatchEvent(new PointerEvent('pointerup',   { bubbles: true, cancelable: true }));
-                el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                el.click();
               } catch(_){}
             };
 

@@ -4,6 +4,26 @@
 
 ## 🔥 Now (this week)
 
+### Autoscore desktop app — calibration & UX rework (April 2026)
+The Windows autoscore app fullscreen mode is broken and calibration UX needs a major polish. Tracked here so it's not lost.
+
+- [ ] **Fullscreen regression** — [autoscore/dartvoice_v2.py](autoscore/dartvoice_v2.py) + [autoscore/main.py](autoscore/main.py): the fullscreen toggle no longer enters borderless. Repro: launch app, press the fullscreen control on the camera card → window stays windowed. Add a dedicated "Open Camera" / "Fullscreen" button to the camera card that calls `Window.fullscreen = 'auto'` and falls back to `'borderless'`; persist the preference in `~/.dartvoice_settings.json`.
+- [ ] **Bigger calibration camera** — pop the camera feed into a centered modal (≥ 70 % of screen, max 1280×720) with a step-by-step coach overlay ("Click the **outer wire of 20**", "Now click the **outer wire of 6**", etc.). Today the feed sits in a small panel, users miss the wire.
+- [ ] **More calibration points** — switch from 4-point homography to **6 or 8 point** (add 13/9/4/15 outer wires). Improves perspective correction at extreme camera angles. New points feed `cv2.findHomography` with `cv2.RANSAC, 5.0`.
+- [ ] **Live perspective preview** — after calibration, show a real-time top-down warped view alongside the raw feed so the user can verify the dartboard is square.
+- [ ] **Adjustable segment overlays** — when the user calibrates and we render the colored segment ring, allow them to **drag any double/triple ring** with the mouse to nudge it ±15 px. Persist offsets in the calibration JSON. This is the escape hatch for slightly-off calibrations.
+- [ ] **Where is the camera surfaced** — document that today the camera is only visible from the autoscore desktop app's "Camera" tab, and the web app just embeds DartCounter's webcam. Decide if we surface a native DartVoice camera in [web-app.html](web-app.html) (separate work — needs WebRTC + the same homography transform in JS).
+
+### Web-app polish (April 2026 sprint)
+- [x] Edit-score voice tolerance — added "change last", "change score", "change last score", "correct that", "fix score", "redo", "that was wrong", "wrong score" — see [web-app.html](web-app.html#L6418-L6450)
+- [x] Checkout overlay — bigger card (440-720px), longer hold (4 s → 8 s), bigger score & route chips — see [web-app.html](web-app.html#L5318-L5410)
+- [ ] **In-game voice chat** — when the user is in a multiplayer game and presses a `chat` hotkey (or says "send chat <message>"), capture the next phrase, postMessage `DV_FILL_CHAT` to the iframe, then trigger DartCounter's send button. Bridge already supports `DV_FILL_CHAT` in [chrome_extension/content.js](chrome_extension/content.js).
+- [ ] **Instant replay** — buffer the last 5 s of the camera `<video>` stream via `MediaRecorder` (rolling chunks). When a checkout fires (`dvShowTurnCheckoutOverlay`), surface a "🎬 Replay" button next to the overlay that plays the buffered Blob in a small picture-in-picture box for 4 s, then disposes.
+- [ ] **Darts-at-double prompt gating** — only fire `dvShowCheckoutPrompt` for the *active* player. Currently driven by DartCounter's own dialog (which only asks the user, so should already be gated) — verify with a multiplayer trace and add a `state.activeIdx === userIdx` guard in [web-app.html](web-app.html#L7552) if needed.
+- [ ] **Camera button regression check** — `openScorerAction('camera')` posts `DV_ACTION` to the iframe; bridge guard at [chrome_extension/content.js](chrome_extension/content.js#L2118) is correct for first-level frames. If still broken, capture a trace via `Ctrl+Shift+T` and inspect for `DV_ACTION camera: not in DOM yet` log lines (means DartCounter changed their button selector).
+- [ ] **More motion polish** — the dashboard feels static; add subtle entry transitions to `.hud-card` (fade-up 200 ms stagger) and pulse the active turn arrow.
+- [ ] **Figma icon set** — pull SVG icons from a shared Figma file via the Figma MCP, replace the inline SVGs in [web-app.html](web-app.html) with `<svg><use href="#icon-…"/></svg>` from a single sprite at [assets/media/icons.svg](assets/media/icons.svg).
+
 - [ ] Extend the 20% launch promo (`PROMO_20`) — currently ~3 days remaining, decide new end date
 - [ ] Code-sign the Windows installer with an EV cert (kills SmartScreen warning, ~30% install drop-off today)
 - [ ] Submit signed `.aab` to Google Play (currently sideload-only via `apk-gate.html`)

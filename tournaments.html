@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tournaments | DartVoice</title>
+    <meta name="description" content="DartVoice Tournaments — daily, weekly and prize-cash bracket events. Single elimination, double elimination and round-robin formats.">
+    <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
+    <link rel="stylesheet" href="css/tailwind.built.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/general/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="components/dv-nav.js"></script>
+    <script src="components/dv-footer.js"></script>
+    <script>!function(){var h=localStorage.getItem('dv-theme-hex')||'#CC0B20';var s=document.documentElement.style;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);s.setProperty('--brand',h);s.setProperty('--brand-r',r);s.setProperty('--brand-g',g);s.setProperty('--brand-b',b);s.setProperty('--brand-rgb',r+', '+g+', '+b);}()</script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0b0e; color: #f0f0f5; }
+        .display { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+        :root { --brand: #CC0B20; --brand-rgb: 204, 11, 32; }
+        .page-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(var(--brand-rgb),0.22) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 35% at 85% 30%, rgba(255,209,102,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 15% 75%, rgba(var(--brand-rgb),0.08) 0%, transparent 70%),
+                linear-gradient(180deg, #0b0b0e 0%, #050508 100%);
+            z-index: -2; pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 0.9rem; border-radius: 999px;
+            background: rgba(255,209,102,0.10); border: 1px solid rgba(255,209,102,0.35);
+            font-size: 0.7rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase;
+            color: #ffd166;
+        }
+        .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: #ffd166;
+            box-shadow: 0 0 0 0 rgba(255,209,102,0.7); animation: heroPulse 2s infinite; }
+        @keyframes heroPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,209,102,0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(255,209,102,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,209,102,0); }
+        }
+
+        /* ── Filter chips ── */
+        .filter-chip {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.55rem 1rem; border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            font-size: .75rem; font-weight: 700; letter-spacing: .04em;
+            color: #cbd5e1; cursor: pointer; user-select: none;
+            transition: all .2s ease;
+        }
+        .filter-chip:hover { border-color: rgba(255,255,255,0.20); color: #fff; }
+        .filter-chip.active {
+            background: rgba(var(--brand-rgb),0.18);
+            border-color: rgba(var(--brand-rgb),0.55);
+            color: #fff; box-shadow: 0 0 0 1px rgba(var(--brand-rgb),0.20) inset;
+        }
+
+        /* ── Tournament card ── */
+        .tourney-card {
+            position: relative; display: flex; flex-direction: column;
+            padding: 1.25rem; border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+            overflow: hidden;
+        }
+        .tourney-card:hover { transform: translateY(-3px); border-color: rgba(var(--brand-rgb),0.40); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+        .tourney-card[data-status="live"] { border-color: rgba(34,197,94,0.40); }
+        .tourney-card[data-status="live"]::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, #22c55e, transparent);
+            animation: liveSlide 2s ease-in-out infinite;
+        }
+        @keyframes liveSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .tourney-status-pill {
+            display: inline-flex; align-items: center; gap: .35rem;
+            font-size: .6rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+            padding: .25rem .55rem; border-radius: 999px;
+        }
+        .tourney-status-pill.live { background: rgba(34,197,94,0.14); border: 1px solid rgba(34,197,94,0.40); color: #4ade80; }
+        .tourney-status-pill.live .pulse-dot { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.7); }
+        .tourney-status-pill.upcoming { background: rgba(255,209,102,0.10); border: 1px solid rgba(255,209,102,0.35); color: #ffd166; }
+        .tourney-status-pill.completed { background: rgba(148,163,184,0.10); border: 1px solid rgba(148,163,184,0.30); color: #94a3b8; }
+        .tourney-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+        .tourney-meta-cell { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: .55rem .7rem; }
+        .tourney-meta-label { font-size: .55rem; letter-spacing: .14em; text-transform: uppercase; color: #6b7280; font-weight: 800; margin-bottom: .15rem; }
+        .tourney-meta-value { font-size: .9rem; font-weight: 700; color: #fff; line-height: 1.2; }
+        .tourney-prize { font-family: 'Barlow Condensed',sans-serif; font-size: 1.4rem; font-weight: 800; color: #ffd166; line-height: 1; }
+        .btn-brand { background: var(--brand); color: #fff; box-shadow: 0 4px 18px rgba(var(--brand-rgb),0.4); transition: transform .15s ease, box-shadow .15s ease; }
+        .btn-brand:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(var(--brand-rgb),0.5); }
+        .btn-ghost { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #fff; transition: border-color .15s ease, background .15s ease; }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.07); }
+
+        /* ── Bracket preview (visual only — full bracket lives on detail page) ── */
+        .bracket-mini { display: flex; gap: 6px; margin-top: 0.6rem; align-items: center; }
+        .bracket-mini-col { display: flex; flex-direction: column; gap: 4px; }
+        .bracket-mini-pill { width: 36px; height: 8px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+        .bracket-mini-pill.filled { background: rgba(var(--brand-rgb),0.55); }
+        .bracket-mini-line { width: 8px; height: 2px; background: rgba(255,255,255,0.12); align-self: center; }
+
+        .empty-state { text-align: center; padding: 4rem 2rem; border: 1px dashed rgba(255,255,255,0.10); border-radius: 18px; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col pt-16">
+    <div class="page-bg"></div>
+    <dv-nav></dv-nav>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-7xl">
+
+        <!-- Header -->
+        <div class="text-center mb-12 relative">
+            <div class="inline-flex flex-col items-center">
+                <span class="hero-badge mb-4"><span class="pulse-dot"></span>Bracketed events · Cash & glory</span>
+                <h1 class="display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
+                    Tournament <span style="background:linear-gradient(135deg,#ffd166,#ff9100 50%,#cc6f00);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(255,209,102,0.35));">Hub</span>
+                </h1>
+                <p class="text-base md:text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                    Single-elim, double-elim, round-robin. Daily Cash Cup, Weekly Open, Pro Invitationals — pick a bracket and let your darts do the talking.
+                </p>
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
+                    <a href="ranked.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold border border-white/10 hover:border-white/30 transition" style="background:rgba(255,255,255,0.03);">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v18l7-5 7 5V3z"/></svg>
+                        Ranked Hub
+                    </a>
+                    <a href="competitions.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold border border-white/10 hover:border-white/30 transition" style="background:rgba(255,255,255,0.03);">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        Casual & Comps
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter row -->
+        <div class="flex flex-wrap items-center gap-2 mb-6" id="filter-row" role="tablist" aria-label="Tournament filters">
+            <button class="filter-chip active" data-filter="all">All</button>
+            <button class="filter-chip" data-filter="live"><span class="pulse-dot" style="background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.7);"></span>Live</button>
+            <button class="filter-chip" data-filter="upcoming">Upcoming</button>
+            <button class="filter-chip" data-filter="cash">Cash Prize</button>
+            <button class="filter-chip" data-filter="free">Free Entry</button>
+            <button class="filter-chip" data-filter="completed">Completed</button>
+            <div class="flex-1"></div>
+            <button id="create-tourney-btn" class="filter-chip" style="background:rgba(var(--brand-rgb),0.16);border-color:rgba(var(--brand-rgb),0.45);color:#fff;">+ Host Your Own</button>
+        </div>
+
+        <!-- Tournament grid -->
+        <div id="tourney-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+        <!-- How it works -->
+        <section class="mt-20">
+            <div class="text-center mb-10">
+                <h2 class="display text-4xl md:text-5xl mb-3">HOW TOURNAMENTS WORK</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Three formats, one fair fight. Auto-seeded by ranked MMR. Walkover after 5 min no-show. All games scored by DartVoice — zero typing required.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="tourney-card">
+                    <div class="text-3xl mb-2" style="font-family:'Barlow Condensed',sans-serif;color:var(--brand);font-weight:800;">01</div>
+                    <h3 class="display text-2xl font-bold mb-2">Pick a Bracket</h3>
+                    <p class="text-sm text-gray-400">Daily Cash Cup, Weekly Open, or jump into a Pro Invitational. Entry fees range from free to £25.</p>
+                </div>
+                <div class="tourney-card">
+                    <div class="text-3xl mb-2" style="font-family:'Barlow Condensed',sans-serif;color:var(--brand);font-weight:800;">02</div>
+                    <h3 class="display text-2xl font-bold mb-2">Auto-Seed & Match</h3>
+                    <p class="text-sm text-gray-400">When the bracket fills, we seed by MMR and pair you up. Match link goes straight to your inbox + push.</p>
+                </div>
+                <div class="tourney-card">
+                    <div class="text-3xl mb-2" style="font-family:'Barlow Condensed',sans-serif;color:var(--brand);font-weight:800;">03</div>
+                    <h3 class="display text-2xl font-bold mb-2">Win or Walkover</h3>
+                    <p class="text-sm text-gray-400">Best-of-3 legs (501) per round. No-show = walkover after 5 min. Prize pool paid out to winner's wallet within 24h.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <dv-footer></dv-footer>
+
+    <script>
+        // ── Tournament data (live demo set; replace with Supabase fetch when backend lands).
+        // Keep id stable so detail-page deep-links survive a re-render.
+        const TOURNEYS = [
+            {
+                id: 'dcc-' + new Date().toISOString().slice(0,10),
+                name: 'Daily Cash Cup',
+                status: 'live',
+                format: 'Single Elim · Bo3',
+                entry: '£2',
+                prize: '£64',
+                slots: 32, filled: 24,
+                starts: 'In progress',
+                tags: ['cash', 'live'],
+            },
+            {
+                id: 'wko-rolling',
+                name: 'Weekly Open',
+                status: 'upcoming',
+                format: 'Double Elim · Bo5',
+                entry: 'Free',
+                prize: '£200',
+                slots: 64, filled: 41,
+                starts: 'Sun 19:00 GMT',
+                tags: ['free', 'upcoming'],
+            },
+            {
+                id: 'pro-invite-may26',
+                name: 'Pro Invitational — May',
+                status: 'upcoming',
+                format: 'Round Robin → Bo7',
+                entry: '£25',
+                prize: '£1,500',
+                slots: 16, filled: 9,
+                starts: 'Fri 20:30 GMT',
+                tags: ['cash', 'upcoming'],
+            },
+            {
+                id: 'rookie-rumble',
+                name: 'Rookie Rumble',
+                status: 'live',
+                format: 'Single Elim · Bo3',
+                entry: 'Free',
+                prize: 'Pro Trial × 5',
+                slots: 32, filled: 32,
+                starts: 'In progress',
+                tags: ['free', 'live'],
+            },
+            {
+                id: 'midnight-madness',
+                name: 'Midnight Madness',
+                status: 'upcoming',
+                format: 'Speed Bo1 · 30s shot clock',
+                entry: '£1',
+                prize: '£32',
+                slots: 32, filled: 8,
+                starts: 'Tonight 23:00 GMT',
+                tags: ['cash', 'upcoming'],
+            },
+            {
+                id: 'last-week-open',
+                name: 'Weekly Open · Last Week',
+                status: 'completed',
+                format: 'Double Elim · Bo5',
+                entry: 'Free',
+                prize: '£200',
+                slots: 64, filled: 64,
+                starts: 'Won by: bullseye_baz',
+                tags: ['free', 'completed'],
+            },
+        ];
+
+        function escapeHtml(v){ const d=document.createElement('div'); d.textContent=String(v||''); return d.innerHTML; }
+        function statusPill(s){
+            if (s === 'live') return '<span class="tourney-status-pill live"><span class="pulse-dot"></span>Live</span>';
+            if (s === 'upcoming') return '<span class="tourney-status-pill upcoming">Upcoming</span>';
+            return '<span class="tourney-status-pill completed">Final</span>';
+        }
+        function bracketMini(filled, slots){
+            // Visual progress shimmer — 4 columns, scaled to fill ratio.
+            const ratio = Math.min(1, filled / Math.max(1, slots));
+            const cols = 4;
+            const out = [];
+            for (let c = 0; c < cols; c++){
+                const colSize = Math.max(1, Math.round(slots / Math.pow(2, c) / 4));
+                let html = '<div class="bracket-mini-col">';
+                for (let i = 0; i < colSize; i++){
+                    const filledCol = (i / colSize) < ratio * (1 - c * 0.15);
+                    html += '<div class="bracket-mini-pill' + (filledCol ? ' filled' : '') + '"></div>';
+                }
+                html += '</div>';
+                out.push(html);
+                if (c < cols - 1) out.push('<div class="bracket-mini-line"></div>');
+            }
+            return '<div class="bracket-mini" aria-hidden="true">' + out.join('') + '</div>';
+        }
+        function renderCard(t){
+            const ctaLabel = t.status === 'live' ? 'Spectate' :
+                             t.status === 'completed' ? 'View Results' :
+                             (t.filled >= t.slots ? 'Full · Waitlist' : 'Enter Bracket');
+            const fillPct = Math.round((t.filled / t.slots) * 100);
+            return `
+                <article class="tourney-card" data-status="${t.status}" data-tags="${t.tags.join(' ')}">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">${escapeHtml(t.format)}</div>
+                            <h3 class="display text-2xl font-bold leading-tight">${escapeHtml(t.name)}</h3>
+                        </div>
+                        ${statusPill(t.status)}
+                    </div>
+                    <div class="tourney-meta-grid">
+                        <div class="tourney-meta-cell">
+                            <div class="tourney-meta-label">Prize Pool</div>
+                            <div class="tourney-prize">${escapeHtml(t.prize)}</div>
+                        </div>
+                        <div class="tourney-meta-cell">
+                            <div class="tourney-meta-label">Entry</div>
+                            <div class="tourney-meta-value">${escapeHtml(t.entry)}</div>
+                        </div>
+                        <div class="tourney-meta-cell">
+                            <div class="tourney-meta-label">Slots</div>
+                            <div class="tourney-meta-value">${t.filled} / ${t.slots}</div>
+                            <div style="margin-top:.35rem;height:4px;border-radius:2px;background:rgba(255,255,255,0.06);overflow:hidden;">
+                                <div style="height:100%;width:${fillPct}%;background:linear-gradient(90deg,var(--brand),#ff5066);"></div>
+                            </div>
+                        </div>
+                        <div class="tourney-meta-cell">
+                            <div class="tourney-meta-label">Starts</div>
+                            <div class="tourney-meta-value">${escapeHtml(t.starts)}</div>
+                        </div>
+                    </div>
+                    ${bracketMini(t.filled, t.slots)}
+                    <div class="flex gap-2 mt-3">
+                        <a href="tournaments.html?id=${encodeURIComponent(t.id)}" class="${t.status === 'completed' ? 'btn-ghost' : 'btn-brand'} flex-1 text-center px-4 py-2.5 rounded-lg text-sm font-bold">${ctaLabel}</a>
+                        <button class="btn-ghost px-3 py-2.5 rounded-lg text-sm font-bold" data-share="${t.id}" title="Share">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+                        </button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function applyFilter(filter){
+            const grid = document.getElementById('tourney-grid');
+            const list = filter === 'all' ? TOURNEYS : TOURNEYS.filter(t => t.tags.includes(filter) || t.status === filter);
+            if (!list.length) {
+                grid.innerHTML = '<div class="empty-state col-span-full"><h3 class="display text-2xl mb-2">No tournaments match</h3><p class="text-gray-400">Try a different filter — or be the first to host one.</p></div>';
+                return;
+            }
+            grid.innerHTML = list.map(renderCard).join('');
+            // Wire share buttons.
+            grid.querySelectorAll('[data-share]').forEach(b => b.onclick = (e) => {
+                e.preventDefault();
+                const id = b.dataset.share;
+                const url = location.origin + location.pathname + '?id=' + encodeURIComponent(id);
+                if (navigator.share) {
+                    navigator.share({ title: 'DartVoice Tournament', url }).catch(()=>{});
+                } else if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        b.style.borderColor = 'rgba(34,197,94,0.5)';
+                        setTimeout(() => { b.style.borderColor = ''; }, 1200);
+                    });
+                }
+            });
+        }
+
+        document.getElementById('filter-row').addEventListener('click', (e) => {
+            const btn = e.target.closest('.filter-chip[data-filter]');
+            if (!btn) return;
+            document.querySelectorAll('.filter-chip[data-filter]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyFilter(btn.dataset.filter);
+        });
+
+        document.getElementById('create-tourney-btn').addEventListener('click', () => {
+            // Direct to creator portal — host flow lives there.
+            location.href = 'creator-portal.html#tournaments';
+        });
+
+        // Initial render
+        applyFilter('all');
+
+        // Deep-link: ?id=xxx auto-scrolls to the matching card and highlights it.
+        const params = new URLSearchParams(location.search);
+        const wantId = params.get('id');
+        if (wantId) {
+            requestAnimationFrame(() => {
+                const card = Array.from(document.querySelectorAll('.tourney-card')).find(c => c.querySelector('[data-share="' + wantId + '"]'));
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.style.boxShadow = '0 0 0 2px var(--brand), 0 12px 40px rgba(var(--brand-rgb),0.45)';
+                    setTimeout(() => { card.style.boxShadow = ''; }, 2500);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

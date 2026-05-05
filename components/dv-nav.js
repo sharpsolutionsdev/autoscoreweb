@@ -207,6 +207,10 @@ class DvNav extends HTMLElement {
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block animate-pulse"></span>Competitions
                   <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.4);">NEW</span>
                 </a>
+                <a href="/tournaments" class="flex items-center gap-1.5 px-4 py-2 text-sm text-chalk hover:text-brand hover:bg-wire/30 transition">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="#ffd166" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 21h8m-4-4v4m-7-9V5a2 2 0 012-2h10a2 2 0 012 2v7a5 5 0 01-5 5H10a5 5 0 01-5-5z"/></svg>Tournaments
+                  <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(255,209,102,0.15); color:#ffd166; border:1px solid rgba(255,209,102,0.4);">NEW</span>
+                </a>
                 <a href="/#brand-ambassador" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Brand Ambassador</a>
                 <a href="/guide" class="block px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">Setup Guide</a>
                 <a href="/referral" class="flex items-center gap-1.5 px-4 py-2 text-sm text-muted hover:text-chalk hover:bg-wire/30 transition">
@@ -238,6 +242,11 @@ class DvNav extends HTMLElement {
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
               Competitions
               <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(245,158,11,0.2); color:#f59e0b; border:1px solid rgba(245,158,11,0.4);">NEW</span>
+            </a>
+            <a href="/tournaments" class="dv-mob-link-feature" style="background:linear-gradient(90deg, rgba(255,209,102,0.18), rgba(255,209,102,0.04)); border:1px solid rgba(255,209,102,0.35);">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#ffd166" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 21h8m-4-4v4m-7-9V5a2 2 0 012-2h10a2 2 0 012 2v7a5 5 0 01-5 5H10a5 5 0 01-5-5z"/></svg>
+              Tournaments
+              <span class="ml-auto text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded" style="background:rgba(255,209,102,0.22); color:#ffd166; border:1px solid rgba(255,209,102,0.4);">NEW</span>
             </a>
             <a href="/web-app" class="dv-mob-link" style="display:flex;align-items:center;gap:10px;">
               <img src="/dc-logo.png" alt="Dart Counter" class="w-5 h-5 rounded">
