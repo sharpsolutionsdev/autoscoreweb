@@ -14,12 +14,15 @@
     <script src="components/dv-footer.js?v=site-polish-20260505" defer></script>
     <style>
         :root { --brand:#CC0B20; --brand-rgb:204,11,32; }
-        body { margin:0; min-height:100vh; background:#07070a; color:#f7f7fb; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-        .display { font-family:'Barlow Condensed',Impact,sans-serif; text-transform:uppercase; letter-spacing:.03em; }
-        .page-bg { position:fixed; inset:0; pointer-events:none; z-index:-1; background: radial-gradient(ellipse 70% 45% at 50% 0%, rgba(var(--brand-rgb),.22), transparent 62%), linear-gradient(180deg,#101014,#050507 68%); }
-        .panel { border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018)); border-radius:12px; box-shadow:0 18px 55px rgba(0,0,0,.32); }
-        .scorebox { min-height:190px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.035); }
-        .active { border-color:rgba(var(--brand-rgb),.65); box-shadow:0 0 0 2px rgba(var(--brand-rgb),.12) inset, 0 0 26px rgba(var(--brand-rgb),.12); }
+        body { margin:0; min-height:100vh; background:#08080A; color:#F0F0F5; font-family:'Plus Jakarta Sans',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+        .display { font-family:'Barlow Condensed',Impact,sans-serif; text-transform:uppercase; letter-spacing:.01em; }
+        .page-bg { position:fixed; inset:0; pointer-events:none; z-index:-1; background: radial-gradient(ellipse 70% 42% at 50% 0%, rgba(var(--brand-rgb),.16), transparent 62%), radial-gradient(ellipse 52% 36% at 86% 18%, rgba(255,255,255,.035), transparent 70%), linear-gradient(180deg,#101014,#050507 72%); }
+        .panel { border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(255,255,255,.052),rgba(255,255,255,.018)); border-radius:16px; box-shadow:0 18px 55px rgba(0,0,0,.32); }
+        .scorebox { min-height:190px; border-radius:16px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.035); position:relative; overflow:hidden; transition:border-color .22s ease, box-shadow .22s ease, transform .22s ease, background .22s ease; }
+        .scorebox::before { content:''; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent); opacity:.35; }
+        .scorebox.active { border-color:rgba(var(--brand-rgb),.72); background:linear-gradient(180deg,rgba(var(--brand-rgb),.10),rgba(255,255,255,.028)); box-shadow:0 0 0 2px rgba(var(--brand-rgb),.13) inset, 0 18px 50px rgba(var(--brand-rgb),.10); transform:translateY(-1px); }
+        .scorebox.active::before { background:linear-gradient(90deg,transparent,var(--brand),transparent); opacity:1; }
+        .scorebox.waiting { opacity:.64; }
         .btn { border-radius:10px; min-height:44px; padding:10px 14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; transition:transform .14s ease, filter .14s ease, border-color .14s ease; }
         .btn:hover { transform:translateY(-1px); filter:brightness(1.08); }
         .btn-brand { background:var(--brand); color:white; }
@@ -27,6 +30,15 @@
         .visit-log { max-height:270px; overflow:auto; }
         .visit-row { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.055); color:#c9c9d2; font-size:13px; }
         .pill { display:inline-flex; align-items:center; gap:7px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.035); padding:6px 10px; font-size:11px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; color:#bfc0ca; }
+        .match-strip { display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; border:1px solid rgba(var(--brand-rgb),.26); background:linear-gradient(135deg,rgba(var(--brand-rgb),.16),rgba(255,255,255,.026)); border-radius:16px; padding:16px 18px; box-shadow:0 18px 48px rgba(0,0,0,.24); }
+        .match-strip.live { border-color:rgba(34,197,94,.34); background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(var(--brand-rgb),.08),rgba(255,255,255,.02)); }
+        .match-kicker { display:flex; flex-wrap:wrap; align-items:center; gap:8px; color:#8d8e99; font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+        .match-title { margin-top:5px; color:#fff; font-weight:900; font-size:18px; line-height:1.25; }
+        .match-detail { margin-top:3px; color:#a8a8b5; font-size:13px; }
+        .match-turn { min-width:128px; justify-content:center; border-color:rgba(var(--brand-rgb),.34); color:#fff; background:rgba(var(--brand-rgb),.14); }
+        .match-strip.live .match-turn { border-color:rgba(34,197,94,.34); background:rgba(34,197,94,.12); }
+        .match-dot { width:8px; height:8px; border-radius:50%; background:#71717a; }
+        .match-strip.live .match-dot { background:#22c55e; box-shadow:0 0 14px #22c55e; animation:pulse 1.35s infinite; }
         .coach-route { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
         .route-chip { border:1px solid rgba(var(--brand-rgb),.28); background:rgba(var(--brand-rgb),.10); color:#fff; border-radius:999px; padding:6px 9px; font-size:12px; font-weight:900; }
         .history-list { display:grid; gap:8px; }
@@ -53,6 +65,8 @@
         .rank-delta.up { color:#4ade80; }
         .rank-delta.down { color:#fb7185; }
         .voice-card { border:1px solid rgba(var(--brand-rgb),.22); background:linear-gradient(180deg,rgba(var(--brand-rgb),.12),rgba(255,255,255,.025)); border-radius:12px; padding:12px; }
+        .voice-state-line { display:flex; justify-content:space-between; gap:10px; margin-top:9px; color:#8d8e99; font-size:11px; font-weight:800; }
+        .voice-state-line strong { color:#fff; }
         .voice-button { width:100%; display:flex; align-items:center; justify-content:center; gap:9px; border:1px solid rgba(var(--brand-rgb),.36); background:rgba(var(--brand-rgb),.14); color:#fff; }
         .voice-button.listening { background:var(--brand); border-color:rgba(255,255,255,.22); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.16), 0 0 30px rgba(var(--brand-rgb),.28); }
         .voice-dot { width:9px; height:9px; border-radius:50%; background:#777; box-shadow:none; }
@@ -99,7 +113,7 @@
         @keyframes resultSlam { to { opacity:1; transform:scale(1); } }
         @keyframes resultFadeUp { to { opacity:1; transform:translateY(0); } }
         @keyframes resultFadeDown { to { opacity:1; transform:translateY(0); } }
-        @media (max-width:640px) { .rank-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .rank-tile strong { font-size:24px; } .result-card { padding:18px 12px 22px; } .result-mmr { gap:10px; } .result-score { gap:9px; } }
+        @media (max-width:640px) { .match-strip { grid-template-columns:1fr; } .match-turn { width:100%; } .rank-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .rank-tile strong { font-size:24px; } .result-card { padding:18px 12px 22px; } .result-mmr { gap:10px; } .result-score { gap:9px; } }
     </style>
 </head>
 <body>
@@ -143,8 +157,17 @@
                         <option value="3" selected>Best of 5</option>
                     </select>
                 </label>
-                <button id="newMatch" class="btn btn-brand self-end">Start Queue</button>
+                <button id="newMatch" class="btn btn-brand self-end">Start Bot Match</button>
             </div>
+        </section>
+
+        <section id="matchStrip" class="match-strip mb-6" aria-live="polite">
+            <div>
+                <div class="match-kicker"><span class="match-dot"></span><span id="matchLiveBadge">Not in a match</span></div>
+                <div id="matchTitle" class="match-title">Choose a format, then start a bot match.</div>
+                <div id="matchDetail" class="match-detail">Voice can listen any time, but visits only submit when it is your throw.</div>
+            </div>
+            <span id="matchTurnPill" class="pill match-turn">Queue idle</span>
         </section>
 
         <section class="grid lg:grid-cols-[1fr_340px] gap-6">
@@ -231,6 +254,7 @@
                             <span id="voiceButtonText">Start Voice Scoring</span>
                         </button>
                         <div id="voiceHeard" class="voice-heard mt-2">Voice scoring is ready on supported browsers.</div>
+                        <div class="voice-state-line"><span>Match</span><strong id="voiceMatchState">Not started</strong></div>
                         <div class="voice-tools mt-2">
                             <label class="voice-toggle"><input id="voiceAutoSubmit" type="checkbox" checked> Auto-submit spoken visits</label>
                             <label class="voice-accent"><span>Accent</span>
@@ -516,7 +540,36 @@
         }
         function updateVoiceUi(){
             $('voiceToggle').classList.toggle('listening', listening);
-            $('voiceButtonText').textContent = listening ? 'Listening...' : 'Start Voice Scoring';
+            $('voiceButtonText').textContent = listening ? 'Listening for visits' : 'Start Voice Scoring';
+            if ($('voiceMatchState')) $('voiceMatchState').textContent = currentMatchLabel();
+        }
+        function currentMatchLabel(){
+            if (!state) return 'Not started';
+            if (state.over) return 'Match complete';
+            if (state.turn === 'player') return 'Your throw';
+            return `${state.profile.name} throwing`;
+        }
+        function updateMatchStrip(){
+            const strip = $('matchStrip');
+            const hasMatch = !!state;
+            const live = hasMatch && !state.over;
+            strip.classList.toggle('live', live);
+            $('matchLiveBadge').textContent = live ? 'Live bot match' : hasMatch ? 'Match finished' : 'Queue idle';
+            $('matchTurnPill').textContent = currentMatchLabel();
+            if (!hasMatch) {
+                const previewBot = botProfiles[$('difficulty').value] || botProfiles.medium;
+                const target = Number($('legsToWin').value || 1);
+                $('matchTitle').textContent = `Ready: ${$('format').value} vs ${previewBot.name}`;
+                $('matchDetail').textContent = `First to ${target}. Voice can listen now, but visits only submit once the match is live and it is your throw.`;
+                $('newMatch').textContent = 'Start Bot Match';
+                if ($('voiceMatchState')) $('voiceMatchState').textContent = 'Not started';
+                return;
+            }
+            $('newMatch').textContent = live ? 'Restart Match' : 'Rematch';
+            const legText = `${state.playerLegs}-${state.botLegs} legs`;
+            $('matchTitle').textContent = live ? `${currentMatchLabel()} - You vs ${state.profile.name}` : `Match complete - ${legText}`;
+            $('matchDetail').textContent = `${state.start} - first to ${state.targetLegs} - ${legText} - ${state.player} left / ${state.bot} left`;
+            if ($('voiceMatchState')) $('voiceMatchState').textContent = currentMatchLabel();
         }
         function voiceHeard(text){
             const el = $('voiceHeard');
@@ -541,8 +594,13 @@
             if (parsed.command === 'newMatch') { voiceHeard(`Heard "${transcript}" -> new match`); $('newMatch').click(); return; }
             if (parsed.command === 'stopVoice') { voiceHeard(`Heard "${transcript}" -> mic off`); if (recognizer) recognizer.stop(); listening = false; updateVoiceUi(); return; }
             if (parsed.command === 'submit') { voiceHeard(`Heard "${transcript}" -> submit`); $('submitVisit').click(); return; }
-            if (state?.over || state?.turn !== 'player') {
-                voiceHeard(`Heard "${transcript}" -> ${parsed.score}. Waiting for your throw.`);
+            if (!state) {
+                voiceHeard(`Heard "${transcript}" -> ${parsed.score}. Start a bot match before visits submit.`);
+                $('visitScore').value = parsed.score;
+                return;
+            }
+            if (state.over || state.turn !== 'player') {
+                voiceHeard(`Heard "${transcript}" -> ${parsed.score}. ${currentMatchLabel()}.`);
                 $('visitScore').value = parsed.score;
                 return;
             }
@@ -635,6 +693,7 @@
             const profile = botProfiles[$('difficulty').value];
             state = { start, player:start, bot:start, playerLegs:0, botLegs:0, targetLegs:Number($('legsToWin').value), turn:'player', profile, over:false };
             history.length = 0;
+            $('log').innerHTML = '';
             $('botName').textContent = profile.name;
             log(`Queue popped: you vs ${profile.name}`);
             render();
@@ -649,16 +708,40 @@
         }
 
         function render(){
+            if (!state) {
+                const idleProfile = botProfiles[$('difficulty').value] || botProfiles.medium;
+                $('playerScore').textContent = $('format').value || '501';
+                $('botScore').textContent = $('format').value || '501';
+                $('botName').textContent = idleProfile.name;
+                $('playerLegs').textContent = '0 legs';
+                $('botLegs').textContent = '0 legs';
+                $('playerBox').classList.remove('active');
+                $('botBox').classList.remove('active');
+                $('playerBox').classList.add('waiting');
+                $('botBox').classList.add('waiting');
+                $('matchStatus').textContent = 'No match active';
+                $('playerHint').textContent = 'Start a bot match to begin scoring.';
+                $('botHint').textContent = `${idleProfile.tier} - ${idleProfile.avg} average.`;
+                $('submitVisit').disabled = true;
+                updateMatchStrip();
+                renderCoach();
+                updateVoiceUi();
+                return;
+            }
             $('playerScore').textContent = state.player;
             $('botScore').textContent = state.bot;
             $('playerLegs').textContent = `${state.playerLegs} legs`;
             $('botLegs').textContent = `${state.botLegs} legs`;
+            $('playerBox').classList.remove('waiting');
+            $('botBox').classList.remove('waiting');
             $('playerBox').classList.toggle('active', state.turn === 'player' && !state.over);
             $('botBox').classList.toggle('active', state.turn === 'bot' && !state.over);
             $('matchStatus').textContent = state.over ? 'Match complete' : state.turn === 'player' ? 'Your throw' : 'Bot throw';
             $('playerHint').textContent = checkoutHint(state.player);
             $('botHint').textContent = state.turn === 'bot' ? 'Thinking...' : checkoutHint(state.bot);
             $('submitVisit').disabled = state.over || state.turn !== 'player';
+            updateMatchStrip();
+            updateVoiceUi();
             renderCoach();
         }
 
@@ -673,8 +756,8 @@
             if (!state || state.over) {
                 $('coachBadge').textContent = state ? `${score} left` : 'Ready';
                 $('coachRoute').innerHTML = '';
-                $('coachTitle').textContent = state?.playerLegs > state?.botLegs ? 'Match won' : 'Match complete';
-                $('coachText').textContent = 'Start another queue when you are ready. Your result has been saved to local form.';
+                $('coachTitle').textContent = !state ? 'Ready when you are' : state.playerLegs > state.botLegs ? 'Match won' : 'Match complete';
+                $('coachText').textContent = !state ? 'Start a bot match and the coach will surface finish routes, danger numbers, and setup targets.' : 'Start another bot match when you are ready. Your result has been saved to local form.';
                 return;
             }
             const route = checkoutRoute(score);
@@ -696,7 +779,7 @@
                 $('coachText').textContent = 'You cannot finish from here. Aim to leave an even double instead of forcing the visit.';
                 return;
             }
-            const setupTargets = [170, 167, 164, 161, 160, 156, 152, 150, 140, 100, 80, 60, 40, 32].filter(target => target < score);
+            const setupTargets = [170, 167, 164, 161, 160, 156, 152, 150, 140, 100, 80, 60, 40, 32].filter(target => target < score && score - target <= 180);
             const bestTarget = setupTargets[0];
             $('coachTitle').textContent = bestTarget ? `Set up ${bestTarget}` : 'Build pressure';
             $('coachText').textContent = bestTarget ? `A ${score - bestTarget} visit leaves ${bestTarget}, which has a known route next time.` : 'Score cleanly and leave a two-dart finish.';
@@ -843,6 +926,7 @@
         }
 
         $('newMatch').addEventListener('click', startMatch);
+        ['format','difficulty','legsToWin'].forEach(id => $(id).addEventListener('change', () => { if (!state) render(); else updateMatchStrip(); }));
         $('submitVisit').addEventListener('click', () => { submitPlayer($('visitScore').value); $('visitScore').value=''; });
         $('visitScore').addEventListener('keydown', e => { if (e.key === 'Enter') $('submitVisit').click(); });
         document.querySelectorAll('.quick').forEach(btn => btn.addEventListener('click', () => { $('visitScore').value = btn.dataset.score; $('submitVisit').click(); }));
@@ -881,7 +965,7 @@
         renderStats();
         renderBotRank();
         renderHistory();
-        startMatch();
+        render();
     })();
     </script>
 </body>
