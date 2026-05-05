@@ -187,6 +187,6 @@
     // for the dartvoice.app slider to know it can drive a live zoom.
     try {
         window.parent && window.parent !== window &&
-        window.parent.postMessage({ type: 'dv-cam-patch-ready', version: 1 }, '*');
+        window.parent.postMessage({ type: 'dv-cam-patch-ready', version: 2, pan: true }, '*');
     } catch(_){}
 })();

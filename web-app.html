@@ -3175,7 +3175,7 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════
-             BOARD ZOOM — virtual camera with calibrated hot-zones (T20,
+             BOARD ZOOM — Launchpad camera output with calibrated hot-zones (T20,
              T19, Bull, etc). Independent of the iframe; uses its own
              getUserMedia stream so DartCounter keeps working as normal.
              ═══════════════════════════════════════════════════════════════ -->
@@ -3200,6 +3200,8 @@
         .dv-bz-stage{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;border:1px solid #1d1d24;}
         .dv-bz-stage canvas, .dv-bz-stage video{display:block;width:100%;height:100%;object-fit:cover;}
         .dv-bz-stage .dv-bz-overlay{position:absolute;inset:0;pointer-events:none;}
+        .dv-bz-stage.dv-bz-ready .dv-bz-overlay{pointer-events:auto;cursor:grab;touch-action:none;}
+        .dv-bz-stage.dv-bz-ready.dv-bz-dragging .dv-bz-overlay{cursor:grabbing;}
         .dv-bz-stage.dv-bz-calmode .dv-bz-overlay{pointer-events:auto;cursor:crosshair;touch-action:none;}
         .dv-bz-stage.dv-bz-calmode{box-shadow:0 0 0 2px rgba(204,11,32,0.55), 0 0 28px rgba(204,11,32,0.35) inset;}
         .dv-bz-hint{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(204,11,32,0.96);color:#fff;font-size:13px;font-weight:800;padding:10px 12px;border-radius:8px;text-align:center;letter-spacing:.04em;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,0.5);line-height:1.3;}
@@ -3211,9 +3213,13 @@
         .dv-bz-zones button.on{background:rgba(204,11,32,0.18);border-color:rgba(204,11,32,0.55);color:#fff;}
         .dv-bz-zooms{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
         .dv-bz-zooms .dv-bz-tile{position:relative;background:#000;border:1px solid #252530;border-radius:8px;overflow:hidden;aspect-ratio:1;}
-        .dv-bz-zooms .dv-bz-tile canvas{display:block;width:100%;height:100%;}
+        .dv-bz-zooms .dv-bz-tile canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none;}
+        .dv-bz-zooms .dv-bz-tile.is-dragging canvas{cursor:grabbing;}
         .dv-bz-zooms .dv-bz-tile .dv-bz-tile-label{position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.65);color:#fff;font-size:9px;font-weight:900;letter-spacing:.12em;padding:2px 6px;border-radius:4px;}
         .dv-bz-zooms .dv-bz-tile .dv-bz-tile-x{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.65);color:#fff;border:0;width:16px;height:16px;border-radius:4px;cursor:pointer;font-size:11px;line-height:1;}
+        .dv-bz-zooms .dv-bz-tile .dv-bz-tile-center{position:absolute;right:24px;top:4px;background:rgba(0,0,0,0.65);color:#fff;border:0;width:16px;height:16px;border-radius:4px;cursor:pointer;font-size:10px;line-height:1;}
+        .dv-bz-pan-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;font-weight:800;flex-shrink:0;}
+        .dv-bz-mini-range{min-width:0;height:24px;accent-color:var(--brand);}
         .dv-bz-empty{padding:18px;text-align:center;font-size:11px;color:#666;border:1px dashed #2a2a32;border-radius:8px;}
         .dv-bz-status{font-size:10px;color:#888;}
         .dv-bz-studio{margin-top:6px;padding:10px;border:1px solid #252530;border-radius:10px;background:#0a0a0e;display:flex;flex-direction:column;gap:8px;}
@@ -3266,6 +3272,12 @@
                     <button type="button" data-bz-preset="2.5" class="dv-bz-btn dv-bz-preset" style="flex:1;min-width:48px;padding:4px 0;font-size:11px;">2.5×</button>
                     <button type="button" data-bz-preset="3"   class="dv-bz-btn dv-bz-preset" style="flex:1;min-width:48px;padding:4px 0;font-size:11px;">3×</button>
                 </div>
+                <div class="dv-bz-row" id="dv-bz-pan-row" style="display:none;align-items:center;gap:7px;">
+                    <span class="dv-bz-pan-label">Pan</span>
+                    <input id="dv-bz-pan-x" class="dv-bz-mini-range" type="range" min="0" max="100" step="1" value="50" aria-label="Camera crop horizontal pan">
+                    <input id="dv-bz-pan-y" class="dv-bz-mini-range" type="range" min="0" max="100" step="1" value="50" aria-label="Camera crop vertical pan">
+                    <button id="dv-bz-pan-reset" type="button" class="dv-bz-btn" style="width:auto;padding:5px 8px;font-size:10px;">Center</button>
+                </div>
                 <div id="dv-bz-stage" class="dv-bz-stage">
                     <video id="dv-bz-video" muted playsinline></video>
                     <canvas id="dv-bz-overlay" class="dv-bz-overlay"></canvas>
@@ -3298,7 +3310,7 @@
                 <div class="dv-bz-studio">
                     <h5>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 8l-6 4 6 4V8z"/></svg>
-                        Virtual Cam Studio
+                        Camera Output Studio
                         <span class="dv-bz-pill">OUTPUT</span>
                     </h5>
                     <div class="dv-bz-row">
@@ -3309,21 +3321,18 @@
                             <option value="pip">Picture-in-picture — board + 1 zoom</option>
                             <option value="board">Board only (full)</option>
                         </select>
-                        <button id="dv-bz-popout" class="dv-bz-btn" disabled title="Open fullscreen output for OBS to capture">Pop out</button>
+                        <button id="dv-bz-popout" class="dv-bz-btn" disabled title="Open a clean preview of the DartVoice output layout">Preview</button>
                     </div>
                     <canvas id="dv-bz-composite" class="dv-bz-preview" width="1280" height="720"></canvas>
                     <div class="dv-bz-help">
-                        <b>To use as a virtual camera in DartCounter / Zoom / Discord:</b><br>
-                        1. Pick a layout, calibrate, choose your zooms above.<br>
-                        2. Click <b>Pop out</b> → a clean fullscreen window opens.<br>
-                        3. In <b>OBS Studio</b> add a <i>Window Capture</i> source → pick "DartVoice Virtual Cam" → click <b>Start Virtual Camera</b>.<br>
-                        4. In DartCounter (or any app), select <b>OBS Virtual Camera</b> as the input.
+                        <b>Launchpad extension output:</b> Cam Zoom and Pan are sent directly into the DartCounter camera feed when the extension is active.<br>
+                        Drag any zoom tile, or drag its marker on the preview, to recenter that target without recalibrating the whole board. Preview is optional and does not require OBS.
                     </div>
                 </div>
             </div>
         </div>
         <script>
-        /* DartVoice Board Zoom — independent virtual camera with hot-zones.
+        /* DartVoice Board Zoom — Launchpad camera output with hot-zones.
            Stays in sync with localStorage so calibration persists across visits.
            Does NOT touch DartCounter's iframe stream — pure additive feature. */
         (function(){
@@ -3341,8 +3350,10 @@
                 DBULL:[null,0], BULL:[null,0]
             };
 
-            let state = { camId:'', calib:null, zones:[], minimized:false };
+            let state = { camId:'', calib:null, zones:[], zoneOffsets:{}, camPan:{ x:0.5, y:0.5 }, minimized:false };
             try { Object.assign(state, JSON.parse(localStorage.getItem(LS_KEY) || '{}')); } catch(e){}
+            if (!state.zoneOffsets || typeof state.zoneOffsets !== 'object') state.zoneOffsets = {};
+            if (!state.camPan || typeof state.camPan !== 'object') state.camPan = { x:0.5, y:0.5 };
             const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){} };
 
             const $ = (id) => document.getElementById(id);
@@ -3359,12 +3370,18 @@
             const statusEl = $('dv-bz-status');
             const zonesWrap = $('dv-bz-zones');
             const zoomsWrap = $('dv-bz-zooms');
+            const panRow = $('dv-bz-pan-row');
+            const panXInput = $('dv-bz-pan-x');
+            const panYInput = $('dv-bz-pan-y');
+            const panResetBtn = $('dv-bz-pan-reset');
             let stream = null;
             let calMode = false;
             let calPoints = [];   // [TOP(20), RIGHT(6), BOTTOM(3), LEFT(11)]
             const CAL_LABELS = ['TOP — outer wire above 20', 'RIGHT — outer wire right of 6', 'BOTTOM — outer wire below 3', 'LEFT — outer wire left of 11'];
             let rafId = 0;
             let dragHandle = null;     // index of calib handle being dragged after finalize (0=top,1=right,2=bot,3=left)
+            let dragTargetZone = null; // selected target marker being nudged on the live preview
+            let tileDrag = null;       // { zone, startClientX, startClientY, startOffset, cropPx, tile }
             let _zoomBeforeCal = null; // saved CSS scale we clear during calmode
 
             window.dvBoardZoomToggle = function(){
@@ -3453,6 +3470,47 @@
 
             function escapeHtml(v){ const d=document.createElement('div'); d.textContent=String(v||''); return d.innerHTML; }
             function setStatus(msg){ statusEl.textContent = msg; }
+            function clamp01(v){ return Math.max(0, Math.min(1, Number(v))); }
+            function getCamPan(){
+                const x = Number.isFinite(Number(state.camPan?.x)) ? clamp01(state.camPan.x) : 0.5;
+                const y = Number.isFinite(Number(state.camPan?.y)) ? clamp01(state.camPan.y) : 0.5;
+                state.camPan = { x, y };
+                return state.camPan;
+            }
+            function currentZoomValue(){
+                const slider = document.getElementById('dv-bz-zoomctl');
+                return Math.max(1, parseFloat(slider?.value || '1') || 1);
+            }
+            function updatePanUi(){
+                const pan = getCamPan();
+                if (panXInput) panXInput.value = String(Math.round(pan.x * 100));
+                if (panYInput) panYInput.value = String(Math.round(pan.y * 100));
+            }
+            function broadcastCamConfig(zoom){
+                const pan = getCamPan();
+                try {
+                    const frame = document.getElementById('scorer-frame');
+                    if (frame && frame.contentWindow) {
+                        frame.contentWindow.postMessage({ type:'dv-cam-config', zoom: Math.max(1, Number(zoom) || 1), panX: pan.x, panY: pan.y }, 'https://app.dartcounter.net');
+                    }
+                } catch(_){}
+            }
+            function getZoneOffset(zone){
+                const o = state.zoneOffsets && state.zoneOffsets[zone];
+                return { x:Number(o?.x) || 0, y:Number(o?.y) || 0 };
+            }
+            function setZoneOffset(zone, x, y){
+                if (!state.zoneOffsets || typeof state.zoneOffsets !== 'object') state.zoneOffsets = {};
+                state.zoneOffsets[zone] = { x:Math.round(Number(x) || 0), y:Math.round(Number(y) || 0) };
+            }
+            function resetZoneOffset(zone){
+                if (state.zoneOffsets) delete state.zoneOffsets[zone];
+                save();
+                setStatus(zone + ' recentered.');
+            }
+            function updateStageMode(){
+                stage.classList.toggle('dv-bz-ready', !!state.calib && !calMode);
+            }
 
             startBtn.onclick = async () => {
                 if (stream) { stopStream(); startBtn.textContent = 'Start'; return; }
@@ -3499,6 +3557,7 @@
                     const row = document.getElementById('dv-bz-zoomctl-row');
                     if (row) row.style.display = 'none';
                     const pr = document.getElementById('dv-bz-zoom-presets'); if (pr) pr.style.display = 'none';
+                    if (panRow) panRow.style.display = 'none';
                     video.style.transform = '';
                     video.style.transformOrigin = '';
                 } catch(_){}
@@ -3540,6 +3599,8 @@
                 }
                 row.style.display = 'flex';
                 try { const pr = document.getElementById('dv-bz-zoom-presets'); if (pr) pr.style.display = 'flex'; } catch(_){}
+                if (panRow) panRow.style.display = 'flex';
+                updatePanUi();
                 // Restore last zoom from state if the user previously set one for this device.
                 try {
                     const savedKey = 'dv-cam-zoom-' + (state.camId || 'default');
@@ -3552,45 +3613,55 @@
                 // Apply current value once on hookup.
                 applyCamZoom(track, native, parseFloat(slider.value));
                 // Also push the initial value into the DartCounter iframe so
-                // the extension's camera-patch picks up our saved zoom even
-                // before the user touches the slider.
-                try {
-                    const f0 = document.getElementById('scorer-frame');
-                    if (f0 && f0.contentWindow) {
-                        f0.contentWindow.postMessage({ type:'dv-cam-config', zoom: parseFloat(slider.value) || 1 }, 'https://app.dartcounter.net');
-                    }
-                } catch(_){}
+                // the extension's camera-patch picks up our saved zoom/pan even
+                // before the user touches the controls.
+                broadcastCamConfig(parseFloat(slider.value) || 1);
                 slider.oninput = () => {
                     const v = parseFloat(slider.value) || 1;
                     valEl.textContent = v.toFixed(1) + 'x';
                     applyCamZoom(track, native, v);
                     try { localStorage.setItem('dv-cam-zoom-' + (state.camId || 'default'), String(v)); } catch(_){}
                     // ── Broadcast to the DartCounter iframe so the extension's
-                    // camera-patch.js applies the same zoom to the footage
-                    // DartCounter actually streams to opponents (or records).
-                    try {
-                        const f = document.getElementById('scorer-frame');
-                        if (f && f.contentWindow) {
-                            f.contentWindow.postMessage({ type:'dv-cam-config', zoom: v }, 'https://app.dartcounter.net');
-                        }
-                    } catch(_){}
+                    // camera-patch.js applies the same zoom/pan to the footage
+                    // DartCounter actually streams to opponents.
+                    broadcastCamConfig(v);
+                };
+                const applyPanInput = () => {
+                    state.camPan = {
+                        x: clamp01((parseFloat(panXInput?.value || '50') || 50) / 100),
+                        y: clamp01((parseFloat(panYInput?.value || '50') || 50) / 100)
+                    };
+                    save();
+                    applyCamZoom(track, native, currentZoomValue());
+                    broadcastCamConfig(currentZoomValue());
+                };
+                if (panXInput) panXInput.oninput = applyPanInput;
+                if (panYInput) panYInput.oninput = applyPanInput;
+                if (panResetBtn) panResetBtn.onclick = () => {
+                    state.camPan = { x:0.5, y:0.5 };
+                    updatePanUi();
+                    save();
+                    applyCamZoom(track, native, currentZoomValue());
+                    broadcastCamConfig(currentZoomValue());
+                    setStatus('Camera pan centred.');
                 };
             }
             function applyCamZoom(track, native, v){
+                const pan = getCamPan();
                 if (native) {
                     try {
                         const p = track.applyConstraints({ advanced: [{ zoom: v }] });
                         if (p && p.catch) p.catch(err => {
                             console.warn('[bz] zoom constraint failed', err);
                             // Fall through to CSS scale on error.
-                            video.style.transformOrigin = 'center center';
+                            video.style.transformOrigin = (pan.x * 100).toFixed(0) + '% ' + (pan.y * 100).toFixed(0) + '%';
                             video.style.transform = 'scale(' + v + ')';
                         });
                     } catch(err) {
                         console.warn('[bz] zoom constraint exception', err);
                     }
                 } else {
-                    video.style.transformOrigin = 'center center';
+                    video.style.transformOrigin = (pan.x * 100).toFixed(0) + '% ' + (pan.y * 100).toFixed(0) + '%';
                     video.style.transform = v > 1.001 ? ('scale(' + v + ')') : '';
                 }
             }
@@ -3631,6 +3702,7 @@
             function enterCalMode(){
                 calMode = true; calPoints = [];
                 stage.classList.add('dv-bz-calmode');
+                updateStageMode();
                 hint.style.display = 'block';
                 // Clear any CSS-scale fallback so click coords map 1:1 to video pixels.
                 if (video.style.transform) {
@@ -3644,6 +3716,7 @@
                 calMode = false; calPoints = []; dragHandle = null;
                 stage.classList.remove('dv-bz-calmode');
                 hint.style.display = 'none';
+                updateStageMode();
                 // Restore CSS-scale if we had cleared it.
                 if (_zoomBeforeCal !== null) { video.style.transform = _zoomBeforeCal; _zoomBeforeCal = null; }
             }
@@ -3691,6 +3764,18 @@
                 const tol = Math.max(20, overlay.width * 0.06);
                 return bestD <= tol ? best : -1;
             }
+            function pickTargetZone(e){
+                if (!state.calib || !state.zones.length) return null;
+                const { x, y } = pointToVideoPx(e);
+                let best = null, bestD = Infinity, bestTol = 0;
+                state.zones.forEach(z => {
+                    const tp = targetPoint(z); if (!tp) return;
+                    const d = Math.hypot(tp.x - x, tp.y - y);
+                    const tol = Math.max(24, tp.segPx * 1.35);
+                    if (d < bestD) { best = z; bestD = d; bestTol = tol; }
+                });
+                return bestD <= bestTol ? best : null;
+            }
             function applyDragMove(idx, x, y){
                 if (!state.calib) return;
                 // Recompute calib from one moved handle: keep other 3 fixed.
@@ -3710,22 +3795,41 @@
                 if (idx < 0) return;
                 e.preventDefault();
                 dragHandle = idx;
-                stage.classList.add('dv-bz-calmode'); // re-uses crosshair + pointer-events
+                stage.classList.add('dv-bz-dragging');
+            }
+            function onTargetPointerDown(e){
+                if (calMode || dragHandle != null) return;
+                const z = pickTargetZone(e);
+                if (!z) return;
+                e.preventDefault();
+                dragTargetZone = z;
+                stage.classList.add('dv-bz-dragging');
+                setStatus('Dragging ' + z + '. Release when the target is centred.');
             }
             function onPointerMove(e){
-                if (dragHandle == null) return;
+                if (dragHandle == null && !dragTargetZone) return;
                 e.preventDefault();
                 const { x, y } = pointToVideoPx(e);
-                applyDragMove(dragHandle, x, y);
+                if (dragHandle != null) {
+                    applyDragMove(dragHandle, x, y);
+                    return;
+                }
+                const base = targetPoint(dragTargetZone, false);
+                if (base) setZoneOffset(dragTargetZone, x - base.x, y - base.y);
             }
             function onPointerUp(){
-                if (dragHandle == null) return;
+                if (dragHandle == null && !dragTargetZone) return;
+                const movedZone = dragTargetZone;
                 dragHandle = null;
-                stage.classList.remove('dv-bz-calmode');
+                dragTargetZone = null;
+                stage.classList.remove('dv-bz-dragging');
                 save();
+                if (movedZone) setStatus(movedZone + ' recentered. Drag again any time.');
             }
             overlay.addEventListener('mousedown', onPointerDown);
+            overlay.addEventListener('mousedown', onTargetPointerDown);
             overlay.addEventListener('touchstart', onPointerDown, { passive: false });
+            overlay.addEventListener('touchstart', onTargetPointerDown, { passive: false });
             window.addEventListener('mousemove', onPointerMove);
             window.addEventListener('touchmove', onPointerMove, { passive: false });
             window.addEventListener('mouseup', onPointerUp);
@@ -3753,13 +3857,14 @@
             }
 
             resetBtn.onclick = () => {
-                state.calib = null; state.zones = []; save();
+                state.calib = null; state.zones = []; state.zoneOffsets = {}; save();
                 exitCalMode();
                 setStatus('Reset. Calibrate again to enable zoom tiles.');
                 renderZones(); renderZooms();
             };
 
             function renderZones(){
+                updateStageMode();
                 zonesWrap.querySelectorAll('button').forEach(b => {
                     b.classList.toggle('on', state.zones.includes(b.dataset.zone));
                     b.disabled = !state.calib;
@@ -3776,6 +3881,50 @@
                 save(); renderZones(); renderZooms();
             });
 
+            function eventClient(e){
+                const p = (e.touches && e.touches[0]) || e;
+                return { x:p.clientX, y:p.clientY };
+            }
+            function beginTileDrag(e, zone, tile){
+                if (!state.calib) return;
+                const cv = tile.querySelector('canvas');
+                const tp = targetPoint(zone);
+                if (!cv || !tp) return;
+                const p = eventClient(e);
+                tileDrag = {
+                    zone,
+                    tile,
+                    startClientX:p.x,
+                    startClientY:p.y,
+                    startOffset:getZoneOffset(zone),
+                    cropPx:tp.segPx * 2,
+                    canvasW:cv.getBoundingClientRect().width || cv.width || 1,
+                    canvasH:cv.getBoundingClientRect().height || cv.height || 1
+                };
+                tile.classList.add('is-dragging');
+                e.preventDefault();
+            }
+            function updateTileDrag(e){
+                if (!tileDrag) return;
+                const p = eventClient(e);
+                const dx = (p.x - tileDrag.startClientX) / tileDrag.canvasW * tileDrag.cropPx;
+                const dy = (p.y - tileDrag.startClientY) / tileDrag.canvasH * tileDrag.cropPx;
+                setZoneOffset(tileDrag.zone, tileDrag.startOffset.x + dx, tileDrag.startOffset.y + dy);
+                e.preventDefault();
+            }
+            function endTileDrag(){
+                if (!tileDrag) return;
+                const zone = tileDrag.zone;
+                tileDrag.tile?.classList.remove('is-dragging');
+                tileDrag = null;
+                save();
+                setStatus(zone + ' recentered.');
+            }
+            window.addEventListener('mousemove', updateTileDrag);
+            window.addEventListener('touchmove', updateTileDrag, { passive:false });
+            window.addEventListener('mouseup', endTileDrag);
+            window.addEventListener('touchend', endTileDrag);
+
             function renderZooms(){
                 if (!state.calib || !state.zones.length) {
                     zoomsWrap.innerHTML = '<div class="dv-bz-empty" style="grid-column:1/-1;">' +
@@ -3786,10 +3935,22 @@
                     <div class="dv-bz-tile" data-tile="${z}">
                         <canvas></canvas>
                         <span class="dv-bz-tile-label">${z}</span>
+                        <button class="dv-bz-tile-center" data-reset-offset="${z}" title="Recenter ${z}">◎</button>
                         <button class="dv-bz-tile-x" data-rm="${z}" title="Remove">×</button>
                     </div>`).join('');
                 zoomsWrap.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
                     state.zones = state.zones.filter(z => z !== b.dataset.rm); save(); renderZones(); renderZooms();
+                });
+                zoomsWrap.querySelectorAll('[data-reset-offset]').forEach(b => b.onclick = (e) => {
+                    e.stopPropagation();
+                    resetZoneOffset(b.dataset.resetOffset);
+                });
+                zoomsWrap.querySelectorAll('.dv-bz-tile').forEach(tile => {
+                    const zone = tile.dataset.tile;
+                    const canvas = tile.querySelector('canvas');
+                    if (!canvas) return;
+                    canvas.addEventListener('mousedown', e => beginTileDrag(e, zone, tile));
+                    canvas.addEventListener('touchstart', e => beginTileDrag(e, zone, tile), { passive:false });
                 });
                 // Size each tile canvas to its CSS box once laid out.
                 requestAnimationFrame(() => {
@@ -3801,19 +3962,20 @@
                 });
             }
 
-            function targetPoint(zoneKey){
+            function targetPoint(zoneKey, includeOffset = true){
                 const def = R_TARGET[zoneKey]; if (!def) return null;
                 const [seg, rMm] = def;
                 const { cx, cy, R, rotDeg } = state.calib;
+                const offset = includeOffset ? getZoneOffset(zoneKey) : { x:0, y:0 };
                 if (zoneKey === 'BULL' || zoneKey === 'DBULL') {
-                    return { x:cx, y:cy, segPx: (zoneKey==='BULL'?16:R_BULL)/170 * R };
+                    return { x:cx + offset.x, y:cy + offset.y, segPx: (zoneKey==='BULL'?16:R_BULL)/170 * R };
                 }
                 const segPx = R * (rMm / 170);
                 const angleDeg = (SEG_ANGLE[seg] || 0) + rotDeg;
                 const a = angleDeg * Math.PI / 180;
                 // Screen coords: x grows right, y grows down. Up = -y.
-                const x = cx + Math.sin(a) * segPx;
-                const y = cy - Math.cos(a) * segPx;
+                const x = cx + Math.sin(a) * segPx + offset.x;
+                const y = cy - Math.cos(a) * segPx + offset.y;
                 // Crop half-size — generous around the target so dart entry visible.
                 const cropR = Math.max(28, R * 0.16);
                 return { x, y, segPx: cropR };
@@ -3857,9 +4019,11 @@
                     }
                     state.zones.forEach(z => {
                         const tp = targetPoint(z); if (!tp) return;
-                        octx.strokeStyle = '#fff';
-                        octx.lineWidth = 2;
+                        const isActive = dragTargetZone === z;
+                        octx.strokeStyle = isActive ? '#CC0B20' : '#fff';
+                        octx.lineWidth = isActive ? 3 : 2;
                         octx.strokeRect(tp.x - tp.segPx, tp.y - tp.segPx, tp.segPx*2, tp.segPx*2);
+                        drawDot(octx, tp.x, tp.y, isActive ? '#fff' : '#CC0B20', z);
                     });
                 }
                 // Render each zoom tile
@@ -3894,11 +4058,11 @@
                 }
             }
 
-            // ─── Virtual Cam Studio ───────────────────────────────────────
+            // ─── Camera Output Studio ─────────────────────────────────────
             // Composites the live video + chosen zones into one 1280×720
-            // canvas using a configurable layout. Pop-out window can then
-            // be captured by OBS as a Window Capture and broadcast as a
-            // virtual camera to DartCounter / Zoom / Discord / etc.
+            // canvas using a configurable layout. The Launchpad extension
+            // handles the live outbound camera zoom/pan directly; this canvas
+            // is a clean optional preview/output surface.
             const composite = $('dv-bz-composite');
             const layoutSel = $('dv-bz-layout');
             const popoutBtn = $('dv-bz-popout');
@@ -4007,7 +4171,7 @@
                 ctx.fillStyle = 'rgba(255,255,255,0.55)';
                 ctx.font = 'bold 11px sans-serif';
                 ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-                ctx.fillText('DartVoice Virtual Cam', W - 10, H - 8);
+                ctx.fillText('DartVoice Camera Output', W - 10, H - 8);
 
                 // Mirror to popout
                 if (popWin && !popWin.closed && popCanvas) {
@@ -4018,9 +4182,9 @@
 
             popoutBtn.onclick = () => {
                 if (popWin && !popWin.closed) { popWin.focus(); return; }
-                popWin = window.open('', 'DartVoiceVirtualCam', 'width=1280,height=720');
+                popWin = window.open('', 'DartVoiceCameraOutput', 'width=1280,height=720');
                 if (!popWin) { setStatus('Pop-out blocked — allow pop-ups for this site.'); return; }
-                popWin.document.write(`<!doctype html><html><head><title>DartVoice Virtual Cam</title>
+                popWin.document.write(`<!doctype html><html><head><title>DartVoice Camera Output</title>
                     <style>html,body{margin:0;background:#000;height:100%;overflow:hidden;}canvas{display:block;width:100vw;height:100vh;background:#000;}</style>
                     </head><body><canvas id="vc" width="1280" height="720"></canvas></body></html>`);
                 popWin.document.close();

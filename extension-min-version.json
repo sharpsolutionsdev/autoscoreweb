@@ -1,6 +1,6 @@
 {
-    "min_version": "2.2.0",
-    "latest_version": "2.2.0",
+    "min_version": "2.4.0",
+    "latest_version": "2.4.1",
     "store_url": "https://chromewebstore.google.com/detail/dartvoice-launchpad/igldnjophdpofihidpbblchgfamncpgb",
     "changelog_url": "https://dartvoice.app/extension-changelog.html",
     "force_reload_below": "2.0.0",
