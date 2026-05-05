@@ -60,12 +60,46 @@
         .voice-heard { min-height:36px; border-radius:10px; border:1px solid rgba(255,255,255,.07); background:rgba(0,0,0,.20); padding:8px 10px; color:#bfc0ca; font-size:12px; line-height:1.45; }
         .voice-toggle { display:flex; align-items:center; gap:8px; color:#a8a8b5; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; }
         .voice-toggle input { min-height:0; width:16px; height:16px; accent-color:var(--brand); }
+        .voice-tools { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; }
+        .voice-accent { display:grid; gap:5px; color:#8d8e99; font-size:10px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+        .voice-accent select { min-height:36px; font-size:12px; padding:0 10px; }
+        .voice-pulse { animation:voicePulse .42s ease-out; }
         .status-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 10px #22c55e; }
         input, select { background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.12); color:white; border-radius:10px; min-height:44px; padding:0 12px; outline:none; }
         input:focus, select:focus { border-color:rgba(var(--brand-rgb),.65); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.12); }
         .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111118; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:10px 14px; color:white; font-size:13px; box-shadow:0 16px 40px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; }
         .toast.show { opacity:1; transform:translate(-50%,-4px); }
-        @media (max-width:640px) { .rank-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .rank-tile strong { font-size:24px; } }
+        .result-overlay { position:fixed; inset:0; z-index:1200; display:flex; align-items:center; justify-content:center; padding:24px; background:radial-gradient(ellipse at center,rgba(0,0,0,.88) 0%,rgba(0,0,0,.975) 48%,#000 100%); opacity:0; visibility:hidden; pointer-events:none; transition:opacity .32s ease, visibility .32s ease; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+        .result-overlay.active { opacity:1; visibility:visible; pointer-events:auto; }
+        .result-overlay.win { background:radial-gradient(ellipse at center,rgba(34,197,94,.20) 0%,rgba(0,0,0,.96) 48%,#000 100%); }
+        .result-overlay.loss { background:radial-gradient(ellipse at center,rgba(var(--brand-rgb),.20) 0%,rgba(0,0,0,.96) 48%,#000 100%); }
+        .result-card { width:min(720px,100%); text-align:center; position:relative; padding:22px 18px 26px; border-radius:18px; background:linear-gradient(180deg,rgba(5,5,8,.78),rgba(5,5,8,.42)); border:1px solid rgba(255,255,255,.08); box-shadow:0 30px 90px rgba(0,0,0,.72); overflow:hidden; }
+        .result-card::before { content:''; position:absolute; inset:-35%; background:radial-gradient(circle at 50% 18%,rgba(255,255,255,.08),transparent 36%); pointer-events:none; }
+        .result-card > * { position:relative; z-index:1; }
+        .result-tier { color:var(--brand); font-size:12px; font-weight:900; letter-spacing:.28em; text-transform:uppercase; margin-bottom:8px; opacity:0; transform:translateY(-10px); }
+        .result-banner { font-family:'Barlow Condensed',Impact,sans-serif; font-size:clamp(58px,12vw,124px); line-height:.9; font-weight:900; font-style:italic; text-transform:uppercase; text-shadow:0 8px 60px currentColor; opacity:0; transform:scale(1.35); }
+        .result-overlay.win .result-banner { color:#4ade80; }
+        .result-overlay.loss .result-banner { color:var(--brand); }
+        .result-score { display:inline-flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center; margin:22px 0 10px; color:#a8a8b5; font-size:12px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+        .result-score strong { min-width:92px; color:#fff; font-family:'Barlow Condensed',Impact,sans-serif; font-size:40px; line-height:1; }
+        .result-mmr { display:flex; align-items:center; justify-content:center; gap:clamp(12px,3vw,28px); margin:18px 0 6px; color:#fff; font-family:'Barlow Condensed',Impact,sans-serif; font-size:clamp(38px,7vw,68px); font-weight:900; font-variant-numeric:tabular-nums; }
+        .result-arrow { color:var(--brand); font-size:.65em; }
+        .result-delta { font-size:clamp(20px,3vw,30px); color:#94a3b8; }
+        .result-delta.up { color:#4ade80; }
+        .result-delta.down { color:#fb7185; }
+        .result-summary { color:#d4d4dc; font-size:14px; margin-top:10px; text-shadow:0 2px 16px #000; }
+        .result-actions { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:28px; opacity:0; transform:translateY(14px); }
+        .result-overlay.active .result-tier { animation:resultFadeDown .42s ease-out .08s forwards; }
+        .result-overlay.active .result-banner { animation:resultSlam .68s cubic-bezier(.2,1.45,.4,1) .12s forwards; }
+        .result-overlay.active .result-mmr { animation:resultFadeUp .48s ease-out .42s both; }
+        .result-overlay.active .result-score, .result-overlay.active .result-summary { animation:resultFadeUp .48s ease-out .32s both; }
+        .result-overlay.active .result-actions { animation:resultFadeUp .48s ease-out .82s forwards; }
+        @keyframes pulse { 50% { opacity:.45; transform:scale(.82); } }
+        @keyframes voicePulse { from { box-shadow:0 0 0 0 rgba(var(--brand-rgb),.38); } to { box-shadow:0 0 0 7px rgba(var(--brand-rgb),0); } }
+        @keyframes resultSlam { to { opacity:1; transform:scale(1); } }
+        @keyframes resultFadeUp { to { opacity:1; transform:translateY(0); } }
+        @keyframes resultFadeDown { to { opacity:1; transform:translateY(0); } }
+        @media (max-width:640px) { .rank-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .rank-tile strong { font-size:24px; } .result-card { padding:18px 12px 22px; } .result-mmr { gap:10px; } .result-score { gap:9px; } }
     </style>
 </head>
 <body>
@@ -197,7 +231,17 @@
                             <span id="voiceButtonText">Start Voice Scoring</span>
                         </button>
                         <div id="voiceHeard" class="voice-heard mt-2">Voice scoring is ready on supported browsers.</div>
-                        <label class="voice-toggle mt-2"><input id="voiceAutoSubmit" type="checkbox" checked> Auto-submit spoken visits</label>
+                        <div class="voice-tools mt-2">
+                            <label class="voice-toggle"><input id="voiceAutoSubmit" type="checkbox" checked> Auto-submit spoken visits</label>
+                            <label class="voice-accent"><span>Accent</span>
+                                <select id="voiceAccent" aria-label="Voice accent">
+                                    <option value="en-GB">UK</option>
+                                    <option value="en-US">US</option>
+                                    <option value="en-AU">AU</option>
+                                    <option value="en-IE">IE</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
                         <button class="btn btn-ghost quick" data-score="26">26</button>
@@ -240,6 +284,24 @@
     </main>
     <dv-footer></dv-footer>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="botResultOverlay" class="result-overlay" aria-hidden="true" role="dialog" aria-label="Bot match result">
+        <div class="result-card">
+            <div id="botResultTier" class="result-tier">Bot Ranked</div>
+            <div id="botResultBanner" class="result-banner">Victory</div>
+            <div class="result-score"><span>You</span><strong id="botResultScore">0-0</strong><span id="botResultOpponent">Bot</span></div>
+            <div class="result-mmr">
+                <span id="botResultBefore">1200</span>
+                <span class="result-arrow">-&gt;</span>
+                <span id="botResultAfter">1200</span>
+                <span id="botResultDelta" class="result-delta up">+0</span>
+            </div>
+            <div id="botResultSummary" class="result-summary">Match complete</div>
+            <div class="result-actions">
+                <button id="botResultRematch" class="btn btn-brand" type="button">Rematch</button>
+                <button id="botResultClose" class="btn btn-ghost" type="button">Back to Match</button>
+            </div>
+        </div>
+    </div>
 
     <script>
     (function(){
@@ -276,6 +338,9 @@
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognizer = null;
         let listening = false;
+        let voiceRestartTimer = null;
+        let lastVoicePhrase = '';
+        let lastVoiceAt = 0;
         let state = null;
         const history = [];
         const BOT_RANK_KEY = 'dv-bot-ranked-profile-v1';
@@ -331,6 +396,7 @@
         function applyBotRank(won){
             const profile = loadBotRank();
             const before = Number(profile.mmr) || 1200;
+            const beforeInfo = rankInfo(before);
             const opponent = botOpponentMmr();
             const expected = 1 / (1 + Math.pow(10, (opponent - before) / 400));
             const score = won ? 1 : 0;
@@ -350,61 +416,137 @@
             saveBotRank(profile);
             log(`Bot Ranked ${delta >= 0 ? '+' : ''}${delta} MMR (${profile.mmr})`);
             renderBotRank();
-            return profile;
+            return { profile, before, after:profile.mmr, delta, beforeInfo, afterInfo:rankInfo(profile.mmr) };
         }
-        const numberWords = {
-            zero:0, oh:0, one:1, won:1, two:2, too:2, to:2, three:3, four:4, for:4, five:5, six:6, seven:7, eight:8, ate:8, nine:9,
-            ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19,
-            twenty:20, thirty:30, forty:40, fourty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90, hundred:100
+        const _ONES = {
+            zero:0, oh:0, nought:0, nil:0, naught:0, no:0,
+            one:1, won:1, wan:1, two:2, too:2, to:2, tu:2, three:3, free:3, tree:3,
+            four:4, for:4, fore:4, five:5, fife:5, six:6, sicks:6, seven:7, sebben:7,
+            eight:8, ate:8, nine:9, nein:9, ten:10, tin:10, eleven:11, levin:11,
+            twelve:12, twelf:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16,
+            seventeen:17, eighteen:18, nineteen:19, bull:50, bullseye:50, bulls:50,
+            outer:25, tops:40, top:40, madhouse:2, ton:100, hundred:100
         };
-        function wordsToNumber(text){
-            const clean = text.replace(/-/g, ' ').replace(/\band\b/g, ' ').trim();
-            const direct = Number(clean.match(/\b\d{1,3}\b/)?.[0]);
-            if (Number.isFinite(direct)) return direct;
-            let total = 0, current = 0, seen = false;
-            clean.split(/\s+/).forEach(word => {
-                if (!(word in numberWords)) return;
-                seen = true;
-                const value = numberWords[word];
-                if (value === 100) current = Math.max(1, current) * 100;
-                else current += value;
-            });
-            total += current;
-            return seen ? total : NaN;
+        const _TENS = { twenty:20, thirty:30, forty:40, fourty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90 };
+        function parseUnder100(text){
+            const value = String(text || '').trim();
+            if (_ONES[value] !== undefined) return _ONES[value];
+            if (_TENS[value] !== undefined) return _TENS[value];
+            const parts = value.split(' ');
+            if (parts.length === 2 && _TENS[parts[0]] !== undefined && _ONES[parts[1]] !== undefined) return _TENS[parts[0]] + _ONES[parts[1]];
+            if (/^\d+$/.test(value)) {
+                const direct = Number(value);
+                return direct >= 0 && direct <= 180 ? direct : null;
+            }
+            return null;
+        }
+        function parseSpokenScore(raw){
+            let text = String(raw || '').toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').replace(/\band\b/g, ' ').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+            text = text.replace(/\bsix\s*(t|tee|ty)\b/g, 'sixty')
+                       .replace(/\b(four|for|fore)\s*(t|tee|ty)\b/g, 'forty')
+                       .replace(/\beigh\s*(t|tee|ty)?\b/g, 'eighty')
+                       .replace(/\bnine\s*ty\b/g, 'ninety')
+                       .replace(/\bseven\s*ty\b/g, 'seventy')
+                       .replace(/\bdartvoice\b/g, '')
+                       .trim();
+            text = text.replace(/^(score|scored|shot|visit|i got|i hit|hit|leave|left)\s+/, '').trim();
+            let multiplier = 1;
+            const multMatch = text.match(/^(single|s|double|d|triple|treble|t)\s+(.+)$/);
+            if (multMatch) {
+                const key = multMatch[1];
+                text = multMatch[2].trim();
+                if (/^double$|^d$/.test(key) && /^tops?$/.test(text)) return 40;
+                multiplier = /^double$|^d$/.test(key) ? 2 : /^triple$|^treble$|^t$/.test(key) ? 3 : 1;
+            }
+            const shorthand = text.match(/^([tds])\s*([0-9]{1,3})$/);
+            if (shorthand) {
+                const base = Number(shorthand[2]);
+                const val = base * (shorthand[1] === 't' ? 3 : shorthand[1] === 'd' ? 2 : 1);
+                return val >= 0 && val <= 180 ? val : null;
+            }
+            const zeroTens = text.match(/^([a-z]+)\s+zero$/);
+            if (zeroTens && _ONES[zeroTens[1]] !== undefined) {
+                const val = _ONES[zeroTens[1]] * 10 * multiplier;
+                return val >= 0 && val <= 180 ? val : null;
+            }
+            if (/^(miss|missed|nothing|none|bounce|bounce out|bust|busted|no score|no school|nil|null|nought|off|out)$/.test(text)) return 0;
+            if (/^(bull|bullseye|bulls eye|bull eye)$/.test(text)) return 50;
+            if (/^(outer bull|outer|twenty five)$/.test(text)) return 25;
+            if (text.startsWith('ton ')) {
+                const rest = parseUnder100(text.replace(/^ton\s+/, ''));
+                return rest !== null && 100 + rest <= 180 ? 100 + rest : null;
+            }
+            const parts = text.split(' ');
+            if (parts.length === 2 && parts[0] === 'one' && _TENS[parts[1]] !== undefined) return 100 + _TENS[parts[1]];
+            if (text.startsWith('one hundred') || text.startsWith('a hundred')) {
+                const rest = text.replace(/^(one hundred|a hundred)/, '').trim();
+                if (!rest) return 100;
+                const sub = parseUnder100(rest);
+                return sub !== null && 100 + sub <= 180 ? 100 + sub : null;
+            }
+            if (text.includes(' ')) {
+                const digitMatches = text.match(/\d+/g);
+                if (digitMatches?.length) {
+                    const lastNum = Number(digitMatches[digitMatches.length - 1]);
+                    if (lastNum >= 0 && lastNum <= 180) return lastNum * multiplier;
+                }
+                const tokens = text.split(' ');
+                for (let size = Math.min(3, tokens.length); size >= 1; size--) {
+                    const value = parseUnder100(tokens.slice(tokens.length - size).join(' '));
+                    if (value !== null) return value * multiplier;
+                }
+            }
+            const base = parseUnder100(text);
+            if (base === null) return null;
+            const result = base <= 60 || base === 25 || base === 50 ? base * multiplier : base;
+            return result >= 0 && result <= 180 ? result : null;
+        }
+        function isLikelyScoreIntent(raw){
+            const text = String(raw || '').toLowerCase();
+            return parseSpokenScore(text) !== null || /\b(score|scored|shot|dart|visit|double|treble|triple|bull|bust|miss|zero|nil|ton|hundred)\b/.test(text);
         }
         function parseVisitSpeech(raw){
             const text = raw.toLowerCase().replace(/[.,!?]/g, ' ').replace(/\s+/g, ' ').trim();
             if (/\b(undo|wait|go back|take back)\b/.test(text)) return { command:'undo' };
             if (/\b(new match|new leg|start queue|restart|reset match)\b/.test(text)) return { command:'newMatch' };
-            if (/\b(enter|submit)\b/.test(text)) return { command:'submit' };
-            if (/\b(miss|no score|zero)\b/.test(text)) return { score:0, label:'0' };
-            if (/\b(ton eighty|one eighty|hundred and eighty|one hundred eighty|one hundred and eighty|maximum)\b/.test(text)) return { score:180, label:'180' };
-            if (/\b(ton forty|one forty|one hundred forty|one hundred and forty)\b/.test(text)) return { score:140, label:'140' };
-            if (/\b(ton twenty one|one twenty one|one hundred twenty one|one hundred and twenty one)\b/.test(text)) return { score:121, label:'121' };
-            if (/\b(one oh five|one o five)\b/.test(text)) return { score:105, label:'105' };
-            if (/\b(ton|one hundred|hundred)\b/.test(text)) return { score:100, label:'100' };
-            const multi = text.match(/\b(treble|triple|double|single)\s+(\w+(?:\s+\w+)?)\b/);
-            if (multi) {
-                const base = wordsToNumber(multi[2]);
-                const factor = multi[1] === 'double' ? 2 : multi[1] === 'single' ? 1 : 3;
-                if (Number.isFinite(base)) return { score: base * factor, label:`${multi[1]} ${multi[2]}` };
-            }
-            if (/\bbull(seye)?\b/.test(text)) return { score:50, label:'Bull' };
-            const stripped = text.replace(/\b(score|scored|visit|i got|i hit|hit|leave|left)\b/g, ' ');
-            const score = wordsToNumber(stripped);
-            return Number.isFinite(score) ? { score, label:String(score) } : null;
+            if (/\b(stop listening|stop voice|mic off)\b/.test(text)) return { command:'stopVoice' };
+            if (/^(enter|submit|send it)$/.test(text)) return { command:'submit' };
+            const score = parseSpokenScore(text);
+            return score !== null ? { score, label:String(score) } : null;
         }
         function updateVoiceUi(){
             $('voiceToggle').classList.toggle('listening', listening);
             $('voiceButtonText').textContent = listening ? 'Listening...' : 'Start Voice Scoring';
         }
-        function handleVoiceResult(transcript){
+        function voiceHeard(text){
+            const el = $('voiceHeard');
+            el.textContent = text;
+            el.classList.remove('voice-pulse');
+            void el.offsetWidth;
+            el.classList.add('voice-pulse');
+        }
+        function handleVoiceResult(transcript, confidence){
+            const now = Date.now();
+            const normalized = String(transcript || '').toLowerCase().trim();
+            if (normalized === lastVoicePhrase && now - lastVoiceAt < 900) return;
+            lastVoicePhrase = normalized;
+            lastVoiceAt = now;
+            if (confidence > 0 && confidence < 0.18 && !isLikelyScoreIntent(normalized)) {
+                voiceHeard(`Heard "${transcript}" but ignored low-confidence speech.`);
+                return;
+            }
             const parsed = parseVisitSpeech(transcript);
-            if (!parsed) { $('voiceHeard').textContent = `Heard "${transcript}". Try "one forty" or "treble twenty".`; return; }
-            if (parsed.command === 'undo') { $('voiceHeard').textContent = `Heard "${transcript}" -> undo`; $('undo').click(); return; }
-            if (parsed.command === 'newMatch') { $('voiceHeard').textContent = `Heard "${transcript}" -> new match`; $('newMatch').click(); return; }
-            if (parsed.command === 'submit') { $('voiceHeard').textContent = `Heard "${transcript}" -> submit`; $('submitVisit').click(); return; }
-            $('voiceHeard').textContent = `Heard "${transcript}" -> ${parsed.score}`;
+            if (!parsed) { voiceHeard(`Heard "${transcript}". Try "one forty", "t20", "bull", or "no score".`); return; }
+            if (parsed.command === 'undo') { voiceHeard(`Heard "${transcript}" -> undo`); $('undo').click(); return; }
+            if (parsed.command === 'newMatch') { voiceHeard(`Heard "${transcript}" -> new match`); $('newMatch').click(); return; }
+            if (parsed.command === 'stopVoice') { voiceHeard(`Heard "${transcript}" -> mic off`); if (recognizer) recognizer.stop(); listening = false; updateVoiceUi(); return; }
+            if (parsed.command === 'submit') { voiceHeard(`Heard "${transcript}" -> submit`); $('submitVisit').click(); return; }
+            if (state?.over || state?.turn !== 'player') {
+                voiceHeard(`Heard "${transcript}" -> ${parsed.score}. Waiting for your throw.`);
+                $('visitScore').value = parsed.score;
+                return;
+            }
+            voiceHeard(`Heard "${transcript}" -> ${parsed.score}`);
             $('visitScore').value = parsed.score;
             if ($('voiceAutoSubmit').checked) $('submitVisit').click();
         }
@@ -415,17 +557,62 @@
                 return;
             }
             recognizer = new SpeechRecognition();
-            recognizer.lang = 'en-GB';
+            const savedAccent = localStorage.getItem('dv-accent') || 'en-GB';
+            $('voiceAccent').value = savedAccent;
+            recognizer.lang = savedAccent;
             recognizer.continuous = true;
-            recognizer.interimResults = false;
+            recognizer.interimResults = true;
             recognizer.onstart = () => { listening = true; updateVoiceUi(); };
-            recognizer.onend = () => { listening = false; updateVoiceUi(); };
-            recognizer.onerror = e => { $('voiceHeard').textContent = e.error === 'not-allowed' ? 'Microphone permission was blocked.' : `Voice error: ${e.error}`; };
-            recognizer.onresult = e => {
-                const result = e.results[e.results.length - 1];
-                if (!result?.isFinal) return;
-                handleVoiceResult(result[0].transcript.trim());
+            recognizer.onend = () => {
+                if (listening) {
+                    clearTimeout(voiceRestartTimer);
+                    voiceRestartTimer = setTimeout(() => { if (listening && recognizer) { try { recognizer.start(); } catch (_) {} } }, 450);
+                    return;
+                }
+                updateVoiceUi();
             };
+            recognizer.onerror = e => {
+                if (e.error === 'not-allowed') { voiceHeard('Microphone permission was blocked.'); listening = false; updateVoiceUi(); return; }
+                if (e.error !== 'no-speech' && e.error !== 'aborted') voiceHeard(`Voice error: ${e.error}`);
+            };
+            recognizer.onresult = e => {
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    const result = e.results[i];
+                    const alt = result[0] || {};
+                    const transcript = String(alt.transcript || '').trim();
+                    if (!transcript) continue;
+                    if (!result.isFinal) { voiceHeard(`Listening: "${transcript}"`); continue; }
+                    handleVoiceResult(transcript, Number(alt.confidence || 0));
+                }
+            };
+        }
+
+        function showBotResult(won, rankResult){
+            const overlay = $('botResultOverlay');
+            if (!overlay || !rankResult) return;
+            overlay.classList.remove('win', 'loss', 'active');
+            overlay.classList.add(won ? 'win' : 'loss');
+            $('botResultBanner').textContent = won ? 'Victory' : 'Defeat';
+            $('botResultTier').textContent = rankResult.beforeInfo.label !== rankResult.afterInfo.label ? `${rankResult.beforeInfo.label} -> ${rankResult.afterInfo.label}` : rankResult.afterInfo.label;
+            $('botResultScore').textContent = `${state.playerLegs}-${state.botLegs}`;
+            $('botResultOpponent').textContent = state.profile.name;
+            $('botResultBefore').textContent = rankResult.before;
+            $('botResultAfter').textContent = rankResult.before;
+            const delta = Number(rankResult.delta || 0);
+            $('botResultDelta').textContent = `${delta >= 0 ? '+' : ''}${delta}`;
+            $('botResultDelta').className = `result-delta ${delta >= 0 ? 'up' : 'down'}`;
+            $('botResultSummary').textContent = `${state.start} first to ${state.targetLegs} · ${rankResult.after} MMR · ${rankResult.profile.wins || 0}-${rankResult.profile.losses || 0} bot record`;
+            overlay.setAttribute('aria-hidden', 'false');
+            requestAnimationFrame(() => overlay.classList.add('active'));
+            const start = rankResult.before;
+            const end = rankResult.after;
+            const started = performance.now();
+            setTimeout(() => requestAnimationFrame(function step(t){
+                const progress = Math.min(1, (t - started) / 900);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                $('botResultAfter').textContent = Math.round(start + (end - start) * eased);
+                if (progress < 1) requestAnimationFrame(step);
+            }), 500);
         }
 
         function startMatch(){
@@ -554,10 +741,11 @@
             if (state[who + 'Legs'] >= state.targetLegs) {
                 state.over = true;
                 toast(who === 'player' ? 'Match won' : 'Match lost');
-                applyBotRank(who === 'player');
+                const rankResult = applyBotRank(who === 'player');
                 saveStats(who === 'player');
                 saveHistory(who === 'player');
                 render();
+                showBotResult(who === 'player', rankResult);
                 return;
             }
             state.player = state.start;
@@ -653,9 +841,19 @@
         $('resetBotRank').addEventListener('click', () => { localStorage.removeItem(BOT_RANK_KEY); renderBotRank(); toast('Bot rank reset'); });
         $('voiceToggle').addEventListener('click', () => {
             if (!recognizer) return;
-            try { listening ? recognizer.stop() : recognizer.start(); }
+            try {
+                if (listening) { listening = false; recognizer.stop(); updateVoiceUi(); }
+                else recognizer.start();
+            }
             catch (_) { toast('Voice scoring is already changing state'); }
         });
+        $('voiceAccent').addEventListener('change', e => {
+            localStorage.setItem('dv-accent', e.target.value);
+            if (recognizer) recognizer.lang = e.target.value;
+            voiceHeard(`Accent set to ${e.target.options[e.target.selectedIndex].textContent}.`);
+        });
+        $('botResultClose').addEventListener('click', () => { $('botResultOverlay').classList.remove('active'); $('botResultOverlay').setAttribute('aria-hidden', 'true'); });
+        $('botResultRematch').addEventListener('click', () => { $('botResultClose').click(); startMatch(); });
         setupVoice();
         renderStats();
         renderBotRank();
