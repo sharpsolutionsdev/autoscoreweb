@@ -27,6 +27,21 @@
         .visit-log { max-height:270px; overflow:auto; }
         .visit-row { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.055); color:#c9c9d2; font-size:13px; }
         .pill { display:inline-flex; align-items:center; gap:7px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.035); padding:6px 10px; font-size:11px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; color:#bfc0ca; }
+        .coach-route { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+        .route-chip { border:1px solid rgba(var(--brand-rgb),.28); background:rgba(var(--brand-rgb),.10); color:#fff; border-radius:999px; padding:6px 9px; font-size:12px; font-weight:900; }
+        .history-list { display:grid; gap:8px; }
+        .history-row { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; padding:10px; border:1px solid rgba(255,255,255,.07); border-radius:10px; background:rgba(255,255,255,.025); font-size:12px; color:#c9c9d2; }
+        .history-result { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; font-weight:900; color:#fff; }
+        .history-win { background:rgba(34,197,94,.20); border:1px solid rgba(34,197,94,.35); }
+        .history-loss { background:rgba(239,68,68,.18); border:1px solid rgba(239,68,68,.32); }
+        .voice-card { border:1px solid rgba(var(--brand-rgb),.22); background:linear-gradient(180deg,rgba(var(--brand-rgb),.12),rgba(255,255,255,.025)); border-radius:12px; padding:12px; }
+        .voice-button { width:100%; display:flex; align-items:center; justify-content:center; gap:9px; border:1px solid rgba(var(--brand-rgb),.36); background:rgba(var(--brand-rgb),.14); color:#fff; }
+        .voice-button.listening { background:var(--brand); border-color:rgba(255,255,255,.22); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.16), 0 0 30px rgba(var(--brand-rgb),.28); }
+        .voice-dot { width:9px; height:9px; border-radius:50%; background:#777; box-shadow:none; }
+        .voice-button.listening .voice-dot { background:#fff; box-shadow:0 0 14px #fff; animation:pulse 1.1s infinite; }
+        .voice-heard { min-height:36px; border-radius:10px; border:1px solid rgba(255,255,255,.07); background:rgba(0,0,0,.20); padding:8px 10px; color:#bfc0ca; font-size:12px; line-height:1.45; }
+        .voice-toggle { display:flex; align-items:center; gap:8px; color:#a8a8b5; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; }
+        .voice-toggle input { min-height:0; width:16px; height:16px; accent-color:var(--brand); }
         .status-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 10px #22c55e; }
         input, select { background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.12); color:white; border-radius:10px; min-height:44px; padding:0 12px; outline:none; }
         input:focus, select:focus { border-color:rgba(var(--brand-rgb),.65); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.12); }
@@ -43,6 +58,7 @@
                 <span class="pill"><span class="status-dot"></span>Offline competitive queue</span>
                 <h1 class="display text-5xl md:text-7xl mt-4 leading-none">Bot Match</h1>
                 <p class="text-gray-400 max-w-2xl mt-3">Instant practice with ranked-style pressure. No Supabase, no waiting, no opponent required.</p>
+                <p class="text-gray-500 max-w-2xl mt-2 text-sm">Speak visits the DartVoice way: "one forty", "ton eighty", "treble twenty", "undo", or "new match".</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <a class="btn btn-ghost inline-flex items-center" href="ranked.html">Ranked Hub</a>
@@ -78,35 +94,68 @@
         </section>
 
         <section class="grid lg:grid-cols-[1fr_340px] gap-6">
-            <div class="grid md:grid-cols-2 gap-5">
-                <article id="playerBox" class="scorebox active p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-widest font-black">You</p>
-                            <h2 class="display text-3xl">Player</h2>
+            <div class="space-y-5">
+                <div class="grid md:grid-cols-2 gap-5">
+                    <article id="playerBox" class="scorebox active p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest font-black">You</p>
+                                <h2 class="display text-3xl">Player</h2>
+                            </div>
+                            <span id="playerLegs" class="pill">0 legs</span>
                         </div>
-                        <span id="playerLegs" class="pill">0 legs</span>
-                    </div>
-                    <div id="playerScore" class="display text-8xl leading-none">501</div>
-                    <p id="playerHint" class="text-sm text-gray-400 mt-2">Enter your visit score.</p>
-                </article>
-                <article id="botBox" class="scorebox p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-widest font-black">Opponent</p>
-                            <h2 id="botName" class="display text-3xl">Bot</h2>
+                        <div id="playerScore" class="display text-8xl leading-none">501</div>
+                        <p id="playerHint" class="text-sm text-gray-400 mt-2">Enter your visit score.</p>
+                    </article>
+                    <article id="botBox" class="scorebox p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest font-black">Opponent</p>
+                                <h2 id="botName" class="display text-3xl">Bot</h2>
+                            </div>
+                            <span id="botLegs" class="pill">0 legs</span>
                         </div>
-                        <span id="botLegs" class="pill">0 legs</span>
+                        <div id="botScore" class="display text-8xl leading-none">501</div>
+                        <p id="botHint" class="text-sm text-gray-400 mt-2">Queued and ready.</p>
+                    </article>
+                </div>
+
+                <section class="panel p-5" aria-label="Checkout coach">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest font-black">Checkout coach</p>
+                            <h3 id="coachTitle" class="display text-3xl mt-1">Set up the next visit</h3>
+                        </div>
+                        <span id="coachBadge" class="pill">501 left</span>
                     </div>
-                    <div id="botScore" class="display text-8xl leading-none">501</div>
-                    <p id="botHint" class="text-sm text-gray-400 mt-2">Queued and ready.</p>
-                </article>
+                    <p id="coachText" class="text-sm text-gray-400 mt-3">Start the leg and the coach will surface finish routes, danger numbers, and setup targets.</p>
+                    <div id="coachRoute" class="coach-route"></div>
+                </section>
+
+                <section class="panel p-5" aria-label="Recent offline matches">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest font-black">Local form</p>
+                            <h3 class="display text-3xl mt-1">Recent Matches</h3>
+                        </div>
+                        <button id="clearHistory" class="btn btn-ghost min-h-0 py-2 text-xs">Clear</button>
+                    </div>
+                    <div id="historyList" class="history-list"></div>
+                </section>
             </div>
 
             <aside class="panel p-5">
                 <h3 class="display text-2xl mb-4">Visit</h3>
                 <div class="grid gap-3">
                     <input id="visitScore" inputmode="numeric" pattern="[0-9]*" placeholder="0-180" aria-label="Your visit score">
+                    <div class="voice-card" aria-label="Voice scoring controls">
+                        <button id="voiceToggle" class="btn voice-button" type="button">
+                            <span class="voice-dot"></span>
+                            <span id="voiceButtonText">Start Voice Scoring</span>
+                        </button>
+                        <div id="voiceHeard" class="voice-heard mt-2">Voice scoring is ready on supported browsers.</div>
+                        <label class="voice-toggle mt-2"><input id="voiceAutoSubmit" type="checkbox" checked> Auto-submit spoken visits</label>
+                    </div>
                     <div class="grid grid-cols-3 gap-2">
                         <button class="btn btn-ghost quick" data-score="26">26</button>
                         <button class="btn btn-ghost quick" data-score="60">60</button>
@@ -119,7 +168,7 @@
                     <button id="undo" class="btn btn-ghost">Undo</button>
                 </div>
                 <div class="mt-6 pt-5 border-t border-white/10">
-                    <div class="grid grid-cols-3 gap-2 mb-5 text-center">
+                    <div class="grid grid-cols-2 gap-2 mb-5 text-center">
                         <div class="scorebox p-3 min-h-0">
                             <p class="text-[10px] uppercase tracking-widest text-gray-500 font-black">Played</p>
                             <p id="statMatches" class="display text-2xl">0</p>
@@ -131,6 +180,10 @@
                         <div class="scorebox p-3 min-h-0">
                             <p class="text-[10px] uppercase tracking-widest text-gray-500 font-black">Rate</p>
                             <p id="statRate" class="display text-2xl">0%</p>
+                        </div>
+                        <div class="scorebox p-3 min-h-0">
+                            <p class="text-[10px] uppercase tracking-widest text-gray-500 font-black">Streak</p>
+                            <p id="statStreak" class="display text-2xl">0</p>
                         </div>
                     </div>
                     <div class="flex items-center justify-between mb-3">
@@ -154,14 +207,116 @@
             hard: { name:'Double Dylan', avg:90, spread:16, checkout:0.68 },
             pro: { name:'Pro Pace Parker', avg:102, spread:12, checkout:0.82 }
         };
+        const checkoutRoutes = {
+            170:['T20','T20','Bull'], 167:['T20','T19','Bull'], 164:['T20','T18','Bull'], 161:['T20','T17','Bull'], 160:['T20','T20','D20'],
+            158:['T20','T20','D19'], 157:['T20','T19','D20'], 156:['T20','T20','D18'], 155:['T20','T19','D19'], 154:['T20','T18','D20'],
+            153:['T20','T19','D18'], 152:['T20','T20','D16'], 151:['T20','T17','D20'], 150:['T20','T18','D18'], 149:['T20','T19','D16'],
+            148:['T20','T20','D14'], 147:['T20','T17','D18'], 146:['T20','T18','D16'], 145:['T20','T15','D20'], 144:['T20','T20','D12'],
+            143:['T20','T17','D16'], 142:['T20','T14','D20'], 141:['T20','T19','D12'], 140:['T20','T20','D10'], 139:['T19','T14','D20'],
+            138:['T20','T18','D12'], 137:['T19','T16','D16'], 136:['T20','T20','D8'], 135:['T20','T17','D12'], 134:['T20','T14','D16'],
+            133:['T20','T19','D8'], 132:['Bull','Bull','D16'], 131:['T20','T13','D16'], 130:['T20','T20','D5'], 129:['T19','T16','D12'],
+            128:['T18','T18','D10'], 127:['T20','T17','D8'], 126:['T19','T19','D6'], 125:['T20','T19','D4'], 124:['T20','T16','D8'],
+            123:['T19','T16','D9'], 122:['T18','T18','D7'], 121:['T20','T11','D14'], 120:['T20','20','D20'], 119:['T19','T12','D13'],
+            118:['T20','18','D20'], 117:['T20','17','D20'], 116:['T20','16','D20'], 115:['T20','15','D20'], 114:['T20','14','D20'],
+            113:['T20','13','D20'], 112:['T20','12','D20'], 111:['T20','11','D20'], 110:['T20','10','D20'], 109:['T20','9','D20'],
+            108:['T20','16','D16'], 107:['T19','10','D20'], 106:['T20','10','D18'], 105:['T20','13','D16'], 104:['T18','18','D16'],
+            103:['T19','6','D20'], 102:['T20','10','D16'], 101:['T17','10','D20'], 100:['T20','D20'], 99:['T19','10','D16'],
+            98:['T20','D19'], 97:['T19','D20'], 96:['T20','D18'], 95:['T19','D19'], 94:['T18','D20'], 93:['T19','D18'],
+            92:['T20','D16'], 91:['T17','D20'], 90:['T18','D18'], 89:['T19','D16'], 88:['T16','D20'], 87:['T17','D18'],
+            86:['T18','D16'], 85:['T15','D20'], 84:['T20','D12'], 83:['T17','D16'], 82:['Bull','D16'], 81:['T19','D12'],
+            80:['T20','D10'], 79:['T19','D11'], 78:['T18','D12'], 77:['T19','D10'], 76:['T20','D8'], 75:['T17','D12'],
+            74:['T14','D16'], 73:['T19','D8'], 72:['T16','D12'], 71:['T13','D16'], 70:['T18','D8'], 69:['T19','D6'],
+            68:['T20','D4'], 67:['T17','D8'], 66:['T10','D18'], 65:['T19','D4'], 64:['T16','D8'], 63:['T13','D12'],
+            62:['T10','D16'], 61:['T15','D8'], 60:['20','D20'], 59:['19','D20'], 58:['18','D20'], 57:['17','D20'],
+            56:['16','D20'], 55:['15','D20'], 54:['14','D20'], 53:['13','D20'], 52:['12','D20'], 51:['11','D20'], 50:['Bull']
+        };
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognizer = null;
+        let listening = false;
         let state = null;
         const history = [];
 
         function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
         function randomNormal(){ let u=0,v=0; while(!u) u=Math.random(); while(!v) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
         function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1800); }
-        function validCheckout(score){ return score === 50 || score <= 40 && score % 2 === 0; }
+        function validCheckout(score){ return score === 50 || score > 1 && score <= 40 && score % 2 === 0; }
         function canFinish(remaining){ return remaining <= 170 && remaining !== 169 && remaining !== 168 && remaining !== 166 && remaining !== 165 && remaining !== 163 && remaining !== 162 && remaining !== 159; }
+        function checkoutRoute(score){
+            if (checkoutRoutes[score]) return checkoutRoutes[score];
+            if (validCheckout(score)) return [score === 50 ? 'Bull' : 'D' + (score / 2)];
+            return null;
+        }
+        const numberWords = {
+            zero:0, oh:0, one:1, won:1, two:2, too:2, to:2, three:3, four:4, for:4, five:5, six:6, seven:7, eight:8, ate:8, nine:9,
+            ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19,
+            twenty:20, thirty:30, forty:40, fourty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90, hundred:100
+        };
+        function wordsToNumber(text){
+            const clean = text.replace(/-/g, ' ').replace(/\band\b/g, ' ').trim();
+            const direct = Number(clean.match(/\b\d{1,3}\b/)?.[0]);
+            if (Number.isFinite(direct)) return direct;
+            let total = 0, current = 0, seen = false;
+            clean.split(/\s+/).forEach(word => {
+                if (!(word in numberWords)) return;
+                seen = true;
+                const value = numberWords[word];
+                if (value === 100) current = Math.max(1, current) * 100;
+                else current += value;
+            });
+            total += current;
+            return seen ? total : NaN;
+        }
+        function parseVisitSpeech(raw){
+            const text = raw.toLowerCase().replace(/[.,!?]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (/\b(undo|go back|take back)\b/.test(text)) return { command:'undo' };
+            if (/\b(new match|start queue|restart|reset match)\b/.test(text)) return { command:'newMatch' };
+            if (/\b(ton eighty|one eighty|hundred and eighty|one hundred eighty|one hundred and eighty|maximum)\b/.test(text)) return { score:180, label:'180' };
+            if (/\b(ton forty|one forty|one hundred forty|one hundred and forty)\b/.test(text)) return { score:140, label:'140' };
+            if (/\b(ton twenty one|one twenty one|one hundred twenty one|one hundred and twenty one)\b/.test(text)) return { score:121, label:'121' };
+            if (/\b(ton|one hundred|hundred)\b/.test(text)) return { score:100, label:'100' };
+            const multi = text.match(/\b(treble|triple|double|single)\s+(\w+(?:\s+\w+)?)\b/);
+            if (multi) {
+                const base = wordsToNumber(multi[2]);
+                const factor = multi[1] === 'double' ? 2 : multi[1] === 'single' ? 1 : 3;
+                if (Number.isFinite(base)) return { score: base * factor, label:`${multi[1]} ${multi[2]}` };
+            }
+            if (/\bbull(seye)?\b/.test(text)) return { score:50, label:'Bull' };
+            const stripped = text.replace(/\b(score|scored|visit|i got|i hit|hit|leave|left)\b/g, ' ');
+            const score = wordsToNumber(stripped);
+            return Number.isFinite(score) ? { score, label:String(score) } : null;
+        }
+        function updateVoiceUi(){
+            $('voiceToggle').classList.toggle('listening', listening);
+            $('voiceButtonText').textContent = listening ? 'Listening...' : 'Start Voice Scoring';
+        }
+        function handleVoiceResult(transcript){
+            const parsed = parseVisitSpeech(transcript);
+            if (!parsed) { $('voiceHeard').textContent = `Heard "${transcript}". Try "one forty" or "treble twenty".`; return; }
+            if (parsed.command === 'undo') { $('voiceHeard').textContent = `Heard "${transcript}" -> undo`; $('undo').click(); return; }
+            if (parsed.command === 'newMatch') { $('voiceHeard').textContent = `Heard "${transcript}" -> new match`; $('newMatch').click(); return; }
+            $('voiceHeard').textContent = `Heard "${transcript}" -> ${parsed.score}`;
+            $('visitScore').value = parsed.score;
+            if ($('voiceAutoSubmit').checked) $('submitVisit').click();
+        }
+        function setupVoice(){
+            if (!SpeechRecognition) {
+                $('voiceToggle').disabled = true;
+                $('voiceHeard').textContent = 'Voice scoring needs Chrome, Edge, or another browser with Web Speech support.';
+                return;
+            }
+            recognizer = new SpeechRecognition();
+            recognizer.lang = 'en-GB';
+            recognizer.continuous = true;
+            recognizer.interimResults = false;
+            recognizer.onstart = () => { listening = true; updateVoiceUi(); };
+            recognizer.onend = () => { listening = false; updateVoiceUi(); };
+            recognizer.onerror = e => { $('voiceHeard').textContent = e.error === 'not-allowed' ? 'Microphone permission was blocked.' : `Voice error: ${e.error}`; };
+            recognizer.onresult = e => {
+                const result = e.results[e.results.length - 1];
+                if (!result?.isFinal) return;
+                handleVoiceResult(result[0].transcript.trim());
+            };
+        }
 
         function startMatch(){
             const start = Number($('format').value);
@@ -192,12 +347,53 @@
             $('playerHint').textContent = checkoutHint(state.player);
             $('botHint').textContent = state.turn === 'bot' ? 'Thinking...' : checkoutHint(state.bot);
             $('submitVisit').disabled = state.over || state.turn !== 'player';
+            renderCoach();
         }
 
         function checkoutHint(score){
             if (score <= 1) return 'Bust danger. You need a double finish.';
-            if (canFinish(score)) return `Checkout available from ${score}.`;
+            if (checkoutRoute(score)) return `Checkout route available from ${score}.`;
             return 'Set up the next visit.';
+        }
+
+        function renderCoach(){
+            const score = state?.player || 0;
+            if (!state || state.over) {
+                $('coachBadge').textContent = state ? `${score} left` : 'Ready';
+                $('coachRoute').innerHTML = '';
+                $('coachTitle').textContent = state?.playerLegs > state?.botLegs ? 'Match won' : 'Match complete';
+                $('coachText').textContent = 'Start another queue when you are ready. Your result has been saved to local form.';
+                return;
+            }
+            const route = checkoutRoute(score);
+            $('coachBadge').textContent = `${score} left`;
+            $('coachRoute').innerHTML = '';
+            if (route) {
+                $('coachTitle').textContent = score === 50 ? 'Go Bull' : `Take out ${score}`;
+                $('coachText').textContent = score > 100 ? 'High finish is on. Commit to the first treble and keep the last dart honest.' : 'Finish is on. Stay calm, leave the double, and avoid drifting into one left.';
+                route.forEach(part => {
+                    const chip = document.createElement('span');
+                    chip.className = 'route-chip';
+                    chip.textContent = part;
+                    $('coachRoute').appendChild(chip);
+                });
+                return;
+            }
+            if (score <= 1) {
+                $('coachTitle').textContent = 'Danger number';
+                $('coachText').textContent = 'You cannot finish from here. Aim to leave an even double instead of forcing the visit.';
+                return;
+            }
+            const setupTargets = [170, 167, 164, 161, 160, 156, 152, 150, 140, 100, 80, 60, 40, 32].filter(target => target < score);
+            const bestTarget = setupTargets[0];
+            $('coachTitle').textContent = bestTarget ? `Set up ${bestTarget}` : 'Build pressure';
+            $('coachText').textContent = bestTarget ? `A ${score - bestTarget} visit leaves ${bestTarget}, which has a known route next time.` : 'Score cleanly and leave a two-dart finish.';
+            if (bestTarget) ['Leave', String(bestTarget), 'Next visit'].forEach(part => {
+                const chip = document.createElement('span');
+                chip.className = 'route-chip';
+                chip.textContent = part;
+                $('coachRoute').appendChild(chip);
+            });
         }
 
         function submitPlayer(score){
@@ -206,7 +402,7 @@
             if (!Number.isFinite(score) || score < 0 || score > 180) { toast('Enter a score from 0 to 180'); return; }
             if (score > state.player || state.player - score === 1) { log(`You bust on ${score}`); history.push(JSON.stringify(state)); state.turn='bot'; render(); setTimeout(botThrow, 650); return; }
             if (score === state.player) {
-                if (!validCheckout(score)) { log(`You bust: ${score} is not a double finish`); history.push(JSON.stringify(state)); state.turn='bot'; render(); setTimeout(botThrow, 650); return; }
+                if (!checkoutRoute(state.player)) { log(`You bust: ${state.player} is not a finish`); history.push(JSON.stringify(state)); state.turn='bot'; render(); setTimeout(botThrow, 650); return; }
                 history.push(JSON.stringify(state));
                 state.player = 0;
                 winLeg('player');
@@ -224,9 +420,9 @@
             if (!state || state.over) return;
             const p = state.profile;
             let score;
-            if (canFinish(state.bot) && Math.random() < p.checkout) score = state.bot;
+            if (checkoutRoute(state.bot) && Math.random() < p.checkout) score = state.bot;
             else score = clamp(Math.round(p.avg + randomNormal() * p.spread), 0, 180);
-            if (score > state.bot || state.bot - score === 1 || score === state.bot && !validCheckout(score)) {
+            if (score > state.bot || state.bot - score === 1 || score === state.bot && !checkoutRoute(state.bot)) {
                 log(`${p.name} busts on ${score}`);
             } else if (score === state.bot) {
                 state.bot = 0;
@@ -249,6 +445,7 @@
                 state.over = true;
                 toast(who === 'player' ? 'Match won' : 'Match lost');
                 saveStats(who === 'player');
+                saveHistory(who === 'player');
                 render();
                 return;
             }
@@ -261,18 +458,45 @@
 
         function saveStats(won){
             const key = 'dv-offline-bot-stats-v1';
-            const stats = JSON.parse(localStorage.getItem(key) || '{"wins":0,"losses":0,"matches":0}');
+            const stats = JSON.parse(localStorage.getItem(key) || '{"wins":0,"losses":0,"matches":0,"streak":0}');
             stats.matches++; won ? stats.wins++ : stats.losses++;
+            stats.streak = won ? Math.max(1, (stats.streak || 0) + 1) : Math.min(-1, (stats.streak || 0) - 1);
             localStorage.setItem(key, JSON.stringify(stats));
             renderStats();
         }
 
+        function saveHistory(won){
+            const key = 'dv-offline-bot-history-v1';
+            const rows = JSON.parse(localStorage.getItem(key) || '[]');
+            rows.unshift({ won, bot: state.profile.name, format: state.start, playerLegs: state.playerLegs, botLegs: state.botLegs, date: new Date().toISOString() });
+            localStorage.setItem(key, JSON.stringify(rows.slice(0, 8)));
+            renderHistory();
+        }
+
         function renderStats(){
-            const stats = JSON.parse(localStorage.getItem('dv-offline-bot-stats-v1') || '{"wins":0,"losses":0,"matches":0}');
+            const stats = JSON.parse(localStorage.getItem('dv-offline-bot-stats-v1') || '{"wins":0,"losses":0,"matches":0,"streak":0}');
             const rate = stats.matches ? Math.round((stats.wins / stats.matches) * 100) : 0;
             $('statMatches').textContent = stats.matches || 0;
             $('statWins').textContent = stats.wins || 0;
             $('statRate').textContent = rate + '%';
+            $('statStreak').textContent = stats.streak > 0 ? `W${stats.streak}` : stats.streak < 0 ? `L${Math.abs(stats.streak)}` : '0';
+        }
+
+        function renderHistory(){
+            const rows = JSON.parse(localStorage.getItem('dv-offline-bot-history-v1') || '[]');
+            const list = $('historyList');
+            list.innerHTML = '';
+            if (!rows.length) {
+                list.innerHTML = '<p class="text-sm text-gray-500">No completed bot matches yet. Finish a match and your form guide will appear here.</p>';
+                return;
+            }
+            rows.forEach(row => {
+                const item = document.createElement('div');
+                item.className = 'history-row';
+                const date = new Date(row.date).toLocaleDateString([], { month:'short', day:'numeric' });
+                item.innerHTML = `<span class="history-result ${row.won ? 'history-win' : 'history-loss'}">${row.won ? 'W' : 'L'}</span><span><strong class="text-white">${row.format}</strong> vs ${row.bot}<br><span class="text-gray-500">${row.playerLegs}-${row.botLegs} legs</span></span><span class="text-gray-500">${date}</span>`;
+                list.appendChild(item);
+            });
         }
 
         $('newMatch').addEventListener('click', startMatch);
@@ -285,7 +509,15 @@
             state = JSON.parse(prev);
             render();
         });
+        $('clearHistory').addEventListener('click', () => { localStorage.removeItem('dv-offline-bot-history-v1'); renderHistory(); toast('History cleared'); });
+        $('voiceToggle').addEventListener('click', () => {
+            if (!recognizer) return;
+            try { listening ? recognizer.stop() : recognizer.start(); }
+            catch (_) { toast('Voice scoring is already changing state'); }
+        });
+        setupVoice();
         renderStats();
+        renderHistory();
         startMatch();
     })();
     </script>
