@@ -5,8 +5,131 @@ class DvNav extends HTMLElement {
     this.bindLeaderboard();
     this.initAuth();
     this.markActive();
+    this.bindNavChrome();
+    DvNav.installSitePolish();
     DvNav.installScrollTrail();
     DvNav.installScrollReveal();
+  }
+
+  bindNavChrome() {
+    const nav = this.querySelector('nav');
+    if (!nav) return;
+    const update = () => {
+      const y = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      nav.classList.toggle('dv-nav-scrolled', y > 12);
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+  }
+
+  static installSitePolish() {
+    if (document.getElementById('dv-site-polish-style')) return;
+    const style = document.createElement('style');
+    style.id = 'dv-site-polish-style';
+    style.textContent = `
+      html { scroll-behavior: smooth; }
+      ::selection { background: rgba(var(--brand-rgb), .34); color: #fff; }
+      body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+      dv-nav nav {
+        transition: background-color .22s ease, border-color .22s ease, box-shadow .22s ease, transform .22s ease;
+      }
+      dv-nav nav.dv-nav-scrolled {
+        background: rgba(8, 8, 10, .92) !important;
+        border-color: rgba(255, 255, 255, .10) !important;
+        box-shadow: 0 14px 42px rgba(0, 0, 0, .34), 0 1px 0 rgba(255, 255, 255, .04) inset;
+      }
+      dv-nav .nav-link,
+      dv-nav #dv-profile-btn,
+      dv-nav #nav-lb-btn,
+      dv-nav #nav-more-btn {
+        border-radius: 10px;
+        transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+      }
+      dv-nav .nav-link:hover,
+      dv-nav #dv-profile-btn:hover,
+      dv-nav #nav-lb-btn:hover,
+      dv-nav #nav-more-btn:hover {
+        transform: translateY(-1px);
+        background-color: rgba(255, 255, 255, .035);
+      }
+      dv-nav .dv-nav-active::after { transform-origin: center; animation: dvNavUnderline .38s cubic-bezier(.16,1,.3,1) both; }
+      @keyframes dvNavUnderline { from { transform: scaleX(.3); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      [tabindex]:focus-visible {
+        outline: 2px solid rgba(var(--brand-rgb), .9);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 5px rgba(var(--brand-rgb), .16);
+      }
+      .btn-brand,
+      .btn-outline,
+      .btn-ghost,
+      .tab-btn,
+      .top-tab,
+      .pay-badge,
+      .stat-card,
+      .card,
+      .bg-card.border {
+        transition-property: transform, box-shadow, border-color, background-color, color, filter, opacity;
+        transition-duration: .22s;
+        transition-timing-function: cubic-bezier(.16,1,.3,1);
+      }
+      .btn-brand:hover,
+      .btn-outline:hover,
+      .btn-ghost:hover,
+      a.btn-brand:hover,
+      a.btn-outline:hover {
+        transform: translateY(-2px);
+      }
+      .btn-brand:active,
+      .btn-outline:active,
+      .btn-ghost:active,
+      .tab-btn:active,
+      .top-tab:active {
+        transform: translateY(0) scale(.985);
+      }
+      .bg-card.border:hover,
+      .stat-card:hover,
+      .card:hover {
+        border-color: rgba(255, 255, 255, .13);
+      }
+      .dv-page-enter {
+        animation: dvPageEnter .42s cubic-bezier(.16,1,.3,1) both;
+      }
+      @keyframes dvPageEnter { from { opacity: .001; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        dv-nav nav,
+        dv-nav .nav-link,
+        .btn-brand,
+        .btn-outline,
+        .btn-ghost,
+        .tab-btn,
+        .top-tab,
+        .pay-badge,
+        .stat-card,
+        .card,
+        .bg-card.border {
+          transition-duration: .05s !important;
+        }
+        .dv-page-enter,
+        dv-nav .dv-nav-active::after { animation: none !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    const markReady = () => {
+      const surface = document.querySelector('main, body > header, body > section, body > .hero-glow, #app');
+      if (surface && !surface.classList.contains('dv-page-enter')) surface.classList.add('dv-page-enter');
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', markReady, { once: true });
+    } else {
+      markReady();
+    }
+    window.setTimeout(markReady, 80);
   }
 
   /**

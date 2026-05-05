@@ -211,5 +211,16 @@ customElements.define("dv-footer", DvFooter);
 
 // Ensure the custom element behaves as a block so it doesn't leave baseline whitespace
 const __dvFooterStyle = document.createElement('style');
-__dvFooterStyle.textContent = 'dv-footer{display:block}';
+__dvFooterStyle.textContent = `
+dv-footer{display:block;position:relative;isolation:isolate;}
+dv-footer footer{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.025));}
+dv-footer footer::before{content:'';position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--brand-rgb),.5),transparent);opacity:.75;pointer-events:none;}
+dv-footer footer::after{content:'';position:absolute;right:-14%;bottom:-55%;width:520px;max-width:75vw;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(var(--brand-rgb),.10),transparent 66%);pointer-events:none;z-index:-1;}
+dv-footer .footer-heading{font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.48);margin-bottom:14px;}
+dv-footer a{transition:color .18s ease,transform .18s ease,opacity .18s ease;}
+dv-footer a:hover{transform:translateX(2px);}
+dv-footer .pay-badge{transition:transform .18s ease,border-color .18s ease,background-color .18s ease,filter .18s ease;}
+dv-footer .pay-badge:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.18);filter:brightness(1.08);}
+@media (prefers-reduced-motion:reduce){dv-footer a:hover,dv-footer .pay-badge:hover{transform:none;}}
+`;
 document.head.appendChild(__dvFooterStyle);
