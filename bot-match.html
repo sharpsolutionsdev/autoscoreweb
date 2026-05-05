@@ -268,11 +268,14 @@
         }
         function parseVisitSpeech(raw){
             const text = raw.toLowerCase().replace(/[.,!?]/g, ' ').replace(/\s+/g, ' ').trim();
-            if (/\b(undo|go back|take back)\b/.test(text)) return { command:'undo' };
-            if (/\b(new match|start queue|restart|reset match)\b/.test(text)) return { command:'newMatch' };
+            if (/\b(undo|wait|go back|take back)\b/.test(text)) return { command:'undo' };
+            if (/\b(new match|new leg|start queue|restart|reset match)\b/.test(text)) return { command:'newMatch' };
+            if (/\b(enter|submit)\b/.test(text)) return { command:'submit' };
+            if (/\b(miss|no score|zero)\b/.test(text)) return { score:0, label:'0' };
             if (/\b(ton eighty|one eighty|hundred and eighty|one hundred eighty|one hundred and eighty|maximum)\b/.test(text)) return { score:180, label:'180' };
             if (/\b(ton forty|one forty|one hundred forty|one hundred and forty)\b/.test(text)) return { score:140, label:'140' };
             if (/\b(ton twenty one|one twenty one|one hundred twenty one|one hundred and twenty one)\b/.test(text)) return { score:121, label:'121' };
+            if (/\b(one oh five|one o five)\b/.test(text)) return { score:105, label:'105' };
             if (/\b(ton|one hundred|hundred)\b/.test(text)) return { score:100, label:'100' };
             const multi = text.match(/\b(treble|triple|double|single)\s+(\w+(?:\s+\w+)?)\b/);
             if (multi) {
@@ -294,6 +297,7 @@
             if (!parsed) { $('voiceHeard').textContent = `Heard "${transcript}". Try "one forty" or "treble twenty".`; return; }
             if (parsed.command === 'undo') { $('voiceHeard').textContent = `Heard "${transcript}" -> undo`; $('undo').click(); return; }
             if (parsed.command === 'newMatch') { $('voiceHeard').textContent = `Heard "${transcript}" -> new match`; $('newMatch').click(); return; }
+            if (parsed.command === 'submit') { $('voiceHeard').textContent = `Heard "${transcript}" -> submit`; $('submitVisit').click(); return; }
             $('voiceHeard').textContent = `Heard "${transcript}" -> ${parsed.score}`;
             $('visitScore').value = parsed.score;
             if ($('voiceAutoSubmit').checked) $('submitVisit').click();
