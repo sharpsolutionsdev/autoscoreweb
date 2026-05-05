@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';">
     <title>Offline Bot Match | DartVoice</title>
-    <meta name="description" content="Play an instant offline competitive darts match against a DartVoice bot opponent.">
+    <meta name="description" content="Play instant offline competitive darts against a DartVoice bot opponent with voice scoring, checkout coaching, and Bot Ranked MMR.">
     <link rel="icon" type="image/svg+xml" href="assets/dartvoice-logo-v2.svg">
     <link rel="stylesheet" href="css/tailwind.built.css">
     <link rel="stylesheet" href="css/general/base.css">
@@ -34,6 +34,24 @@
         .history-result { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; font-weight:900; color:#fff; }
         .history-win { background:rgba(34,197,94,.20); border:1px solid rgba(34,197,94,.35); }
         .history-loss { background:rgba(239,68,68,.18); border:1px solid rgba(239,68,68,.32); }
+        .rank-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+        .rank-tile { border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.028); border-radius:10px; padding:12px; min-height:72px; }
+        .rank-tile strong { display:block; font-family:'Barlow Condensed',Impact,sans-serif; font-size:28px; line-height:1; color:#fff; font-weight:900; }
+        .rank-tile span { display:block; margin-top:5px; color:#8d8e99; font-size:10px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+        .rank-progress { height:8px; border-radius:999px; background:rgba(255,255,255,.07); overflow:hidden; }
+        .rank-progress > span { display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--brand),#f97316); transition:width .35s ease; }
+        .rank-row { display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.055); }
+        .rank-row:last-child { border-bottom:0; }
+        .rank-row.me { margin-left:-8px; margin-right:-8px; padding-left:8px; padding-right:8px; border-radius:10px; border-bottom:0; background:rgba(var(--brand-rgb),.12); outline:1px solid rgba(var(--brand-rgb),.24); }
+        .rank-pos { width:32px; height:32px; display:grid; place-items:center; border-radius:999px; background:rgba(255,255,255,.055); color:#cfd0da; font-family:'Barlow Condensed',Impact,sans-serif; font-size:18px; font-weight:900; }
+        .rank-name { min-width:0; }
+        .rank-name strong { display:block; color:#fff; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rank-name span { color:#8d8e99; font-size:11px; }
+        .rank-mmr { text-align:right; font-family:'Barlow Condensed',Impact,sans-serif; color:#fff; font-weight:900; font-size:22px; line-height:1; }
+        .rank-mmr span { display:block; margin-top:3px; font-family:Inter,system-ui,sans-serif; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#8d8e99; }
+        .rank-delta { font-weight:900; }
+        .rank-delta.up { color:#4ade80; }
+        .rank-delta.down { color:#fb7185; }
         .voice-card { border:1px solid rgba(var(--brand-rgb),.22); background:linear-gradient(180deg,rgba(var(--brand-rgb),.12),rgba(255,255,255,.025)); border-radius:12px; padding:12px; }
         .voice-button { width:100%; display:flex; align-items:center; justify-content:center; gap:9px; border:1px solid rgba(var(--brand-rgb),.36); background:rgba(var(--brand-rgb),.14); color:#fff; }
         .voice-button.listening { background:var(--brand); border-color:rgba(255,255,255,.22); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.16), 0 0 30px rgba(var(--brand-rgb),.28); }
@@ -47,6 +65,7 @@
         input:focus, select:focus { border-color:rgba(var(--brand-rgb),.65); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.12); }
         .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111118; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:10px 14px; color:white; font-size:13px; box-shadow:0 16px 40px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; }
         .toast.show { opacity:1; transform:translate(-50%,-4px); }
+        @media (max-width:640px) { .rank-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .rank-tile strong { font-size:24px; } }
     </style>
 </head>
 <body>
@@ -57,11 +76,12 @@
             <div>
                 <span class="pill"><span class="status-dot"></span>Offline competitive queue</span>
                 <h1 class="display text-5xl md:text-7xl mt-4 leading-none">Bot Match</h1>
-                <p class="text-gray-400 max-w-2xl mt-3">Instant practice with ranked-style pressure. No Supabase, no waiting, no opponent required.</p>
+                <p class="text-gray-400 max-w-2xl mt-3">Instant practice with ranked-style pressure, Bot Ranked MMR, and no waiting for an online opponent.</p>
                 <p class="text-gray-500 max-w-2xl mt-2 text-sm">Speak visits the DartVoice way: "one forty", "ton eighty", "treble twenty", "undo", or "new match".</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <a class="btn btn-ghost inline-flex items-center" href="ranked.html">Ranked Hub</a>
+                <a class="btn btn-ghost inline-flex items-center" href="#bot-ranked">Bot Ladder</a>
                 <a class="btn btn-ghost inline-flex items-center" href="web-app.html">Open Scorer</a>
             </div>
         </header>
@@ -142,6 +162,29 @@
                     </div>
                     <div id="historyList" class="history-list"></div>
                 </section>
+
+                <section id="bot-ranked" class="panel p-5" aria-label="Bot ranked leaderboard">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest font-black">Bot Ranked</p>
+                            <h3 id="botRankTitle" class="display text-3xl mt-1">Silver III</h3>
+                            <p id="botRankSub" class="text-sm text-gray-400 mt-2">Beat stronger bots to climb when the online queue is quiet.</p>
+                        </div>
+                        <span id="botRankBadge" class="pill">1200 MMR</span>
+                    </div>
+                    <div class="rank-progress mb-3" aria-label="Rank progress"><span id="botRankProgress"></span></div>
+                    <div class="rank-grid mb-5">
+                        <div class="rank-tile"><strong id="botRankMmr">1200</strong><span>MMR</span></div>
+                        <div class="rank-tile"><strong id="botRankRecord">0-0</strong><span>Record</span></div>
+                        <div class="rank-tile"><strong id="botRankPeak">1200</strong><span>Peak</span></div>
+                        <div class="rank-tile"><strong id="botRankDelta">+0</strong><span>Last</span></div>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-gray-500">Bot Ladder</h4>
+                        <button id="resetBotRank" class="btn btn-ghost min-h-0 py-2 text-xs" type="button">Reset Rank</button>
+                    </div>
+                    <div id="botLeaderboard" class="text-sm"></div>
+                </section>
             </div>
 
             <aside class="panel p-5">
@@ -202,10 +245,10 @@
     (function(){
         const $ = id => document.getElementById(id);
         const botProfiles = {
-            easy: { name:'Checkout Charlie', avg:55, spread:24, checkout:0.35 },
-            medium: { name:'Treble Tess', avg:75, spread:20, checkout:0.52 },
-            hard: { name:'Double Dylan', avg:90, spread:16, checkout:0.68 },
-            pro: { name:'Pro Pace Parker', avg:102, spread:12, checkout:0.82 }
+            easy: { name:'Checkout Charlie', avg:55, spread:24, checkout:0.35, mmr:900, tier:'Bronze bot' },
+            medium: { name:'Treble Tess', avg:75, spread:20, checkout:0.52, mmr:1200, tier:'Silver bot' },
+            hard: { name:'Double Dylan', avg:90, spread:16, checkout:0.68, mmr:1550, tier:'Gold bot' },
+            pro: { name:'Pro Pace Parker', avg:102, spread:12, checkout:0.82, mmr:1950, tier:'Platinum bot' }
         };
         const checkoutRoutes = {
             170:['T20','T20','Bull'], 167:['T20','T19','Bull'], 164:['T20','T18','Bull'], 161:['T20','T17','Bull'], 160:['T20','T20','D20'],
@@ -235,6 +278,15 @@
         let listening = false;
         let state = null;
         const history = [];
+        const BOT_RANK_KEY = 'dv-bot-ranked-profile-v1';
+        const botRanks = [
+            { name:'bronze', label:'Bronze', min:0, max:800 },
+            { name:'silver', label:'Silver', min:800, max:1200 },
+            { name:'gold', label:'Gold', min:1200, max:1600 },
+            { name:'platinum', label:'Platinum', min:1600, max:2000 },
+            { name:'diamond', label:'Diamond', min:2000, max:2400 },
+            { name:'champion', label:'Champion', min:2400, max:3000 }
+        ];
 
         function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
         function randomNormal(){ let u=0,v=0; while(!u) u=Math.random(); while(!v) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
@@ -245,6 +297,60 @@
             if (checkoutRoutes[score]) return checkoutRoutes[score];
             if (validCheckout(score)) return [score === 50 ? 'Bull' : 'D' + (score / 2)];
             return null;
+        }
+        function defaultBotRank(){ return { mmr:1200, peak:1200, wins:0, losses:0, matches:0, placements:0, lastDelta:0, lastOpponent:'Treble Tess', lastResult:null }; }
+        function loadBotRank(){
+            try { return Object.assign(defaultBotRank(), JSON.parse(localStorage.getItem(BOT_RANK_KEY) || '{}')); }
+            catch (_) { return defaultBotRank(); }
+        }
+        function saveBotRank(profile){ localStorage.setItem(BOT_RANK_KEY, JSON.stringify(profile)); }
+        function rankInfo(mmr){
+            const value = Math.max(0, Number(mmr) || 0);
+            let index = 0;
+            for (let i = 0; i < botRanks.length; i++) if (value >= botRanks[i].min) index = i;
+            const rank = botRanks[index];
+            const span = rank.max - rank.min;
+            const within = Math.max(0, Math.min(0.999, (value - rank.min) / span));
+            const division = within < 1/3 ? 'III' : within < 2/3 ? 'II' : 'I';
+            const next = botRanks[index + 1];
+            const progress = next ? Math.round(within * 100) : 100;
+            return { name:rank.name, label:`${rank.label} ${division}`, next: next ? next.label : 'Top 500', progress };
+        }
+        function botOpponentMmr(){
+            if (!state?.profile) return 1200;
+            const formatMod = state.start === 501 ? 0 : -50;
+            const lengthMod = Math.max(0, state.targetLegs - 1) * 25;
+            return state.profile.mmr + formatMod + lengthMod;
+        }
+        function kFactor(mmr, placements){
+            if ((placements || 0) < 5) return 48;
+            if (mmr < 1500) return 32;
+            if (mmr < 2400) return 24;
+            return 16;
+        }
+        function applyBotRank(won){
+            const profile = loadBotRank();
+            const before = Number(profile.mmr) || 1200;
+            const opponent = botOpponentMmr();
+            const expected = 1 / (1 + Math.pow(10, (opponent - before) / 400));
+            const score = won ? 1 : 0;
+            const k = kFactor(before, profile.placements);
+            const legDiff = Math.abs((state.playerLegs || 0) - (state.botLegs || 0));
+            const cleanBonus = won ? Math.min(5, legDiff * 2) : 0;
+            const upsetBonus = won && opponent - before >= 250 ? 4 : 0;
+            const delta = Math.max(-48, Math.min(56, Math.round(k * (score - expected)) + cleanBonus + upsetBonus));
+            profile.mmr = Math.max(0, before + delta);
+            profile.peak = Math.max(profile.peak || 1200, profile.mmr);
+            profile.matches = (profile.matches || 0) + 1;
+            profile.placements = Math.min(5, (profile.placements || 0) + 1);
+            won ? profile.wins = (profile.wins || 0) + 1 : profile.losses = (profile.losses || 0) + 1;
+            profile.lastDelta = delta;
+            profile.lastOpponent = state.profile.name;
+            profile.lastResult = won ? 'win' : 'loss';
+            saveBotRank(profile);
+            log(`Bot Ranked ${delta >= 0 ? '+' : ''}${delta} MMR (${profile.mmr})`);
+            renderBotRank();
+            return profile;
         }
         const numberWords = {
             zero:0, oh:0, one:1, won:1, two:2, too:2, to:2, three:3, four:4, for:4, five:5, six:6, seven:7, eight:8, ate:8, nine:9,
@@ -448,6 +554,7 @@
             if (state[who + 'Legs'] >= state.targetLegs) {
                 state.over = true;
                 toast(who === 'player' ? 'Match won' : 'Match lost');
+                applyBotRank(who === 'player');
                 saveStats(who === 'player');
                 saveHistory(who === 'player');
                 render();
@@ -472,7 +579,8 @@
         function saveHistory(won){
             const key = 'dv-offline-bot-history-v1';
             const rows = JSON.parse(localStorage.getItem(key) || '[]');
-            rows.unshift({ won, bot: state.profile.name, format: state.start, playerLegs: state.playerLegs, botLegs: state.botLegs, date: new Date().toISOString() });
+            const rank = loadBotRank();
+            rows.unshift({ won, bot: state.profile.name, format: state.start, playerLegs: state.playerLegs, botLegs: state.botLegs, mmr: rank.mmr, mmrDelta: rank.lastDelta, date: new Date().toISOString() });
             localStorage.setItem(key, JSON.stringify(rows.slice(0, 8)));
             renderHistory();
         }
@@ -484,6 +592,32 @@
             $('statWins').textContent = stats.wins || 0;
             $('statRate').textContent = rate + '%';
             $('statStreak').textContent = stats.streak > 0 ? `W${stats.streak}` : stats.streak < 0 ? `L${Math.abs(stats.streak)}` : '0';
+            renderBotRank();
+        }
+
+        function renderBotRank(){
+            if (!$('botRankMmr')) return;
+            const profile = loadBotRank();
+            const info = rankInfo(profile.mmr);
+            const lastDelta = profile.lastDelta || 0;
+            $('botRankTitle').textContent = info.label;
+            $('botRankSub').textContent = profile.placements < 5 ? `${5 - profile.placements} placement matches left. Bigger swings calibrate your bot rank quickly.` : `Next: ${info.next}. Beat higher-rated bots for stronger gains.`;
+            $('botRankBadge').textContent = `${profile.mmr} MMR`;
+            $('botRankProgress').style.width = `${info.progress}%`;
+            $('botRankMmr').textContent = profile.mmr;
+            $('botRankRecord').textContent = `${profile.wins || 0}-${profile.losses || 0}`;
+            $('botRankPeak').textContent = profile.peak || profile.mmr;
+            $('botRankDelta').textContent = `${lastDelta >= 0 ? '+' : ''}${lastDelta}`;
+            $('botRankDelta').className = `display text-2xl rank-delta ${lastDelta >= 0 ? 'up' : 'down'}`;
+
+            const botRows = Object.values(botProfiles).map(bot => ({ name:bot.name, sub:bot.tier, mmr:bot.mmr, me:false }));
+            const rows = [{ name:'You', sub:info.label, mmr:profile.mmr, me:true }].concat(botRows).sort((a,b) => b.mmr - a.mmr);
+            $('botLeaderboard').innerHTML = rows.map((row, index) => `
+                <div class="rank-row ${row.me ? 'me' : ''}">
+                    <span class="rank-pos">${index + 1}</span>
+                    <span class="rank-name"><strong>${row.name}</strong><span>${row.me ? 'Your bot rank' : row.sub}</span></span>
+                    <span class="rank-mmr">${row.mmr}<span>MMR</span></span>
+                </div>`).join('');
         }
 
         function renderHistory(){
@@ -498,7 +632,9 @@
                 const item = document.createElement('div');
                 item.className = 'history-row';
                 const date = new Date(row.date).toLocaleDateString([], { month:'short', day:'numeric' });
-                item.innerHTML = `<span class="history-result ${row.won ? 'history-win' : 'history-loss'}">${row.won ? 'W' : 'L'}</span><span><strong class="text-white">${row.format}</strong> vs ${row.bot}<br><span class="text-gray-500">${row.playerLegs}-${row.botLegs} legs</span></span><span class="text-gray-500">${date}</span>`;
+                const delta = Number(row.mmrDelta || 0);
+                const deltaText = row.mmr ? `<br><span class="rank-delta ${delta >= 0 ? 'up' : 'down'}">${delta >= 0 ? '+' : ''}${delta} MMR</span>` : '';
+                item.innerHTML = `<span class="history-result ${row.won ? 'history-win' : 'history-loss'}">${row.won ? 'W' : 'L'}</span><span><strong class="text-white">${row.format}</strong> vs ${row.bot}<br><span class="text-gray-500">${row.playerLegs}-${row.botLegs} legs</span>${deltaText}</span><span class="text-gray-500">${date}</span>`;
                 list.appendChild(item);
             });
         }
@@ -514,6 +650,7 @@
             render();
         });
         $('clearHistory').addEventListener('click', () => { localStorage.removeItem('dv-offline-bot-history-v1'); renderHistory(); toast('History cleared'); });
+        $('resetBotRank').addEventListener('click', () => { localStorage.removeItem(BOT_RANK_KEY); renderBotRank(); toast('Bot rank reset'); });
         $('voiceToggle').addEventListener('click', () => {
             if (!recognizer) return;
             try { listening ? recognizer.stop() : recognizer.start(); }
@@ -521,6 +658,7 @@
         });
         setupVoice();
         renderStats();
+        renderBotRank();
         renderHistory();
         startMatch();
     })();
