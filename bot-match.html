@@ -69,7 +69,7 @@
         input:focus, select:focus { border-color:rgba(var(--brand-rgb),.65); box-shadow:0 0 0 3px rgba(var(--brand-rgb),.12); }
         .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111118; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:10px 14px; color:white; font-size:13px; box-shadow:0 16px 40px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; }
         .toast.show { opacity:1; transform:translate(-50%,-4px); }
-        .result-overlay { position:fixed; inset:0; z-index:1200; display:flex; align-items:center; justify-content:center; padding:24px; background:radial-gradient(ellipse at center,rgba(0,0,0,.88) 0%,rgba(0,0,0,.975) 48%,#000 100%); opacity:0; visibility:hidden; pointer-events:none; transition:opacity .32s ease, visibility .32s ease; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+        .result-overlay { position:fixed; inset:0; z-index:1200; display:flex; align-items:center; justify-content:center; padding:24px; background:radial-gradient(ellipse at center,rgba(0,0,0,.88) 0%,rgba(0,0,0,.975) 48%,#000 100%); opacity:0; visibility:hidden; pointer-events:none; transition:none; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
         .result-overlay.active { opacity:1; visibility:visible; pointer-events:auto; }
         .result-overlay.win { background:radial-gradient(ellipse at center,rgba(34,197,94,.20) 0%,rgba(0,0,0,.96) 48%,#000 100%); }
         .result-overlay.loss { background:radial-gradient(ellipse at center,rgba(var(--brand-rgb),.20) 0%,rgba(0,0,0,.96) 48%,#000 100%); }
@@ -603,16 +603,31 @@
             $('botResultDelta').className = `result-delta ${delta >= 0 ? 'up' : 'down'}`;
             $('botResultSummary').textContent = `${state.start} first to ${state.targetLegs} · ${rankResult.after} MMR · ${rankResult.profile.wins || 0}-${rankResult.profile.losses || 0} bot record`;
             overlay.setAttribute('aria-hidden', 'false');
-            requestAnimationFrame(() => overlay.classList.add('active'));
+            overlay.style.transition = 'none';
+            overlay.style.opacity = '1';
+            overlay.style.visibility = 'visible';
+            overlay.style.pointerEvents = 'auto';
+            void overlay.offsetWidth;
+            overlay.classList.add('active');
             const start = rankResult.before;
             const end = rankResult.after;
-            const started = performance.now();
-            setTimeout(() => requestAnimationFrame(function step(t){
-                const progress = Math.min(1, (t - started) / 900);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                $('botResultAfter').textContent = Math.round(start + (end - start) * eased);
-                if (progress < 1) requestAnimationFrame(step);
-            }), 500);
+            const afterEl = $('botResultAfter');
+            setTimeout(() => {
+                if (start === end) { afterEl.textContent = end; return; }
+                const started = performance.now();
+                let finished = false;
+                const finish = () => { finished = true; afterEl.textContent = end; };
+                const fallback = setTimeout(() => { if (!finished) finish(); }, 1200);
+                const step = t => {
+                    const progress = Math.min(1, (t - started) / 900);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    afterEl.textContent = Math.round(start + (end - start) * eased);
+                    if (progress < 1) requestAnimationFrame(step);
+                    else { clearTimeout(fallback); finish(); }
+                };
+                if (typeof requestAnimationFrame === 'function') requestAnimationFrame(step);
+                else finish();
+            }, 500);
         }
 
         function startMatch(){
@@ -852,7 +867,15 @@
             if (recognizer) recognizer.lang = e.target.value;
             voiceHeard(`Accent set to ${e.target.options[e.target.selectedIndex].textContent}.`);
         });
-        $('botResultClose').addEventListener('click', () => { $('botResultOverlay').classList.remove('active'); $('botResultOverlay').setAttribute('aria-hidden', 'true'); });
+        $('botResultClose').addEventListener('click', () => {
+            const overlay = $('botResultOverlay');
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+            overlay.style.opacity = '';
+            overlay.style.visibility = '';
+            overlay.style.pointerEvents = '';
+            overlay.style.transition = '';
+        });
         $('botResultRematch').addEventListener('click', () => { $('botResultClose').click(); startMatch(); });
         setupVoice();
         renderStats();
