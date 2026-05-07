@@ -4202,17 +4202,24 @@
                 setTimeout(() => { popoutBtn.disabled = !stream; }, 50);
             });
 
-            // Composite render loop — runs alongside the main overlay loop.
-            (function compositeLoop(){
-                requestAnimationFrame(compositeLoop);
-                if (panel.classList.contains('dv-bz-open')) renderComposite();
-            })();
+            let compositeRaf = 0;
+            function compositeLoop(){
+                compositeRaf = 0;
+                if (!panel.classList.contains('dv-bz-open')) return;
+                renderComposite();
+                compositeRaf = requestAnimationFrame(compositeLoop);
+            }
+            function ensureCompositeLoop(){
+                if (!compositeRaf && panel.classList.contains('dv-bz-open')) compositeRaf = requestAnimationFrame(compositeLoop);
+            }
 
             // Stop stream when panel hidden to free the camera.
             const obs = new MutationObserver(() => {
                 if (!panel.classList.contains('dv-bz-open') && stream) { stopStream(); startBtn.textContent = 'Start'; }
+                if (panel.classList.contains('dv-bz-open')) ensureCompositeLoop();
             });
             obs.observe(panel, { attributes:true, attributeFilter:['class'] });
+            ensureCompositeLoop();
 
             // Initial paint
             renderZones(); renderZooms();
@@ -9021,20 +9028,25 @@ window.openScorerUrl = function(url){
                     micAnalyser.fftSize = 512;
                     src.connect(micAnalyser);
                     const data = new Uint8Array(micAnalyser.frequencyBinCount);
-                    function tick(){
+                    let lastMicMeterPaint = 0;
+                    function tick(ts){
                         if (!micAnalyser) return;
-                        micAnalyser.getByteTimeDomainData(data);
-                        let peak = 0;
-                        for (let i = 0; i < data.length; i++) {
-                            const v = Math.abs(data[i] - 128);
-                            if (v > peak) peak = v;
+                        const now = ts || performance.now();
+                        if (now - lastMicMeterPaint >= 80) {
+                            lastMicMeterPaint = now;
+                            micAnalyser.getByteTimeDomainData(data);
+                            let peak = 0;
+                            for (let i = 0; i < data.length; i++) {
+                                const v = Math.abs(data[i] - 128);
+                                if (v > peak) peak = v;
+                            }
+                            const sens = (AppConfig.micSensitivity || 100) / 100;
+                            const level = Math.min(100, Math.round((peak / 128) * 100 * 1.6 * sens));
+                            if (bar) bar.style.width = level + '%';
+                            if (pct) pct.textContent = level + '%';
+                            // Drive the transcript-header mini-waveform.
+                            try { document.documentElement.style.setProperty('--lvl', (level * 0.18).toFixed(1) + 'px'); } catch(_){}
                         }
-                        const sens = (AppConfig.micSensitivity || 100) / 100;
-                        const level = Math.min(100, Math.round((peak / 128) * 100 * 1.6 * sens));
-                        if (bar) bar.style.width = level + '%';
-                        if (pct) pct.textContent = level + '%';
-                        // Drive the transcript-header mini-waveform.
-                        try { document.documentElement.style.setProperty('--lvl', (level * 0.18).toFixed(1) + 'px'); } catch(_){}
                         micRaf = requestAnimationFrame(tick);
                     }
                     tick();
@@ -9783,7 +9795,12 @@ window.openScorerUrl = function(url){
         else animateHudCards();
         // Animate any cards that become visible later (tab switches etc.)
         try {
-            const io = new MutationObserver(() => { try { animateHudCards(); } catch(_){} });
+            let animQueued = false;
+            const io = new MutationObserver(() => {
+                if (animQueued) return;
+                animQueued = true;
+                requestAnimationFrame(() => { animQueued = false; try { animateHudCards(); } catch(_){} });
+            });
             io.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class','style','hidden'] });
         } catch(_){}
     })();

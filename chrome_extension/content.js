@@ -1765,7 +1765,7 @@
 
     function postState() {
       const now = Date.now();
-      if (now - _lastStateTick < 250) return; // throttle
+      if (now - _lastStateTick < 750) return; // throttle
       _lastStateTick = now;
       const s = snapshotState();
       const json = JSON.stringify(s);
@@ -1777,19 +1777,30 @@
       }
     }
 
+    let _statePostScheduled = false;
+    function schedulePostState(delay) {
+      if (_statePostScheduled) return;
+      _statePostScheduled = true;
+      setTimeout(() => {
+        const run = () => { _statePostScheduled = false; postState(); };
+        if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 700 });
+        else setTimeout(run, 0);
+      }, delay == null ? 250 : delay);
+    }
+
     // Observe DOM for changes — characterData + subtree captures most SPA updates
-    const mo = new MutationObserver(() => { postState(); });
+    const mo = new MutationObserver(() => { schedulePostState(250); });
     function startObserving() {
       if (!document.body) { setTimeout(startObserving, 300); return; }
       mo.observe(document.body, { childList: true, subtree: true, characterData: true });
-      postState();
+      schedulePostState(0);
     }
     startObserving();
 
     // Also emit on URL change (Angular route)
     const _pushState = history.pushState;
-    history.pushState = function () { _pushState.apply(this, arguments); setTimeout(postState, 50); };
-    window.addEventListener('popstate', () => setTimeout(postState, 50));
+    history.pushState = function () { _pushState.apply(this, arguments); schedulePostState(50); };
+    window.addEventListener('popstate', () => schedulePostState(50));
 
     // Handler: parent asks us to submit checkout darts (1/2/3) into DC's modal.
     window.addEventListener('message', (event) => {

@@ -52,6 +52,12 @@
         wrappers.forEach(w => { try { w.update(STATE); } catch(_){} });
     }
 
+    function isNeutralZoom(s){
+        return Math.abs((s.zoom || 1) - 1) < 0.01 &&
+               Math.abs((s.panX == null ? 0.5 : s.panX) - 0.5) < 0.01 &&
+               Math.abs((s.panY == null ? 0.5 : s.panY) - 0.5) < 0.01;
+    }
+
     // ── postMessage bridge from dartvoice.app's web-app.html ──
     // Accept messages from any frame on the same opener tree — we trust
     // that only DartVoice ever posts the dv-cam-config protocol.
@@ -98,6 +104,18 @@
         let nativeZoomCaps = null;
         try { nativeZoomCaps = (t.getCapabilities && t.getCapabilities()) || null; } catch(_){}
         const hasNativeZoom = !!(nativeZoomCaps && 'zoom' in nativeZoomCaps);
+
+        if (hasNativeZoom) {
+            try {
+                const min = nativeZoomCaps.zoom.min || 1;
+                const max = nativeZoomCaps.zoom.max || 1;
+                const target = Math.min(max, Math.max(min, STATE.zoom || 1));
+                t.applyConstraints({ advanced: [{ zoom: target }] }).catch(()=>{});
+            } catch(_){}
+            return srcStream;
+        }
+
+        if (isNeutralZoom(STATE)) return srcStream;
 
         // Hidden video element drives the canvas pipeline.
         const v = document.createElement('video');
@@ -162,20 +180,6 @@
         const handle = {
             update(s){
                 tgt.zoom = s.zoom; tgt.panX = s.panX; tgt.panY = s.panY;
-                if (hasNativeZoom) {
-                    // Hardware zoom is real optical/digital zoom on the lens
-                    // itself — much better quality than canvas crop. Apply it
-                    // to the source track and let the canvas just centre-pan.
-                    try {
-                        const min = nativeZoomCaps.zoom.min || 1;
-                        const max = nativeZoomCaps.zoom.max || 1;
-                        const target = Math.min(max, Math.max(min, s.zoom));
-                        t.applyConstraints({ advanced: [{ zoom: target }] }).catch(()=>{});
-                        // Once hardware applied, neutralise the canvas crop so
-                        // we don't double-zoom.
-                        tgt.zoom = 1;
-                    } catch(_){}
-                }
             }
         };
         wrappers.add(handle);
