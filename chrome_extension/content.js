@@ -1836,8 +1836,8 @@
     if (!_TRUSTED_ORIGINS.includes(event.origin) && event.origin !== window.location.origin) return;
 
     if (event.data && event.data.type) {
-      // Don't log every ping/pong to avoid console spam, but log data for debugging
-      if (event.data.type !== "DARTVOICE_PING") {
+      // Don't log high-frequency housekeeping messages to avoid console spam.
+      if (event.data.type !== "DARTVOICE_PING" && event.data.type !== "dv-set-volume") {
           logTrace("Received Window Payload:", event.data);
       }
 
@@ -2015,7 +2015,15 @@
             } catch(e){}
           } catch(e){}
         }
-        logTrace('Volume set to ' + Math.round(vol * 100) + '% (persistent)');
+        try {
+          const now = Date.now();
+          const pct = Math.round(vol * 100);
+          if (window.__dvLastVolumeLogPct !== pct || now - (window.__dvLastVolumeLogAt || 0) > 10000) {
+            window.__dvLastVolumeLogPct = pct;
+            window.__dvLastVolumeLogAt = now;
+            logTrace('Volume set to ' + pct + '% (persistent)');
+          }
+        } catch(e){}
       }
       
       if (event.data.type === "DARTVOICE_SCORE_INJECT") {
